@@ -1,13 +1,10 @@
-import type { Metadata } from 'next';
 import { Viewport } from 'next';
-import { DM_Sans } from 'next/font/google';
+import { Metadata } from 'next';
 
 import './globals.css';
-
-const dmSans = DM_Sans({
-    subsets: ['latin'],
-    variable: '--font-family-dm-sans'
-});
+import { dmSans } from '@lib/fonts';
+import { NavBar } from '@components/nav-bar/nav-bar';
+import { LayoutProps } from '@lib/definitions';
 
 export const metadata: Metadata = {
     title: 'Cloud People',
@@ -18,12 +15,18 @@ export const viewport: Viewport = {
     // themeColor: '#4265a7'
 };
 
-const RootLayout = ({ children }: Readonly<{ children: React.ReactNode; }>) => (
-    <html lang="en">
-        <body className={dmSans.className}>
-            {children}
-        </body>
-    </html>
-);
+const RootLayout = ({ children }: LayoutProps) => {
+
+    return (
+        <html lang="en">
+            <body className={dmSans.className}>
+                <div>
+                    <NavBar />
+                    {children}
+                </div>
+            </body>
+        </html>
+    );
+};
 
 export default RootLayout;

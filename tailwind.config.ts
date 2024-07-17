@@ -1,3 +1,4 @@
+import flowbite from 'flowbite/plugin';
 import defaultTheme from 'tailwindcss/defaultTheme';
 import { Config } from 'tailwindcss';
 
@@ -12,6 +13,6 @@ const config: Config = {
             sans: ['var(--font-family-dm-sans)', ...defaultTheme.fontFamily.sans]
         }
     },
-    plugins: []
+    plugins: [flowbite]
 };
 export default config;

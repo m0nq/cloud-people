@@ -1,5 +1,6 @@
 import './main.styles.css';
 import { Banner } from '@components/banner/banner';
+import { Content } from '@components/content/content';
 
 export const Main = () => {
     return (
@@ -9,7 +10,7 @@ export const Main = () => {
                     <Banner />
                     <div className="header">Header</div>
                     <div className="sidebar">Sidebar</div>
-                    <div className="content">Content</div>
+                    <Content />
                     {/*<div className="footer">Footer</div>*/}
                 </div>
             </div>

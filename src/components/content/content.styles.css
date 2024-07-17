@@ -1,0 +1,23 @@
+.content {
+  @apply h-full w-full row-start-[content] row-end-[content] col-start-[content] col-end-[content] z-[999] flex overflow-auto content-center;
+}
+
+.content-view-container {
+  @apply relative flex overflow-auto h-full w-full;
+}
+
+.content-view-wrapper {
+  @apply flex-1 overflow-hidden w-full h-full relative;
+}
+
+/*.content-background {*/
+/*  @apply absolute before:content-['+'];*/
+/*}*/
+
+.content-area {
+  /*background-image: radial-gradient(circle at 9.232829814657px 9.232829814657px, hsl(220, 2%, 33%) 0.9232829814657001px, transparent 0);*/
+  /*background-image: radial-gradient(circle, #000000 1px, rgba(0, 0, 0, 0) 1px);*/
+  @apply bg-[length:18.5px_18.5px] bg-[left_9.6px_top_26.6396px] absolute w-full h-full -z-10;
+  /*@apply absolute inset-0 h-full w-full bg-white bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px];*/
+  background: linear-gradient(white, white), linear-gradient(white, white);
+}
