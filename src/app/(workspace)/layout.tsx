@@ -12,10 +12,10 @@ const WorkspaceLayout = async ({ children }: LayoutProps) => {
     await isLoggedIn();
 
     return (
-        <>
+        <main>
             <NavBar />
             {children}
-        </>
+        </main>
     );
 };
 

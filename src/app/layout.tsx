@@ -19,9 +19,7 @@ const RootLayout = ({ children }: LayoutProps) => {
     return (
         <html lang="en">
             <body className={dmSans.className}>
-                <div>
-                    {children}
-                </div>
+                {children}
             </body>
         </html>
     );
