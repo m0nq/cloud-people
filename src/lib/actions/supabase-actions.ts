@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import DOMPurify from 'isomorphic-dompurify';
 import { headers } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 
 import { createClient } from '@lib/supabase/server';
 
@@ -39,6 +40,7 @@ export const signOut = async () => {
 
     const supabase = createClient();
     await supabase.auth.signOut({ scope: 'local' });
+    revalidatePath('/', 'layout');
     return redirect('/login');
 };
 
