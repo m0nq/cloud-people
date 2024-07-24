@@ -3,7 +3,6 @@ import { Metadata } from 'next';
 
 import './globals.css';
 import { dmSans } from '@lib/fonts';
-import { NavBar } from '@components/nav-bar/nav-bar';
 import { LayoutProps } from '@lib/definitions';
 
 export const metadata: Metadata = {
@@ -21,7 +20,6 @@ const RootLayout = ({ children }: LayoutProps) => {
         <html lang="en">
             <body className={dmSans.className}>
                 <div>
-                    <NavBar />
                     {children}
                 </div>
             </body>

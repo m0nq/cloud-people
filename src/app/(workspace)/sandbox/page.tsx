@@ -1,4 +1,5 @@
-const Sandbox = async () => {
+const Sandbox = () => {
+
     return (
         <>
             <div>Sandbox Page</div>

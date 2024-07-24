@@ -1,6 +1,6 @@
-import { Login } from '@components/login/login';
+const HomePage = () => {
 
-// this can load the login page, which will then redirect to the dashboard
-const Home = async () => <Login />;
+    return <h2>Oops...!</h2>;
+};
 
-export default Home;
+export default HomePage;

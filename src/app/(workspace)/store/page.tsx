@@ -1,4 +1,5 @@
-const Store = async () => {
+const Store = () => {
+
     return (
         <>
             <div>Store Page</div>
