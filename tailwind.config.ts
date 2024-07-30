@@ -10,7 +10,8 @@ const config: Config = {
     ],
     theme: {
         fontFamily: {
-            sans: ['var(--font-family-dm-sans)', ...defaultTheme.fontFamily.sans]
+            sans: ['var(--font-family-dm-sans)', ...defaultTheme.fontFamily.sans],
+            head: ['var(--font-family-lexend)', ...defaultTheme.fontFamily.sans]
         }
     },
     plugins: [flowbite]

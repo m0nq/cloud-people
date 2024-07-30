@@ -1,0 +1,24 @@
+/* BoardView */
+
+/*position: relative;*/
+/*width: 1728px;*/
+/*height: 1117px;*/
+
+/*background: #F7F7F9;*/
+/*border-radius: 20px;*/
+
+.login-container {
+  @apply flex flex-row items-center w-full h-screen;
+}
+
+.banner {
+  @apply bg-[#56E8CD] w-3/5 h-full flex flex-col items-center justify-center text-center;
+}
+
+.login-form {
+  @apply w-2/5;
+}
+
+.font-head {
+  @apply font-bold text-4xl w-full uppercase tracking-[0.5rem] text-[#18642D] pt-6;
+}
