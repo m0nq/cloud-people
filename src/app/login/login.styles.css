@@ -50,3 +50,23 @@
 .display-message {
   @apply mt-4 p-4 text-center;
 }
+
+.separating-area {
+  @apply w-full flex flex-row items-center justify-center my-4 py-4;
+}
+
+.separating-area hr {
+  @apply border-gray-400 dark:border-gray-600 border-opacity-75;
+}
+
+.social-login-area {
+  @apply w-full flex flex-col gap-3;
+}
+
+.social-login-area a {
+  @apply w-full text-sm px-4 py-3 border border-black rounded-md;
+}
+
+.social-login-area a > span {
+  @apply mx-auto flex justify-center flex-row items-center gap-2;
+}
