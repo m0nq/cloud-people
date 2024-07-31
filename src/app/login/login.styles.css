@@ -1,24 +1,52 @@
-/* BoardView */
-
-/*position: relative;*/
-/*width: 1728px;*/
-/*height: 1117px;*/
-
-/*background: #F7F7F9;*/
-/*border-radius: 20px;*/
-
 .login-container {
-  @apply flex flex-row items-center w-full h-screen;
+  @apply flex flex-row items-center w-full h-screen font-inter;
 }
 
 .banner {
   @apply bg-[#56E8CD] w-3/5 h-full flex flex-col items-center justify-center text-center;
 }
 
-.login-form {
-  @apply w-2/5;
+.font-head {
+  @apply font-bold w-full uppercase tracking-[0.5rem] text-[#18642D] pt-6;
 }
 
-.font-head {
-  @apply font-bold text-4xl w-full uppercase tracking-[0.5rem] text-[#18642D] pt-6;
+.form-area {
+  @apply w-2/5 h-screen;
+}
+
+.login-form-wrapper {
+  @apply h-full w-3/4 mx-auto flex flex-col items-center justify-center text-center;
+}
+
+.login-form-wrapper h2 {
+  @apply font-semibold self-start pb-5 text-left mb-5;
+}
+
+.login-form {
+  @apply flex flex-col items-center justify-evenly w-full;
+}
+
+.input {
+  @apply rounded-md w-full;
+}
+
+.agreement-wrapper {
+  @apply py-2 self-start ml-0.5;
+}
+
+.checkbox {
+  @apply rounded;
+}
+
+.agreement-label {
+  @apply ml-4 text-sm
+}
+
+.submit-button {
+  /* TODO: add hover and active styling */
+  @apply py-3 px-4 mt-3 rounded-md no-underline w-full bg-[#614CFF] text-white hover:bg-[rgba(97_76_255_4)];
+}
+
+.display-message {
+  @apply mt-4 p-4 text-center;
 }

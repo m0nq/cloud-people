@@ -11,9 +11,11 @@ const config: Config = {
     theme: {
         fontFamily: {
             sans: ['var(--font-family-dm-sans)', ...defaultTheme.fontFamily.sans],
-            head: ['var(--font-family-lexend)', ...defaultTheme.fontFamily.sans]
+            lexend: ['var(--font-family-lexend)', ...defaultTheme.fontFamily.sans],
+            inter: ['var(--font-family-inter)', ...defaultTheme.fontFamily.sans]
         }
     },
     plugins: [flowbite]
 };
+
 export default config;

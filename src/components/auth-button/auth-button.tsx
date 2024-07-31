@@ -3,10 +3,11 @@ import { signOut } from '@lib/actions/supabase-actions';
 
 type AuthButtonProps = {
     formAction: string | ((formData: FormData) => void) | undefined,
-    buttonType: 'submit' | 'reset' | 'button' | undefined
+    buttonType: 'submit' | 'reset' | 'button' | undefined,
+    className?: string,
 }
 
-export const AuthenticationButton = async ({ formAction, buttonType }: AuthButtonProps) => {
+export const AuthenticationButton = async ({ formAction, buttonType, className }: AuthButtonProps) => {
     const supabase = createClient();
 
     const { data: { user } } = await supabase.auth.getUser();
@@ -15,15 +16,15 @@ export const AuthenticationButton = async ({ formAction, buttonType }: AuthButto
         <div className="flex items-center gap-4">
             Hey, {user.email}!
             <button formAction={signOut}
-                className="py-2 px-4 rounded-md no-underline bg-btn-background hover:bg-btn-background-hover">
+                className={className}>
                 Logout
             </button>
         </div>
     ) : (
         <button formAction={formAction}
             type={buttonType}
-            className="py-2 px-3 flex rounded-md no-underline bg-btn-background hover:bg-btn-background-hover">
-            Login/Sign Up
+            className={className}>
+            Sign up / Login
         </button>
     );
 };

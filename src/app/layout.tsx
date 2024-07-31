@@ -4,6 +4,7 @@ import { Metadata } from 'next';
 import './globals.css';
 import { dmSans } from '@lib/fonts';
 import { lexend } from '@lib/fonts';
+import { inter } from '@lib/fonts';
 import { LayoutProps } from '@lib/definitions';
 
 export const metadata: Metadata = {
@@ -19,7 +20,7 @@ const RootLayout = ({ children }: LayoutProps) => {
 
     return (
         <html lang="en">
-            <body className={`${dmSans.variable} ${lexend.variable}`}>
+            <body className={`${dmSans.variable} ${lexend.variable} ${inter.variable}`}>
                 {children}
             </body>
         </html>

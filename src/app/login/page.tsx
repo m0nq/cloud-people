@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { AuthenticationButton } from '@components/auth-button/auth-button';
 import { loginOrSignUp } from '@lib/actions/supabase-actions';
 
@@ -13,17 +15,26 @@ const LoginPage = ({ searchParams }: { searchParams: { message: string } }) => (
             </svg>
             <h1 className="font-head">Cloud People</h1>
         </div>
-        <div className="login-form">
-            <form>
-                <label htmlFor="email">Email:</label>
-                <input id="email" name="email" type="email" required />
-                <AuthenticationButton formAction={loginOrSignUp} buttonType="submit" />
-            </form>
-            {searchParams?.message && (
-                <p className="mt-4 p-4 bg-foreground/10 text-foreground text-center">
-                    {searchParams.message}
-                </p>
-            )}
+        <div className="form-area">
+            <div className="login-form-wrapper">
+                <h2>Running your business from the clouds</h2>
+                <form className="login-form">
+                    <input className="input" placeholder="Email" id="email" name="email" type="email" required />
+                    <div className="agreement-wrapper">
+                        <input className="checkbox" type="checkbox" id="agreement" />
+                        <label htmlFor="agreement" className="agreement-label">
+                            I agree to DopeSass <Link href="#">Terms of Service</Link> and{' '}
+                            <Link href="#">Privacy Policy</Link>
+                        </label>
+                    </div>
+                    <AuthenticationButton className="submit-button" formAction={loginOrSignUp} buttonType="submit" />
+                </form>
+                {searchParams?.message && (
+                    <p className="display-message">
+                        {searchParams.message}
+                    </p>
+                )}
+            </div>
         </div>
     </div>
 );
