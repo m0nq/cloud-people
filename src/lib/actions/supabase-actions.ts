@@ -24,7 +24,6 @@ export const loginOrSignUp = async (formData: FormData) => {
     const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-            // TODO: change this to main site when uploaded
             emailRedirectTo: `${origin}/auth/callback`
         }
     });

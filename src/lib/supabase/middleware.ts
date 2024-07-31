@@ -35,7 +35,6 @@ export const updateSession = async (request: NextRequest) => {
             }
         }
     );
-    // const supabase = createClient();
 
     // IMPORTANT: Avoid writing any logic between createServerClient and
     // supabase.auth.getUser(). A simple mistake could make it very hard to debug
