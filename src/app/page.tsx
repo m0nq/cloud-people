@@ -1,5 +1,7 @@
-import { Main } from '@components/main/main';
+const HomePage = () => {
 
-const Home = () => <Main />;
+    // No one should reach this page
+    return <h2>Oops...!</h2>;
+};
 
-export default Home;
+export default HomePage;
