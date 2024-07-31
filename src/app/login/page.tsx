@@ -27,11 +27,7 @@ const LoginPage = ({ searchParams }: { searchParams: { message: string } }) => (
                     </div>
                     <AuthenticationButton className="submit-button" formAction={loginOrSignUp} buttonType="submit" />
                 </form>
-                {searchParams?.message && (
-                    <p className="display-message">
-                        {searchParams.message}
-                    </p>
-                )}
+                {searchParams?.message && <p className="display-message">{searchParams.message}</p>}
             </div>
         </div>
     </div>
