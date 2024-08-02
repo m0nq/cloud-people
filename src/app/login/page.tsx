@@ -19,8 +19,8 @@ const LoginPage = ({ searchParams }: { searchParams: { message: string } }) => (
                 <form className="login-form">
                     <input className="input" placeholder="Email" id="email" name="email" type="email" required />
                     <div className="agreement-wrapper">
-                        <input className="checkbox" type="checkbox" id="agreement" />
                         <label htmlFor="agreement" className="agreement-label">
+                            <input className="agreement-checkbox" type="checkbox" id="agreement" />
                             I agree to DopeSass <Link href="#">Terms of Service</Link> and{' '}
                             <Link href="#">Privacy Policy</Link>
                         </label>

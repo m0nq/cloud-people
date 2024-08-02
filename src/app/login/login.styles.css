@@ -19,7 +19,7 @@
 }
 
 .login-form-wrapper h2 {
-  @apply font-semibold self-start pb-5 text-left mb-5;
+  @apply font-semibold self-start text-left mb-10;
 }
 
 .login-form {
@@ -31,20 +31,20 @@
 }
 
 .agreement-wrapper {
-  @apply py-2 self-start ml-0.5;
-}
-
-.checkbox {
-  @apply rounded;
+  @apply my-4 self-start;
 }
 
 .agreement-label {
-  @apply ml-4 text-sm
+  @apply text-sm items-center flex grow shrink basis-auto gap-2 text-left;
+}
+
+.agreement-checkbox {
+  @apply rounded m-0;
 }
 
 .submit-button {
   /* TODO: add hover and active styling */
-  @apply py-3 px-4 mt-3 rounded-md no-underline w-full bg-[#614CFF] text-white hover:bg-[rgba(97_76_255_4)];
+  @apply py-3 px-4 rounded-md no-underline w-full bg-[#614CFF] text-white hover:bg-[rgba(97_76_255_4)];
 }
 
 .display-message {
