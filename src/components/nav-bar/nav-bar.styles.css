@@ -1,0 +1,10 @@
+.navigation-bar {
+  overflow-x: hidden;
+  padding-top: 16px;
+  @apply z-50 h-full w-20 fixed top-0 left-0;
+}
+
+.navigation-bar a {
+  text-decoration: none;
+  @apply hover:text-[#502DFF] block text-[#818181] text-2xl px-1.5 pt-2 pb-4;
+}

@@ -1,7 +1,10 @@
-const HomePage = () => {
+import { redirect } from 'next/navigation';
+import { isLoggedIn } from '@lib/actions/supabase-actions';
 
-    // No one should reach this page
-    return <h2>Oops...!</h2>;
+const HomePage = async () => {
+    await isLoggedIn();
+
+    redirect('/dashboard');
 };
 
 export default HomePage;

@@ -36,6 +36,10 @@ a {
   @apply text-[#312ECB] hover:underline;
 }
 
+a[href='https://reactflow.dev'] {
+  @apply hidden;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
