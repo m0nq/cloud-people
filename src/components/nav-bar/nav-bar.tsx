@@ -2,18 +2,21 @@
 import { useTransition } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { PiShoppingCartThin } from 'react-icons/pi';
 import { PiStackLight } from 'react-icons/pi';
+import { PiSignOutLight } from 'react-icons/pi';
 import { BiMenuAltLeft } from 'react-icons/bi';
 
-import { signOut } from '@lib/actions/supabase-actions';
 import './nav-bar.styles.css';
+import { signOut } from '@lib/actions/supabase-actions';
+import profileImage from '@public/example-avatar.png';
 
 const navLinks = [
     {
         name: 'Profile',
         link: '/profile',
-        iconElement: () => null
+        iconElement: () => <Image src={profileImage} alt="Profile picture" width={25} />
     },
     {
         name: 'Dashboard',
@@ -47,23 +50,27 @@ export const NavBar = () => {
     const [isPending, startTransition] = useTransition();
 
     return (
-        <div className="navigation-bar">
-            <ul>
-                {navLinks.map(link => (
-                    <li key={link.name}>
-                        <Link href={link.link}>
-                            {link.iconElement(pathname === link.link ? '#502dff' : 'currentColor')}
-                        </Link>
+        <div className="navigation-area">
+            <div className="navigation-bar">
+                <ul>
+                    {navLinks.map(link => (
+                        <li key={link.name}>
+                            <Link href={link.link}>
+                                {link.iconElement(pathname === link.link ? '#502dff' : 'currentColor')}
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
+                <ul>
+                    <li key="sign-out">
+                        <button className="sign-out"
+                            onClick={() => startTransition(async () => await signOut())}
+                            disabled={isPending}>
+                            <PiSignOutLight />
+                        </button>
                     </li>
-                ))}
-                <li key="sign-out">
-                    <button className=""
-                        onClick={() => startTransition(async () => await signOut())}
-                        disabled={isPending}>
-                        Sign Out
-                    </button>
-                </li>
-            </ul>
+                </ul>
+            </div>
         </div>
     );
 };

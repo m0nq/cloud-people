@@ -1,5 +1,6 @@
 import { Viewport } from 'next';
 
+import './workspace-layout.styles.css';
 import { LayoutProps } from '@lib/definitions';
 import { NavBar } from '@components/nav-bar/nav-bar';
 import { isLoggedIn } from '@lib/actions/supabase-actions';
