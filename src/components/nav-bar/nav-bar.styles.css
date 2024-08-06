@@ -3,7 +3,7 @@
 }
 
 .navigation-bar {
-  @apply w-16 h-full flex flex-col justify-between items-center border rounded-2xl mx-auto;
+  @apply w-16 h-full flex flex-col justify-between items-center border rounded-2xl mx-auto bg-white pt-2;
 }
 
 .navigation-bar a, .sign-out {
