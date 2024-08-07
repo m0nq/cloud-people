@@ -1,0 +1,7 @@
+.automation-node {
+  @apply h-24 border border-solid border-[#cccccc] p-1.5 rounded-md bg-white;
+}
+
+.automation-node label {
+  @apply block text-[#777777] text-xl;
+}
