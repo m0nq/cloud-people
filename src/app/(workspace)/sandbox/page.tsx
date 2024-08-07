@@ -19,8 +19,16 @@ const initialNodes = [
         data: { label: '1' },
         type: 'automationNode'
     },
-    { id: '2', position: { x: 0, y: 100 }, data: { label: '2' } },
-    { id: '3', position: { x: 0, y: 200 }, data: { label: '3' } }
+    {
+        id: '2',
+        position: { x: 0, y: 100 },
+        data: { label: '2' }
+    },
+    {
+        id: '3',
+        position: { x: 0, y: 200 },
+        data: { label: '3' }
+    }
 ];
 
 const initialEdges = [{ id: 'e1-2', source: '1', target: '2' }];
@@ -47,7 +55,7 @@ const Sandbox = () => {
                 onConnect={onConnect}
                 panOnScroll
                 selectionOnDrag>
-                <Background variant={BackgroundVariant.Cross} gap={10} size={5} />
+                <Background variant={BackgroundVariant.Cross} gap={18} size={5} />
                 <Controls />
             </ReactFlow>
         </div>
