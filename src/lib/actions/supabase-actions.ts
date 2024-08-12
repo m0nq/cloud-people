@@ -46,3 +46,19 @@ export const signOut = async () => {
     return redirect('/login');
 };
 
+export const fetchData = async (config: any = {}) => {
+    // TODO: implement graphql call to fetch data
+    // all by default, filter when parameters are passed in
+};
+
+export const upsert = async (config: any = {}) => {
+    // TODO: implement via graphql api
+};
+
+export const updateOne = async (config: any = {}) => {
+    // TODO: implement via graphql api
+};
+
+export const deleteOne = async (config: any = {}) => {
+    // TODO: implement via graphql api
+};
