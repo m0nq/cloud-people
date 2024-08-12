@@ -10,6 +10,10 @@ const nextConfig = {
     reactStrictMode: true,
     compiler: {
         removeConsole: process.env.NODE_ENV === 'production'
+        // },
+        // experimental: {
+        //     // implement for partial pre-rendering
+        //     ppr: 'incremental'
     }
 };
 
