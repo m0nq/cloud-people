@@ -20,9 +20,12 @@ export const loginOrSignUp = async (formData: FormData) => {
     const origin = headers().get('origin');
     const supabase = createClient();
     const email = DOMPurify.sanitize(formData.get('email') as string);
-    const agreement = DOMPurify.sanitize(formData.get('agreement') as string);
+    // const agreement = DOMPurify.sanitize(formData.get('agreement') as string);
 
-    // TODO: if agreement isn't checked, don't sign in
+    // TODO: uncomment when agreement policy is in place
+    // if (!agreement) {
+    //     return redirect('/login?message=You need to agree to our terms and conditions');
+    // }
 
     const { error } = await supabase.auth.signInWithOtp({
         email,
