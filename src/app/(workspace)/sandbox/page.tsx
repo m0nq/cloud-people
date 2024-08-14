@@ -12,17 +12,18 @@ import '@xyflow/react/dist/style.css';
 
 import { AutomationNode } from './automation-node';
 import { AutomationEdge } from '@app/(workspace)/sandbox/automation-edge';
+import { EdgeConnections } from '@lib/definitions';
 
 const initialNodes = [
     {
         id: '1',
-        position: { x: 200, y: 100 },
+        position: { x: 500, y: 100 },
         data: { label: '1' },
         type: 'automationNode'
     },
     {
         id: '2',
-        position: { x: 0, y: 0 },
+        position: { x: 900, y: 300 },
         data: { label: '1' },
         type: 'automationNode'
     }
@@ -33,7 +34,7 @@ const initialNodes = [
     // }
 ];
 
-const initialEdges = [{ id: 'e1-2', source: 'a', target: 'b', type: 'automationEdge' }];
+const initialEdges = [{ id: 'e1-2', source: '1', target: '2', type: 'automationEdge' }];
 
 const nodeTypes = {
     automationNode: AutomationNode
@@ -49,12 +50,7 @@ const Sandbox = () => {
 
     const onConnect = useCallback((connection: Connection) => {
             const newEdge = { ...connection, type: 'automationEdge' } as Connection;
-            setEdges((currentEdges: {
-                id: string,
-                source: string,
-                target: string,
-                type: string
-            }[]) => addEdge(newEdge, currentEdges));
+            setEdges((currentEdges: EdgeConnections[]) => addEdge(newEdge, currentEdges));
         }, [setEdges]
     );
 
@@ -66,8 +62,16 @@ const Sandbox = () => {
                 nodes={nodes}
                 edges={edges}
                 onNodesChange={onNodesChange}
+                // onNodeClick to handle opening node details?
+                // onNodeClick={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                // nodeOrigin={[0, 0]}
+                // nodeDragThreshold={1}
+                // colorMode="system"
+                // nodesDraggable={false}
+                nodesFocusable
+                autoPanOnConnect
                 panOnScroll
                 selectionOnDrag>
                 <Background variant={BackgroundVariant.Cross} gap={18} size={5} />
