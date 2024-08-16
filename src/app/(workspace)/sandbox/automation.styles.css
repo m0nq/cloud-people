@@ -2,7 +2,23 @@
   @apply w-full h-full;
 
   .flow-panel {
-    @apply absolute left-20 top-3.5 font-sans font-bold text-5xl leading-8 text-[#E1E1EE];
+    @apply relative left-20 top-3.5 font-sans font-bold text-5xl leading-8 text-[#E1E1EE];
+  }
+
+  .flow-controls {
+    @apply w-[462px] h-16 flex flex-row rounded-3xl bg-white border-[#E5E5ED];
+
+    button {
+      @apply w-full h-full;
+    }
+
+    :first-child {
+      @apply rounded-l-3xl border border-l-[#E5E5ED];
+    }
+
+    :last-child {
+      @apply rounded-r-3xl;
+    }
   }
 }
 

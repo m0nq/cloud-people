@@ -9,6 +9,7 @@ import { Background } from '@xyflow/react';
 import { BackgroundVariant } from '@xyflow/react';
 import { Connection } from '@xyflow/react';
 import { Panel } from '@xyflow/react';
+import { ControlButton } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
 import './automation.styles.css';
@@ -76,10 +77,51 @@ const Sandbox = () => {
                 autoPanOnConnect
                 panOnScroll
                 selectionOnDrag>
-                {/*<Panel position="top-left" className="flow-panel">Sandbox</Panel>*/}
                 <Panel className="flow-panel">Sandbox</Panel>
                 <Background variant={BackgroundVariant.Cross} gap={18} size={5} />
-                <Controls position="top-center" />
+                <Controls position="top-center"
+                    className="flow-controls"
+                    showZoom={false}
+                    showFitView={false}
+                    showInteractive={false}>
+                    <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
+                        Button
+                    </ControlButton>
+                    <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
+                        Button
+                    </ControlButton>
+                    <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
+                        Button
+                    </ControlButton>
+                    <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
+                        Button
+                    </ControlButton>
+                    <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
+                        Button
+                    </ControlButton>
+                    <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
+                        Button
+                    </ControlButton>
+                    <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
+                        Button
+                    </ControlButton>
+                </Controls>
+                <Controls position="top-center"
+                    showZoom={false}
+                    showFitView={false}
+                    showInteractive={false}>
+                    <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
+                        Button
+                    </ControlButton>
+                </Controls>
+                <Controls position="top-right"
+                    showZoom={false}
+                    showFitView={false}
+                    showInteractive={false}>
+                    <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
+                        Test
+                    </ControlButton>
+                </Controls>
             </ReactFlow>
         </div>
     );
