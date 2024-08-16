@@ -1,3 +1,11 @@
+.flow-container {
+  @apply w-full h-full;
+
+  .flow-panel {
+    @apply absolute left-20 top-3.5 font-sans font-bold text-5xl leading-8 text-[#E1E1EE];
+  }
+}
+
 .automation-node {
   @apply w-72 h-56 shadow-2xl shadow-zinc-500 p-4 rounded-lg bg-white;
 

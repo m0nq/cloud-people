@@ -8,8 +8,10 @@ import { Controls } from '@xyflow/react';
 import { Background } from '@xyflow/react';
 import { BackgroundVariant } from '@xyflow/react';
 import { Connection } from '@xyflow/react';
+import { Panel } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
+import './automation.styles.css';
 import { AutomationNode } from './automation-node';
 import { AutomationEdge } from '@app/(workspace)/sandbox/automation-edge';
 import { EdgeConnections } from '@lib/definitions';
@@ -55,7 +57,7 @@ const Sandbox = () => {
     );
 
     return (
-        <div className="w-full h-full">
+        <div className="flow-container">
             <ReactFlow
                 nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
@@ -74,8 +76,10 @@ const Sandbox = () => {
                 autoPanOnConnect
                 panOnScroll
                 selectionOnDrag>
+                {/*<Panel position="top-left" className="flow-panel">Sandbox</Panel>*/}
+                <Panel className="flow-panel">Sandbox</Panel>
                 <Background variant={BackgroundVariant.Cross} gap={18} size={5} />
-                <Controls />
+                <Controls position="top-center" />
             </ReactFlow>
         </div>
     );
