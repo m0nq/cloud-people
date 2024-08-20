@@ -13,6 +13,13 @@ const config: Config = {
             sans: ['var(--font-family-dm-sans)', ...defaultTheme.fontFamily.sans],
             lexend: ['var(--font-family-lexend)', ...defaultTheme.fontFamily.sans],
             inter: ['var(--font-family-inter)', ...defaultTheme.fontFamily.sans]
+        },
+        extend: {
+            colors: {
+                //'dark': '#181a1b',
+                'primary': '#6652ff'
+                //'secondary': 'dodgerblue'
+            }
         }
     },
     plugins: [flowbite]

@@ -4,9 +4,29 @@
 
 .navigation-bar {
   @apply w-16 h-full flex flex-col justify-between items-center rounded-2xl shadow-2xl shadow-zinc-500 mx-auto bg-white pt-2;
+
+  .navigation-primary {
+    @apply h-full w-full flex flex-col justify-start items-center;
+  }
+
+  .navigation-secondary {
+    @apply h-full w-full flex flex-col justify-end items-center;
+  }
+
+  li {
+    @apply w-full flex justify-center items-center px-1.5 py-4;
+
+    a {
+      @apply w-full h-full flex justify-center items-center;
+    }
+  }
+
+  .nav-marker {
+    @apply after:absolute after:left-[calc(50%_-_-2rem)] after:h-9 after:w-[3px] after:rounded-md after:bg-primary;
+  }
 }
 
 .navigation-bar a, .sign-out {
   text-decoration: none;
-  @apply hover:text-[#502dff] block text-[#818181] text-2xl px-1.5 pt-2 pb-4;
+  @apply text-[#818181] hover:text-[#502dff] text-2xl;
 }
