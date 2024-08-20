@@ -12,6 +12,7 @@ import { Panel } from '@xyflow/react';
 import { ControlButton } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { PiPlayCircleThin } from 'react-icons/pi';
+import { CiSearch } from 'react-icons/ci';
 
 import './automation.styles.css';
 import { AutomationNode } from './automation-node';
@@ -110,9 +111,10 @@ const Sandbox = () => {
                 <Controls position="top-center"
                     showZoom={false}
                     showFitView={false}
-                    showInteractive={false}>
+                    showInteractive={false}
+                    className="search-button">
                     <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
-                        Button
+                        <CiSearch />
                     </ControlButton>
                 </Controls>
                 <Controls position="top-right"
@@ -121,7 +123,7 @@ const Sandbox = () => {
                     showFitView={false}
                     showInteractive={false}>
                     <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
-                        <PiPlayCircleThin fill="#E1E1EE" />Test
+                        <PiPlayCircleThin />Test
                     </ControlButton>
                 </Controls>
             </ReactFlow>
