@@ -79,24 +79,24 @@ export const NavBar = () => {
         <div className="navigation-area">
             <div className="navigation-bar">
                 <ul className="navigation-primary">
-                    {primaryLinks.map(link => {
-                        const linkedPath = pathname === link.link;
+                    {primaryLinks.map(({ iconElement, link, name }) => {
+                        const linkedPath = pathname === link;
                         return (
-                            <li key={link.name} className={linkedPath && 'nav-marker' || ''}>
-                                <Link href={link.link}>
-                                    {link.iconElement(linkedPath && '#502dff' || 'currentColor')}
+                            <li key={name} className={linkedPath && 'nav-marker' || ''}>
+                                <Link href={link}>
+                                    {iconElement(linkedPath && '#502dff' || 'currentColor')}
                                 </Link>
                             </li>
                         );
                     })}
                 </ul>
                 <ul className="navigation-secondary">
-                    {secondaryLinks.map(link => {
-                        const linkedPath = pathname === link.link;
+                    {secondaryLinks.map(({ iconElement, link, name }) => {
+                        const linkedPath = pathname === link;
                         return (
-                            <li key={link.name} className={linkedPath && 'nav-marker' || ''}>
-                                <Link href={link.link}>
-                                    {link.iconElement(linkedPath && '#502dff' || 'currentColor')}
+                            <li key={name} className={linkedPath && 'nav-marker' || ''}>
+                                <Link href={link}>
+                                    {iconElement(linkedPath && '#502dff' || 'currentColor')}
                                 </Link>
                             </li>
                         );
