@@ -80,12 +80,11 @@ export const NavBar = () => {
             <div className="navigation-bar">
                 <ul className="navigation-primary">
                     {primaryLinks.map(link => {
-                        const fillColor = pathname === link.link ? '#502dff' : 'currentColor';
-                        const navMarker = pathname === link.link ? 'nav-marker' : '';
+                        const linkedPath = pathname === link.link;
                         return (
-                            <li key={link.name} className={navMarker}>
+                            <li key={link.name} className={linkedPath && 'nav-marker' || ''}>
                                 <Link href={link.link}>
-                                    {link.iconElement(fillColor)}
+                                    {link.iconElement(linkedPath && '#502dff' || 'currentColor')}
                                 </Link>
                             </li>
                         );
@@ -93,12 +92,11 @@ export const NavBar = () => {
                 </ul>
                 <ul className="navigation-secondary">
                     {secondaryLinks.map(link => {
-                        const fillColor = pathname === link.link ? '#502dff' : 'currentColor';
-                        const navMarker = pathname === link.link ? <div className="nav-marker" /> : null;
+                        const linkedPath = pathname === link.link;
                         return (
-                            <li key={link.name}>
+                            <li key={link.name} className={linkedPath && 'nav-marker' || ''}>
                                 <Link href={link.link}>
-                                    {link.iconElement(fillColor)}
+                                    {link.iconElement(linkedPath && '#502dff' || 'currentColor')}
                                 </Link>
                             </li>
                         );
