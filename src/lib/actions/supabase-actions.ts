@@ -42,7 +42,6 @@ export const loginOrSignUp = async (formData: FormData) => {
 };
 
 export const signOut = async () => {
-
     const supabase = createClient();
     await supabase.auth.signOut({ scope: 'local' });
     revalidatePath('/', 'layout');
@@ -52,6 +51,7 @@ export const signOut = async () => {
 export const fetchData = async (config: any = {}) => {
     // TODO: implement graphql call to fetch data
     // all by default, filter when parameters are passed in
+    // if item not found, can throw a local 404 with { notFound() } from next/navigation
 };
 
 export const upsert = async (config: any = {}) => {

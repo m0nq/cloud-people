@@ -1,3 +1,15 @@
 main {
   @apply w-screen h-screen;
 }
+
+.error-container {
+  @apply flex h-full flex-col items-center justify-center;
+
+  h2 {
+    @apply text-center;
+  }
+
+  .retry-button {
+    @apply mt-4 rounded-lg bg-blue-500;
+  }
+}
