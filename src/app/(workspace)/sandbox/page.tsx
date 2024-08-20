@@ -11,6 +11,7 @@ import { Connection } from '@xyflow/react';
 import { Panel } from '@xyflow/react';
 import { ControlButton } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { PiPlayCircleThin } from 'react-icons/pi';
 
 import './automation.styles.css';
 import { AutomationNode } from './automation-node';
@@ -77,8 +78,8 @@ const Sandbox = () => {
                 autoPanOnConnect
                 panOnScroll
                 selectionOnDrag>
-                <Panel className="flow-panel">Sandbox</Panel>
                 <Background variant={BackgroundVariant.Cross} gap={18} size={5} />
+                <Panel className="flow-panel">Sandbox</Panel>
                 <Controls position="top-center"
                     className="flow-controls"
                     showZoom={false}
@@ -115,11 +116,12 @@ const Sandbox = () => {
                     </ControlButton>
                 </Controls>
                 <Controls position="top-right"
+                    className="test-button"
                     showZoom={false}
                     showFitView={false}
                     showInteractive={false}>
                     <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
-                        Test
+                        <PiPlayCircleThin fill="#E1E1EE" />Test
                     </ControlButton>
                 </Controls>
             </ReactFlow>
