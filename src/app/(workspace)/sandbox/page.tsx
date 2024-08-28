@@ -76,8 +76,8 @@ const Sandbox = () => {
                     showInteractive={false}>
                     <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
                         <div className="arrow-icon">
-                            <PiArrowLeftThin className="icon-button" />
-                            <PiArrowRightThin className="icon-button" />
+                            <PiArrowLeftThin className="icon-button arrow-left" size={20} strokeWidth={2} />
+                            <PiArrowRightThin className="icon-button arrow-right" size={20} strokeWidth={2} />
                         </div>
                     </ControlButton>
                     <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
@@ -91,15 +91,15 @@ const Sandbox = () => {
                     </ControlButton>
                     <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
                         <svg className="icon-button branches-icon"
-                            strokeWidth="1.1"
+                            strokeWidth="1.3"
                             viewBox="4 -4 26 26"
                             xmlns="http://www.w3.org/2000/svg">
                             <rect x="16.8995" y="1" width="14" height="14" transform="rotate(45 16.8995 1)"
-                                stroke="#9CA3AF" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M1 11L7 11" stroke="#9CA3AF" strokeLinecap="round" strokeLinejoin="round" />
-                            <path d="M22 5.65686L26.2426 1.41422" stroke="#9CA3AF" strokeLinecap="round"
+                                stroke="#818181" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M1 11L7 11" stroke="#818181" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M22 5.65686L26.2426 1.41422" stroke="#818181" strokeLinecap="round"
                                 strokeLinejoin="round" />
-                            <path d="M22 16L26.2426 20.2426" stroke="#9CA3AF" strokeLinecap="round"
+                            <path d="M22 16L26.2426 20.2426" stroke="#818181" strokeLinecap="round"
                                 strokeLinejoin="round" />
                         </svg>
                     </ControlButton>

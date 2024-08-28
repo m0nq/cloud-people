@@ -6,7 +6,7 @@
   }
 
   .flow-controls {
-    @apply w-[462px] h-16 flex flex-row rounded-3xl bg-white border-gray-400 text-gray-400;
+    @apply w-[462px] h-16 flex flex-row rounded-3xl bg-white border-gray-400 fill-icon-gray;
 
     button {
       @apply w-full h-full;
@@ -16,12 +16,22 @@
       }
 
       .branches-icon {
-        @apply fill-none text-gray-400 block mx-auto;
+        @apply fill-none block mx-auto;
       }
     }
 
     .icon-button {
-      @apply h-2/5 flex items-center justify-center;
+      @apply h-2/5 flex items-center justify-center text-icon-gray;
+    }
+
+    .arrow-icon {
+      .arrow-left {
+
+      }
+
+      .arrow-right {
+
+      }
     }
 
     .hand-icon {
@@ -54,7 +64,7 @@
   }
 
   .search-button {
-    @apply h-16 w-16 left-2/3 flex flex-row justify-center items-center rounded-3xl bg-white border-gray-400 text-gray-400;
+    @apply h-16 w-16 left-2/3 flex flex-row justify-center items-center rounded-3xl bg-white border-gray-400 text-icon-gray;
 
     button {
       @apply w-full h-full rounded-3xl;

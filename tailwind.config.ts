@@ -17,7 +17,8 @@ const config: Config = {
         extend: {
             colors: {
                 primary: '#6652ff',
-                secondary: '#56e8cd'
+                secondary: '#56e8cd',
+                'icon-gray': '#818181'
             }
         }
     },
