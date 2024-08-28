@@ -13,37 +13,20 @@ import { ControlButton } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { PiPlayCircleThin } from 'react-icons/pi';
 import { PiClipboardLight } from 'react-icons/pi';
+import { PiArrowLeftThin } from 'react-icons/pi';
+import { PiArrowRightThin } from 'react-icons/pi';
 import { CiSearch } from 'react-icons/ci';
 import { CiCircleCheck } from 'react-icons/ci';
 import { FiUserPlus } from 'react-icons/fi';
 import { IoHandRightOutline } from 'react-icons/io5';
+import { LuMousePointer } from 'react-icons/lu';
 
 import './automation.styles.css';
 import { AutomationNode } from './automation-node';
 import { AutomationEdge } from '@app/(workspace)/sandbox/automation-edge';
 import { EdgeConnections } from '@lib/definitions';
-
-const initialNodes = [
-    {
-        id: '1',
-        position: { x: 500, y: 100 },
-        data: { label: '1' },
-        type: 'automationNode'
-    },
-    {
-        id: '2',
-        position: { x: 900, y: 300 },
-        data: { label: '1' },
-        type: 'automationNode'
-    }
-    // {
-    //     id: '3',
-    //     position: { x: 0, y: 200 },
-    //     data: { label: '3' }
-    // }
-];
-
-const initialEdges = [{ id: 'e1-2', source: '1', target: '2', type: 'automationEdge' }];
+import { fetchWorkflowNodes } from '@lib/actions/sandbox-actions';
+import { fetchWorkflowEdges } from '@lib/actions/sandbox-actions';
 
 const nodeTypes = {
     automationNode: AutomationNode
@@ -54,8 +37,8 @@ const edgeTypes = {
 };
 
 const Sandbox = () => {
-    const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-    const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+    const [nodes, setNodes, onNodesChange] = useNodesState(fetchWorkflowNodes());
+    const [edges, setEdges, onEdgesChange] = useEdgesState(fetchWorkflowEdges());
 
     const onConnect = useCallback((connection: Connection) => {
             const newEdge = { ...connection, type: 'automationEdge' } as Connection;
@@ -65,8 +48,7 @@ const Sandbox = () => {
 
     return (
         <div className="flow-container">
-            <ReactFlow
-                nodeTypes={nodeTypes}
+            <ReactFlow nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
                 nodes={nodes}
                 edges={edges}
@@ -75,13 +57,15 @@ const Sandbox = () => {
                 // onNodeClick={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
-                // nodeOrigin={[0, 0]}
+                //fitView
+                //nodeOrigin={[0.5, 0.5]}
                 // nodeDragThreshold={1}
                 // colorMode="system"
                 // nodesDraggable={false}
                 nodesFocusable
                 autoPanOnConnect
                 panOnScroll
+                proOptions={{ hideAttribution: true }}
                 selectionOnDrag>
                 <Background variant={BackgroundVariant.Cross} gap={18} size={5} />
                 <Panel className="flow-panel">Sandbox</Panel>
@@ -91,10 +75,13 @@ const Sandbox = () => {
                     showFitView={false}
                     showInteractive={false}>
                     <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
-                        Button
+                        <div className="arrow-icon">
+                            <PiArrowLeftThin className="icon-button" />
+                            <PiArrowRightThin className="icon-button" />
+                        </div>
                     </ControlButton>
                     <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
-                        Button
+                        <LuMousePointer className="icon-button pointer-icon" />
                     </ControlButton>
                     <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
                         <IoHandRightOutline className="icon-button hand-icon" />

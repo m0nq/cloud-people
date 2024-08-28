@@ -20,10 +20,6 @@ h2 {
 
 a {
   @apply text-[#312ECB] hover:underline;
-
-  &[href='https://reactflow.dev'] {
-    @apply hidden;
-  }
 }
 
 @layer utilities {

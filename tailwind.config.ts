@@ -16,9 +16,8 @@ const config: Config = {
         },
         extend: {
             colors: {
-                //'dark': '#181a1b',
-                'primary': '#6652ff'
-                //'secondary': 'dodgerblue'
+                primary: '#6652ff',
+                secondary: '#56e8cd'
             }
         }
     },

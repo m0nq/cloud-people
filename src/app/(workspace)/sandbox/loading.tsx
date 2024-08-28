@@ -1,6 +1,8 @@
+import { SandboxSkeleton } from '@components/skeletons/skeletons';
+
 const SandboxLoading = () => {
     return (
-        <div>Loading...</div>
+        <SandboxSkeleton />
     );
 };
 
