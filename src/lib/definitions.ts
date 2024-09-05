@@ -21,9 +21,12 @@ export type EdgeConnections = {
 export type AppState = {
     nodes: Node[];
     edges: Edge[];
-    onNodesChange: OnNodesChange<Node>;
-    onEdgesChange: OnEdgesChange;
-    onConnect: OnConnect;
-    setNodes: (nodes: Node[]) => void;
-    setEdges: (edges: Edge[]) => void;
+    onNodesChange?: OnNodesChange<Node>;
+    onEdgesChange?: OnEdgesChange;
+    onConnect?: OnConnect;
+    setNodes?: (nodes: Node[]) => void;
+    setEdges?: (edges: Edge[]) => void;
+    addNode?: (node: Node) => void;
+    fetchGraph?: (workflowId: string) => Promise<Node[]>;
+    reset?: () => void;
 };

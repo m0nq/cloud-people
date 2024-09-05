@@ -23,7 +23,7 @@ import './sandbox.styles.css';
 import { AutomationNode } from '@components/sandbox-nodes/automation-node';
 import { AutomationEdge } from '@components/sandbox-nodes/automation-edge';
 import { InitialStateNode } from '@components/sandbox-nodes/initial-state-node';
-import { useStore } from '@stores/nodeStore';
+import { useStore } from '@stores/workflowStore';
 import { AppState } from '@lib/definitions';
 
 const nodeTypes = {
@@ -55,7 +55,7 @@ const Sandbox = () => {
     } = useStore(useShallow(nodeStateSelector));
 
     const onNodesDelete = useCallback(async ({ nodes }: { nodes: Node[] }): Promise<boolean> => {
-        const [node] = nodes;
+        const [node]: Node[] = nodes;
         // Prevent the default deletion behavior if node is an initial state node
         return node && !node.type?.includes('initialStateNode');
     }, []);

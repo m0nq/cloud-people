@@ -4,28 +4,6 @@ import { XYPosition } from '@xyflow/react';
 import { Node } from '@xyflow/react';
 import { nanoid } from 'nanoid';
 
-//const automationNodes = [
-//    {
-//        id: '1',
-//        position: { x: 500, y: 100 },
-//        data: { label: '1' },
-//        type: 'automationNode'
-//    },
-//    {
-//        id: '2',
-//        position: { x: 900, y: 300 },
-//        data: { label: '1' },
-//        type: 'automationNode'
-//    }
-//     {
-//         id: '3',
-//         position: { x: 0, y: 200 },
-//         data: { label: '3' }
-//     }
-//];
-
-//const automationEdges = [{ id: 'e1-2', source: '1', target: '2', type: 'automationEdge' }];
-
 const automationNodes = [
     {
         id: 'horizontal-1',
