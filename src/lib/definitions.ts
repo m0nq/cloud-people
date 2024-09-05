@@ -17,9 +17,9 @@ export type RFState = {
 }
 
 export type EdgeConnections = {
-    id: string,
-    source: string,
-    target: string,
-    type: string,
-    animated: boolean
+    id?: string,
+    source?: string,
+    target?: string,
+    type?: string,
+    animated?: boolean
 }

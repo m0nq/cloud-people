@@ -3,7 +3,11 @@ import Image from 'next/image';
 import './agent-card.styles.css';
 import ricoResearcherImage from '@public/rico-researcher.png';
 
-export const AgentCard = () => {
+type AgentCardProps = {
+    data?: any;
+}
+
+export const AgentCard = ({ data }: AgentCardProps) => {
     return (
         <div className="agent-card-container">
             <div>

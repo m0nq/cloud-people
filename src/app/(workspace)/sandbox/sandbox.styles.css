@@ -88,35 +88,3 @@
     }
   }
 }
-
-.automation-node {
-  @apply w-72 h-56 shadow-2xl shadow-zinc-500 p-4 rounded-lg bg-white;
-
-  label {
-    @apply block text-[#777777] text-xl;
-  }
-
-  .react-flow__handle {
-    @apply rounded-full bg-white p-2.5;
-
-    &.react-flow__handle-right {
-      @apply -right-6;
-    }
-
-    &.react-flow__handle-left {
-      @apply -left-6;
-    }
-
-    &.react-flow__handle-top {
-      @apply -top-6;
-    }
-
-    &.react-flow__handle-bottom {
-      @apply -bottom-6;
-    }
-  }
-}
-
-.react-flow__edge * {
-  @apply stroke-primary stroke-[0.3rem];
-}

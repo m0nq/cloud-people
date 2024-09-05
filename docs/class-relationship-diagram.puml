@@ -1,0 +1,166 @@
+@startuml
+'!theme materia-outline
+
+class User {
+  - id : int
+  - email : string
+  - password : string
+  - name : string
+  - subscription_plan_id : int
+  - created_at : timestamp
+  - updated_at : timestamp
+}
+
+class Workflow {
+  - id : int
+  - user_id : int
+  - state : enum
+  - current_step : string
+  - graph : json
+  - created_at : timestamp
+  - updated_at : timestamp
+}
+
+class AIModel {
+  - id : int
+  - name : string
+  - description : text
+  - category : string
+  - prebuilt : boolean
+  - created_by : int
+  - created_at : timestamp
+  - updated_at : timestamp
+}
+
+class AIAgentDefinition {
+  - id : int
+  - name : string
+  - description : text
+  - owner_id : int
+  - model_id : int
+  - configuration : json
+  - created_at : timestamp
+  - updated_at : timestamp
+}
+
+class Business {
+  - id : int
+  - name : string
+  - owner_id : int
+  - description : text
+  - deployed : boolean
+  - created_at : timestamp
+  - updated_at : timestamp
+}
+
+class BusinessSandboxData {
+  - id : int
+  - business_id : int
+  - data : json
+  - created_at : timestamp
+}
+
+class BusinessPerformanceMetric {
+  - id : int
+  - business_id : int
+  - metric_type : string
+  - value : float
+  - timestamp : timestamp
+}
+
+class MarketplaceListing {
+  - id : int
+  - agent_id : int
+  - owner_id : int
+  - price : decimal
+  - description : text
+  - listing_status : string
+  - created_at : timestamp
+  - updated_at : timestamp
+}
+
+class Transaction {
+  - id : int
+  - buyer_id : int
+  - seller_id : int
+  - listing_id : int
+  - amount : decimal
+  - payment_method : string
+  - transaction_status : string
+  - commission : decimal
+  - created_at : timestamp
+}
+
+class SubscriptionPlan {
+  - id : int
+  - name : string
+  - description : text
+  - storage_limit : int
+  - agent_limit : int
+  - collaboration_features : boolean
+  - monthly_price : decimal
+  - created_at : timestamp
+  - updated_at : timestamp
+}
+
+class AIModelTrainingData {
+  - id : int
+  - model_id : int
+  - owner_id : int
+  - data_type : string
+  - data_size : int
+  - description : text
+  - uploaded_at : timestamp
+}
+
+class CommunityForumPost {
+  - id : int
+  - author_id : int
+  - topic : string
+  - title : string
+  - content : text
+  - created_at : timestamp
+  - updated_at : timestamp
+}
+
+class CommunityForumComment {
+  - id : int
+  - post_id : int
+  - author_id : int
+  - content : text
+  - created_at : timestamp
+  - updated_at : timestamp
+}
+
+class SecurityAccessControl {
+  - id : int
+  - role : string
+  - permission : string
+  - created_at : timestamp
+  - updated_at : timestamp
+}
+
+User "1" -- "0..*" Workflow : has
+User "1" -- "0..*" AIModel : creates
+User "1" -- "0..*" AIAgentDefinition : owns
+User "1" -- "0..*" Business : owns
+User "1" -- "0..*" MarketplaceListing : owns
+User "0..*" -- "0..*" Transaction : buys/sells
+User "1" -- "0..*" AIModelTrainingData : uploads
+User "1" -- "0..*" CommunityForumPost : authors
+User "1" -- "0..*" CommunityForumComment : authors
+User "1" -- "0..1" SubscriptionPlan : subscribes
+
+AIModel "1" -- "0..*" AIAgentDefinition : uses
+AIModel "1" -- "0..*" AIModelTrainingData : trains_on
+
+AIAgentDefinition "1" -- "0..*" MarketplaceListing : lists
+
+Business "1" -- "0..*" BusinessSandboxData : has
+Business "1" -- "0..*" BusinessPerformanceMetric : has
+
+CommunityForumPost "1" -- "0..*" CommunityForumComment : has
+
+MarketplaceListing "1" -- "0..*" Transaction : involves
+
+@enduml

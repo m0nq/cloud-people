@@ -2,7 +2,7 @@ import { BaseEdge } from '@xyflow/react';
 import { getSmoothStepPath } from '@xyflow/react';
 import { EdgeProps } from '@xyflow/react';
 
-import './automation.styles.css';
+import './node.styles.css';
 
 export const AutomationEdge = ({
     id,

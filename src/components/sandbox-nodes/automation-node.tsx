@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { Handle } from '@xyflow/react';
 import { Position } from '@xyflow/react';
 
-import './automation.styles.css';
+import './node.styles.css';
 import { AgentCard } from '@components/agents/agent-card';
 
 type AutomationNodeProps = {
@@ -50,7 +50,7 @@ export const AutomationNode = ({
 
     return (
         <div className="automation-node">
-            <AgentCard />
+            <AgentCard data={data}/>
             {/* progress bar */}
             {/* optional handles to connect bottom and top if nodes: are related? run in parallel? are dependent on each other? */}
             {/* possible styled handle extension as button or further detailed information */}

@@ -4,7 +4,7 @@ import { XYPosition } from '@xyflow/react';
 import { Node } from '@xyflow/react';
 import { nanoid } from 'nanoid';
 
-//const initialNodes = [
+//const automationNodes = [
 //    {
 //        id: '1',
 //        position: { x: 500, y: 100 },
@@ -24,9 +24,9 @@ import { nanoid } from 'nanoid';
 //     }
 //];
 
-//const initialEdges = [{ id: 'e1-2', source: '1', target: '2', type: 'automationEdge' }];
+//const automationEdges = [{ id: 'e1-2', source: '1', target: '2', type: 'automationEdge' }];
 
-const initialNodes = [
+const automationNodes = [
     {
         id: 'horizontal-1',
         sourcePosition: Position.Right,
@@ -92,7 +92,7 @@ const initialNodes = [
     }
 ];
 
-const initialEdges = [
+const automationEdges = [
     {
         id: 'horizontal-e1-2',
         source: 'horizontal-1',
@@ -149,14 +149,14 @@ export const fetchWorkflowNodes = () => {
     // Get user id of signed in user
     // Get list of workflows by user id
     // Return all nodes for a selected workflow
-    return initialNodes;
+    return automationNodes;
 };
 
 export const fetchWorkflowEdges = () => {
     // Get user id of signed in user
     // Get list of workflows by user id
     // Return all edges for a selected workflow
-    return initialEdges;
+    return automationEdges;
 };
 
 export const fetchNode = (id: string) => {};
