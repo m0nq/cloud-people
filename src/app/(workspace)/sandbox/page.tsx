@@ -65,8 +65,9 @@ const Sandbox = () => {
                 nodesFocusable
                 autoPanOnConnect
                 panOnScroll
-                proOptions={{ hideAttribution: true }}
-                selectionOnDrag>
+                selectionOnDrag
+                panOnDrag
+                proOptions={{ hideAttribution: true }}>
                 <Background variant={BackgroundVariant.Cross} gap={18} size={5} />
                 <Panel className="flow-panel">Sandbox</Panel>
                 <Controls position="top-center"
