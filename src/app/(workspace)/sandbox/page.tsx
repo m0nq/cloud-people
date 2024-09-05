@@ -1,16 +1,12 @@
 'use client';
-import { useCallback } from 'react';
+import '@xyflow/react/dist/style.css';
 import { ReactFlow } from '@xyflow/react';
-import { addEdge } from '@xyflow/react';
-import { useNodesState } from '@xyflow/react';
-import { useEdgesState } from '@xyflow/react';
 import { Controls } from '@xyflow/react';
 import { Background } from '@xyflow/react';
 import { BackgroundVariant } from '@xyflow/react';
-import { Connection } from '@xyflow/react';
 import { Panel } from '@xyflow/react';
 import { ControlButton } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
+import { type Node } from '@xyflow/react';
 import { PiPlayCircleThin } from 'react-icons/pi';
 import { PiClipboardLight } from 'react-icons/pi';
 import { PiArrowLeftThin } from 'react-icons/pi';
@@ -20,15 +16,18 @@ import { CiCircleCheck } from 'react-icons/ci';
 import { FiUserPlus } from 'react-icons/fi';
 import { IoHandRightOutline } from 'react-icons/io5';
 import { LuMousePointer } from 'react-icons/lu';
+import { useShallow } from 'zustand/react/shallow';
+import { useCallback } from 'react';
 
-import './automation.styles.css';
-import { AutomationNode } from './automation-node';
-import { AutomationEdge } from '@app/(workspace)/sandbox/automation-edge';
-import { EdgeConnections } from '@lib/definitions';
-import { fetchWorkflowNodes } from '@lib/actions/sandbox-actions';
-import { fetchWorkflowEdges } from '@lib/actions/sandbox-actions';
+import './sandbox.styles.css';
+import { AutomationNode } from '@components/sandbox-nodes/automation-node';
+import { AutomationEdge } from '@components/sandbox-nodes/automation-edge';
+import { InitialStateNode } from '@components/sandbox-nodes/initial-state-node';
+import { useStore } from '@stores/nodeStore';
+import { AppState } from '@lib/definitions';
 
 const nodeTypes = {
+    initialStateNode: InitialStateNode,
     automationNode: AutomationNode
 };
 
@@ -36,15 +35,30 @@ const edgeTypes = {
     automationEdge: AutomationEdge
 };
 
-const Sandbox = () => {
-    const [nodes, setNodes, onNodesChange] = useNodesState(fetchWorkflowNodes());
-    const [edges, setEdges, onEdgesChange] = useEdgesState(fetchWorkflowEdges());
+const nodeStateSelector = (state: AppState) => ({
+    nodes: state.nodes,
+    edges: state.edges,
+    onNodesChange: state.onNodesChange,
+    onEdgesChange: state.onEdgesChange,
+    onConnect: state.onConnect
+});
 
-    const onConnect = useCallback((connection: Connection) => {
-            const newEdge = { ...connection, type: 'automationEdge' } as Connection;
-            setEdges((currentEdges: EdgeConnections[]) => addEdge(newEdge, currentEdges));
-        }, [setEdges]
-    );
+const Sandbox = () => {
+    // Load with initial state nodes
+    // when a node is clicked, corresponding nodes will be updated by zustand
+    const {
+        nodes,
+        edges,
+        onNodesChange,
+        onEdgesChange,
+        onConnect
+    } = useStore(useShallow(nodeStateSelector));
+
+    const onNodesDelete = useCallback(async ({ nodes }: { nodes: Node[] }): Promise<boolean> => {
+        const [node] = nodes;
+        // Prevent the default deletion behavior if node is an initial state node
+        return node && !node.type?.includes('initialStateNode');
+    }, []);
 
     return (
         <div className="flow-container">
@@ -56,9 +70,9 @@ const Sandbox = () => {
                 // onNodeClick to handle opening node details?
                 // onNodeClick={onNodesChange}
                 onEdgesChange={onEdgesChange}
+                onBeforeDelete={onNodesDelete}
                 onConnect={onConnect}
-                //fitView
-                //nodeOrigin={[0.5, 0.5]}
+                // nodeOrigin={[0.5, 0.5]}
                 // nodeDragThreshold={1}
                 // colorMode="system"
                 // nodesDraggable={false}
