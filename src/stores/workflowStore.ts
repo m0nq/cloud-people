@@ -4,11 +4,15 @@ import { applyEdgeChanges } from '@xyflow/react';
 import { applyNodeChanges } from '@xyflow/react';
 import { type Edge } from '@xyflow/react';
 import { type Node } from '@xyflow/react';
-import { EdgeChange } from '@xyflow/react';
-import { NodeChange } from '@xyflow/react';
+import { type Connection } from '@xyflow/react';
+import { type EdgeChange } from '@xyflow/react';
+import { type NodeChange } from '@xyflow/react';
 
 import { AppState } from '@lib/definitions';
+import { fetchWorkflowNodes } from '@lib/actions/sandbox-actions';
+import { fetchWorkflowEdges } from '@lib/actions/sandbox-actions';
 
+const position = { x: 50, y: 100 };
 const initialStateNodes = [
     {
         id: 'SFS',
@@ -18,7 +22,7 @@ const initialStateNodes = [
             background: 'white',
             color: '#1b2559'
         },
-        position: { x: 0, y: 80 }
+        position
     },
     {
         id: 'SFT',
@@ -28,7 +32,7 @@ const initialStateNodes = [
             background: 'linear-gradient(to bottom right, #86FFE2, #18FFD5)',
             color: '#1b2559'
         },
-        position: { x: 250, y: 0 }
+        position
     },
     {
         id: 'SFA',
@@ -38,7 +42,7 @@ const initialStateNodes = [
             background: 'linear-gradient(to bottom right, #868CFF, #4318FF)',
             color: '#1b2559'
         },
-        position: { x: 250, y: 160 }
+        position
     }
 ] as Node[];
 
@@ -48,7 +52,7 @@ const initialState: AppState = {
     edges: [] as Edge[]
 };
 
-export const useStore = create<AppState>((set, get) => ({
+export const useGraphStore = create<AppState>((set, get) => ({
     ...initialState,
     onNodesChange: (changes: NodeChange<Node>[]) => {
         // not sure this is needed
@@ -62,7 +66,7 @@ export const useStore = create<AppState>((set, get) => ({
             edges: applyEdgeChanges(changes, get().edges)
         });
     },
-    onConnect: (connection) => {
+    onConnect: (connection: Connection) => {
         set({
             edges: addEdge(connection, get().edges)
         });
@@ -81,16 +85,15 @@ export const useStore = create<AppState>((set, get) => ({
             nodes: [...get().nodes, node]
         });
     },
-    fetchGraph: async (workflowId: string): Promise<Node[]> => {
+    fetchGraph: (workflowId: string) => {
         // used when needing to get a workflow graph already stored in the db
         // make a fetch to back end api to get a workflow by the id
         // will need to parse graph into singular lists of nodes and edges
         // then update zustand state
         set({
-            nodes: [],
-            edges: []
+            nodes: fetchWorkflowNodes(),
+            edges: fetchWorkflowEdges()
         });
-        return [] as Node[];
     },
     reset: () => {
         set(initialState);

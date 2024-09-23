@@ -23,8 +23,9 @@ import './sandbox.styles.css';
 import { AutomationNode } from '@components/sandbox-nodes/automation-node';
 import { AutomationEdge } from '@components/sandbox-nodes/automation-edge';
 import { InitialStateNode } from '@components/sandbox-nodes/initial-state-node';
-import { useStore } from '@stores/workflowStore';
+import { useGraphStore } from '@stores/workflowStore';
 import { AppState } from '@lib/definitions';
+import { layoutElements } from '@lib/dagre/dagre';
 
 const nodeTypes = {
     initialStateNode: InitialStateNode,
@@ -45,14 +46,15 @@ const nodeStateSelector = (state: AppState) => ({
 
 const Sandbox = () => {
     // Load with initial state nodes
-    // when a node is clicked, corresponding nodes will be updated by zustand
+    // when a node is clicked, corresponding nodes will be updated by our graph store
     const {
         nodes,
         edges,
         onNodesChange,
         onEdgesChange,
         onConnect
-    } = useStore(useShallow(nodeStateSelector));
+    } = useGraphStore(useShallow(nodeStateSelector));
+    const { laidOutNodes, laidOutEdges } = layoutElements(nodes, edges);
 
     const onNodesDelete = useCallback(async ({ nodes }: { nodes: Node[] }): Promise<boolean> => {
         const [node]: Node[] = nodes;
@@ -64,8 +66,8 @@ const Sandbox = () => {
         <div className="flow-container">
             <ReactFlow nodeTypes={nodeTypes}
                 edgeTypes={edgeTypes}
-                nodes={nodes}
-                edges={edges}
+                nodes={laidOutNodes}
+                edges={laidOutEdges}
                 onNodesChange={onNodesChange}
                 // onNodeClick to handle opening node details?
                 // onNodeClick={onNodesChange}

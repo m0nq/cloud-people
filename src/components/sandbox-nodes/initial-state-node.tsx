@@ -1,9 +1,7 @@
 import { ReactNode } from 'react';
 
 import './node.styles.css';
-import { useStore } from '@stores/workflowStore';
-import { fetchWorkflowNodes } from '@lib/actions/sandbox-actions';
-import { fetchWorkflowEdges } from '@lib/actions/sandbox-actions';
+import { useGraphStore } from '@stores/workflowStore';
 
 type InitialStateNodeProps = {
     id: string;
@@ -25,15 +23,15 @@ export const InitialStateNode = ({
     // - SfS updates nodes with root automation node
     // - template opens a modal which leads to copy a workflow template (nodes & edges) into the list
     // - AI opens a modal
-    const setNodes = useStore((state) => state.setNodes)!;
-    const setEdges = useStore((state) => state.setEdges)!;
+    const fetchGraph = useGraphStore(state => state.fetchGraph)!;
 
     return (
         <button className="init-node nodrag"
             style={{ background: data?.background, color: data?.color }}
-            onClick={async () => {
-                setNodes(fetchWorkflowNodes());
-                setEdges(fetchWorkflowEdges());
+            onClick={() => {
+                // if data.label is SFS, then transition to empty node building state
+                // otherwise pop up for specific label with details and actions
+                fetchGraph(data.label);
             }}>
             <div className="init-node-label">{data.label}</div>
         </button>

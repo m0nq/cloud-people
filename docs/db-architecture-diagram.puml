@@ -24,6 +24,28 @@ entity Workflows {
   * updated_at : timestamp
 }
 
+entity Nodes {
+  * id : int <<PK>>
+  --
+  * workflow_id : int <<FK>>
+  * state : enum
+  * current_step : string
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity Edges {
+  * id : int <<PK>>
+  --
+  * workflow_id : int <<FK>>
+  ' * state : enum
+  ' * current_step : string
+  * to_node_id : int <<FK>>
+  * from_node_id : int <<FK>>
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
 entity AI_Models {
   * id : int <<PK>>
   --
@@ -97,8 +119,8 @@ Businesses ||--o{ Business_Sandbox_Data : has
 Businesses ||--o{ Business_Performance_Metrics : has
 Users ||--o{ Marketplace_Listings : owns
 AI_Agent_Definitions ||--o{ Marketplace_Listings : lists
-
-' Part 2: Additional Entities
+Workflows ||--o{ Nodes : has
+Workflows ||--o{ Edges : has
 
 entity Transactions {
   * id : int <<PK>>

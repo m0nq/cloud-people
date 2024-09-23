@@ -1,24 +1,26 @@
 //'use server';
 import { Position } from '@xyflow/react';
 import { XYPosition } from '@xyflow/react';
-import { Node } from '@xyflow/react';
+import { type Node } from '@xyflow/react';
+import { type Edge } from '@xyflow/react';
 import { nanoid } from 'nanoid';
 
+const position = { x: 50, y: 100 };
 const automationNodes = [
     {
         id: 'horizontal-1',
         sourcePosition: Position.Right,
         type: 'automationNode',
-        data: { label: 'Input' },
-        position: { x: 0, y: 80 }
+        data: { label: 'Node 1' },
+        position
     },
     {
         id: 'horizontal-2',
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
         type: 'automationNode',
-        data: { label: 'A Node' },
-        position: { x: 250, y: 0 }
+        data: { label: 'Node 2' },
+        position
     },
     {
         id: 'horizontal-3',
@@ -26,7 +28,7 @@ const automationNodes = [
         targetPosition: Position.Left,
         type: 'automationNode',
         data: { label: 'Node 3' },
-        position: { x: 250, y: 160 }
+        position
     },
     {
         id: 'horizontal-4',
@@ -34,7 +36,7 @@ const automationNodes = [
         targetPosition: Position.Left,
         type: 'automationNode',
         data: { label: 'Node 4' },
-        position: { x: 500, y: 0 }
+        position
     },
     {
         id: 'horizontal-5',
@@ -42,7 +44,7 @@ const automationNodes = [
         targetPosition: Position.Bottom,
         type: 'automationNode',
         data: { label: 'Node 5' },
-        position: { x: 500, y: 100 }
+        position
     },
     {
         id: 'horizontal-6',
@@ -50,7 +52,7 @@ const automationNodes = [
         targetPosition: Position.Top,
         type: 'automationNode',
         data: { label: 'Node 6' },
-        position: { x: 500, y: 230 }
+        position
     },
     {
         id: 'horizontal-7',
@@ -58,7 +60,7 @@ const automationNodes = [
         targetPosition: Position.Left,
         type: 'automationNode',
         data: { label: 'Node 7' },
-        position: { x: 750, y: 50 }
+        position
     },
     {
         id: 'horizontal-8',
@@ -66,7 +68,7 @@ const automationNodes = [
         targetPosition: Position.Left,
         type: 'automationNode',
         data: { label: 'Node 8' },
-        position: { x: 750, y: 300 }
+        position
     }
 ];
 
@@ -74,63 +76,63 @@ const automationEdges = [
     {
         id: 'horizontal-e1-2',
         source: 'horizontal-1',
-        type: 'automationEdge',
         target: 'horizontal-2',
+        type: 'automationEdge',
         animated: true
     },
     {
         id: 'horizontal-e1-3',
         source: 'horizontal-1',
-        type: 'automationEdge',
         target: 'horizontal-3',
+        type: 'automationEdge',
         animated: true
     },
     {
-        id: 'horizontal-e1-4',
+        id: 'horizontal-e2-4',
         source: 'horizontal-2',
-        type: 'automationEdge',
         target: 'horizontal-4',
+        type: 'automationEdge',
         animated: true
     },
     {
         id: 'horizontal-e3-5',
         source: 'horizontal-3',
-        type: 'automationEdge',
         target: 'horizontal-5',
+        type: 'automationEdge',
         animated: true
     },
     {
         id: 'horizontal-e3-6',
         source: 'horizontal-3',
-        type: 'automationEdge',
         target: 'horizontal-6',
+        type: 'automationEdge',
         animated: true
     },
     {
         id: 'horizontal-e5-7',
         source: 'horizontal-5',
-        type: 'automationEdge',
         target: 'horizontal-7',
+        type: 'automationEdge',
         animated: true
     },
     {
         id: 'horizontal-e6-8',
         source: 'horizontal-6',
-        type: 'automationEdge',
         target: 'horizontal-8',
+        type: 'automationEdge',
         animated: false
     }
 ];
 
 // These will in turn use the supabase actions
-export const fetchWorkflowNodes = () => {
+export const fetchWorkflowNodes = (): Node[] => {
     // Get user id of signed in user
     // Get list of workflows by user id
     // Return all nodes for a selected workflow
     return automationNodes;
 };
 
-export const fetchWorkflowEdges = () => {
+export const fetchWorkflowEdges = (): Edge[] => {
     // Get user id of signed in user
     // Get list of workflows by user id
     // Return all edges for a selected workflow

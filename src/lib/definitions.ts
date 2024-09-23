@@ -27,6 +27,6 @@ export type AppState = {
     setNodes?: (nodes: Node[]) => void;
     setEdges?: (edges: Edge[]) => void;
     addNode?: (node: Node) => void;
-    fetchGraph?: (workflowId: string) => Promise<Node[]>;
+    fetchGraph?: (workflowId: string) => void;
     reset?: () => void;
 };

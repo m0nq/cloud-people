@@ -10,6 +10,6 @@ main {
   }
 
   .retry-button {
-    @apply mt-4 rounded-lg bg-blue-500;
+    @apply mt-4 py-3 px-5 rounded-lg bg-blue-500;
   }
 }
