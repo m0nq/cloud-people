@@ -11,7 +11,7 @@ import { PiQuestionLight } from 'react-icons/pi';
 import { BiMenuAltLeft } from 'react-icons/bi';
 
 import './nav-bar.styles.css';
-import { signOut } from '@lib/actions/supabase-actions';
+import { signOut } from '@lib/actions/authentication-actions';
 import profileImage from '@public/example-avatar.png';
 
 const primaryLinks = [

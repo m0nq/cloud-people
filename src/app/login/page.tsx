@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 import './login.styles.css';
 import { AuthenticationButton } from '@components/utils/auth-button/auth-button';
-import { loginOrSignUp } from '@lib/actions/supabase-actions';
+import { loginOrSignUp } from '@lib/actions/authentication-actions';
 
 const LoginPage = ({ searchParams }: { searchParams: { message: string } }) => (
     <div className="login-container">

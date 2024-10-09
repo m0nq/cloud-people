@@ -48,20 +48,3 @@ export const signOut = async () => {
     redirect('/login');
 };
 
-export const fetchData = async (config: any = {}) => {
-    // TODO: implement graphql call to fetch data
-    // all by default, filter when parameters are passed in
-    // if item not found, can throw a local 404 with { notFound() } from next/navigation
-};
-
-export const upsert = async (config: any = {}) => {
-    // TODO: implement via graphql api
-};
-
-export const updateOne = async (config: any = {}) => {
-    // TODO: implement via graphql api
-};
-
-export const deleteOne = async (config: any = {}) => {
-    // TODO: implement via graphql api
-};

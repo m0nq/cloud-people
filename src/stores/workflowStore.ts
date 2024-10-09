@@ -7,10 +7,13 @@ import { type Node } from '@xyflow/react';
 import { type Connection } from '@xyflow/react';
 import { type EdgeChange } from '@xyflow/react';
 import { type NodeChange } from '@xyflow/react';
+import { Position } from '@xyflow/react';
+import { nanoid } from 'nanoid';
 
 import { AppState } from '@lib/definitions';
 import { fetchWorkflowNodes } from '@lib/actions/sandbox-actions';
 import { fetchWorkflowEdges } from '@lib/actions/sandbox-actions';
+import { createWorkflow } from '@lib/actions/workflow-actions';
 
 const position = { x: 50, y: 100 };
 const initialStateNodes = [
@@ -88,15 +91,30 @@ export const useGraphStore = create<AppState>((set, get) => ({
             nodes: [...get().nodes, node]
         });
     },
-    createNewWorkflow: () => {
+    createNewWorkflow: async () => {
         // Hit the db and create a new workflow
+        // grab the workflow_id to add to new node
+        const workflow_id: string = await createWorkflow();
         // create a new root node
+        const nodes = [
+            {
+                id: nanoid(),
+                sourcePosition: Position.Right,
+                type: 'rootNode',
+                data: {
+                    label: 'Root',
+                    workflowId: workflow_id
+                },
+                position
+            }
+        ] as Node[];
+
         set({
-            nodes: [],
+            nodes,
             edges: []
         });
     },
-    fetchGraph: (workflowId: string) => {
+    fetchGraph: async (workflowId: string) => {
         // used when needing to get a workflow graph already stored in the db
         // make a fetch to back end api to get a workflow by the id
         // will need to parse graph into singular lists of nodes and edges
