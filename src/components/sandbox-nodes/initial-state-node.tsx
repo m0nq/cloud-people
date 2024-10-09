@@ -27,23 +27,25 @@ export const InitialStateNode = ({
     const fetchGraph = useGraphStore(state => state.fetchGraph)!;
     const createNewWorkflow = useGraphStore(state => state.createNewWorkflow)!;
 
+    const handleClick = () => {
+        // if data.label is SFS, then transition to empty node building state
+        switch (data.id) {
+            case 'SFS':
+                createNewWorkflow();
+                break;
+            case 'SFT':
+                fetchGraph(data.id);
+                break;
+            case 'SFA':
+                break;
+        }
+        // otherwise pop up for specific label with details and actions
+    };
+
     return (
         <button className="init-node nodrag"
             style={{ background: data?.background, color: data?.color }}
-            onClick={() => {
-                // if data.label is SFS, then transition to empty node building state
-                switch (data.id) {
-                    case 'SFS':
-                        createNewWorkflow();
-                        break;
-                    case 'SFT':
-                        fetchGraph(data.label);
-                        break;
-                    case 'SFA':
-                        break;
-                }
-                // otherwise pop up for specific label with details and actions
-            }}>
+            onClick={handleClick}>
             <div className="init-node-label">{data.label}</div>
         </button>
     );

@@ -3,7 +3,7 @@ import { Viewport } from 'next';
 import './workspace-layout.styles.css';
 import { LayoutProps } from '@lib/definitions';
 import { NavBar } from '@components/nav-bar/nav-bar';
-import { isLoggedIn } from '@lib/actions/supabase-actions';
+import { isLoggedIn } from '@lib/actions/authentication-actions';
 
 export const viewport: Viewport = {
     // themeColor: '#4265a7'

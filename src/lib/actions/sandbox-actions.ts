@@ -5,6 +5,7 @@ import { type Node } from '@xyflow/react';
 import { type Edge } from '@xyflow/react';
 import { nanoid } from 'nanoid';
 
+// these are hardcoded nodes to be replaced with nodes from the db
 const position = { x: 50, y: 100 };
 const automationNodes = [
     {
@@ -70,8 +71,9 @@ const automationNodes = [
         data: { label: 'Node 8' },
         position
     }
-];
+] as Node[];
 
+// these are hardcoded edges to be replaced with nodes from the db
 const automationEdges = [
     {
         id: 'horizontal-e1-2',
@@ -122,7 +124,7 @@ const automationEdges = [
         type: 'automationEdge',
         animated: false
     }
-];
+] as Edge[];
 
 // These will in turn use the supabase actions
 export const fetchWorkflowNodes = (): Node[] => {
@@ -141,7 +143,7 @@ export const fetchWorkflowEdges = (): Edge[] => {
 
 export const fetchNode = (id: string) => {};
 
-export const addNewNode = (parentNode: Node, position: XYPosition) => {
+export const addNewNode = async (parentNode: Node & { data: { label: string } }, position?: XYPosition) => {
     const newNode = {
         id: nanoid(),
         type: 'automationNode',
