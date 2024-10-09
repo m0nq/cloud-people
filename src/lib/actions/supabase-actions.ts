@@ -35,17 +35,17 @@ export const loginOrSignUp = async (formData: FormData) => {
     });
 
     if (error) {
-        return redirect('/login?message=Could not authenticate user');
+        redirect('/login?message=Could not authenticate user');
     }
 
-    return redirect('/login?message=Check your email to continue logging in');
+    redirect('/login?message=Check your email to continue logging in');
 };
 
 export const signOut = async () => {
     const supabase = createClient();
     await supabase.auth.signOut({ scope: 'local' });
     revalidatePath('/', 'layout');
-    return redirect('/login');
+    redirect('/login');
 };
 
 export const fetchData = async (config: any = {}) => {
