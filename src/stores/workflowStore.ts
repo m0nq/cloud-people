@@ -18,6 +18,7 @@ const initialStateNodes = [
         id: 'SFS',
         type: 'initialStateNode',
         data: {
+            id: 'SFS',
             label: 'Start from Scratch',
             background: 'white',
             color: '#1b2559'
@@ -28,6 +29,7 @@ const initialStateNodes = [
         id: 'SFT',
         type: 'initialStateNode',
         data: {
+            id: 'SFT',
             label: 'Start from a Template',
             background: 'linear-gradient(to bottom right, #86FFE2, #18FFD5)',
             color: '#1b2559'
@@ -38,6 +40,7 @@ const initialStateNodes = [
         id: 'SFA',
         type: 'initialStateNode',
         data: {
+            id: 'SFA',
             label: 'Start from AI Prompt',
             background: 'linear-gradient(to bottom right, #868CFF, #4318FF)',
             color: '#1b2559'
@@ -83,6 +86,14 @@ export const useGraphStore = create<AppState>((set, get) => ({
         // will need to add node to workflow graph for db storage
         set({
             nodes: [...get().nodes, node]
+        });
+    },
+    createNewWorkflow: () => {
+        // Hit the db and create a new workflow
+        // create a new root node
+        set({
+            nodes: [],
+            edges: []
         });
     },
     fetchGraph: (workflowId: string) => {

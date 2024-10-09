@@ -28,5 +28,6 @@ export type AppState = {
     setEdges?: (edges: Edge[]) => void;
     addNode?: (node: Node) => void;
     fetchGraph?: (workflowId: string) => void;
+    createNewWorkflow?: () => void;
     reset?: () => void;
 };
