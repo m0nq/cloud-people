@@ -8,12 +8,12 @@ import { type Connection } from '@xyflow/react';
 import { type EdgeChange } from '@xyflow/react';
 import { type NodeChange } from '@xyflow/react';
 import { Position } from '@xyflow/react';
-import { nanoid } from 'nanoid';
 
 import { AppState } from '@lib/definitions';
 import { fetchWorkflowNodes } from '@lib/actions/sandbox-actions';
 import { fetchWorkflowEdges } from '@lib/actions/sandbox-actions';
 import { createWorkflow } from '@lib/actions/workflow-actions';
+import { createNodes } from '@lib/actions/node-actions';
 
 const position = { x: 50, y: 100 };
 const initialStateNodes = [
@@ -92,25 +92,20 @@ export const useGraphStore = create<AppState>((set, get) => ({
         });
     },
     createNewWorkflow: async () => {
-        // Hit the db and create a new workflow
-        // grab the workflow_id to add to new node
-        const workflow_id: string = await createWorkflow();
-        // create a new root node
-        const nodes = [
-            {
-                id: nanoid(),
-                sourcePosition: Position.Right,
-                type: 'rootNode',
-                data: {
-                    label: 'Root',
-                    workflowId: workflow_id
-                },
-                position
-            }
-        ] as Node[];
+        const workflowId: string = await createWorkflow();
+        const node = {
+            id: await createNodes({ workflowId }),
+            sourcePosition: Position.Right,
+            type: 'rootNode',
+            data: {
+                label: 'Root',
+                workflowId
+            },
+            position
+        } as Node;
 
         set({
-            nodes,
+            nodes: [node],
             edges: []
         });
     },

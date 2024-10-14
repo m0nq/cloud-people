@@ -31,3 +31,16 @@ export type AppState = {
     createNewWorkflow?: () => void;
     reset?: () => void;
 };
+
+export type NodeQueryConfig = {
+    filter?: {
+        id?: {
+            eq: string;
+        };
+    };
+    workflowId?: string;
+    first?: number;
+    last?: number;
+    offset?: number;
+}
+

@@ -5,7 +5,7 @@ import { queryDB } from '@lib/supabase/api';
 
 const supabase = createClient();
 
-export const createWorkflow = async (config: any = {}) => {
+export const createWorkflow = async (config: any = {}): Promise<string> => {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -13,7 +13,7 @@ export const createWorkflow = async (config: any = {}) => {
     }
 
     const insertWorkflowMutation = `
-        mutation WorkflowMutation($userId: UUID!, $data: JSON!) {
+        mutation CreateWorkflowMutation($userId: UUID!, $data: JSON!) {
             workflows: insertIntoWorkflowsCollection(objects: [
                 {
                     data: $data,
@@ -31,8 +31,8 @@ export const createWorkflow = async (config: any = {}) => {
     `;
 
     const variables = {
-        userId: user.id,
-        data: JSON.stringify({ label: 'Node Info' })
+        data: JSON.stringify({ label: 'Node Info' }),
+        userId: user.id
     };
 
     const { data: { workflows: { nodes: [node] } } } = await queryDB(insertWorkflowMutation, variables);
