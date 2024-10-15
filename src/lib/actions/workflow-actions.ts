@@ -26,7 +26,7 @@ export const createWorkflow = async (): Promise<string> => {
     `;
 
     const variables = {
-        data: JSON.stringify({ label: '' }),
+        data: JSON.stringify({ label: 'Stuff and things...' }),
         userId: user.id
     } as QueryConfig;
 
@@ -69,13 +69,25 @@ export const fetchWorkflows = async (config: QueryConfig = {}): Promise<Workflow
         }
     `;
 
-    const workflows = await connectToDB(findWorkflowsQuery, config);
+    const variables = {
+        ...config,
+        filter: {
+            ...config.filter,
+            workflow_id: { eq: config.workflowId },
+            user_id: { eq: config.userId }
+        }
+    } as QueryConfig;
 
-    return workflows.map((workflow: any) => ({ ...workflow.node })) as WorkflowType[];
+    const workflows = await connectToDB(findWorkflowsQuery, variables);
+    return workflows.map((workflow: any) => ({
+        ...workflow.node,
+        currentStep: workflow.current_step,
+        userId: workflow.user_id
+    })) as WorkflowType[];
 };
 
 export const updateWorkflow = async (config: QueryConfig = {}): Promise<WorkflowType> => {
-    await authCheck();
+    const user = await authCheck();
 
     const updateWorkflowsMutation = `
         mutation UpdateWorkflowMutation(
@@ -103,16 +115,26 @@ export const updateWorkflow = async (config: QueryConfig = {}): Promise<Workflow
         set: {
             ...config.set,
             current_step: config.set?.currentStep || null,
-            updated_at: config.set?.updated_at ?? new Date()
+            updated_at: config.set?.updatedAt ?? new Date()
+        },
+        filter: {
+            ...config.filter,
+            id: { eq: config.workflowId },
+            user_id: { eq: user.id }
         }
     } as QueryConfig;
 
     const [workflow] = await connectToDB(updateWorkflowsMutation, variables);
 
-    return workflow as WorkflowType;
+    return {
+        ...workflow,
+        userId: workflow.user_id,
+        currentStep: workflow.current_step
+    } as WorkflowType;
 };
+
 export const deleteWorkflow = async (config: QueryConfig) => {
-    await authCheck();
+    const user = await authCheck();
 
     const deleteWorkflowMutation = `
         mutation DeleteWorkflowMutation(
@@ -127,7 +149,16 @@ export const deleteWorkflow = async (config: QueryConfig) => {
         }
     `;
 
-    const [workflow] = await connectToDB(deleteWorkflowMutation, config);
+    const variables = {
+        ...config,
+        filter: {
+            ...config.filter,
+            workflow_id: { eq: config.workflowId },
+            user_id: { eq: user.id }
+        }
+    } as QueryConfig;
+
+    const [workflow] = await connectToDB(deleteWorkflowMutation, variables);
 
     return workflow.id as string;
 };

@@ -36,11 +36,11 @@ export type QueryUpdateConfig = {
     state?: WorkflowState;
     currentStep?: string;
     data?: string;
-    updated_at?: Date;
+    updatedAt?: Date;
 }
 
 export type QueryFilterConfig = {
-    id?: {
+    [prop: string]: {
         eq: string;
     };
 }
@@ -55,6 +55,7 @@ export type QueryConfig = {
     userId?: string;
     set?: QueryUpdateConfig;
     atMost?: number;
+    currentStep?: string;
 }
 
 export enum WorkflowState {
@@ -67,10 +68,17 @@ export enum WorkflowState {
 
 export type WorkflowType = {
     id: string;
-    user_id: string;
-    state: WorkflowState;
-    current_step?: string;
+    userId?: string;
+    state?: WorkflowState;
+    currentStep?: string;
     data?: string;
+}
+
+export type NodeType = {
+    id: string;
+    workflowId?: string;
+    state?: string;
+    currentStep?: string;
 }
 
 export type QueryResults = {

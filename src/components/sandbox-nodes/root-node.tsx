@@ -30,11 +30,11 @@ export const RootNode = ({
 
     return (
         <div className="root-node">
-            <div className="inner-circle">
+            <button className="inner-circle" onClick={() => alert('Let\'s get this party started!!! 🥳')}>
                 {/*  play and pause buttons go here  */}
                 <FaPlay color={'#ffffff'} size={40} />
                 {/*<FaPause color={'#ffffff'} size={40} />*/}
-            </div>
+            </button>
             <Handle type="source" position={Position.Right} id={`${id}-root`} isConnectable={isConnectable} />
         </div>
     );
