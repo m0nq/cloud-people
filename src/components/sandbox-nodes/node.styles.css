@@ -41,5 +41,10 @@
 }
 
 .root-node {
+  @apply w-32 h-32 rounded-full bg-white stroke-1 stroke-zinc-500 drop-shadow-[0_1px_4px_rgba(0,0,0,0.15)] flex
+  items-center justify-center cursor-pointer;
 
+  .inner-circle {
+    @apply w-24 h-24 rounded-full bg-[linear-gradient(270deg,#A852FF_11.51%,#6A52FF_92.43%)] flex items-center justify-center;
+  }
 }

@@ -34,7 +34,7 @@ export const layoutElements = (nodes: Node[], edges: Edge[]) => {
             sourcePosition: Position.Right,
             position: {
                 x: x * 1.5,
-                y: isInitialNodes && y * 3 || y
+                y: isInitialNodes && y * 3 || y * 3.5
             }
         };
     });

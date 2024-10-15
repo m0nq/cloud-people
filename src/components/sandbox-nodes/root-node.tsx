@@ -3,6 +3,8 @@ import { Handle } from '@xyflow/react';
 import { Position } from '@xyflow/react';
 
 import './node.styles.css';
+import { FaPlay } from 'react-icons/fa';
+// import { FaPause } from 'react-icons/fa';
 
 type RootNodeProps = {
     id: string;
@@ -28,9 +30,11 @@ export const RootNode = ({
 
     return (
         <div className="root-node">
-            {/*<AgentCard data={data} />*/}
-            {/* optional handles to connect bottom and top if nodes: are related? run in parallel? are dependent on each other? */}
-            {/* possible styled handle extension as button or further detailed information */}
+            <div className="inner-circle">
+                {/*  play and pause buttons go here  */}
+                <FaPlay color={'#ffffff'} size={40} />
+                {/*<FaPause color={'#ffffff'} size={40} />*/}
+            </div>
             <Handle type="source" position={Position.Right} id={`${id}-root`} isConnectable={isConnectable} />
         </div>
     );
