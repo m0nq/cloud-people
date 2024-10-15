@@ -26,9 +26,11 @@ import { InitialStateNode } from '@components/sandbox-nodes/initial-state-node';
 import { useGraphStore } from '@stores/workflowStore';
 import { AppState } from '@lib/definitions';
 import { layoutElements } from '@lib/dagre/dagre';
+import { RootNode } from '@components/sandbox-nodes/root-node';
 
 const nodeTypes = {
     initialStateNode: InitialStateNode,
+    rootNode: RootNode,
     automationNode: AutomationNode
 };
 

@@ -1,11 +1,11 @@
 'use server';
-
 import { redirect } from 'next/navigation';
 import DOMPurify from 'isomorphic-dompurify';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 
 import { createClient } from '@lib/supabase/server';
+import { User } from '@supabase/supabase-js';
 
 export const isLoggedIn = async () => {
     const supabase = createClient();
@@ -47,4 +47,16 @@ export const signOut = async () => {
     revalidatePath('/', 'layout');
     redirect('/login');
 };
+
+export const authCheck = async (): Promise<User> => {
+    const supabase = createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+        throw new Error('User not authenticated');
+    }
+
+    return user;
+};
+
 

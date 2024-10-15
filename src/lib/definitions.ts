@@ -32,23 +32,28 @@ export type AppState = {
     reset?: () => void;
 };
 
-export type QueryConfig = {
-    filter?: {
-        id?: {
-            eq: string;
-        };
+export type QueryUpdateConfig = {
+    state?: WorkflowState;
+    currentStep?: string;
+    data?: string;
+    updated_at?: Date;
+}
+
+export type QueryFilterConfig = {
+    id?: {
+        eq: string;
     };
+}
+
+export type QueryConfig = {
+    filter?: QueryFilterConfig;
     workflowId?: string;
     first?: number;
     last?: number;
     offset?: number;
     data?: string;
     userId?: string;
-    set?: {
-        state?: WorkflowState;
-        currentStep?: string;
-        data?: string;
-    };
+    set?: QueryUpdateConfig;
     atMost?: number;
 }
 
