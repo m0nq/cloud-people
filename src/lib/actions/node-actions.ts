@@ -39,7 +39,7 @@ export const fetchNodes = async (config: QueryConfig = {}): Promise<NodeType[]> 
             offset: $offset,
             filter: $filter
         ) {
-            nodes: edges {
+            records: edges {
                 node {
                     id
                     workflow_id
@@ -105,7 +105,6 @@ export const updateNodes = async (config: any = {}) => {
     } as QueryConfig;
 
     const [node] = await connectToDB(updateNodeMutation, variables);
-
     return {
         ...node,
         workflowId: node.workflow_id,
@@ -121,7 +120,10 @@ export const deleteNodes = async (config: any = {}) => {
             $filter: WorkflowsFilter,
             $atMost: Int!
          ) {
-            collection: deleteFromWorkflowsCollection(filter: $filter, atMost: $atMost) {
+            collection: deleteFromNodesCollection(
+                filter: $filter,
+                atMost: $atMost
+            ) {
                 records {
                     id
                 }
@@ -138,6 +140,5 @@ export const deleteNodes = async (config: any = {}) => {
     } as QueryConfig;
 
     const [node] = await connectToDB(deleteNodeMutation, variables);
-
     return node.id as string;
 };

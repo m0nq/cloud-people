@@ -56,6 +56,8 @@ export type QueryConfig = {
     set?: QueryUpdateConfig;
     atMost?: number;
     currentStep?: string;
+    toNodeId?: string;
+    fromNodeId?: string;
 }
 
 export enum WorkflowState {
@@ -79,6 +81,13 @@ export type NodeType = {
     workflowId?: string;
     state?: string;
     currentStep?: string;
+}
+
+export type EdgeType = {
+    id: string;
+    workflowId?: string;
+    toNodeId?: string;
+    fromNodeId?: string;
 }
 
 export type QueryResults = {
