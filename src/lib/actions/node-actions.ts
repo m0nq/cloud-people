@@ -1,11 +1,11 @@
 'use server';
 import { createClient } from '@lib/supabase/server';
 import { queryDB } from '@lib/supabase/api';
-import { type NodeQueryConfig } from '@lib/definitions';
+import { type QueryConfig } from '@lib/definitions';
 
 const supabase = createClient();
 
-export const createNodes = async (config: NodeQueryConfig = {}): Promise<string> => {
+export const createNodes = async (config: QueryConfig = {}): Promise<string> => {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -32,7 +32,7 @@ export const createNodes = async (config: NodeQueryConfig = {}): Promise<string>
     return node.id;
 };
 
-export const fetchNodes = async (config: NodeQueryConfig = {}) => {
+export const fetchNodes = async (config: QueryConfig = {}) => {
     // TODO: implement graphql call to fetch data
     // all by default, filter when parameters are passed in
     // if item not found, can throw a local 404 with { notFound() } from next/navigation

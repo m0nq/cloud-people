@@ -32,7 +32,7 @@ export type AppState = {
     reset?: () => void;
 };
 
-export type NodeQueryConfig = {
+export type QueryConfig = {
     filter?: {
         id?: {
             eq: string;

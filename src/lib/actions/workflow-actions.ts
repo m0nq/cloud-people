@@ -4,7 +4,7 @@ import { type User } from '@supabase/supabase-js';
 
 import { createClient } from '@lib/supabase/server';
 import { queryDB } from '@lib/supabase/api';
-import { NodeQueryConfig } from '@lib/definitions';
+import { QueryConfig } from '@lib/definitions';
 import { WorkflowType } from '@lib/definitions';
 
 const supabase = createClient();
@@ -43,13 +43,13 @@ export const createWorkflow = async (): Promise<string> => {
     const variables = {
         data: JSON.stringify({ label: 'Node Info' }),
         userId: user.id
-    } as NodeQueryConfig;
+    } as QueryConfig;
 
     const { data: { collection: { workflows: [workflow] } } } = await queryDB(createWorkflowMutation, variables);
     return workflow.id as string;
 };
 
-export const fetchWorkflows = async (config: NodeQueryConfig): Promise<WorkflowType[]> => {
+export const fetchWorkflows = async (config: QueryConfig = {}): Promise<WorkflowType[]> => {
     await authCheck();
 
     const findWorkflowsQuery = `
@@ -83,7 +83,7 @@ export const fetchWorkflows = async (config: NodeQueryConfig): Promise<WorkflowT
         }
     `;
 
-    const { data: { collection: { workflows } } } = await queryDB(findWorkflowsQuery, { ...config } as NodeQueryConfig);
+    const { data: { collection: { workflows } } } = await queryDB(findWorkflowsQuery, { ...config } as QueryConfig);
     // if item not found, throw a local 404
     if (!workflows.length) {
         notFound();
@@ -92,7 +92,7 @@ export const fetchWorkflows = async (config: NodeQueryConfig): Promise<WorkflowT
     return workflows.map((workflow: any) => ({ ...workflow.node })) as WorkflowType[];
 };
 
-export const updateWorkflow = async (config: NodeQueryConfig): Promise<WorkflowType> => {
+export const updateWorkflow = async (config: QueryConfig = {}): Promise<WorkflowType> => {
     await authCheck();
 
     const updateWorkflowsMutation = `
@@ -119,10 +119,11 @@ export const updateWorkflow = async (config: NodeQueryConfig): Promise<WorkflowT
     const variables = {
         ...config,
         set: {
-            current_step: config?.set?.currentStep || null,
+            ...config.set,
+            current_step: config.set?.currentStep || null,
             updated_at: new Date()
         }
-    } as NodeQueryConfig;
+    } as QueryConfig;
 
     const { data: { collection: { workflows } } } = await queryDB(updateWorkflowsMutation, variables);
     // if item not found, throw a local 404
@@ -133,7 +134,7 @@ export const updateWorkflow = async (config: NodeQueryConfig): Promise<WorkflowT
     return workflows[0] as WorkflowType;
 };
 
-export const deleteWorkflow = async (config: NodeQueryConfig) => {
+export const deleteWorkflow = async (config: QueryConfig) => {
     await authCheck();
 
     const deleteWorkflowMutation = `
@@ -146,7 +147,7 @@ export const deleteWorkflow = async (config: NodeQueryConfig) => {
         }
     `;
 
-    const { data: { collection: { workflows } } } = await queryDB(deleteWorkflowMutation, { ...config } as NodeQueryConfig);
+    const { data: { collection: { workflows } } } = await queryDB(deleteWorkflowMutation, { ...config } as QueryConfig);
     // if item not found, throw a local 404
     if (!workflows.length) {
         notFound();
