@@ -42,5 +42,28 @@ export type NodeQueryConfig = {
     first?: number;
     last?: number;
     offset?: number;
+    data?: string;
+    userId?: string;
+    set?: {
+        state?: WorkflowState;
+        currentStep?: string;
+        data?: string;
+    };
+    atMost?: number;
 }
 
+export enum WorkflowState {
+    Initial = 'Initial',
+    Build = 'Build',
+    Running = 'Running',
+    Error = 'Error',
+    Complete = 'Complete'
+}
+
+export type WorkflowType = {
+    id: string;
+    user_id: string;
+    state: WorkflowState;
+    current_step?: string;
+    data?: string;
+}

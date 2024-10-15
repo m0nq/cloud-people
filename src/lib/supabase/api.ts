@@ -1,11 +1,12 @@
 'use server';
 import { createClient } from './server';
+import { NodeQueryConfig } from '@lib/definitions';
 
 const SUPABASE_URL: string = process.env.SUPABASE_URL!;
 const SUPABASE_ANON_KEY: string = process.env.SUPABASE_ANON_KEY!;
 const supabase = createClient();
 
-export const queryDB = async (query: string, variables: Record<string, any> = {}) => {
+export const queryDB = async (query: string, variables: NodeQueryConfig = {}) => {
     const { data: { session } } = await supabase.auth.getSession();
 
     const res = await fetch(`${SUPABASE_URL}/graphql/v1`, {

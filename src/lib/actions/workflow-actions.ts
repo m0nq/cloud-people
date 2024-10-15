@@ -1,26 +1,36 @@
 'use server';
+import { notFound } from 'next/navigation';
+import { type User } from '@supabase/supabase-js';
 
 import { createClient } from '@lib/supabase/server';
 import { queryDB } from '@lib/supabase/api';
+import { NodeQueryConfig } from '@lib/definitions';
+import { WorkflowType } from '@lib/definitions';
 
 const supabase = createClient();
 
-export const createWorkflow = async (config: any = {}): Promise<string> => {
+const authCheck = async (): Promise<User> => {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
         throw new Error('User not authenticated');
     }
 
-    const insertWorkflowMutation = `
+    return user;
+};
+
+export const createWorkflow = async (): Promise<string> => {
+    const user = await authCheck();
+
+    const createWorkflowMutation = `
         mutation CreateWorkflowMutation($userId: UUID!, $data: JSON!) {
-            workflows: insertIntoWorkflowsCollection(objects: [
+            collection: insertIntoWorkflowsCollection(objects: [
                 {
                     data: $data,
                     user_id: $userId
                 }
             ]) {
-                nodes: records {
+                workflows: records {
                     id
                     user_id
                     data
@@ -33,22 +43,114 @@ export const createWorkflow = async (config: any = {}): Promise<string> => {
     const variables = {
         data: JSON.stringify({ label: 'Node Info' }),
         userId: user.id
-    };
+    } as NodeQueryConfig;
 
-    const { data: { workflows: { nodes: [node] } } } = await queryDB(insertWorkflowMutation, variables);
-    return node.id;
+    const { data: { collection: { workflows: [workflow] } } } = await queryDB(createWorkflowMutation, variables);
+    return workflow.id as string;
 };
 
-export const fetchWorkflows = async (config: any = {}) => {
-    // TODO: implement graphql call to fetch data
-    // all by default, filter when parameters are passed in
-    // if item not found, can throw a local 404 with { notFound() } from next/navigation
+export const fetchWorkflows = async (config: NodeQueryConfig): Promise<WorkflowType[]> => {
+    await authCheck();
+
+    const findWorkflowsQuery = `
+        query WorkflowQuery(
+            $first: Int,
+            $last: Int,
+            $offset: Int,
+            $before: Cursor,
+            $after: Cursor,
+            $filter: WorkflowsFilter,
+            $orderBy: [WorkflowsOrderBy!]
+        ) {
+            collection: workflowsCollection(
+                first: $first
+                last: $last
+                offset: $offset
+                before: $before
+                after: $after
+                filter: $filter
+                orderBy: $orderBy
+            ) {
+                workflows: edges {
+                    node {
+                        id
+                        state
+                        current_step
+                        data
+                    }
+                }
+            }
+        }
+    `;
+
+    const { data: { collection: { workflows } } } = await queryDB(findWorkflowsQuery, { ...config } as NodeQueryConfig);
+    // if item not found, throw a local 404
+    if (!workflows.length) {
+        notFound();
+    }
+
+    return workflows.map((workflow: any) => ({ ...workflow.node })) as WorkflowType[];
 };
 
-export const updateWorkflow = async (config: any = {}) => {
-    // TODO: implement via graphql api
+export const updateWorkflow = async (config: NodeQueryConfig): Promise<WorkflowType> => {
+    await authCheck();
+
+    const updateWorkflowsMutation = `
+        mutation UpdateWorkflowMutation(
+            $set: WorkflowsUpdateInput!,
+            $filter: WorkflowsFilter,
+            $atMost: Int! = 1
+        ) {
+            collection: updateWorkflowsCollection(
+                set: $set
+                filter: $filter
+                atMost: $atMost
+            ) {
+                workflows: records {
+                    id
+                    state
+                    current_step
+                    data
+                }
+            }
+        }
+    `;
+
+    const variables = {
+        ...config,
+        set: {
+            current_step: config?.set?.currentStep || null,
+            updated_at: new Date()
+        }
+    } as NodeQueryConfig;
+
+    const { data: { collection: { workflows } } } = await queryDB(updateWorkflowsMutation, variables);
+    // if item not found, throw a local 404
+    if (!workflows.length) {
+        notFound();
+    }
+
+    return workflows[0] as WorkflowType;
 };
 
-export const deleteWorkflow = async (config: any = {}) => {
-    // TODO: implement via graphql api
+export const deleteWorkflow = async (config: NodeQueryConfig) => {
+    await authCheck();
+
+    const deleteWorkflowMutation = `
+        mutation DeleteWorkflowMutation($filter: WorkflowsFilter, $atMost: Int!) {
+            collection: deleteFromWorkflowsCollection(filter: $filter, atMost: $atMost) {
+                workflows: records {
+                    id
+                }
+            }
+        }
+    `;
+
+    const { data: { collection: { workflows } } } = await queryDB(deleteWorkflowMutation, { ...config } as NodeQueryConfig);
+    // if item not found, throw a local 404
+    if (!workflows.length) {
+        notFound();
+    }
+
+    return workflows[0].id;
 };

@@ -13,9 +13,9 @@ export const createNodes = async (config: NodeQueryConfig = {}): Promise<string>
     }
 
     const insertNodeMutation = `
-        mutation CreateNewNode($id: UUID, $workflow_id: UUID!) {
-            nodesCollection: insertIntoNodesCollection(objects: [{
-                workflow_id: $workflow_id
+        mutation CreateNewNode($id: UUID, $workflowId: UUID!) {
+            collection: insertIntoNodesCollection(objects: [{
+                workflow_id: $workflowId
             }]) {
                 records {
                     id
@@ -25,10 +25,10 @@ export const createNodes = async (config: NodeQueryConfig = {}): Promise<string>
    `;
 
     let variables = {
-        workflow_id: config.workflowId
+        workflowId: config.workflowId
     };
 
-    const { data: { nodesCollection: { records: [node] } } } = await queryDB(insertNodeMutation, variables);
+    const { data: { nodes: { records: [node] } } } = await queryDB(insertNodeMutation, variables);
     return node.id;
 };
 
@@ -44,7 +44,7 @@ export const fetchNodes = async (config: NodeQueryConfig = {}) => {
 
     const fetchNodesQuery = `
         query NodesQuery($first: Int, $last: Int, $offset: Int, $filter: NodesFilter) {
-            nodesCollection(first: $first, last: $last, offset: $offset, filter: $filter) {
+            collection: nodesCollection(first: $first, last: $last, offset: $offset, filter: $filter) {
                 nodes: edges {
                     node {
                         id
