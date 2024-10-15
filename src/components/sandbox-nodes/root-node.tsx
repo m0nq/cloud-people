@@ -31,8 +31,7 @@ export const RootNode = ({
             {/*<AgentCard data={data} />*/}
             {/* optional handles to connect bottom and top if nodes: are related? run in parallel? are dependent on each other? */}
             {/* possible styled handle extension as button or further detailed information */}
-            <Handle type="source" position={Position.Right} id={`${id}-a`} isConnectable={isConnectable} />
-            {/*<Handle type="target" position={tPosition} id={`${id}-b`} isConnectable={isConnectable} />*/}
+            <Handle type="source" position={Position.Right} id={`${id}-root`} isConnectable={isConnectable} />
         </div>
     );
 };

@@ -72,3 +72,11 @@ export type WorkflowType = {
     current_step?: string;
     data?: string;
 }
+
+export type QueryResults = {
+    data: {
+        collection: {
+            records: any[]
+        }
+    }
+}

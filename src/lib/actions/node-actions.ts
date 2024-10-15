@@ -2,18 +2,16 @@
 import { createClient } from '@lib/supabase/server';
 import { queryDB } from '@lib/supabase/api';
 import { type QueryConfig } from '@lib/definitions';
+import { authCheck } from '@lib/actions/authentication-actions';
+import { connectToDB } from '@lib/utils';
 
 const supabase = createClient();
 
 export const createNodes = async (config: QueryConfig = {}): Promise<string> => {
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-        throw new Error('User not authenticated');
-    }
+    await authCheck();
 
     const insertNodeMutation = `
-        mutation CreateNewNode($id: UUID, $workflowId: UUID!) {
+        mutation CreateNewNode($workflowId: UUID!) {
             collection: insertIntoNodesCollection(objects: [{
                 workflow_id: $workflowId
             }]) {
@@ -24,11 +22,7 @@ export const createNodes = async (config: QueryConfig = {}): Promise<string> => 
         } 
    `;
 
-    let variables = {
-        workflowId: config.workflowId
-    };
-
-    const { data: { nodes: { records: [node] } } } = await queryDB(insertNodeMutation, variables);
+    const [node] = await connectToDB(insertNodeMutation, config);
     return node.id;
 };
 

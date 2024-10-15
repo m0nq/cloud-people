@@ -1,19 +1,8 @@
 'use server';
-import { notFound } from 'next/navigation';
-
-import { queryDB } from '@lib/supabase/api';
 import { QueryConfig } from '@lib/definitions';
 import { WorkflowType } from '@lib/definitions';
 import { authCheck } from './authentication-actions';
-
-const connectToDB = async (queryString: string, config: QueryConfig): Promise<WorkflowType[]> => {
-    const { data: { collection: { workflows } } } = await queryDB(queryString, { ...config } as QueryConfig);
-    // if item not found, throw a local 404
-    if (!workflows.length) {
-        notFound();
-    }
-    return workflows;
-};
+import { connectToDB } from '@lib/utils';
 
 export const createWorkflow = async (): Promise<string> => {
     const user = await authCheck();
@@ -26,7 +15,7 @@ export const createWorkflow = async (): Promise<string> => {
                     user_id: $userId
                 }
             ]) {
-                workflows: records {
+                records {
                     id
                     user_id
                     data
@@ -68,7 +57,7 @@ export const fetchWorkflows = async (config: QueryConfig = {}): Promise<Workflow
                 filter: $filter
                 orderBy: $orderBy
             ) {
-                workflows: edges {
+                records: edges {
                     node {
                         id
                         state
@@ -99,7 +88,7 @@ export const updateWorkflow = async (config: QueryConfig = {}): Promise<Workflow
                 filter: $filter
                 atMost: $atMost
             ) {
-                workflows: records {
+                records {
                     id
                     state
                     current_step
@@ -131,7 +120,7 @@ export const deleteWorkflow = async (config: QueryConfig) => {
             $atMost: Int!
          ) {
             collection: deleteFromWorkflowsCollection(filter: $filter, atMost: $atMost) {
-                workflows: records {
+                records {
                     id
                 }
             }
