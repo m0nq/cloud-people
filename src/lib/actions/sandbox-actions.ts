@@ -1,9 +1,7 @@
 //'use server';
 import { Position } from '@xyflow/react';
-import { XYPosition } from '@xyflow/react';
 import { type Node } from '@xyflow/react';
 import { type Edge } from '@xyflow/react';
-import { nanoid } from 'nanoid';
 
 // these are hardcoded nodes to be replaced with nodes from the db
 const position = { x: 50, y: 100 };
@@ -140,23 +138,3 @@ export const fetchWorkflowEdges = (): Edge[] => {
     // Return all edges for a selected workflow
     return automationEdges;
 };
-
-export const fetchNode = (id: string) => {};
-
-export const addNewNode = async (parentNode: Node & { data: { label: string } }, position?: XYPosition) => {
-    const newNode = {
-        id: nanoid(),
-        workflow_id: parentNode.data.workflow_id,
-        type: 'automationNode',
-        data: { label: 'New Node' },
-        position,
-        parentNode: parentNode.id
-    } as Node;
-
-    // Update current list of nodes for the signed in user
-    return [newNode];
-};
-
-export const removeNode = (id: string) => {};
-
-export const updateNode = (node: Node, id: string) => {};
