@@ -1,0 +1,201 @@
+@startuml
+!theme materia-outline
+' Part 1: Core Entities
+
+entity Users {
+  * id : int <<PK>>
+  --
+  * email : string <<unique>>
+  * password : string
+  * name : string
+  subscription_plan : int <<FK>>
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity Workflows {
+  * id : int <<PK>>
+  --
+  * user_id : int <<FK>>
+  * state : enum
+  * current_step : string
+  * graph : json
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity Nodes {
+  * id : int <<PK>>
+  --
+  * workflow_id : int <<FK>>
+  * state : enum
+  * current_step : string
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity Edges {
+  * id : int <<PK>>
+  --
+  * workflow_id : int <<FK>>
+  ' * state : enum
+  ' * current_step : string
+  * to_node_id : int <<FK>>
+  * from_node_id : int <<FK>>
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity AI_Models {
+  * id : int <<PK>>
+  --
+  * name : string
+  * description : text
+  * category : string
+  * prebuilt : boolean
+  created_by : int <<FK>>
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity AI_Agent_Definitions {
+  * id : int <<PK>>
+  --
+  * name : string
+  * description : text
+  * owner : int <<FK>>
+  * model : int <<FK>>
+  * configuration : json
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity Businesses {
+  * id : int <<PK>>
+  --
+  * name : string
+  * owner : int <<FK>>
+  * description : text
+  * deployed : boolean
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity Business_Sandbox_Data {
+  * id : int <<PK>>
+  --
+  * business : int <<FK>>
+  * data : json
+  * created_at : timestamp
+}
+
+entity Business_Performance_Metrics {
+  * id : int <<PK>>
+  --
+  * business : int <<FK>>
+  * metric_type : string
+  * value : float
+  * timestamp : timestamp
+}
+
+entity Marketplace_Listings {
+  * id : int <<PK>>
+  --
+  * agent : int <<FK>>
+  * owner : int <<FK>>
+  * price : decimal
+  * description : text
+  * listing_status : string
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+Users ||--o{ Workflows : has
+Users ||--o{ AI_Models : creates
+Users ||--o{ AI_Agent_Definitions : owns
+Users ||--o{ Businesses : owns
+AI_Models ||--o{ AI_Agent_Definitions : uses
+Businesses ||--o{ Business_Sandbox_Data : has
+Businesses ||--o{ Business_Performance_Metrics : has
+Users ||--o{ Marketplace_Listings : owns
+AI_Agent_Definitions ||--o{ Marketplace_Listings : lists
+Workflows ||--o{ Nodes : has
+Workflows ||--o{ Edges : has
+
+entity Transactions {
+  * id : int <<PK>>
+  --
+  * buyer : int <<FK>>
+  * seller : int <<FK>>
+  * listing : int <<FK>>
+  * amount : decimal
+  * payment_method : string
+  * transaction_status : string
+  commission : decimal
+  * created_at : timestamp
+}
+
+entity Subscription_Plans {
+  * id : int <<PK>>
+  --
+  * name : string
+  * description : text
+  * storage_limit : int
+  * agent_limit : int
+  * collaboration_features : boolean
+  * monthly_price : decimal
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity AI_Model_Training_Data {
+  * id : int <<PK>>
+  --
+  * model : int <<FK>>
+  * owner : int <<FK>>
+  * data_type : string
+  * data_size : int
+  description : text
+  * uploaded_at : timestamp
+}
+
+entity Community_Forum_Posts {
+  * id : int <<PK>>
+  --
+  * author : int <<FK>>
+  * topic : string
+  * title : string
+  * content : text
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity Community_Forum_Comments {
+  * id : int <<PK>>
+  --
+  * post : int <<FK>>
+  * author : int <<FK>>
+  * content : text
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity Security_Access_Controls {
+  * id : int <<PK>>
+  --
+  * role : string
+  * permission : string
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+Users ||--o{ Transactions : buys
+Users ||--o{ Transactions : sells
+Marketplace_Listings ||--o{ Transactions : involves
+Subscription_Plans ||--o{ Users : subscribes
+AI_Models ||--o{ AI_Model_Training_Data : trains_on
+Users ||--o{ AI_Model_Training_Data : uploads
+Users ||--o{ Community_Forum_Posts : authors
+Users ||--o{ Community_Forum_Comments : authors
+Community_Forum_Posts ||--o{ Community_Forum_Comments : has
+@enduml

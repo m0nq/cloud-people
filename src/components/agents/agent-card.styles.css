@@ -1,0 +1,31 @@
+.agent-card-container {
+  @apply font-inter h-full flex flex-col justify-between;
+
+  .agent-runner-title {
+    @apply flex gap-x-4;
+
+    .avatar {
+      @apply w-12 h-12 rounded-full;
+    }
+
+    .agent-name {
+      @apply font-bold text-lg leading-6 self-baseline text-[#515568];
+    }
+  }
+
+  .runner-description {
+    @apply py-2 text-[#BEC1CF] text-xs leading-5 align-top;
+
+    p:nth-child(2) {
+      @apply text-[#515568]
+    }
+  }
+
+  .agent-runner-status {
+    @apply flex justify-between items-center text-xs text-[#9D9D9D];
+
+    .status-complete-info {
+      @apply text-right;
+    }
+  }
+}

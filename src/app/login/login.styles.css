@@ -16,10 +16,10 @@
 
 .login-form-wrapper {
   @apply h-full w-3/4 mx-auto flex flex-col items-center justify-center text-center;
-}
 
-.login-form-wrapper h2 {
-  @apply font-semibold self-start text-left mb-10;
+  h2 {
+    @apply font-semibold self-start text-left mb-10;
+  }
 }
 
 .login-form {
@@ -53,20 +53,20 @@
 
 .separating-area {
   @apply w-full flex flex-row items-center justify-center my-4 py-4;
-}
 
-.separating-area hr {
-  @apply border-gray-400 dark:border-gray-600 border-opacity-75;
+  hr {
+    @apply border-gray-400 dark:border-gray-600 border-opacity-75;
+  }
 }
 
 .social-login-area {
   @apply w-full flex flex-col gap-3;
-}
 
-.social-login-area a {
-  @apply w-full text-sm px-4 py-3 border border-black rounded-md;
-}
+  a {
+    @apply w-full text-sm px-4 py-3 border border-black rounded-md;
 
-.social-login-area a > span {
-  @apply mx-auto flex justify-center flex-row items-center gap-2;
+    span {
+      @apply mx-auto flex justify-center flex-row items-center gap-2;
+    }
+  }
 }

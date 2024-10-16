@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
-import { isLoggedIn } from '@lib/actions/supabase-actions';
+
+import { isLoggedIn } from '@lib/actions/authentication-actions';
 
 const HomePage = async () => {
     await isLoggedIn();
