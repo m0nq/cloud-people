@@ -2,7 +2,9 @@ const Store = () => {
 
     return (
         <>
-            <div>Store Page</div>
+            <div className="flex flex-col items-center justify-center w-full">
+                Store Page
+            </div>
         </>
     );
 };

@@ -6,23 +6,24 @@ const Profile = async () => {
     let { data, error } = await supabase
         .from('profiles')
         .select('*');
-    const { email, username, first_name, last_name } = data?.[0];
 
-    if (error || !data?.length) {
-        return (
-            <>
-                <div>{error?.message}</div>
-            </>
-        );
-    }
+    console.log('profile ->', data);
 
-    console.log('profile ->', data[0]);
+    // const { email, username, first_name, last_name } = data && data?.[0];
+
+    // if (error || !data?.length) {
+    //     return (
+    //         <>
+    //             <div>{error?.message}</div>
+    //         </>
+    //     );
+    // }
 
     return (
-        <>
-            <div>Welcome! {username || first_name}</div>
-            <div>email: {email}</div>
-        </>
+        <div className="flex flex-col items-center justify-center w-full">
+            <div>Welcome!</div>
+            <div>Your email will be displayed here soon... 😅</div>
+        </div>
     );
 };
 

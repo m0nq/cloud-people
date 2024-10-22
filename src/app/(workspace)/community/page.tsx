@@ -2,7 +2,9 @@ const Community = () => {
 
     return (
         <>
-            <div>Community Page</div>
+            <div className="flex flex-col items-center justify-center w-full">
+                Community Page
+            </div>
         </>
     );
 };

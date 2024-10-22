@@ -95,8 +95,8 @@ const Sandbox = () => {
                     showInteractive={false}>
                     <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
                         <div className="arrow-icon">
-                            <PiArrowLeftThin className="icon-button arrow-left" size={20} strokeWidth={2} />
-                            <PiArrowRightThin className="icon-button arrow-right" size={20} strokeWidth={2} />
+                            <PiArrowLeftThin className="icon-button arrow-left" strokeWidth={2} />
+                            <PiArrowRightThin className="icon-button arrow-right" strokeWidth={2} />
                         </div>
                     </ControlButton>
                     <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
@@ -135,7 +135,7 @@ const Sandbox = () => {
                     showInteractive={false}
                     className="search-button">
                     <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
-                        <CiSearch />
+                        <CiSearch className="icon-button" />
                     </ControlButton>
                 </Controls>
                 <Controls position="top-right"
