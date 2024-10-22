@@ -61,14 +61,6 @@
 
 .social-login-area {
   @apply w-full flex flex-col gap-3;
-
-  a {
-    @apply flex w-full text-sm px-4 py-3 border border-black rounded-md;
-
-    span {
-      @apply mx-auto flex justify-center flex-row items-center gap-2;
-    }
-  }
 }
 
 .social-login-area a {
@@ -76,5 +68,5 @@
 }
 
 .social-login-area a span {
-  @apply flex w-full text-sm px-4 py-3 border border-black rounded-md;
+  @apply flex justify-center gap-x-2 w-full text-sm px-4 py-3 rounded-md;
 }
