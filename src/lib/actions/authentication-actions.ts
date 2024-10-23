@@ -30,7 +30,8 @@ export const loginOrSignUp = async (formData: FormData) => {
     const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-            emailRedirectTo
+            emailRedirectTo,
+            shouldCreateUser: true
         }
     });
 
