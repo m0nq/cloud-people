@@ -54,9 +54,10 @@
 .separating-area {
   @apply w-full flex flex-row items-center justify-center my-4 py-4;
 
-  hr {
-    @apply border-gray-400 dark:border-gray-600 border-opacity-75;
-  }
+}
+
+.separating-area hr {
+  @apply border-gray-400 dark:border-gray-600 border-opacity-75;
 }
 
 .social-login-area {
@@ -64,7 +65,7 @@
 }
 
 .social-login-area a {
-  @apply flex w-full text-sm px-4 py-3 border border-black rounded-md;
+  @apply w-full text-sm border border-black rounded-md;
 }
 
 .social-login-area a span {

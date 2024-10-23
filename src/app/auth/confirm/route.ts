@@ -20,7 +20,7 @@ export const GET = async (request: NextRequest) => {
 
         if (error) {
             // redirect the user back to login page
-            redirect('/login?message=There was an error logging in. Mind trying again...?');
+            redirect('/login?message=There was an error logging in. Try again...?');
         }
     }
 

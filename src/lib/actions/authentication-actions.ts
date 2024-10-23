@@ -17,7 +17,7 @@ export const isLoggedIn = async () => {
 };
 
 export const loginOrSignUp = async (formData: FormData) => {
-    const origin = headers().get('origin');
+    const emailRedirectTo = headers().get('origin') ?? '/';
     const supabase = createClient();
     const email = DOMPurify.sanitize(formData.get('email') as string);
     // const agreement = DOMPurify.sanitize(formData.get('agreement') as string);
@@ -30,7 +30,7 @@ export const loginOrSignUp = async (formData: FormData) => {
     const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-            emailRedirectTo: `${origin}/auth/callback`
+            emailRedirectTo
         }
     });
 
