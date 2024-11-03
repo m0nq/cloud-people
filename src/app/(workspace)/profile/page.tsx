@@ -1,28 +1,29 @@
 import { createClient } from '@lib/supabase/server';
+import { Tables } from '@lib/enums';
 
 const Profile = async () => {
 
-    const supabase = createClient();
+    const supabase = await createClient();
     let { data, error } = await supabase
-        .from('profiles')
+        .from(Tables.Profiles)
         .select('*');
 
-    console.log('profile ->', data);
+    const { email, username, first_name, last_name } = data && data?.[0];
 
-    // const { email, username, first_name, last_name } = data && data?.[0];
+    console.log('first name is null? ->', first_name === null);
 
-    // if (error || !data?.length) {
-    //     return (
-    //         <>
-    //             <div>{error?.message}</div>
-    //         </>
-    //     );
-    // }
+    if (error || !data?.length) {
+        return (
+            <>
+                <div>{error?.message}</div>
+            </>
+        );
+    }
 
     return (
         <div className="flex flex-col items-center justify-center w-full">
             <div>Welcome!</div>
-            <div>Your email will be displayed here soon... 😅</div>
+            <div>Your email {email}</div>
         </div>
     );
 };

@@ -3,12 +3,12 @@ import { redirect } from 'next/navigation';
 import DOMPurify from 'isomorphic-dompurify';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-
-import { createClient } from '@lib/supabase/server';
 import { User } from '@supabase/supabase-js';
 
+import { createClient } from '@lib/supabase/server';
+
 export const isLoggedIn = async () => {
-    const supabase = createClient();
+    const supabase = await createClient();
 
     const { data, error } = await supabase.auth.getUser();
     if (error || !data?.user) {
@@ -17,8 +17,8 @@ export const isLoggedIn = async () => {
 };
 
 export const loginOrSignUp = async (formData: FormData) => {
-    const emailRedirectTo = headers().get('origin') ?? '/';
-    const supabase = createClient();
+    const emailRedirectTo = (await headers()).get('origin') ?? '/';
+    const supabase = await createClient();
     const email = DOMPurify.sanitize(formData.get('email') as string);
     // const agreement = DOMPurify.sanitize(formData.get('agreement') as string);
 
@@ -30,8 +30,7 @@ export const loginOrSignUp = async (formData: FormData) => {
     const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-            emailRedirectTo,
-            shouldCreateUser: true
+            emailRedirectTo
         }
     });
 
@@ -43,14 +42,14 @@ export const loginOrSignUp = async (formData: FormData) => {
 };
 
 export const signOut = async () => {
-    const supabase = createClient();
+    const supabase = await createClient();
     await supabase.auth.signOut({ scope: 'local' });
     revalidatePath('/', 'layout');
     redirect('/login');
 };
 
 export const authCheck = async (): Promise<User> => {
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -59,5 +58,3 @@ export const authCheck = async (): Promise<User> => {
 
     return user;
 };
-
-

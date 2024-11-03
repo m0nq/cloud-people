@@ -4,7 +4,7 @@ import { EdgeProps } from '@xyflow/react';
 
 import './node.styles.css';
 
-export const AutomationEdge = ({
+const AutomationEdge = ({
     id,
     sourceX,
     sourceY,
@@ -31,3 +31,5 @@ export const AutomationEdge = ({
         </>
     );
 };
+
+export default AutomationEdge;

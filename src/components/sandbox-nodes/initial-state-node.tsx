@@ -13,7 +13,7 @@ type InitialStateNodeProps = {
     };
 };
 
-export const InitialStateNode = ({
+const InitialStateNode = ({
     id,
     data
 }: InitialStateNodeProps): ReactNode => {
@@ -50,3 +50,5 @@ export const InitialStateNode = ({
         </button>
     );
 };
+
+export default InitialStateNode;

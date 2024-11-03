@@ -4,26 +4,25 @@
   /*label {*/
   /*  @apply block text-[#777777] text-xl;*/
   /*}*/
-
 }
 
 .react-flow__handle {
   @apply rounded-full bg-white p-2.5;
 
   &.react-flow__handle-right {
-    @apply -right-6;
+    @apply -right-6 bg-white;
   }
 
   &.react-flow__handle-left {
-    @apply -left-6;
+    @apply -left-6 bg-white;
   }
 
   &.react-flow__handle-top {
-    @apply -top-6;
+    @apply -top-6 bg-white;
   }
 
   &.react-flow__handle-bottom {
-    @apply -bottom-6;
+    @apply -bottom-6 bg-white;
   }
 }
 

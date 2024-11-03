@@ -54,20 +54,19 @@
 .separating-area {
   @apply w-full flex flex-row items-center justify-center my-4 py-4;
 
-}
-
-.separating-area hr {
-  @apply border-gray-400 dark:border-gray-600 border-opacity-75;
+  hr {
+    @apply border-gray-400 dark:border-gray-600 border-opacity-75;
+  }
 }
 
 .social-login-area {
   @apply w-full flex flex-col gap-3;
+
+  button {
+    @apply w-full text-sm border border-black rounded-md;
+  }
 }
 
-.social-login-area a {
-  @apply w-full text-sm border border-black rounded-md;
-}
-
-.social-login-area a span {
+.social-login-area button span {
   @apply flex justify-center gap-x-2 w-full text-sm px-4 py-3 rounded-md;
 }

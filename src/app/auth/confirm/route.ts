@@ -11,7 +11,7 @@ export const GET = async (request: NextRequest) => {
     const next = searchParams.get('next') ?? '/dashboard';
 
     if (token_hash && type) {
-        const supabase = createClient();
+        const supabase = await createClient();
 
         const { error } = await supabase.auth.verifyOtp({
             type,

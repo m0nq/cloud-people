@@ -15,7 +15,7 @@ type RootNodeProps = {
     type?: string;
 };
 
-export const RootNode = ({
+const RootNode = ({
     id,
     data,
     isConnectable,
@@ -39,3 +39,5 @@ export const RootNode = ({
         </div>
     );
 };
+
+export default RootNode;

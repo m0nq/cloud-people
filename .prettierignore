@@ -1,0 +1,39 @@
+# Node modules
+node_modules
+
+# Next.js build output
+.next
+/out
+
+# Production build output
+/build
+
+# Coverage reports from testing
+/coverage
+
+# Local environment files
+.env*
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Miscellaneous
+.DS_Store
+*.pem
+
+# Vercel deployment files
+.vercel
+
+# TypeScript build info
+*.tsbuildinfo
+next-env.d.ts
+
+# Ignore artifacts and other generated files
+build
+coverage
+
+# Ignore all HTML files (if you want to exclude them)
+**/*.html

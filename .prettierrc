@@ -1,0 +1,23 @@
+{
+    "extends": ["eslint:recommended", "plugin:prettier/recommended"],
+    "plugins": ["prettier-plugin-tailwindcss", "prettier"],
+    "semi": true,
+    "singleQuote": true,
+    "printWidth": 120,
+    "tabWidth": 4,
+    "jsxSingleQuote": false,
+    "trailingComma": "none",
+    "bracketSpacing": true,
+    "bracketSameLine": true,
+    "arrowParens": "avoid",
+    "proseWrap": "always",
+    "endOfLine": "lf",
+    "overrides": [
+        {
+            "files": ["*.html"],
+            "options": {
+                "singleQuote": false
+            }
+        }
+    ]
+}

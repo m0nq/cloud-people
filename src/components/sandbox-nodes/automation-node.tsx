@@ -14,7 +14,7 @@ type AutomationNodeProps = {
     type?: string;
 };
 
-export const AutomationNode = ({
+const AutomationNode = ({
     id,
     data,
     isConnectable,
@@ -50,7 +50,7 @@ export const AutomationNode = ({
 
     return (
         <div className="automation-node">
-            <AgentCard data={data}/>
+            <AgentCard data={data} />
             {/* progress bar */}
             {/* optional handles to connect bottom and top if nodes: are related? run in parallel? are dependent on each other? */}
             {/* possible styled handle extension as button or further detailed information */}
@@ -59,3 +59,5 @@ export const AutomationNode = ({
         </div>
     );
 };
+
+export default AutomationNode;

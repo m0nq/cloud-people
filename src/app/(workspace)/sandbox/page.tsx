@@ -7,6 +7,8 @@ import { BackgroundVariant } from '@xyflow/react';
 import { Panel } from '@xyflow/react';
 import { ControlButton } from '@xyflow/react';
 import { type Node } from '@xyflow/react';
+import { type NodeTypes } from '@xyflow/react';
+import { type EdgeTypes } from '@xyflow/react';
 import { PiPlayCircleThin } from 'react-icons/pi';
 import { PiClipboardLight } from 'react-icons/pi';
 import { PiArrowLeftThin } from 'react-icons/pi';
@@ -18,15 +20,18 @@ import { IoHandRightOutline } from 'react-icons/io5';
 import { LuMousePointer } from 'react-icons/lu';
 import { useShallow } from 'zustand/react/shallow';
 import { useCallback } from 'react';
+import { useMemo } from 'react';
+import dynamic from 'next/dynamic';
 
 import './sandbox.styles.css';
-import { AutomationNode } from '@components/sandbox-nodes/automation-node';
-import { AutomationEdge } from '@components/sandbox-nodes/automation-edge';
-import { InitialStateNode } from '@components/sandbox-nodes/initial-state-node';
 import { useGraphStore } from '@stores/workflowStore';
 import { AppState } from '@lib/definitions';
 import { layoutElements } from '@lib/dagre/dagre';
-import { RootNode } from '@components/sandbox-nodes/root-node';
+
+const AutomationNode = dynamic(() => import('@components/sandbox-nodes/automation-node'), { ssr: false });
+const AutomationEdge = dynamic(() => import('@components/sandbox-nodes/automation-edge'), { ssr: false });
+const InitialStateNode = dynamic(() => import('@components/sandbox-nodes/initial-state-node'), { ssr: false });
+const RootNode = dynamic(() => import('@components/sandbox-nodes/root-node'), { ssr: false });
 
 const nodeTypes = {
     initialStateNode: InitialStateNode,
@@ -56,7 +61,10 @@ const Sandbox = () => {
         onEdgesChange,
         onConnect
     } = useGraphStore(useShallow(nodeStateSelector));
-    const { laidOutNodes, laidOutEdges } = layoutElements(nodes, edges);
+
+    const { laidOutNodes, laidOutEdges } = useMemo(() => {
+        return layoutElements(nodes, edges);
+    }, [nodes, edges]);
 
     const onNodesDelete = useCallback(async ({ nodes }: { nodes: Node[] }): Promise<boolean> => {
         const [node]: Node[] = nodes;
@@ -66,8 +74,8 @@ const Sandbox = () => {
 
     return (
         <div className="flow-container">
-            <ReactFlow nodeTypes={nodeTypes}
-                edgeTypes={edgeTypes}
+            <ReactFlow nodeTypes={nodeTypes as NodeTypes}
+                edgeTypes={edgeTypes as EdgeTypes}
                 nodes={laidOutNodes}
                 edges={laidOutEdges}
                 onNodesChange={onNodesChange}
@@ -135,7 +143,7 @@ const Sandbox = () => {
                     showInteractive={false}
                     className="search-button">
                     <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
-                        <CiSearch className="icon-button" />
+                        <CiSearch />
                     </ControlButton>
                 </Controls>
                 <Controls position="top-right"
