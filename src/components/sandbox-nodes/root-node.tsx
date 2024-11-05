@@ -1,9 +1,9 @@
 import { ReactNode } from 'react';
-import { Handle } from '@xyflow/react';
 import { Position } from '@xyflow/react';
 
 import './node.styles.css';
 import { FaPlay } from 'react-icons/fa';
+import { NodeComponent } from '@components/utils/node-component/node-component';
 // import { FaPause } from 'react-icons/fa';
 
 type RootNodeProps = {
@@ -29,14 +29,17 @@ const RootNode = ({
     // it's at
 
     return (
-        <div className="root-node">
+        <NodeComponent.Root className="root-node">
             <button className="inner-circle" onClick={() => alert('Let\'s get this party started!!! 🥳')}>
                 {/*  play and pause buttons go here  */}
                 <FaPlay color={'#ffffff'} size={40} />
                 {/*<FaPause color={'#ffffff'} size={40} />*/}
             </button>
-            <Handle type="source" position={Position.Right} id={`${id}-root`} isConnectable={isConnectable} />
-        </div>
+            <NodeComponent.Handle type="source"
+                position={Position.Right}
+                id={`${id}-root`}
+                isConnectable={isConnectable} />
+        </NodeComponent.Root>
     );
 };
 
