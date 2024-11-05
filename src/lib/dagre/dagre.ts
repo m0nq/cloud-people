@@ -3,8 +3,9 @@ import { Node } from '@xyflow/react';
 import { Edge } from '@xyflow/react';
 import { Position } from '@xyflow/react';
 
-const nodeWidth = 288;
-const nodeHeight = 224;
+import { CONFIG } from '@config/constants';
+
+const { WIDTH, HEIGHT } = CONFIG.NODE;
 
 export const layoutElements = (nodes: Node[], edges: Edge[]) => {
     const isInitialNodes = nodes.every(node => node?.type?.includes('initial'));
@@ -16,7 +17,7 @@ export const layoutElements = (nodes: Node[], edges: Edge[]) => {
     dagreGraph.setGraph({ rankdir: direction });
 
     nodes.forEach(node => {
-        dagreGraph.setNode(node.id, { width: node.width || nodeWidth, height: node.height || nodeHeight });
+        dagreGraph.setNode(node.id, { width: node.width || WIDTH, height: node.height || HEIGHT });
     });
 
     edges.forEach(edge => {

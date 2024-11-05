@@ -68,7 +68,7 @@ export const fetchNodes = async (config: QueryConfig = {}): Promise<NodeType[]> 
     })) as NodeType[];
 };
 
-export const updateNodes = async (config: any = {}) => {
+export const updateNodes = async (config: QueryConfig = {}) => {
     await authCheck();
 
     const updateNodeMutation = `

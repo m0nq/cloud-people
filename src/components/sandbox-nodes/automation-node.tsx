@@ -14,6 +14,17 @@ type AutomationNodeProps = {
     type?: string;
 };
 
+const getPosition = (position?: string): Position => {
+    const positionMap = {
+        left: Position.Left,
+        right: Position.Right,
+        bottom: Position.Bottom,
+        top: Position.Top
+    } as { [direction: string]: Position };
+
+    return position && positionMap[position] || Position.Top;
+};
+
 const AutomationNode = ({
     id,
     data,
@@ -22,31 +33,8 @@ const AutomationNode = ({
     targetPosition
 }: AutomationNodeProps): ReactNode => {
 
-    let sPosition = Position.Top;
-    switch (sourcePosition) {
-        case 'left':
-            sPosition = Position.Left;
-            break;
-        case 'right':
-            sPosition = Position.Right;
-            break;
-        case 'bottom':
-            sPosition = Position.Bottom;
-            break;
-    }
-
-    let tPosition = Position.Top;
-    switch (targetPosition) {
-        case 'left':
-            tPosition = Position.Left;
-            break;
-        case 'right':
-            tPosition = Position.Right;
-            break;
-        case 'bottom':
-            tPosition = Position.Bottom;
-            break;
-    }
+    const sPosition = getPosition(sourcePosition);
+    const tPosition = getPosition(targetPosition);
 
     return (
         <NodeComponent.Root className="automation-node">
