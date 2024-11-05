@@ -58,3 +58,14 @@ export const authCheck = async (): Promise<User> => {
 
     return user;
 };
+
+export const refreshSession = async () => {
+    const supabase = await createClient();
+    const { data: { session }, error } = await supabase.auth.getSession();
+
+    if (error || !session) {
+        throw new Error('Session refresh failed');
+    }
+
+    return session;
+};

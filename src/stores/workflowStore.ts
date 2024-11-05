@@ -58,6 +58,7 @@ const initialState: AppState = {
     edges: [] as Edge[]
 };
 
+// should implement all the on* state change handlers here
 export const useGraphStore = create<AppState>((set, get) => ({
     ...initialState,
     onNodesChange: (changes: NodeChange<Node>[]) => {

@@ -21,7 +21,7 @@ export type EdgeConnections = {
 export type AppState = {
     nodes: Node[];
     edges: Edge[];
-    onNodesChange?: OnNodesChange<Node>;
+    onNodesChange?: OnNodesChange;
     onEdgesChange?: OnEdgesChange;
     onConnect?: OnConnect;
     setNodes?: (nodes: Node[]) => void;
