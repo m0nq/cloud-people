@@ -6,6 +6,7 @@ import { dmSans } from '@lib/fonts';
 import { lexend } from '@lib/fonts';
 import { inter } from '@lib/fonts';
 import { LayoutProps } from '@lib/definitions';
+import { validateEnv } from '@lib/env';
 
 export const metadata: Metadata = {
     title: 'Cloud People',
@@ -17,6 +18,7 @@ export const viewport: Viewport = {
 };
 
 const RootLayout = ({ children }: LayoutProps) => {
+    validateEnv();
 
     return (
         <html lang="en">

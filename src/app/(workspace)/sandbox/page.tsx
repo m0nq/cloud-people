@@ -26,8 +26,6 @@ const Sandbox = () => {
             {({ ...props }) => (
                 <div className="flow-container">
                     <ReactFlow
-                        // onNodeClick to handle opening node details?
-                        // onNodeClick={onNodesChange}
                         // nodeOrigin={[0.5, 0.5]}
                         // nodeDragThreshold={1}
                         // colorMode="system"

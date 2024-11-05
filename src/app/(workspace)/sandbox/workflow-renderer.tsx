@@ -75,10 +75,10 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         const [node]: Node[] = nodes;
         // Prevent the default deletion behavior if node is an initial state node
         return node && !node.type?.includes('initialStateNode');
-    }, [nodes]);
+    }, []);
 
     const onNodeClick = (event: MouseEvent, node: Node) => {
-        // Node click logic
+        // Open modal dialogue box
     };
 
     return children({

@@ -1,6 +1,10 @@
 'use server';
 import { createClient } from './server';
+
 import { QueryConfig } from '@lib/definitions';
+import { CONFIG } from '@config/constants';
+
+const { API: { ENDPOINTS } } = CONFIG;
 
 const SUPABASE_URL: string = process.env.SUPABASE_URL!;
 const SUPABASE_ANON_KEY: string = process.env.SUPABASE_ANON_KEY!;
@@ -9,7 +13,7 @@ const supabase = createClient();
 export const queryDB = async (query: string, variables: QueryConfig = {}) => {
     const { data: { session } } = await (await supabase).auth.getSession();
 
-    const res = await fetch(`${SUPABASE_URL}/graphql/v1`, {
+    const res = await fetch(`${SUPABASE_URL}${ENDPOINTS.GraphQL}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

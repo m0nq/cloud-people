@@ -1,5 +1,5 @@
 import { createClient } from '@lib/supabase/server';
-import { Tables } from '@lib/enums';
+import { Tables } from '@lib/db-entities.enum';
 
 const Profile = async () => {
 

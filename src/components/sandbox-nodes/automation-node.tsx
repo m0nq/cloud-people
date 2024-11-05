@@ -38,7 +38,9 @@ const AutomationNode = ({
 
     return (
         <NodeComponent.Root className="automation-node">
-            <AgentCard data={data} />
+            <NodeComponent.Content>
+                <AgentCard data={data} />
+            </NodeComponent.Content>
             {/* progress bar */}
             {/* optional handles to connect bottom and top if nodes: are related? run in parallel? are dependent on each other? */}
             {/* possible styled handle extension as button or further detailed information */}

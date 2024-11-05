@@ -6,13 +6,16 @@ import { revalidatePath } from 'next/cache';
 import { User } from '@supabase/supabase-js';
 
 import { createClient } from '@lib/supabase/server';
+import { CONFIG } from '@config/constants';
+
+const { API: { ENDPOINTS } } = CONFIG;
 
 export const isLoggedIn = async () => {
     const supabase = await createClient();
 
     const { data, error } = await supabase.auth.getUser();
     if (error || !data?.user) {
-        redirect('/login');
+        redirect(ENDPOINTS.Login);
     }
 };
 
@@ -35,17 +38,17 @@ export const loginOrSignUp = async (formData: FormData) => {
     });
 
     if (error) {
-        redirect('/login?message=Could not authenticate user');
+        redirect(`${ENDPOINTS.Login}?message=Could not authenticate user`);
     }
 
-    redirect('/login?message=Check your email to continue logging in');
+    redirect(`${ENDPOINTS.Login}?message=Check your email to continue logging in`);
 };
 
 export const signOut = async () => {
     const supabase = await createClient();
     await supabase.auth.signOut({ scope: 'local' });
-    revalidatePath('/', 'layout');
-    redirect('/login');
+    revalidatePath(ENDPOINTS.Home, 'layout');
+    redirect(ENDPOINTS.Login);
 };
 
 export const authCheck = async (): Promise<User> => {

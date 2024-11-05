@@ -7,6 +7,7 @@ import { loginOrSignUp } from '@lib/actions/authentication-actions';
 
 const LoginPage = async ({ searchParams }: { searchParams: Promise<{ message: string }> }): Promise<ReactNode> => {
     const { message } = await searchParams;
+
     return (
         <div className="login-container">
             <div className="banner">
@@ -86,7 +87,7 @@ const LoginPage = async ({ searchParams }: { searchParams: Promise<{ message: st
                             </span>
                         </button>
                     </div>
-                    {message && <p className="display-message">{message}</p>}
+                    {message && <p className="display-message">{message}</p> || null}
                 </div>
             </div>
         </div>
