@@ -73,9 +73,13 @@ jobs:
       - name: Set Environment Variables
         env:
           CP_VERCEL_TOKEN: ${{ secrets.CP_VERCEL_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           echo "" > .env.production
           echo CP_VERCEL_TOKEN="$CP_VERCEL_TOKEN" >> .env.production
+          echo SUPABASE_URL="$SUPABASE_URL" >> .env.production
+          echo SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" >> .env.production
       - name: Build with Next.js
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
 
@@ -108,9 +112,13 @@ jobs:
       - name: Set Environment Variables
         env:
           CP_VERCEL_TOKEN: ${{ secrets.CP_VERCEL_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           echo "" > .env.production
           echo CP_VERCEL_TOKEN="$CP_VERCEL_TOKEN" >> .env.production
+          echo SUPABASE_URL="$SUPABASE_URL" >> .env.production
+          echo SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" >> .env.production
       - name: Build Project Artifacts
         run: vercel build --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
       - name: Deploy Project Artifacts to Vercel
