@@ -1,14 +1,14 @@
 import { redirect } from 'next/navigation';
 
 import { isLoggedIn } from '@lib/actions/authentication-actions';
-import { CONFIG } from '@config/constants';
+import { Config } from '@config/constants';
 
-const { API: { ENDPOINTS } } = CONFIG;
+const { API: { EndPoints } } = Config;
 
 const HomePage = async () => {
     await isLoggedIn();
 
-    redirect(ENDPOINTS.Dashboard);
+    redirect(EndPoints.Dashboard);
 };
 
 export default HomePage;

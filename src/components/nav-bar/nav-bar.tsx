@@ -13,24 +13,24 @@ import { BiMenuAltLeft } from 'react-icons/bi';
 import './nav-bar.styles.css';
 import { signOut } from '@lib/actions/authentication-actions';
 import profileImage from '@public/example-avatar.png';
-import { CONFIG } from '@config/constants';
+import { Config } from '@config/constants';
 
-const { API: { ENDPOINTS } } = CONFIG;
+const { API: { EndPoints } } = Config;
 
 const primaryLinks = [
     {
         name: 'Profile',
-        link: ENDPOINTS.Profile,
+        link: EndPoints.Profile,
         iconElement: () => <Image src={profileImage} alt="Profile picture" width={25} />
     },
     {
         name: 'Dashboard',
-        link: ENDPOINTS.Dashboard,
+        link: EndPoints.Dashboard,
         iconElement: (fillColor: string) => <PiStackLight fill={fillColor} />
     },
     {
         name: 'Sandbox',
-        link: ENDPOINTS.Sandbox,
+        link: EndPoints.Sandbox,
         iconElement: (fillColor: string) =>
             <svg width="1em" height="1em" viewBox="0 0 32 36" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path fill={fillColor}
@@ -39,12 +39,12 @@ const primaryLinks = [
     },
     {
         name: 'Store',
-        link: ENDPOINTS.Store,
+        link: EndPoints.Store,
         iconElement: (fillColor: string) => <PiShoppingCartThin fill={fillColor} />
     },
     {
         name: 'Community',
-        link: ENDPOINTS.Community,
+        link: EndPoints.Community,
         iconElement: (fillColor: string) => <BiMenuAltLeft fill={fillColor} />
     }
 ];
@@ -52,7 +52,7 @@ const primaryLinks = [
 const secondaryLinks = [
     {
         name: 'Message',
-        link: ENDPOINTS.Message,
+        link: EndPoints.Message,
         iconElement: (fillColor: string) =>
             <svg width="25" height="25" viewBox="0 0 30 26" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path stroke={fillColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
@@ -64,12 +64,12 @@ const secondaryLinks = [
     },
     {
         name: 'Forum',
-        link: ENDPOINTS.Forum,
+        link: EndPoints.Forum,
         iconElement: (fillColor: string) => <PiYoutubeLogoLight fill={fillColor} />
     },
     {
         name: 'Info',
-        link: ENDPOINTS.Info,
+        link: EndPoints.Info,
         iconElement: (fillColor: string) => <PiQuestionLight fill={fillColor} />
     }
 ];

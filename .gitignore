@@ -330,6 +330,4 @@ fabric.properties
 # and uncomment the following lines
 # .pnp.*
 
-prod_dump.sql
-
 # End of https://www.toptal.com/developers/gitignore/api/node,yarn,webstorm,macos,nextjs

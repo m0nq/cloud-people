@@ -1,10 +1,10 @@
-export const CONFIG = {
-    NODE: {
+export const Config = {
+    WorkflowNode: {
         WIDTH: 288,
         HEIGHT: 224
     },
     API: {
-        ENDPOINTS: {
+        EndPoints: {
             Home: '/',
             Login: '/login',
             Auth: '/auth',

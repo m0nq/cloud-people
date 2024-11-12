@@ -1,9 +1,11 @@
 import { ReactNode } from 'react';
+import React from 'react';
 import Link from 'next/link';
 
 import './login.styles.css';
 import { AuthenticationButton } from '@components/utils/auth-button/auth-button';
 import { loginOrSignUp } from '@lib/actions/authentication-actions';
+import { SocialLoginButton } from '@components/utils/social-login/social-login-button';
 
 const LoginPage = async ({ searchParams }: { searchParams: Promise<{ message: string }> }): Promise<ReactNode> => {
     const { message } = await searchParams;
@@ -29,7 +31,8 @@ const LoginPage = async ({ searchParams }: { searchParams: Promise<{ message: st
                                 <Link href="#">Privacy Policy</Link>
                             </label>
                         </div>
-                        <AuthenticationButton className="submit-button" formAction={loginOrSignUp}
+                        <AuthenticationButton className="submit-button"
+                            formAction={loginOrSignUp}
                             buttonType="submit" />
                     </form>
                     <div className="separating-area">
@@ -44,8 +47,7 @@ const LoginPage = async ({ searchParams }: { searchParams: Promise<{ message: st
                         </div>
                     </div>
                     <div className="social-login-area">
-                        {/* google login redirect */}
-                        <button>
+                        <SocialLoginButton provider="google">
                             <span>
                                <svg width="20" height="19" viewBox="0 0 20 19" fill="none"
                                    xmlns="http://www.w3.org/2000/svg">
@@ -67,9 +69,8 @@ const LoginPage = async ({ searchParams }: { searchParams: Promise<{ message: st
                                </svg>
                                 Continue with Google
                             </span>
-                        </button>
-                        {/* apple login redirect */}
-                        <button>
+                        </SocialLoginButton>
+                        <SocialLoginButton provider="apple">
                             <span>
                                 <svg width="20" height="19" viewBox="0 0 20 19" fill="none"
                                     xmlns="http://www.w3.org/2000/svg">
@@ -85,7 +86,7 @@ const LoginPage = async ({ searchParams }: { searchParams: Promise<{ message: st
                                 </svg>
                                 Continue with Apple
                             </span>
-                        </button>
+                        </SocialLoginButton>
                     </div>
                     {message && <p className="display-message">{message}</p> || null}
                 </div>

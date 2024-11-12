@@ -3,9 +3,9 @@ import { Node } from '@xyflow/react';
 import { Edge } from '@xyflow/react';
 import { Position } from '@xyflow/react';
 
-import { CONFIG } from '@config/constants';
+import { Config } from '@config/constants';
 
-const { NODE: { WIDTH, HEIGHT } } = CONFIG;
+const { WorkflowNode: { WIDTH, HEIGHT } } = Config;
 
 export const layoutElements = (nodes: Node[], edges: Edge[]) => {
     const isInitialNodes = nodes.every(node => node?.type?.includes('initial'));
