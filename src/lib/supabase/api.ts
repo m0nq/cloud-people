@@ -2,9 +2,9 @@
 import { createClient } from './server';
 
 import { QueryConfig } from '@lib/definitions';
-import { CONFIG } from '@config/constants';
+import { Config } from '@config/constants';
 
-const { API: { ENDPOINTS } } = CONFIG;
+const { API: { EndPoints } } = Config;
 
 const SUPABASE_URL: string = process.env.SUPABASE_URL!;
 const SUPABASE_ANON_KEY: string = process.env.SUPABASE_ANON_KEY!;
@@ -13,7 +13,7 @@ const supabase = createClient();
 export const queryDB = async (query: string, variables: QueryConfig = {}) => {
     const { data: { session } } = await (await supabase).auth.getSession();
 
-    const res = await fetch(`${SUPABASE_URL}${ENDPOINTS.GraphQL}`, {
+    const res = await fetch(`${SUPABASE_URL}${EndPoints.GraphQL}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
