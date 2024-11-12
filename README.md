@@ -123,7 +123,7 @@ Fork &/or clone this repo get a local copy. To get up and running, follow these 
 
 ### Prerequisites
 
-This is an example of how to list things you need to use the software and how to install them.
+This is a list steps you need to take to install packages for local development.
 
 * npm
   ```sh
@@ -147,6 +147,10 @@ This is an example of how to list things you need to use the software and how to
 3. Install packages
    ```sh
    yarn install
+   ```
+4. Run Supabase Install Script
+    ```sh
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/m0nq/cloud-people/main/setup_supabase.sh)"
    ```
 
 [//]: # (3. Enter your API in `config.js`)
