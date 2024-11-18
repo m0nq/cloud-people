@@ -169,6 +169,24 @@ This is a list steps you need to take to install packages for local development.
 
 ## Usage
 
+```sh
+# Start development server
+yarn dev
+# or
+yarn build
+yarn start
+```
+
+```sh
+# Run tests
+yarn test
+```
+
+```sh
+# Lint code
+deno lint
+```
+
 [//]: # (Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos)
 
 [//]: # (work well in this space. You may also link to more resources.)

@@ -1,8 +1,8 @@
 import { type NextRequest } from 'next/server';
-
+import { NextResponse } from 'next/server';
 import { updateSession } from '@lib/supabase/middleware';
 
-export const middleware = async (request: NextRequest) => await updateSession(request);
+export const middleware = async (request: NextRequest): Promise<NextResponse> => await updateSession(request);
 
 export const config = {
     matcher: [
