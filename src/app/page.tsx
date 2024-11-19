@@ -5,7 +5,7 @@ import { Config } from '@config/constants';
 
 const { API: { EndPoints } } = Config;
 
-const HomePage = async () => {
+const HomePage = async (): Promise<void> => {
     await isLoggedIn();
 
     redirect(EndPoints.Dashboard);

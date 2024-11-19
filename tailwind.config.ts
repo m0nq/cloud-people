@@ -18,7 +18,8 @@ const config: Config = {
             colors: {
                 primary: '#6652ff',
                 secondary: '#56e8cd',
-                'icon-gray': '#818181'
+                'icon-gray': '#818181',
+                dark: '#131414'
             }
         }
     },

@@ -8,7 +8,9 @@ import { NodeComponent } from '@components/utils/node-component/node-component';
 
 type RootNodeProps = {
     id: string;
-    data: any;
+    data: {
+        onOpenModal?: () => void;
+    };
     targetPosition?: Position;
     sourcePosition?: Position;
     isConnectable?: boolean;
@@ -28,6 +30,10 @@ const RootNode = ({
     // when clicked (again), changes to pause state (displays pause icon) and pauses current workflow at whatever step
     // it's at
 
+    const handleClick = () => {
+        data?.onOpenModal?.();
+    };
+
     return (
         <NodeComponent.Root className="root-node">
             <button className="inner-circle" onClick={() => alert('Let\'s get this party started!!! 🥳')}>
@@ -35,7 +41,8 @@ const RootNode = ({
                 <FaPlay color={'#ffffff'} size={40} />
                 {/*<FaPause color={'#ffffff'} size={40} />*/}
             </button>
-            <NodeComponent.Handle type="source"
+            <NodeComponent.Handle onClick={handleClick}
+                type="source"
                 position={Position.Right}
                 id={`${id}-root`}
                 isConnectable={isConnectable} />
