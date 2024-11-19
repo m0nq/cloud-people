@@ -3,11 +3,19 @@ import { queryDB } from '@lib/supabase/api';
 
 export const connectToDB = async (queryString: string, config: QueryConfig) => {
     try {
-        const { data: { collection: { records } } } = await queryDB(queryString, config);
-        if (!records.length) {
-            throw new Error('No records found');
+        const { data, errors } = await queryDB(queryString, config);
+
+        if (errors?.length) {
+            console.error('GraphQL Errors:', errors);
+            throw new Error(errors[0].message);
         }
-        return records;
+
+        if (!data || !data.collection) {
+            throw new Error('No data returned from database');
+        }
+
+        // For mutations, we might not have records but still have a successful operation
+        return data.collection.records || [];
     } catch (error) {
         // Log error details
         console.error('Database connection error:', error);

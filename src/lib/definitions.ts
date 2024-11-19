@@ -1,9 +1,9 @@
-import { ReactNode } from 'react';
-import { Node } from '@xyflow/react';
-import { Edge } from '@xyflow/react';
-import { OnNodesChange } from '@xyflow/react';
-import { OnEdgesChange } from '@xyflow/react';
-import { OnConnect } from '@xyflow/react';
+import { type Edge } from '@xyflow/react';
+import { type Node } from '@xyflow/react';
+import { type OnConnect } from '@xyflow/react';
+import { type OnEdgesChange } from '@xyflow/react';
+import { type OnNodesChange } from '@xyflow/react';
+import { type ReactNode } from 'react';
 
 export type LayoutProps = {
     params?: any;
@@ -34,9 +34,9 @@ export type AppState = {
 
 export type QueryUpdateConfig = {
     state?: WorkflowState;
-    currentStep?: string;
+    current_step?: string;
     data?: string;
-    updatedAt?: Date;
+    updated_at?: Date;
 }
 
 export type QueryFilterConfig = {
@@ -46,6 +46,7 @@ export type QueryFilterConfig = {
 }
 
 export type QueryConfig = {
+    nodeId?: string;
     filter?: QueryFilterConfig;
     workflowId?: string;
     first?: number;
@@ -79,9 +80,11 @@ export type WorkflowType = {
 export type NodeType = {
     id: string;
     workflowId?: string;
-    state?: string;
+    state?: WorkflowState;
     currentStep?: string;
-}
+    createdAt?: string;
+    updatedAt?: string;
+};
 
 export type EdgeType = {
     id: string;

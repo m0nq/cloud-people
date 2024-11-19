@@ -176,7 +176,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
                     type: 'automationNode',
                     data: {
                         ...agentData,
-                        currentStep: 0 // Initialize at step 0
+                        currentStep: '0' // Initialize at step 0
                     },
                     position: { x: 0, y: 0 } // Position will be handled by dagre layout
                 };
