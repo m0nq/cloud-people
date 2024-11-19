@@ -75,7 +75,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
 
     // Modify nodes to inject the modal open handler into root node data
     const nodesWithHandlers = useMemo(() => {
-        return nodes.map((node: { type: string; data: any; }) => {
+        return nodes.map((node: Node): Node => {
             if (node.type === 'rootNode') {
                 return {
                     ...node,
