@@ -14,6 +14,9 @@ import { fetchWorkflowNodes } from '@lib/actions/sandbox-actions';
 import { fetchWorkflowEdges } from '@lib/actions/sandbox-actions';
 import { createWorkflow } from '@lib/actions/workflow-actions';
 import { createNodes } from '@lib/actions/node-actions';
+import { createEdge } from '@lib/actions/edge-actions';
+import { updateNodes } from '@lib/actions/node-actions';
+import { updateEdges } from '@lib/actions/edge-actions';
 
 const position = { x: 50, y: 100 };
 const initialStateNodes = [
@@ -61,36 +64,113 @@ const initialState: AppState = {
 // should implement all the on* state change handlers here
 export const useGraphStore = create<AppState>((set, get) => ({
     ...initialState,
-    onNodesChange: (changes: NodeChange<Node>[]) => {
-        // not sure this is needed
-        set({
-            nodes: applyNodeChanges(changes, get().nodes)
-        });
+    onNodesChange: async (changes: NodeChange<Node>[]) => {
+        const updatedNodes = applyNodeChanges(changes, get().nodes);
+        set({ nodes: updatedNodes });
+
+        // Persist node changes to database
+        for (const node of updatedNodes) {
+            if (node.data?.workflowId) {
+                await updateNodes({
+                    workflowId: node.data.workflowId,
+                    set: {
+                        state: node.data,
+                        currentStep: node.data.currentStep
+                    }
+                });
+            }
+        }
     },
-    onEdgesChange: (changes: EdgeChange<Edge>[]) => {
-        // not sure this is needed
-        set({
-            edges: applyEdgeChanges(changes, get().edges)
-        });
+    onEdgesChange: async (changes: EdgeChange<Edge>[]) => {
+        const updatedEdges = applyEdgeChanges(changes, get().edges);
+        set({ edges: updatedEdges });
+
+        // Persist edge changes to database
+        for (const edge of updatedEdges) {
+            if (edge.data?.workflowId) {
+                await updateEdges({
+                    workflowId: edge.data.workflowId,
+                    toNodeId: edge.target,
+                    fromNodeId: edge.source,
+                    set: {
+                        state: edge.data
+                    }
+                });
+            }
+        }
     },
-    onConnect: (connection: Connection) => {
-        set({
-            edges: addEdge(connection, get().edges)
-        });
+    onConnect: async (connection: Connection) => {
+        const newEdge = {
+            ...connection,
+            id: `edge-${connection.source}-${connection.target}`,
+            type: 'automationEdge',
+            animated: true,
+            data: {
+                workflowId: get().nodes.find(n => n.id === connection.source)?.data?.workflowId
+            }
+        };
+        const updatedEdges = addEdge(newEdge, get().edges);
+        set({ edges: updatedEdges });
+
+        // Persist new edge to database
+        if (newEdge.data?.workflowId) {
+            await createEdge({
+                workflowId: newEdge.data.workflowId,
+                toNodeId: newEdge.target,
+                fromNodeId: newEdge.source
+            });
+        }
     },
-    setNodes: (nodes: Node[]) => {
-        // will need to add node to workflow graph for db storage
+    setNodes: async (nodes: Node[]) => {
         set({ nodes });
+        
+        // Persist node updates to database
+        for (const node of nodes) {
+            if (node.data?.workflowId) {
+                await updateNodes({
+                    workflowId: node.data.workflowId,
+                    set: {
+                        state: node.data,
+                        currentStep: node.data.currentStep
+                    }
+                });
+            }
+        }
     },
-    setEdges: (edges: Edge[]) => {
-        // will need to add edges to workflow graph for db storage
+    setEdges: async (edges: Edge[]) => {
         set({ edges });
+
+        // Persist edge updates to database
+        for (const edge of edges) {
+            if (edge.data?.workflowId) {
+                await updateEdges({
+                    workflowId: edge.data.workflowId,
+                    toNodeId: edge.target,
+                    fromNodeId: edge.source,
+                    set: {
+                        state: edge.data
+                    }
+                });
+            }
+        }
     },
-    addNode: (node: Node) => {
-        // will need to add node to workflow graph for db storage
-        set({
-            nodes: [...get().nodes, node]
-        });
+    addNode: async (node: Node) => {
+        // Get workflow ID from the parent node
+        const workflowId = get().nodes.find(n => n.type === 'rootNode')?.data?.workflowId;
+        if (!workflowId) return;
+
+        // Create node in database first
+        const nodeId = await createNodes({ workflowId });
+        const newNode = {
+            ...node,
+            id: nodeId,
+            data: {
+                ...node.data,
+                workflowId
+            }
+        };
+        
+        set({ nodes: [...get().nodes, newNode] });
     },
     createNewWorkflow: async () => {
         const workflowId: string = await createWorkflow();

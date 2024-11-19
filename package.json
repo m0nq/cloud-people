@@ -1,5 +1,12 @@
 {
     "name": "cloud-people",
+    "description": "## Where all the code lives for the cloud people project",
+    "directories": {
+        "doc": "docs"
+    },
+    "keywords": [],
+    "author": "Monk Wellington <monk.wellington@gmail.com>",
+    "license": "ISC",
     "version": "0.1.0",
     "private": true,
     "scripts": {
