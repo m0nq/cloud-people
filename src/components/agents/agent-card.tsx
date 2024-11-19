@@ -1,10 +1,14 @@
+'use client';
 import Image from 'next/image';
 
 import './agent-card.styles.css';
 import ricoResearcherImage from '@public/rico-researcher.png';
 
 type AgentCardProps = {
-    data?: any;
+    data: {
+        name: string;
+        role: string;
+    };
 }
 
 export const AgentCard = ({ data }: AgentCardProps) => {
@@ -12,10 +16,10 @@ export const AgentCard = ({ data }: AgentCardProps) => {
         <div className="agent-card-container">
             <div>
                 <div className="agent-runner-title">
-                    <Image src={ricoResearcherImage} alt="Profile avatar of AI agent" className="avatar" />
+                    <Image src={ricoResearcherImage} alt={`Profile avatar of ${data.name}`} className="avatar" />
                     <div className="agent-name">
-                        <h3>Rico</h3>
-                        <h3>Researcher</h3>
+                        <h3>{data.name}</h3>
+                        <h3>{data.role}</h3>
                     </div>
                     {/* conditional edit &/or price icon */}
                 </div>

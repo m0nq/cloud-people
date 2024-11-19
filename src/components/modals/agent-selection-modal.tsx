@@ -11,7 +11,7 @@ type AgentSelectionModalProps = {
     onSelect: (agentData: any) => void;
 }
 
-export const AgentSelectionModal = ({ isOpen, onClose, onSelect }: AgentSelectionModalProps) => {
+const AgentSelectionModal = ({ isOpen, onClose, onSelect }: AgentSelectionModalProps) => {
     const [activeTab, setActiveTab] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -67,3 +67,5 @@ export const AgentSelectionModal = ({ isOpen, onClose, onSelect }: AgentSelectio
         </div>
     );
 };
+
+export default AgentSelectionModal;

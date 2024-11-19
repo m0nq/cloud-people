@@ -12,6 +12,7 @@ import { useMemo } from 'react';
 import { useCallback } from 'react';
 import { MouseEvent } from 'react';
 import { useState } from 'react';
+import { useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useShallow } from 'zustand/react/shallow';
 import { v4 as uuid } from 'uuid';
@@ -19,8 +20,8 @@ import { v4 as uuid } from 'uuid';
 import { useGraphStore } from '@stores/workflowStore';
 import { AppState } from '@lib/definitions';
 import { layoutElements } from '@lib/dagre/dagre';
-import { AgentSelectionModal } from '@components/modals/agent-selection-modal';
 
+const AgentSelectionModal = dynamic(() => import('@components/modals/agent-selection-modal'), { ssr: false });
 const AutomationNode = dynamic(() => import('@components/sandbox-nodes/automation-node'), { ssr: false });
 const AutomationEdge = dynamic(() => import('@components/sandbox-nodes/automation-edge'), { ssr: false });
 const InitialStateNode = dynamic(() => import('@components/sandbox-nodes/initial-state-node'), { ssr: false });
@@ -91,8 +92,12 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         });
     }, [nodes]);
 
-    const { laidOutNodes, laidOutEdges } = useMemo(() => {
-        return layoutElements(nodesWithHandlers, edges);
+    const [layout, setLayout] = useState({ nodes: nodesWithHandlers, edges });
+
+    // Calculate layout on client-side only
+    useEffect(() => {
+        const { laidOutNodes, laidOutEdges } = layoutElements(nodesWithHandlers, edges);
+        setLayout({ nodes: laidOutNodes, edges: laidOutEdges });
     }, [nodesWithHandlers, edges]);
 
     const onNodesDelete = useCallback((nodes: Node[]) => {
@@ -106,7 +111,6 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         if (node.type?.includes('initialStateNode')) {
             return;
         }
-
         setSelectedNode(node);
         setIsModalOpen(true);
     };
@@ -140,8 +144,8 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
     return (
         <>
             {children({
-                nodes: laidOutNodes,
-                edges: laidOutEdges,
+                nodes: layout.nodes,
+                edges: layout.edges,
                 edgeTypes,
                 nodeTypes,
                 onNodesChange,

@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 
 import './node.styles.css';
 import { useGraphStore } from '@stores/workflowStore';
+import { AppState } from '@lib/definitions';
 // import { NodeComponent } from '@components/utils/node-component/node-component';
 
 type InitialStateNodeProps = {
@@ -25,8 +26,8 @@ const InitialStateNode = ({
     // - SfS updates nodes with root automation node
     // - template opens a modal which leads to copy a workflow template (nodes & edges) into the list
     // - AI opens a modal
-    const fetchGraph = useGraphStore(state => state.fetchGraph)!;
-    const createNewWorkflow = useGraphStore(state => state.createNewWorkflow)!;
+    const fetchGraph = useGraphStore((state: AppState) => state.fetchGraph)!;
+    const createNewWorkflow = useGraphStore((state: AppState) => state.createNewWorkflow)!;
 
     const handleClick = () => {
         // if data.label is SFS, then transition to empty node building state
