@@ -12,7 +12,7 @@ if ! command -v docker &> /dev/null; then
   brew install --cask docker
   open /Applications/Docker.app
   echo "Please wait for Docker to start before continuing."
-  read -p "Press Enter once Docker is running..."
+  read -rp "Press Enter once Docker is running..."
 fi
 
 # Install Supabase CLI via Homebrew

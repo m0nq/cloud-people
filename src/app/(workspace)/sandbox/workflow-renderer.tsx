@@ -11,14 +11,17 @@ import { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useCallback } from 'react';
 import { MouseEvent } from 'react';
-
+import { useState } from 'react';
+import { useEffect } from 'react';
 import dynamic from 'next/dynamic';
+import { useShallow } from 'zustand/react/shallow';
+import { v4 as uuid } from 'uuid';
 
 import { useGraphStore } from '@stores/workflowStore';
-import { useShallow } from 'zustand/react/shallow';
 import { AppState } from '@lib/definitions';
 import { layoutElements } from '@lib/dagre/dagre';
 
+const AgentSelectionModal = dynamic(() => import('@components/modals/agent-selection-modal'), { ssr: false });
 const AutomationNode = dynamic(() => import('@components/sandbox-nodes/automation-node'), { ssr: false });
 const AutomationEdge = dynamic(() => import('@components/sandbox-nodes/automation-edge'), { ssr: false });
 const InitialStateNode = dynamic(() => import('@components/sandbox-nodes/initial-state-node'), { ssr: false });
@@ -67,9 +70,35 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         onConnect
     } = useGraphStore(useShallow(nodeStateSelector));
 
-    const { laidOutNodes, laidOutEdges } = useMemo(() => {
-        return layoutElements(nodes, edges);
-    }, [nodes, edges]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+
+    // Modify nodes to inject the modal open handler into root node data
+    const nodesWithHandlers = useMemo(() => {
+        return nodes.map((node: Node): Node => {
+            if (node.type === 'rootNode') {
+                return {
+                    ...node,
+                    data: {
+                        ...node.data,
+                        onOpenModal: () => {
+                            setSelectedNode(node);
+                            setIsModalOpen(true);
+                        }
+                    }
+                };
+            }
+            return node;
+        });
+    }, [nodes]);
+
+    const [layout, setLayout] = useState({ nodes: nodesWithHandlers, edges });
+
+    // Calculate layout on client-side only
+    useEffect(() => {
+        const { laidOutNodes, laidOutEdges } = layoutElements(nodesWithHandlers, edges);
+        setLayout({ nodes: laidOutNodes, edges: laidOutEdges });
+    }, [nodesWithHandlers, edges]);
 
     const onNodesDelete = useCallback((nodes: Node[]) => {
         const [node]: Node[] = nodes;
@@ -78,18 +107,56 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
     }, []);
 
     const onNodeClick = (event: MouseEvent, node: Node) => {
-        // Open modal dialogue box
+        // Don't open modal for initial state nodes
+        if (node.type?.includes('initialStateNode')) {
+            return;
+        }
+        setSelectedNode(node);
+        setIsModalOpen(true);
     };
 
-    return children({
-        nodes: laidOutNodes,
-        edges: laidOutEdges,
-        edgeTypes,
-        nodeTypes,
-        onNodesChange,
-        onEdgesChange,
-        onNodesDelete,
-        onConnect,
-        onNodeClick
-    });
+    const handleAgentSelect = (agentData: any) => {
+        if (selectedNode) {
+            // Create new node with agent data
+            const newNode = {
+                id: `node-${uuid()}`,
+                type: 'automationNode',
+                data: agentData,
+                position: { x: 0, y: 0 } // Position will be handled by dagre layout
+            };
+
+            // Create edge connecting selected node to new node
+            const newEdge = {
+                id: `edge-${selectedNode.id}-${newNode.id}`,
+                source: selectedNode.id,
+                target: newNode.id,
+                type: 'automationEdge',
+                animated: true
+            };
+
+            // Update store
+            useGraphStore.getState().addNode?.(newNode);
+            useGraphStore.getState().setEdges?.([...edges, newEdge]);
+        }
+        setIsModalOpen(false);
+    };
+
+    return (
+        <>
+            {children({
+                nodes: layout.nodes,
+                edges: layout.edges,
+                edgeTypes,
+                nodeTypes,
+                onNodesChange,
+                onEdgesChange,
+                onNodesDelete,
+                onConnect,
+                onNodeClick
+            })}
+            <AgentSelectionModal isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSelect={handleAgentSelect} />
+        </>
+    );
 };
