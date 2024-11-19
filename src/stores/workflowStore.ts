@@ -111,10 +111,7 @@ export const useGraphStore = create<AppState>((set, get) => ({
                     await updateEdges({
                         workflowId: edge.data.workflowId,
                         toNodeId: edge.target,
-                        fromNodeId: edge.source,
-                        set: {
-                            state: edge.data
-                        }
+                        fromNodeId: edge.source
                     });
                 }
             }
@@ -182,9 +179,7 @@ export const useGraphStore = create<AppState>((set, get) => ({
                         workflowId: edge.data.workflowId,
                         toNodeId: edge.target,
                         fromNodeId: edge.source,
-                        set: {
-                            state: edge.data
-                        }
+                        edgeId: edge.id
                     });
                 }
             }
@@ -227,7 +222,7 @@ export const useGraphStore = create<AppState>((set, get) => ({
                     nodeId,
                     set: {
                         state: newNode.data.state,
-                        currentStep: '0',
+                        current_step: '0',
                         updated_at: new Date()
                     }
                 });

@@ -102,13 +102,12 @@ export const updateEdges = async (config: any = {}) => {
     `;
 
     const variables = {
-        ...config,
         set: {
-            ...config.set,
-            updated_at: config.set?.updatedAt ?? new Date()
+            workflow_id: config.workflowId,
+            to_node_id: config.toNodeId,
+            from_node_id: config.fromNodeId
         },
         filter: {
-            ...config.filter,
             workflow_id: { eq: config.workflowId },
             to_node_id: { eq: config.toNodeId },
             from_node_id: { eq: config.fromNodeId }
@@ -117,8 +116,8 @@ export const updateEdges = async (config: any = {}) => {
 
     const [edge] = await connectToDB(updateEdgeMutation, variables);
     return {
-        ...edge,
-        workflowId: edge.workflow_id,
+        id: edge.id,
+        workflowId: config.workflowId,
         toNodeId: edge.to_node_id,
         fromNodeId: edge.from_node_id
     } as EdgeType;

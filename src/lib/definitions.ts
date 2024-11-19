@@ -100,3 +100,15 @@ export type QueryResults = {
         }
     }
 }
+
+export type AgentData = {
+    id?: string;
+    name?: string;
+    status?: 'active' | 'inactive';
+    skills?: string[];
+    performance?: {
+        calls?: number;
+        satisfaction?: number;
+    };
+};
+

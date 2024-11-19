@@ -1143,7 +1143,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/bundle-analyzer@npm:^15.0.2":
+"@next/bundle-analyzer@npm:^15.0.3":
   version: 15.0.3
   resolution: "@next/bundle-analyzer@npm:15.0.3"
   dependencies:
@@ -1159,12 +1159,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@next/eslint-plugin-next@npm:15.0.2":
-  version: 15.0.2
-  resolution: "@next/eslint-plugin-next@npm:15.0.2"
+"@next/eslint-plugin-next@npm:15.0.3":
+  version: 15.0.3
+  resolution: "@next/eslint-plugin-next@npm:15.0.3"
   dependencies:
     fast-glob: "npm:3.3.1"
-  checksum: 10c0/0e14d11c6ce0b23bd01558d9831673cb31cef32d872a6c1a92392bb975269b2218b55112edd02f1ee31fc61dea8ac7834f4c6621c847c419f3ce524486b83b11
+  checksum: 10c0/59d024d129e472aa32fb841a1906d3ab3d3a7252a9fdfc93e3ac5a2436397d16f53f16ed0ec6c7006f912571854e52492612c0d4493c440c84dba5cea67e95d9
   languageName: node
   linkType: hard
 
@@ -2337,7 +2337,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@radix-ui/themes@npm:^3.1.4":
+"@radix-ui/themes@npm:^3.1.6":
   version: 3.1.6
   resolution: "@radix-ui/themes@npm:3.1.6"
   dependencies:
@@ -2510,14 +2510,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@supabase/ssr@npm:0.5.1":
-  version: 0.5.1
-  resolution: "@supabase/ssr@npm:0.5.1"
+"@supabase/ssr@npm:0.5.2":
+  version: 0.5.2
+  resolution: "@supabase/ssr@npm:0.5.2"
   dependencies:
-    cookie: "npm:^0.6.0"
+    "@types/cookie": "npm:^0.6.0"
+    cookie: "npm:^0.7.0"
   peerDependencies:
     "@supabase/supabase-js": ^2.43.4
-  checksum: 10c0/f0aaca9e013ff8c0e1ed2729245cd7cae89e380fdc08ff63175ebd0bac185800575377e10348590997297cb4fa436989851013df25461d6b468bb3325d238b87
+  checksum: 10c0/5dcf74d05771d1e88225fbc782e2594d8b23d9b5c9303009ffe5ebedf68293aa033ece4d4a45a530933a5f282cc770a43cfd5e727e07a6609883ffa8b488bbfd
   languageName: node
   linkType: hard
 
@@ -2703,6 +2704,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/cookie@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "@types/cookie@npm:0.6.0"
+  checksum: 10c0/5b326bd0188120fb32c0be086b141b1481fec9941b76ad537f9110e10d61ee2636beac145463319c71e4be67a17e85b81ca9e13ceb6e3bb63b93d16824d6c149
+  languageName: node
+  linkType: hard
+
 "@types/d3-color@npm:*":
   version: 3.1.3
   resolution: "@types/d3-color@npm:3.1.3"
@@ -2760,6 +2768,15 @@ __metadata:
   dependencies:
     "@types/trusted-types": "npm:*"
   checksum: 10c0/a34dcc4498ca250815ccf9aecbe82df96ba5db247d0440cf266a876757d47c52519c240db3475e794d7deb0d6b1af23328e02879be368ad0e26b20c0f0865dba
+  languageName: node
+  linkType: hard
+
+"@types/dompurify@npm:^3.2.0":
+  version: 3.2.0
+  resolution: "@types/dompurify@npm:3.2.0"
+  dependencies:
+    dompurify: "npm:*"
+  checksum: 10c0/e83fec586ffbb1b43f7c8479f2a99c223814d240db912d53fb126aaeea52a4091deceeb75632b5d76004d88ef0fbf444984887b121dece6fa69f4172ed4b2b07
   languageName: node
   linkType: hard
 
@@ -2858,12 +2875,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:^22.8.7":
+"@types/node@npm:*":
   version: 22.9.0
   resolution: "@types/node@npm:22.9.0"
   dependencies:
     undici-types: "npm:~6.19.8"
   checksum: 10c0/3f46cbe0a49bab4ba30494025e4c8a6e699b98ac922857aa1f0209ce11a1313ee46e6808b8f13fe5b8b960a9d7796b77c8d542ad4e9810e85ef897d5593b5d51
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^22.9.1":
+  version: 22.9.1
+  resolution: "@types/node@npm:22.9.1"
+  dependencies:
+    undici-types: "npm:~6.19.8"
+  checksum: 10c0/ea489ae603aa8874e4e88980aab6f2dad09c755da779c88dd142983bfe9609803c89415ca7781f723072934066f63daf2b3339ef084a8ad1a8079cf3958be243
   languageName: node
   linkType: hard
 
@@ -3097,7 +3123,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xyflow/react@npm:^12.3.4":
+"@xyflow/react@npm:^12.3.5":
   version: 12.3.5
   resolution: "@xyflow/react@npm:12.3.5"
   dependencies:
@@ -4008,24 +4034,24 @@ __metadata:
   resolution: "cloud-people@workspace:."
   dependencies:
     "@dagrejs/dagre": "npm:^1.1.4"
-    "@next/bundle-analyzer": "npm:^15.0.2"
-    "@radix-ui/themes": "npm:^3.1.4"
-    "@supabase/ssr": "npm:0.5.1"
+    "@next/bundle-analyzer": "npm:^15.0.3"
+    "@radix-ui/themes": "npm:^3.1.6"
+    "@supabase/ssr": "npm:0.5.2"
     "@supabase/supabase-js": "npm:^2.46.1"
     "@testing-library/dom": "npm:^10.4.0"
     "@testing-library/jest-dom": "npm:^6.6.3"
     "@testing-library/react": "npm:^16.0.1"
     "@testing-library/user-event": "npm:^14.5.2"
-    "@types/dompurify": "npm:^3.0.5"
+    "@types/dompurify": "npm:^3.2.0"
     "@types/eslint": "npm:^9.6.1"
     "@types/next": "npm:^9.0.0"
-    "@types/node": "npm:^22.8.7"
+    "@types/node": "npm:^22.9.1"
     "@types/react": "npm:^18.3.12"
     "@types/react-dom": "npm:^18.3.1"
-    "@xyflow/react": "npm:^12.3.4"
-    cypress: "npm:^13.15.1"
-    eslint: "npm:^9.14.0"
-    eslint-config-next: "npm:15.0.2"
+    "@xyflow/react": "npm:^12.3.5"
+    cypress: "npm:^13.16.0"
+    eslint: "npm:^9.15.0"
+    eslint-config-next: "npm:15.0.3"
     eslint-config-prettier: "npm:^9.1.0"
     eslint-plugin-prettier: "npm:^5.2.1"
     flowbite: "npm:^2.5.2"
@@ -4035,16 +4061,16 @@ __metadata:
     jest-environment-jsdom: "npm:^29.7.0"
     moment: "npm:^2.30.1"
     nanoid: "npm:5.0.8"
-    next: "npm:^15.0.2"
-    postcss: "npm:^8.4.47"
+    next: "npm:^15.0.3"
+    postcss: "npm:^8.4.49"
     prettier: "npm:^3.3.3"
-    prettier-plugin-tailwindcss: "npm:^0.6.8"
+    prettier-plugin-tailwindcss: "npm:^0.6.9"
     react: "npm:^18.3.1"
     react-dom: "npm:^18.3.1"
     react-icons: "npm:^5.3.0"
     sharp: "npm:^0.33.5"
-    supabase: "npm:1.219.2"
-    tailwindcss: "npm:^3.4.14"
+    supabase: "npm:1.224.0"
+    tailwindcss: "npm:^3.4.15"
     ts-node: "npm:^10.9.2"
     typescript: "npm:^5.6.3"
     uuid: "npm:^11.0.3"
@@ -4167,10 +4193,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cookie@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "cookie@npm:0.6.0"
-  checksum: 10c0/f2318b31af7a31b4ddb4a678d024514df5e705f9be5909a192d7f116cfb6d45cbacf96a473fa733faa95050e7cff26e7832bb3ef94751592f1387b71c8956686
+"cookie@npm:^0.7.0":
+  version: 0.7.2
+  resolution: "cookie@npm:0.7.2"
+  checksum: 10c0/9596e8ccdbf1a3a88ae02cf5ee80c1c50959423e1022e4e60b91dd87c622af1da309253d8abdb258fb5e3eacb4f08e579dc58b4897b8087574eee0fd35dfa5d2
   languageName: node
   linkType: hard
 
@@ -4271,9 +4297,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cypress@npm:^13.15.1":
-  version: 13.15.2
-  resolution: "cypress@npm:13.15.2"
+"cypress@npm:^13.16.0":
+  version: 13.16.0
+  resolution: "cypress@npm:13.16.0"
   dependencies:
     "@cypress/request": "npm:^3.0.6"
     "@cypress/xvfb": "npm:^1.2.4"
@@ -4320,7 +4346,7 @@ __metadata:
     yauzl: "npm:^2.10.0"
   bin:
     cypress: bin/cypress
-  checksum: 10c0/07b1019a82941f3a5986d38dcd630a3ad08398dcd53c2e9bd316dad822b65fa7e4d9822be4e0cc8229747ac1b2bb4fc29747f0b509ff13b1853218a2ce2427aa
+  checksum: 10c0/bdda12386d5f0404ef24c9df58e8035af47ba6cdaa09619187ccbb6e69e442cfecf013d03878b9d399eb3538536bde66ad5eea2c17d99c5a56abb1e25024fba2
   languageName: node
   linkType: hard
 
@@ -4675,7 +4701,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dompurify@npm:^3.1.7":
+"dompurify@npm:*, dompurify@npm:^3.1.7":
   version: 3.2.0
   resolution: "dompurify@npm:3.2.0"
   checksum: 10c0/c06af011b14b415439acb5ea5d32c1971e3f1888983e1430e8aeb1ae3871709aab3dc510cfe5ceccfc459e839f66e37e40836eda0673feb696b84d8b285e69f3
@@ -4981,11 +5007,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-config-next@npm:15.0.2":
-  version: 15.0.2
-  resolution: "eslint-config-next@npm:15.0.2"
+"eslint-config-next@npm:15.0.3":
+  version: 15.0.3
+  resolution: "eslint-config-next@npm:15.0.3"
   dependencies:
-    "@next/eslint-plugin-next": "npm:15.0.2"
+    "@next/eslint-plugin-next": "npm:15.0.3"
     "@rushstack/eslint-patch": "npm:^1.10.3"
     "@typescript-eslint/eslint-plugin": "npm:^5.4.2 || ^6.0.0 || ^7.0.0 || ^8.0.0"
     "@typescript-eslint/parser": "npm:^5.4.2 || ^6.0.0 || ^7.0.0 || ^8.0.0"
@@ -5001,7 +5027,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10c0/02395f2d15853876d917b80a43d5bc187bb017bc741203d16557377b358ddeb5bd00e8c6503fba0b5e1cbb52da634a2d15a2f923c9e86d72c1182ce3940faff9
+  checksum: 10c0/2081c7843cbfd3199a45213670472d7781b1d627699b74d93824c1996ca7bc3bb3df7a808043101666579d756a9f93ac1cd9fb86c9d87da375f3dd5132d53fe2
   languageName: node
   linkType: hard
 
@@ -5199,7 +5225,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^9.14.0":
+"eslint@npm:^9.15.0":
   version: 9.15.0
   resolution: "eslint@npm:9.15.0"
   dependencies:
@@ -7890,7 +7916,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"next@npm:*, next@npm:^15.0.2":
+"next@npm:*, next@npm:^15.0.3":
   version: 15.0.3
   resolution: "next@npm:15.0.3"
   dependencies:
@@ -8450,7 +8476,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postcss@npm:^8.4.47":
+"postcss@npm:^8.4.47, postcss@npm:^8.4.49":
   version: 8.4.49
   resolution: "postcss@npm:8.4.49"
   dependencies:
@@ -8477,9 +8503,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier-plugin-tailwindcss@npm:^0.6.8":
-  version: 0.6.8
-  resolution: "prettier-plugin-tailwindcss@npm:0.6.8"
+"prettier-plugin-tailwindcss@npm:^0.6.9":
+  version: 0.6.9
+  resolution: "prettier-plugin-tailwindcss@npm:0.6.9"
   peerDependencies:
     "@ianvs/prettier-plugin-sort-imports": "*"
     "@prettier/plugin-pug": "*"
@@ -8531,7 +8557,7 @@ __metadata:
       optional: true
     prettier-plugin-svelte:
       optional: true
-  checksum: 10c0/b74b9594928cce715a272e6837b30ff7090f5e24cc556c579b84e4d1740787aa15d48179e6f99ef11c6c879941dec66413a1f9c3e5e980a94520dc50ed21bc8f
+  checksum: 10c0/370b1d67063a6ff15b0b7fd5d6687bef587aa4be0c856e7f743d5016037ff25d0d69c6aa8c6cecf1355676962aeca52089dc28d063540fb030bcd326a07f47f8
   languageName: node
   linkType: hard
 
@@ -9620,9 +9646,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"supabase@npm:1.219.2":
-  version: 1.219.2
-  resolution: "supabase@npm:1.219.2"
+"supabase@npm:1.224.0":
+  version: 1.224.0
+  resolution: "supabase@npm:1.224.0"
   dependencies:
     bin-links: "npm:^5.0.0"
     https-proxy-agent: "npm:^7.0.2"
@@ -9630,7 +9656,7 @@ __metadata:
     tar: "npm:7.4.3"
   bin:
     supabase: bin/supabase
-  checksum: 10c0/a6cc58cbc4f654a3c9d7e74532ca0e355fba1a94be7b9e6ec807cfb00bcf8e2d798f2d060c9e891188ec20e6fd3e46f950f220dcc9d8dbbe92ca3c073749df3c
+  checksum: 10c0/f8e2ffaaed62eab9b0992db076bd1c2444b1bac50b35dca1989c431c84b596032ea57bd97f2e731d93de2de2f40d3a1e196851cedebb9cbfcce5b255ab53d074
   languageName: node
   linkType: hard
 
@@ -9676,7 +9702,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tailwindcss@npm:^3.4.14":
+"tailwindcss@npm:^3.4.15":
   version: 3.4.15
   resolution: "tailwindcss@npm:3.4.15"
   dependencies:

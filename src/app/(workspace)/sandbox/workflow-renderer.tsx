@@ -10,15 +10,15 @@ import { NodeMouseHandler } from '@xyflow/react';
 import { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useCallback } from 'react';
-import { MouseEvent } from 'react';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { v4 as uuid } from 'uuid';
 import { useShallow } from 'zustand/react/shallow';
 
+import { createEdge } from '@lib/actions/edge-actions';
 import { layoutElements } from '@lib/dagre/dagre';
 import { AppState } from '@lib/definitions';
+import { AgentData } from '@lib/definitions';
 import { useGraphStore } from '@stores/workflowStore';
 
 const AgentSelectionModal = dynamic(() => import('@components/modals/agent-selection-modal'), { ssr: false });
@@ -118,15 +118,12 @@ const nodeStateSelector = (state: AppState) => ({
 export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
     // Load with initial state nodes
     // when a node is clicked, corresponding nodes will be updated by our graph store
-    const {
-        nodes,
-        edges,
-        onNodesChange,
-        onEdgesChange,
-        onConnect
-    } = useGraphStore(useShallow(nodeStateSelector));
+    const { nodes, edges, onNodesChange, onEdgesChange, onConnect } = useGraphStore(useShallow(nodeStateSelector));
 
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [modalState, setModalState] = useState<{ isOpen: boolean; parentNodeId: string | null }>({
+        isOpen: false,
+        parentNodeId: null
+    });
     const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
     // Modify nodes to inject the modal open handler into root node data
@@ -139,7 +136,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
                         ...node.data,
                         onOpenModal: () => {
                             setSelectedNode(node);
-                            setIsModalOpen(true);
+                            setModalState({ isOpen: true, parentNodeId: node.id });
                         }
                     }
                 };
@@ -162,43 +159,55 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         return node && !node.type?.includes('initialStateNode');
     }, []);
 
-    const onNodeClick = (event: MouseEvent, node: Node) => {
-        // Don't handle node clicks directly - modal will be opened by handle click
-        return;
-    };
-
-    const handleAgentSelect = async (agentData: any) => {
-        if (selectedNode) {
-            try {
-                // Create new node with agent data
-                const newNode = {
-                    id: `node-${uuid()}`, // This ID will be replaced by the database-generated ID
-                    type: 'automationNode',
-                    data: {
-                        ...agentData,
-                        currentStep: '0' // Initialize at step 0
-                    },
-                    position: { x: 0, y: 0 } // Position will be handled by dagre layout
-                };
-
-                // Create edge connecting selected node to new node
-                const newEdge = {
-                    id: `edge-${selectedNode.id}-${newNode.id}`,
-                    source: selectedNode.id,
-                    target: newNode.id,
-                    type: 'automationEdge',
-                    animated: true
-                };
-
-                // Update store - this will also persist to database
-                await useGraphStore.getState().addNode?.(newNode);
-                await useGraphStore.getState().setEdges?.([...edges, newEdge]);
-            } catch (error) {
-                console.error('Failed to add node or edge:', error);
-                // TODO: Show error toast to user
+    const handleAgentSelection = async (agentData: AgentData) => {
+        try {
+            const parentNode = nodesWithHandlers.find(n => n.id === modalState.parentNodeId);
+            if (!parentNode) {
+                throw new Error('Parent node not found');
             }
+
+            // Create new node with agent data
+            const newNode = {
+                type: 'automationNode',
+                data: {
+                    ...agentData,
+                    currentStep: '0', // Initialize at step 0
+                    workflowId: parentNode.data?.workflowId // Set workflowId from parent
+                },
+                position: { x: 0, y: 0 } // Position will be handled by dagre layout
+            };
+
+            // Update store - this will also persist to database
+            const { id: nodeId } = await useGraphStore.getState().addNode?.(newNode);
+
+            // Create edge in database first
+            const edgeId = await createEdge({
+                workflowId: parentNode.data?.workflowId,
+                toNodeId: nodeId,
+                fromNodeId: modalState.parentNodeId
+            });
+
+            // Then update the store with the edge
+            const newEdge = {
+                id: edgeId,
+                source: modalState.parentNodeId,
+                target: nodeId,
+                type: 'automationEdge',
+                animated: true,
+                data: {
+                    workflowId: parentNode.data?.workflowId
+                }
+            };
+
+            const currentEdges = useGraphStore.getState().edges;
+            await useGraphStore.getState().setEdges?.([...currentEdges, newEdge]);
+        } catch (error) {
+            console.error('Failed to add node or edge:', error);
+            // TODO: Show error toast to user
         }
-        setIsModalOpen(false);
+
+        // Reset modal state
+        setModalState({ isOpen: false, parentNodeId: null });
     };
 
     return (
@@ -211,12 +220,13 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
                 onNodesChange,
                 onEdgesChange,
                 onNodesDelete,
-                onConnect,
-                onNodeClick
+                onConnect
             })}
-            <AgentSelectionModal isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSelect={handleAgentSelect} />
+            <AgentSelectionModal
+                isOpen={modalState.isOpen}
+                onClose={() => setModalState({ isOpen: false, parentNodeId: null })}
+                onSelect={handleAgentSelection}
+            />
         </>
     );
 };
