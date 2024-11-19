@@ -190,10 +190,10 @@ export const useGraphStore = create<AppState>((set, get) => ({
     },
     addNode: async (node: Node) => {
         try {
-            // Get workflow ID from the parent node
-            const workflowId = get().nodes.find(n => n.type === 'rootNode')?.data?.workflowId;
+            // Get workflow ID from the node data
+            const workflowId = node.data?.workflowId;
             if (!workflowId) {
-                throw new Error('No workflow ID found');
+                throw new Error('No workflow ID found in node data');
             }
 
             // Create node in database first
