@@ -161,21 +161,35 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
 
     const handleAgentSelection = async (agentData: AgentData) => {
         try {
-            const parentNode = nodesWithHandlers.find(n => n.id === modalState.parentNodeId);
+            const parentNode = layout.nodes.find(n => n.id === modalState.parentNodeId);
+            
             if (!parentNode) {
+                console.error('Parent node not found. Modal state:', modalState);
                 throw new Error('Parent node not found');
             }
+
+            // Calculate the position using the same logic as layoutElements
+            const isParentRoot = parentNode.type === 'rootNode';
+            const siblings = edges.filter(e => e.source === parentNode.id).map(e => e.target);
+            const siblingIndex = siblings.length; // New node will be the last sibling
+            const totalSiblings = siblings.length + 1;
+            
+            const newPosition = {
+                x: parentNode.position.x + (isParentRoot ? 400 : 500),
+                y: parentNode.position.y + (siblingIndex - (totalSiblings - 1) / 2) * 1000 // Using NODE_SPACING_Y = 1000
+            };
 
             // Create new node with agent data
             const newNode = {
                 type: 'automationNode',
                 data: {
                     ...agentData,
-                    currentStep: '0', // Initialize at step 0
-                    workflowId: parentNode.data?.workflowId // Set workflowId from parent
+                    currentStep: '0',
+                    workflowId: parentNode.data?.workflowId
                 },
-                position: { x: 0, y: 0 } // Position will be handled by dagre layout
+                position: newPosition
             };
+
 
             // Update store - this will also persist to database
             const { id: nodeId } = await useGraphStore.getState().addNode?.(newNode);

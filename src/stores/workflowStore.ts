@@ -19,7 +19,10 @@ import { createWorkflow } from '@lib/actions/workflow-actions';
 import { AppState } from '@lib/definitions';
 import { WorkflowState } from '@lib/definitions';
 
-const position = { x: 50, y: 100 };
+const DEFAULT_CONTAINER_HEIGHT = 938;
+const INITIAL_NODE_POSITION = { x: 0, y: 0 };
+const ROOT_NODE_POSITION = { x: 200, y: DEFAULT_CONTAINER_HEIGHT * 0.5 };
+
 const initialStateNodes = [
     {
         id: 'SFS',
@@ -30,7 +33,7 @@ const initialStateNodes = [
             background: 'white',
             color: '#1b2559'
         },
-        position
+        position: INITIAL_NODE_POSITION
     },
     {
         id: 'SFT',
@@ -41,7 +44,7 @@ const initialStateNodes = [
             background: 'linear-gradient(to bottom right, #86FFE2, #18FFD5)',
             color: '#1b2559'
         },
-        position
+        position: INITIAL_NODE_POSITION
     },
     {
         id: 'SFA',
@@ -52,7 +55,7 @@ const initialStateNodes = [
             background: 'linear-gradient(to bottom right, #868CFF, #4318FF)',
             color: '#1b2559'
         },
-        position
+        position: INITIAL_NODE_POSITION
     }
 ] as Node[];
 
@@ -266,7 +269,7 @@ export const useGraphStore = create<AppState>((set, get) => ({
                     state: initialState,
                     currentStep: '0'
                 },
-                position
+                position: ROOT_NODE_POSITION
             } as Node;
 
             // Update UI state

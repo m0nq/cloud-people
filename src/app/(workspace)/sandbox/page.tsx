@@ -50,11 +50,8 @@ const Sandbox = (): ReactElement => {
             {({ ...props }) => (
                 <div className="flow-container">
                     <ReactFlow
-                        // nodeOrigin={[0.5, 0.5]}
-                        // nodeDragThreshold={1}
-                        // colorMode="system"
-                        // nodesDraggable={false}
-                        // className={theme}
+                        nodeOrigin={[0.5, 0.5]}
+                        nodesDraggable
                         nodesFocusable
                         autoPanOnConnect
                         panOnScroll
