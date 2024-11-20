@@ -148,7 +148,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         });
     }, [nodes]);
 
-    const [layout, setLayout] = useState({ nodes: nodesWithHandlers, edges });
+    const [layout, setLayout] = useState<{ nodes: Node[]; edges: Edge[] }>({ nodes: nodesWithHandlers, edges });
 
     // Calculate layout on client-side only
     useEffect(() => {
@@ -156,30 +156,47 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         setLayout({ nodes: laidOutNodes, edges: laidOutEdges });
     }, [nodesWithHandlers, edges]);
 
-    const onNodesDelete = useCallback((nodes: Node[]) => {
+    const onNodesDelete = useCallback((nodes: Node[]): boolean => {
         const [node]: Node[] = nodes;
         // Prevent the default deletion behavior if node is an initial state node
         return node && !node.type?.includes('initialStateNode');
     }, []);
 
-    const handleAgentSelection = async (agentData: AgentData) => {
+    const handleAgentSelection = async (agentData: AgentData): Promise<void> => {
         try {
-            const parentNode = layout.nodes.find(n => n.id === modalState.parentNodeId);
-            
+            const parentNode = layout.nodes.find((n: Node) => n.id === modalState.parentNodeId);
+
             if (!parentNode) {
                 console.error('Parent node not found. Modal state:', modalState);
                 throw new Error('Parent node not found');
             }
 
-            // Calculate the position using the same logic as layoutElements
-            const isParentRoot = parentNode.type === 'rootNode';
-            const siblings = edges.filter(e => e.source === parentNode.id).map(e => e.target);
-            const siblingIndex = siblings.length; // New node will be the last sibling
+            // Get all existing siblings and their positions
+            const siblings = edges
+                .filter((e: Edge) => e.source === modalState.parentNodeId)
+                .map((e: Edge) => e.target);
+
+            // Include the new node in sibling calculations
             const totalSiblings = siblings.length + 1;
-            
+            const isParentRoot = parentNode.type === 'rootNode';
+
+            // Create position changes for existing siblings
+            const nodeChanges = siblings.map((siblingId: string, index: number) => ({
+                type: 'position' as const,
+                id: siblingId,
+                position: {
+                    x: parentNode.position.x + (isParentRoot ? ROOT_NODE_SPACING_X : NODE_SPACING_X),
+                    y: parentNode.position.y + (index - (totalSiblings - 1) / 2) * NODE_SPACING_Y
+                }
+            }));
+
+            // Apply position changes to existing nodes
+            onNodesChange(nodeChanges);
+
+            // Position for the new node
             const newPosition = {
                 x: parentNode.position.x + (isParentRoot ? ROOT_NODE_SPACING_X : NODE_SPACING_X),
-                y: parentNode.position.y + (siblingIndex - (totalSiblings - 1) / 2) * NODE_SPACING_Y
+                y: parentNode.position.y + (siblings.length - (totalSiblings - 1) / 2) * NODE_SPACING_Y
             };
 
             // Create new node with agent data
@@ -193,18 +210,17 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
                 position: newPosition
             };
 
-
-            // Update store - this will also persist to database
+            // Add the new node
             const { id: nodeId } = await useGraphStore.getState().addNode?.(newNode);
 
-            // Create edge in database first
+            // Create edge in database
             const edgeId = await createEdge({
                 workflowId: parentNode.data?.workflowId,
                 toNodeId: nodeId,
                 fromNodeId: modalState.parentNodeId
             });
 
-            // Then update the store with the edge
+            // Update the store with the edge
             const newEdge = {
                 id: edgeId,
                 source: modalState.parentNodeId,
