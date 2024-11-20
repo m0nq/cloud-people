@@ -1,24 +1,18 @@
-import dagre from '@dagrejs/dagre';
-import { Node } from '@xyflow/react';
-import { Edge } from '@xyflow/react';
+import * as dagre from 'dagre';
 import { Position } from '@xyflow/react';
+import { type Node } from '@xyflow/react';
+import { type Edge } from '@xyflow/react';
 
 import { Config } from '@config/constants';
+import { DEFAULT_CONTAINER_HEIGHT } from '@config/layout.const';
+import { DEFAULT_CONTAINER_WIDTH } from '@config/layout.const';
+import { ROOT_NODE_X } from '@config/layout.const';
+import { ROOT_NODE_Y } from '@config/layout.const';
+import { ROOT_NODE_SPACING_X } from '@config/layout.const';
+import { NODE_SPACING_X } from '@config/layout.const';
+import { NODE_SPACING_Y } from '@config/layout.const';
 
 const { WorkflowNode: { WIDTH, HEIGHT } } = Config;
-
-// Default dimensions for SSR
-const DEFAULT_CONTAINER_HEIGHT = 938;
-const DEFAULT_CONTAINER_WIDTH = 1680;
-
-// Root node position
-const ROOT_NODE_X = 40; // Position from left
-const ROOT_NODE_Y = DEFAULT_CONTAINER_HEIGHT * 0.40; // 35% down from top
-
-// Spacing configuration
-const ROOT_NODE_SPACING_X = 400; // Smaller horizontal distance from root to its children
-const NODE_SPACING_X = 500; // Larger horizontal distance between other nodes
-const NODE_SPACING_Y = 1000; // Vertical distance between siblings
 
 export const layoutElements = (nodes: Node[], edges: Edge[]) => {
     const isInitialNodes = nodes.every(node => node?.type?.includes('initial'));

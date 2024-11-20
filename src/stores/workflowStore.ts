@@ -18,10 +18,8 @@ import { createWorkflow } from '@lib/actions/workflow-actions';
 
 import { AppState } from '@lib/definitions';
 import { WorkflowState } from '@lib/definitions';
-
-const DEFAULT_CONTAINER_HEIGHT = 938;
-const INITIAL_NODE_POSITION = { x: 0, y: 0 };
-const ROOT_NODE_POSITION = { x: 200, y: DEFAULT_CONTAINER_HEIGHT * 0.5 };
+import { INITIAL_NODE_POSITION } from '@config/layout.const';
+import { ROOT_NODE_POSITION } from '@config/layout.const';
 
 const initialStateNodes = [
     {

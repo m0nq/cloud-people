@@ -20,6 +20,9 @@ import { layoutElements } from '@lib/dagre/dagre';
 import { AppState } from '@lib/definitions';
 import { AgentData } from '@lib/definitions';
 import { useGraphStore } from '@stores/workflowStore';
+import { ROOT_NODE_SPACING_X } from '@config/layout.const';
+import { NODE_SPACING_X } from '@config/layout.const';
+import { NODE_SPACING_Y } from '@config/layout.const';
 
 const AgentSelectionModal = dynamic(() => import('@components/modals/agent-selection-modal'), { ssr: false });
 const AutomationNode = dynamic(() => import('@components/sandbox-nodes/automation-node'), { ssr: false });
@@ -175,8 +178,8 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
             const totalSiblings = siblings.length + 1;
             
             const newPosition = {
-                x: parentNode.position.x + (isParentRoot ? 400 : 500),
-                y: parentNode.position.y + (siblingIndex - (totalSiblings - 1) / 2) * 1000 // Using NODE_SPACING_Y = 1000
+                x: parentNode.position.x + (isParentRoot ? ROOT_NODE_SPACING_X : NODE_SPACING_X),
+                y: parentNode.position.y + (siblingIndex - (totalSiblings - 1) / 2) * NODE_SPACING_Y
             };
 
             // Create new node with agent data
