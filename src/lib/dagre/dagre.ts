@@ -1,4 +1,4 @@
-import * as dagre from 'dagre';
+import * as dagre from '@dagrejs/dagre';
 import { Position } from '@xyflow/react';
 import { type Node } from '@xyflow/react';
 import { type Edge } from '@xyflow/react';
