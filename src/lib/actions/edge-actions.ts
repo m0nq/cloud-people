@@ -9,7 +9,7 @@ export const createEdge = async (config: QueryConfig): Promise<string> => {
     await authCheck();
 
     const insertEdgeMutation = `
-        mutation CreateEdgeMutation(
+        mutation CreateEdge(
             $workflowId: UUID!,
             $toNodeId: UUID!,
             $fromNodeId: UUID
@@ -81,7 +81,7 @@ export const updateEdges = async (config: any = {}) => {
     await authCheck();
 
     const updateEdgeMutation = `
-        mutation UpdateEdgeMutation(
+        mutation UpdateEdge(
             $set: EdgesUpdateInput!,
             $filter: EdgesFilter,
             $atMost: Int! = 1
@@ -127,15 +127,11 @@ export const deleteEdges = async (config: any = {}) => {
     await authCheck();
 
     const deleteEdgeMutation = `
-        mutation DeleteEdgeMutation(
-            $filter: EdgesFilter,
-            $atMost: Int! = 1
-        ) {
-            collection: deleteFromEdgesCollection(
-                filter: $filter
-                atMost: $atMost
-            ) {
-                records {
+        mutation DeleteEdge($filter: EdgesFilter) {
+            deleteEdges(filter: $filter) {
+                success
+                message
+                deletedRecords {
                     id
                 }
             }
