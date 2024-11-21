@@ -1,17 +1,19 @@
 import { useState } from 'react';
+import { ReactElement } from 'react';
 import { CiSearch } from 'react-icons/ci';
 import { IoCloseOutline } from 'react-icons/io5';
 
 import './agent-selection-modal.styles.css';
 import { AgentCard } from '@components/agents/agent-card';
+import { AgentData } from '@lib/definitions';
 
 type AgentSelectionModalProps = {
     isOpen: boolean;
     onClose: () => void;
-    onSelect: (agentData: any) => void;
+    onSelect: (agentData: AgentData) => void;
 }
 
-const AgentSelectionModal = ({ isOpen, onClose, onSelect }: AgentSelectionModalProps) => {
+const AgentSelectionModal = ({ isOpen, onClose, onSelect }: AgentSelectionModalProps): ReactElement => {
     const [activeTab, setActiveTab] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -56,10 +58,10 @@ const AgentSelectionModal = ({ isOpen, onClose, onSelect }: AgentSelectionModalP
                 {/* Agent Cards Grid */}
                 <div className="agents-grid">
                     {/* Example agents - replace with actual data */}
-                    <div onClick={() => onSelect({ id: '1', name: 'Rico' })}>
+                    <div onClick={() => onSelect({ name: 'Rico' })}>
                         <AgentCard data={{ name: 'Rico', role: 'Researcher' }} />
                     </div>
-                    <div onClick={() => onSelect({ id: '2', name: 'Becca' })}>
+                    <div onClick={() => onSelect({ name: 'Becca' })}>
                         <AgentCard data={{ name: 'Becca', role: 'Researcher' }} />
                     </div>
                 </div>

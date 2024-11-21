@@ -1,15 +1,19 @@
-import { ReactNode } from 'react';
 import { Position } from '@xyflow/react';
+import { ReactNode } from 'react';
 
-import './node.styles.css';
 import { AgentCard } from '@components/agents/agent-card';
 import { NodeComponent } from '@components/utils/node-component/node-component';
+import { HandleType } from './types.enum';
+import './node.styles.css';
 
 type AutomationNodeProps = {
     id: string;
-    data: any;
-    targetPosition?: Position;
-    sourcePosition?: Position;
+    data: {
+        onOpenModal?: () => void;
+        [key: string]: any;
+    };
+    targetPosition?: string;
+    sourcePosition?: string;
     isConnectable?: boolean;
     type?: string;
 };
@@ -36,6 +40,12 @@ const AutomationNode = ({
     const sPosition = getPosition(sourcePosition);
     const tPosition = getPosition(targetPosition);
 
+    const handleClick = (type: HandleType) => {
+        if (type === HandleType.SOURCE) {
+            data?.onOpenModal?.();
+        }
+    };
+
     return (
         <NodeComponent.Root className="automation-node">
             <NodeComponent.Content>
@@ -44,8 +54,17 @@ const AutomationNode = ({
             {/* progress bar */}
             {/* optional handles to connect bottom and top if nodes: are related? run in parallel? are dependent on each other? */}
             {/* possible styled handle extension as button or further detailed information */}
-            <NodeComponent.Handle type="source" position={sPosition} id={`${id}-a`} isConnectable={isConnectable} />
-            <NodeComponent.Handle type="target" position={tPosition} id={`${id}-b`} isConnectable={isConnectable} />
+            <NodeComponent.Handle 
+                onClick={() => handleClick(HandleType.SOURCE)}
+                type={HandleType.SOURCE}
+                position={sPosition} 
+                id={`${id}-a`} 
+                isConnectable={isConnectable} />
+            <NodeComponent.Handle 
+                type={HandleType.TARGET}
+                position={tPosition} 
+                id={`${id}-b`} 
+                isConnectable={isConnectable} />
         </NodeComponent.Root>
     );
 };

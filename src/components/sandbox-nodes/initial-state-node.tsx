@@ -1,12 +1,10 @@
 import { ReactNode } from 'react';
 
 import './node.styles.css';
-import { useGraphStore } from '@stores/workflowStore';
+import { useGraphStore } from '@stores/workflow-store';
 import { AppState } from '@lib/definitions';
-// import { NodeComponent } from '@components/utils/node-component/node-component';
 
 type InitialStateNodeProps = {
-    id: string;
     data: {
         id: string;
         label: string;
@@ -16,7 +14,6 @@ type InitialStateNodeProps = {
 };
 
 const InitialStateNode = ({
-    id,
     data
 }: InitialStateNodeProps): ReactNode => {
 
@@ -45,13 +42,11 @@ const InitialStateNode = ({
     };
 
     return (
-        // <NodeComponent.Root>
         <button className="init-node nodrag"
             style={{ background: data?.background, color: data?.color }}
             onClick={handleClick}>
             <div className="init-node-label">{data.label}</div>
         </button>
-        // </NodeComponent.Root>
     );
 };
 

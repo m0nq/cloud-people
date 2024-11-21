@@ -1,9 +1,10 @@
 import { ReactNode } from 'react';
 import { Position } from '@xyflow/react';
 
-import './node.styles.css';
 import { FaPlay } from 'react-icons/fa';
 import { NodeComponent } from '@components/utils/node-component/node-component';
+import { HandleType } from './types.enum';
+import './node.styles.css';
 // import { FaPause } from 'react-icons/fa';
 
 type RootNodeProps = {
@@ -42,7 +43,7 @@ const RootNode = ({
                 {/*<FaPause color={'#ffffff'} size={40} />*/}
             </button>
             <NodeComponent.Handle onClick={handleClick}
-                type="source"
+                type={HandleType.SOURCE}
                 position={Position.Right}
                 id={`${id}-root`}
                 isConnectable={isConnectable} />

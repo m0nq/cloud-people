@@ -9,7 +9,7 @@ export const createEdge = async (config: QueryConfig): Promise<string> => {
     await authCheck();
 
     const insertEdgeMutation = `
-        mutation CreateEdgeMutation(
+        mutation CreateEdge(
             $workflowId: UUID!,
             $toNodeId: UUID!,
             $fromNodeId: UUID
@@ -81,7 +81,7 @@ export const updateEdges = async (config: any = {}) => {
     await authCheck();
 
     const updateEdgeMutation = `
-        mutation UpdateEdgeMutation(
+        mutation UpdateEdge(
             $set: EdgesUpdateInput!,
             $filter: EdgesFilter,
             $atMost: Int! = 1
@@ -102,13 +102,12 @@ export const updateEdges = async (config: any = {}) => {
     `;
 
     const variables = {
-        ...config,
         set: {
-            ...config.set,
-            updated_at: config.set?.updatedAt ?? new Date()
+            workflow_id: config.workflowId,
+            to_node_id: config.toNodeId,
+            from_node_id: config.fromNodeId
         },
         filter: {
-            ...config.filter,
             workflow_id: { eq: config.workflowId },
             to_node_id: { eq: config.toNodeId },
             from_node_id: { eq: config.fromNodeId }
@@ -117,25 +116,19 @@ export const updateEdges = async (config: any = {}) => {
 
     const [edge] = await connectToDB(updateEdgeMutation, variables);
     return {
-        ...edge,
-        workflowId: edge.workflow_id,
+        id: edge.id,
+        workflowId: config.workflowId,
         toNodeId: edge.to_node_id,
         fromNodeId: edge.from_node_id
     } as EdgeType;
 };
 
-export const deleteEdges = async (config: any = {}) => {
+export const deleteEdges = async (config: QueryConfig = {}) => {
     await authCheck();
 
     const deleteEdgeMutation = `
-        mutation DeleteEdgeMutation(
-            $filter: EdgesFilter,
-            $atMost: Int! = 1
-        ) {
-            collection: deleteFromEdgesCollection(
-                filter: $filter
-                atMost: $atMost
-            ) {
+        mutation DeleteEdge($filter: EdgesFilter) {
+            collection: deleteFromEdgesCollection(filter: $filter) {
                 records {
                     id
                 }
@@ -144,12 +137,8 @@ export const deleteEdges = async (config: any = {}) => {
     `;
 
     const variables = {
-        ...config,
         filter: {
-            ...config.filter,
-            workflow_id: { eq: config.workflowId },
-            to_node_id: { eq: config.toNodeId },
-            from_node_id: { eq: config.fromNodeId }
+            id: { eq: config.edgeId }
         }
     } as QueryConfig;
 

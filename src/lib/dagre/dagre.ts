@@ -1,75 +1,163 @@
-import dagre from '@dagrejs/dagre';
-import { Node } from '@xyflow/react';
-import { Edge } from '@xyflow/react';
+import * as dagre from '@dagrejs/dagre';
 import { Position } from '@xyflow/react';
+import { type Node } from '@xyflow/react';
+import { type Edge } from '@xyflow/react';
 
 import { Config } from '@config/constants';
+import { DEFAULT_CONTAINER_HEIGHT } from '@config/layout.const';
+import { DEFAULT_CONTAINER_WIDTH } from '@config/layout.const';
+import { ROOT_NODE_X } from '@config/layout.const';
+import { ROOT_NODE_Y } from '@config/layout.const';
+import { ROOT_NODE_SPACING_X } from '@config/layout.const';
+import { NODE_SPACING_X } from '@config/layout.const';
+import { NODE_SPACING_Y } from '@config/layout.const';
 
 const { WorkflowNode: { WIDTH, HEIGHT } } = Config;
 
-// Default dimensions for SSR
-const DEFAULT_CONTAINER_HEIGHT = 800;
-const DEFAULT_CONTAINER_WIDTH = 1200;
-
 export const layoutElements = (nodes: Node[], edges: Edge[]) => {
     const isInitialNodes = nodes.every(node => node?.type?.includes('initial'));
-    const direction = isInitialNodes ? 'TB' : 'LR';
 
-    const dagreGraph = new dagre.graphlib.Graph();
-    dagreGraph.setGraph({});
-    dagreGraph.setDefaultEdgeLabel(() => ({}));
-    dagreGraph.setGraph({ rankdir: direction });
+    // For initial nodes setup, use the original dagre layout
+    if (isInitialNodes) {
+        const direction = 'TB';
+        const dagreGraph = new dagre.graphlib.Graph();
+        dagreGraph.setGraph({ rankdir: direction });
+        dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-    nodes.forEach(node => {
-        dagreGraph.setNode(node.id, { width: node.width || WIDTH, height: node.height || HEIGHT });
-    });
+        nodes.forEach(node => {
+            dagreGraph.setNode(node.id, { width: node.width || WIDTH, height: node.height || HEIGHT });
+        });
 
-    edges.forEach(edge => {
-        dagreGraph.setEdge(edge.source, edge.target);
-    });
+        edges.forEach(edge => {
+            dagreGraph.setEdge(edge.source, edge.target);
+        });
 
-    dagre.layout(dagreGraph, { marginx: 50 });
+        dagre.layout(dagreGraph);
 
-    // Calculate the bounds of the graph
-    let minX = Infinity;
-    let maxX = -Infinity;
-    let minY = Infinity;
-    let maxY = -Infinity;
-    nodes.forEach(node => {
-        const { x, y } = dagreGraph.node(node.id);
-        minX = Math.min(minX, x);
-        maxX = Math.max(maxX, x);
-        minY = Math.min(minY, y);
-        maxY = Math.max(maxY, y);
-    });
-
-    // Calculate vertical offset to center the graph
-    const yMultiplier = isInitialNodes ? 1.2 : 1.5;
-    const graphHeight = (maxY - minY) * yMultiplier;
-    const containerHeight = typeof window !== 'undefined' ? window.innerHeight : DEFAULT_CONTAINER_HEIGHT;
-    const containerWidth = typeof window !== 'undefined' ? window.innerWidth : DEFAULT_CONTAINER_WIDTH;
-    // Increased upward bias to 25%
-    const yOffset = ((containerHeight - graphHeight) / 2) - containerHeight * 0.25;
-
-    // Calculate horizontal centering for initial nodes
-    const xMultiplier = 1.2;
-    const graphWidth = (maxX - minX) * xMultiplier;
-    // Reduce the offset further by dividing by 6 instead of 4
-    const xOffset = isInitialNodes ? (containerWidth - graphWidth) / 6 : 0;
-
-    const laidOutNodes = nodes.map(node => {
-        const { x, y } = dagreGraph.node(node.id);
+        const containerHeight = typeof window !== 'undefined' ? window.innerHeight : DEFAULT_CONTAINER_HEIGHT;
+        const containerWidth = typeof window !== 'undefined' ? window.innerWidth : DEFAULT_CONTAINER_WIDTH;
 
         return {
-            ...node,
-            targetPosition: Position.Left,
-            sourcePosition: Position.Right,
-            position: {
-                x: x * xMultiplier + (isInitialNodes ? xOffset : 0),
-                y: y * yMultiplier + yOffset
-            }
+            laidOutNodes: nodes.map(node => {
+                const { x, y } = dagreGraph.node(node.id);
+                return {
+                    ...node,
+                    targetPosition: Position.Left,
+                    sourcePosition: Position.Right,
+                    position: {
+                        x: x + containerWidth / 4.5,
+                        y: y + containerHeight / 3
+                    }
+                };
+            }),
+            laidOutEdges: edges
         };
+    }
+
+    // For workflow nodes, identify which nodes are new (don't have positions)
+    const newNodes = nodes.filter(node => !node.position);
+    const existingNodes = nodes.filter(node => node.position);
+
+    // If there are no new nodes, return all nodes unchanged
+    if (newNodes.length === 0) {
+        return {
+            laidOutNodes: nodes.map(node => ({
+                ...node,
+                targetPosition: Position.Left,
+                sourcePosition: Position.Right
+            })),
+            laidOutEdges: edges
+        };
+    }
+
+    // Build parent-child relationships once
+    const parentChildMap = new Map<string, string[]>();
+    const nodePositions = new Map<string, { x: number; y: number }>();
+
+    // First pass: build the parent-child map
+    edges.forEach(edge => {
+        if (!parentChildMap.has(edge.source)) {
+            parentChildMap.set(edge.source, []);
+        }
+        parentChildMap.get(edge.source)!.push(edge.target);
     });
 
-    return { laidOutNodes, laidOutEdges: edges };
+    // Second pass: position nodes level by level
+    const positionNode = (nodeId: string, parentPosition?: { x: number; y: number }) => {
+        // Skip if already positioned
+        if (nodePositions.has(nodeId)) return;
+
+        const node = nodes.find(n => n.id === nodeId);
+        if (!node) return;
+
+        // If node has a position, use it
+        if (node.position) {
+            nodePositions.set(nodeId, node.position);
+            return;
+        }
+
+        // Get parent's position
+        if (parentPosition) {
+            const siblings = parentChildMap.get(edges.find(e => e.target === nodeId)?.source || '') || [];
+            const siblingIndex = siblings.indexOf(nodeId);
+            const totalSiblings = siblings.length;
+
+            // Check if parent is a root node
+            const parentId = edges.find(e => e.target === nodeId)?.source;
+            const isParentRoot = parentId && !edges.some(e => e.target === parentId);
+
+            nodePositions.set(nodeId, {
+                x: parentPosition.x + (isParentRoot ? ROOT_NODE_SPACING_X : NODE_SPACING_X),
+                y: parentPosition.y + (siblingIndex - (totalSiblings - 1) / 2) * NODE_SPACING_Y
+            });
+        }
+    };
+
+    // Start positioning from root nodes (nodes with no incoming edges)
+    const rootNodes = nodes.filter(node => !edges.some(e => e.target === node.id));
+    rootNodes.forEach(rootNode => {
+        // Position root node at the specified position
+        nodePositions.set(rootNode.id, {
+            x: ROOT_NODE_X,
+            y: ROOT_NODE_Y
+        });
+    });
+
+    // Position all nodes starting from roots
+    const processLevel = (nodeIds: string[], level: number = 0) => {
+        nodeIds.forEach(nodeId => {
+            const parentEdge = edges.find(e => e.target === nodeId);
+            const parentPosition = parentEdge
+                ? nodePositions.get(parentEdge.source)
+                : undefined;
+
+            positionNode(nodeId, parentPosition);
+
+            // Process children
+            const children = parentChildMap.get(nodeId) || [];
+            if (children.length > 0) {
+                processLevel(children, level + 1);
+            }
+        });
+    };
+
+    // Start processing from root nodes
+    processLevel(rootNodes.map(n => n.id));
+
+    // Apply the calculated positions
+    return {
+        laidOutNodes: nodes.map(node => {
+            const position = nodePositions.get(node.id) || node.position;
+            return {
+                ...node,
+                targetPosition: Position.Left,
+                sourcePosition: Position.Right,
+                position: position || {
+                    x: DEFAULT_CONTAINER_WIDTH / 2,
+                    y: DEFAULT_CONTAINER_HEIGHT / 2
+                }
+            };
+        }),
+        laidOutEdges: edges
+    };
 };

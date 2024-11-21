@@ -1,9 +1,11 @@
-import { ReactNode } from 'react';
-import { Node } from '@xyflow/react';
-import { Edge } from '@xyflow/react';
-import { OnNodesChange } from '@xyflow/react';
-import { OnEdgesChange } from '@xyflow/react';
-import { OnConnect } from '@xyflow/react';
+import { type Edge } from '@xyflow/react';
+import { type Node } from '@xyflow/react';
+import { type OnConnect } from '@xyflow/react';
+import { type OnEdgesChange } from '@xyflow/react';
+import { type OnNodesChange } from '@xyflow/react';
+import { type OnBeforeDelete } from '@xyflow/react';
+import { type OnNodesDelete } from '@xyflow/react';
+import { type ReactNode } from 'react';
 
 export type LayoutProps = {
     params?: any;
@@ -23,6 +25,8 @@ export type AppState = {
     edges: Edge[];
     onNodesChange?: OnNodesChange;
     onEdgesChange?: OnEdgesChange;
+    onBeforeDelete?: OnBeforeDelete;
+    onNodesDelete?: OnNodesDelete;
     onConnect?: OnConnect;
     setNodes?: (nodes: Node[]) => void;
     setEdges?: (edges: Edge[]) => void;
@@ -34,9 +38,9 @@ export type AppState = {
 
 export type QueryUpdateConfig = {
     state?: WorkflowState;
-    currentStep?: string;
+    current_step?: string;
     data?: string;
-    updatedAt?: Date;
+    updated_at?: Date;
 }
 
 export type QueryFilterConfig = {
@@ -46,6 +50,8 @@ export type QueryFilterConfig = {
 }
 
 export type QueryConfig = {
+    nodeId?: string;
+    edgeId?: string;
     filter?: QueryFilterConfig;
     workflowId?: string;
     first?: number;
@@ -79,9 +85,11 @@ export type WorkflowType = {
 export type NodeType = {
     id: string;
     workflowId?: string;
-    state?: string;
+    state?: WorkflowState;
     currentStep?: string;
-}
+    createdAt?: string;
+    updatedAt?: string;
+};
 
 export type EdgeType = {
     id: string;
@@ -97,3 +105,15 @@ export type QueryResults = {
         }
     }
 }
+
+export type AgentData = {
+    id?: string;
+    name?: string;
+    status?: 'active' | 'inactive';
+    skills?: string[];
+    performance?: {
+        calls?: number;
+        satisfaction?: number;
+    };
+};
+

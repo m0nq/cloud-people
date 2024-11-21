@@ -1,16 +1,22 @@
 'use server';
-import { type QueryConfig } from '@lib/definitions';
-import { NodeType } from '@lib/definitions';
 import { authCheck } from '@lib/actions/authentication-actions';
+import { type NodeType } from '@lib/definitions';
+import { type QueryConfig } from '@lib/definitions';
 import { connectToDB } from '@lib/utils';
 
 export const createNodes = async (config: QueryConfig = {}): Promise<string> => {
     await authCheck();
 
+    if (!config.workflowId) {
+        throw new Error('Workflow ID is required to create a node');
+    }
+
     const insertNodeMutation = `
         mutation CreateNewNode($workflowId: UUID!) {
             collection: insertIntoNodesCollection(objects: [{
-                workflow_id: $workflowId
+                workflow_id: $workflowId,
+                state: "{}",
+                current_step: "0"
             }]) {
                 records {
                     id
@@ -19,8 +25,16 @@ export const createNodes = async (config: QueryConfig = {}): Promise<string> => 
         } 
    `;
 
-    const [node] = await connectToDB(insertNodeMutation, config);
-    return node.id;
+    try {
+        const [node] = await connectToDB(insertNodeMutation, { workflowId: config.workflowId });
+        if (!node?.id) {
+            throw new Error('Failed to create node: No ID returned');
+        }
+        return node.id;
+    } catch (error) {
+        console.error('Failed to create node:', error);
+        throw error;
+    }
 };
 
 export const fetchNodes = async (config: QueryConfig = {}): Promise<NodeType[]> => {
@@ -74,12 +88,16 @@ export const updateNodes = async (config: QueryConfig = {}) => {
     const updateNodeMutation = `
         mutation UpdateNodeMutation(
             $set: NodesUpdateInput!,
-            $filter: NodesFilter,
+            $workflowId: UUID!,
+            $nodeId: UUID!,
             $atMost: Int! = 1
         ) {
             collection: updateNodesCollection(
                 set: $set
-                filter: $filter
+                filter: {
+                    workflow_id: { eq: $workflowId }
+                    id: { eq: $nodeId }
+                }
                 atMost: $atMost
             ) {
                 records {
@@ -87,43 +105,55 @@ export const updateNodes = async (config: QueryConfig = {}) => {
                     workflow_id
                     state
                     current_step
+                    updated_at
                 }
             }
         }
     `;
 
-    const variables = {
-        ...config,
-        set: {
-            ...config.set,
-            updated_at: config.set?.updatedAt ?? new Date()
-        },
-        filter: {
-            ...config.filter,
-            workflow_id: { eq: config.workflowId }
-        }
-    } as QueryConfig;
+    // Ensure state is stringified and remove any undefined values
+    const cleanSet = {
+        ...(config.set?.state && { state: JSON.stringify(config.set.state) }),
+        ...(config.set?.current_step && { current_step: config.set.current_step }),
+        updated_at: config.set?.updated_at ?? new Date().toISOString()
+    };
 
-    const [node] = await connectToDB(updateNodeMutation, variables);
-    return {
-        ...node,
-        workflowId: node.workflow_id,
-        currentStep: node.current_step
-    } as NodeType;
+    if (!config.workflowId || !config.nodeId) {
+        throw new Error('Both workflowId and nodeId are required for updating a node');
+    }
+
+    const variables = {
+        set: cleanSet,
+        workflowId: config.workflowId,
+        nodeId: config.nodeId,
+        atMost: 1
+    };
+
+    try {
+        const [node] = await connectToDB(updateNodeMutation, variables);
+
+        if (!node) {
+            throw new Error(`No node found with id ${config.nodeId}`);
+        }
+
+        return {
+            ...node,
+            workflowId: node.workflow_id,
+            currentStep: node.current_step,
+            updatedAt: node.updated_at
+        } as NodeType;
+    } catch (error) {
+        console.error('Failed to update node:', error);
+        throw error;
+    }
 };
 
-export const deleteNodes = async (config: any = {}) => {
+export const deleteNodes = async (config: QueryConfig = {}) => {
     await authCheck();
 
     const deleteNodeMutation = `
-        mutation DeleteWorkflowMutation(
-            $filter: WorkflowsFilter,
-            $atMost: Int!
-         ) {
-            collection: deleteFromNodesCollection(
-                filter: $filter,
-                atMost: $atMost
-            ) {
+        mutation DeleteNode($filter: NodesFilter) {
+            collection: deleteFromNodesCollection(filter: $filter) {
                 records {
                     id
                 }
@@ -132,10 +162,8 @@ export const deleteNodes = async (config: any = {}) => {
     `;
 
     const variables = {
-        ...config,
         filter: {
-            ...config.filter,
-            workflow_id: { eq: config.workflowId }
+            id: { eq: config.nodeId }
         }
     } as QueryConfig;
 
