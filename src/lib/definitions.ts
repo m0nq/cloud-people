@@ -3,6 +3,8 @@ import { type Node } from '@xyflow/react';
 import { type OnConnect } from '@xyflow/react';
 import { type OnEdgesChange } from '@xyflow/react';
 import { type OnNodesChange } from '@xyflow/react';
+import { type OnBeforeDelete } from '@xyflow/react';
+import { type OnNodesDelete } from '@xyflow/react';
 import { type ReactNode } from 'react';
 
 export type LayoutProps = {
@@ -23,6 +25,8 @@ export type AppState = {
     edges: Edge[];
     onNodesChange?: OnNodesChange;
     onEdgesChange?: OnEdgesChange;
+    onBeforeDelete?: OnBeforeDelete;
+    onNodesDelete?: OnNodesDelete;
     onConnect?: OnConnect;
     setNodes?: (nodes: Node[]) => void;
     setEdges?: (edges: Edge[]) => void;
@@ -47,6 +51,7 @@ export type QueryFilterConfig = {
 
 export type QueryConfig = {
     nodeId?: string;
+    edgeId?: string;
     filter?: QueryFilterConfig;
     workflowId?: string;
     first?: number;

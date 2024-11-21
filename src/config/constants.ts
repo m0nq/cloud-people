@@ -1,7 +1,10 @@
 export const Config = {
     WorkflowNode: {
         WIDTH: 288,
-        HEIGHT: 224
+        HEIGHT: 224,
+        InitialStateNode: 'initialStateNode',
+        AutomationNode: 'automationNode',
+        AutomationEdge: 'automationEdge'
     },
     API: {
         EndPoints: {

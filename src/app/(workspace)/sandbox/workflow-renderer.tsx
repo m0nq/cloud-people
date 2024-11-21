@@ -5,11 +5,11 @@ import { NodeTypes } from '@xyflow/react';
 import { OnNodesChange } from '@xyflow/react';
 import { OnEdgesChange } from '@xyflow/react';
 import { OnNodesDelete } from '@xyflow/react';
+import { OnBeforeDelete } from '@xyflow/react';
 import { OnConnect } from '@xyflow/react';
 import { NodeMouseHandler } from '@xyflow/react';
 import { ReactNode } from 'react';
 import { useMemo } from 'react';
-import { useCallback } from 'react';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import dynamic from 'next/dynamic';
@@ -19,10 +19,13 @@ import { createEdge } from '@lib/actions/edge-actions';
 import { layoutElements } from '@lib/dagre/dagre';
 import { AppState } from '@lib/definitions';
 import { AgentData } from '@lib/definitions';
-import { useGraphStore } from '@stores/workflowStore';
+import { useGraphStore } from '@stores/workflow-store';
 import { ROOT_NODE_SPACING_X } from '@config/layout.const';
 import { NODE_SPACING_X } from '@config/layout.const';
 import { NODE_SPACING_Y } from '@config/layout.const';
+import { Config } from '@config/constants';
+
+const { WorkflowNode } = Config;
 
 const AgentSelectionModal = dynamic(() => import('@components/modals/agent-selection-modal'), { ssr: false });
 const AutomationNode = dynamic(() => import('@components/sandbox-nodes/automation-node'), { ssr: false });
@@ -39,6 +42,7 @@ type WorkflowRendererProps = {
         onNodesChange?: OnNodesChange;
         onEdgesChange?: OnEdgesChange;
         onNodesDelete?: OnNodesDelete;
+        onBeforeDelete?: OnBeforeDelete;
         onConnect?: OnConnect;
         onNodeClick?: NodeMouseHandler;
     }) => ReactNode;
@@ -70,6 +74,8 @@ const nodeStateSelector = (state: AppState) => ({
     edges: state.edges,
     onNodesChange: state.onNodesChange,
     onEdgesChange: state.onEdgesChange,
+    onBeforeDelete: state.onBeforeDelete,
+    onNodesDelete: state.onNodesDelete,
     onConnect: state.onConnect
 });
 
@@ -109,6 +115,7 @@ const nodeStateSelector = (state: AppState) => ({
  *             onNodesChange={onNodesChange}
  *             onEdgesChange={onEdgesChange}
  *             onNodesDelete={onNodesDelete}
+ *             onBeforeDelete={onBeforeDelete}
  *             onConnect={onConnect}
  *             onNodeClick={onNodeClick}
  *           />
@@ -121,24 +128,32 @@ const nodeStateSelector = (state: AppState) => ({
 export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
     // Load with initial state nodes
     // when a node is clicked, corresponding nodes will be updated by our graph store
-    const { nodes, edges, onNodesChange, onEdgesChange, onConnect } = useGraphStore(useShallow(nodeStateSelector));
+    const {
+        nodes,
+        edges,
+        onNodesChange,
+        onEdgesChange,
+        onConnect,
+        onBeforeDelete,
+        onNodesDelete
+    } = useGraphStore(useShallow(nodeStateSelector));
 
     const [modalState, setModalState] = useState<{ isOpen: boolean; parentNodeId: string | null }>({
         isOpen: false,
         parentNodeId: null
     });
-    const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+    // const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
     // Modify nodes to inject the modal open handler into root node data
     const nodesWithHandlers = useMemo(() => {
         return nodes.map((node: Node): Node => {
-            if (node.type !== 'initialStateNode') {
+            if (node.type !== WorkflowNode.InitialStateNode) {
                 return {
                     ...node,
                     data: {
                         ...node.data,
                         onOpenModal: () => {
-                            setSelectedNode(node);
+                            // setSelectedNode(node);
                             setModalState({ isOpen: true, parentNodeId: node.id });
                         }
                     }
@@ -155,12 +170,6 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         const { laidOutNodes, laidOutEdges } = layoutElements(nodesWithHandlers, edges);
         setLayout({ nodes: laidOutNodes, edges: laidOutEdges });
     }, [nodesWithHandlers, edges]);
-
-    const onNodesDelete = useCallback((nodes: Node[]): boolean => {
-        const [node]: Node[] = nodes;
-        // Prevent the default deletion behavior if node is an initial state node
-        return node && !node.type?.includes('initialStateNode');
-    }, []);
 
     const handleAgentSelection = async (agentData: AgentData): Promise<void> => {
         try {
@@ -201,7 +210,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
 
             // Create new node with agent data
             const newNode = {
-                type: 'automationNode',
+                type: WorkflowNode.AutomationNode,
                 data: {
                     ...agentData,
                     currentStep: '0',
@@ -225,7 +234,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
                 id: edgeId,
                 source: modalState.parentNodeId,
                 target: nodeId,
-                type: 'automationEdge',
+                type: WorkflowNode.AutomationEdge,
                 animated: true,
                 data: {
                     workflowId: parentNode.data?.workflowId
@@ -252,6 +261,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
                 nodeTypes,
                 onNodesChange,
                 onEdgesChange,
+                onBeforeDelete,
                 onNodesDelete,
                 onConnect
             })}

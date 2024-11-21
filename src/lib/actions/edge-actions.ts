@@ -123,15 +123,13 @@ export const updateEdges = async (config: any = {}) => {
     } as EdgeType;
 };
 
-export const deleteEdges = async (config: any = {}) => {
+export const deleteEdges = async (config: QueryConfig = {}) => {
     await authCheck();
 
     const deleteEdgeMutation = `
         mutation DeleteEdge($filter: EdgesFilter) {
-            deleteEdges(filter: $filter) {
-                success
-                message
-                deletedRecords {
+            collection: deleteFromEdgesCollection(filter: $filter) {
+                records {
                     id
                 }
             }
@@ -139,12 +137,8 @@ export const deleteEdges = async (config: any = {}) => {
     `;
 
     const variables = {
-        ...config,
         filter: {
-            ...config.filter,
-            workflow_id: { eq: config.workflowId },
-            to_node_id: { eq: config.toNodeId },
-            from_node_id: { eq: config.fromNodeId }
+            id: { eq: config.edgeId }
         }
     } as QueryConfig;
 

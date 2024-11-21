@@ -148,18 +148,12 @@ export const updateNodes = async (config: QueryConfig = {}) => {
     }
 };
 
-export const deleteNodes = async (config: any = {}) => {
+export const deleteNodes = async (config: QueryConfig = {}) => {
     await authCheck();
 
     const deleteNodeMutation = `
-        mutation DeleteWorkflowMutation(
-            $filter: WorkflowsFilter,
-            $atMost: Int!
-         ) {
-            collection: deleteFromNodesCollection(
-                filter: $filter,
-                atMost: $atMost
-            ) {
+        mutation DeleteNode($filter: NodesFilter) {
+            collection: deleteFromNodesCollection(filter: $filter) {
                 records {
                     id
                 }
@@ -168,10 +162,8 @@ export const deleteNodes = async (config: any = {}) => {
     `;
 
     const variables = {
-        ...config,
         filter: {
-            ...config.filter,
-            workflow_id: { eq: config.workflowId }
+            id: { eq: config.nodeId }
         }
     } as QueryConfig;
 
