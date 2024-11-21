@@ -18,7 +18,10 @@ import { fetchWorkflowEdges } from '@lib/actions/sandbox-actions';
 import { fetchWorkflowNodes } from '@lib/actions/sandbox-actions';
 import { createWorkflow } from '@lib/actions/workflow-actions';
 import { AppState } from '@lib/definitions';
+import { NodeData } from '@lib/definitions';
 import { WorkflowState } from '@lib/definitions';
+import { InitialStateNodeData } from '@lib/definitions';
+import { EdgeData } from '@lib/definitions';
 import { INITIAL_NODE_POSITION } from '@config/layout.const';
 import { ROOT_NODE_POSITION } from '@config/layout.const';
 import { Config } from '@config/constants';
@@ -59,7 +62,7 @@ const initialStateNodes = [
         },
         position: INITIAL_NODE_POSITION
     }
-] as Node[];
+] as Node<InitialStateNodeData>[];
 
 // define the initial state
 const initialState: AppState = {
@@ -70,31 +73,31 @@ const initialState: AppState = {
 // should implement all the on* state change handlers here
 export const useGraphStore = create<AppState>((set: (payload: AppState) => void, get: () => AppState) => ({
         ...initialState,
-        onBeforeDelete: ({ nodes }: { nodes: Node[] }): boolean => {
+        onBeforeDelete: async ({ nodes }: { nodes: Node[] }): Promise<boolean> => {
             const [node]: Node[] = nodes;
             return !(node.type?.includes(WorkflowNode.InitialStateNode) || node.type?.includes('root'));
         },
-        onNodesChange: async (changes: NodeChange<Node>[]) => {
-            const updatedNodes = applyNodeChanges(changes, get().nodes);
+        onNodesChange: async (changes: NodeChange<Node>[]): Promise<void> => {
+            const updatedNodes: Node[] = applyNodeChanges(changes, get().nodes);
             set({ nodes: updatedNodes, edges: [...get().edges] });
 
             try {
-                // Skip database updates for initial state nodes and nodes without state
+                // Update database for each changed node
                 for (const node of updatedNodes) {
                     // Only update nodes that:
                     // 1. Have a workflowId
                     // 2. Are not initial state nodes
                     // 3. Have state data
-                    if (node.data?.workflowId &&
-                        !node.type?.includes(WorkflowNode.InitialStateNode) &&
-                        node.data?.state) {
+                    if (node.data?.workflowId && node.data?.state && !node.type?.includes(WorkflowNode.InitialStateNode)) {
                         try {
+                            const nodeData = node.data as NodeData;  // Type assertion since we've checked workflowId
+                                                                     // exists
                             await updateNodes({
-                                workflowId: node.data.workflowId,
+                                workflowId: nodeData.workflowId,
                                 nodeId: node.id,
                                 set: {
-                                    state: node.data.state,
-                                    current_step: node.data.currentStep || '0',
+                                    state: nodeData.state,
+                                    current_step: nodeData.currentStep || '0',
                                     updated_at: new Date()
                                 }
                             });
@@ -139,7 +142,8 @@ export const useGraphStore = create<AppState>((set: (payload: AppState) => void,
                     data: {
                         workflowId: get()?.nodes.find(n => n.id === connection.source)?.data?.workflowId
                     }
-                };
+                } as Edge<EdgeData>;
+                // } as WorkflowEdge;  // Type assertion to our custom edge type
                 const updatedEdges = addEdge(newEdge, get().edges);
                 set({ edges: updatedEdges, nodes: [...get().nodes] });
 
@@ -156,27 +160,27 @@ export const useGraphStore = create<AppState>((set: (payload: AppState) => void,
                 // TODO: Add error handling/recovery
             }
         },
-        setNodes: async (nodes: Node[]) => {
-            set({ nodes, edges: [...get().edges] });
-
-            try {
-                // Persist node updates to database
-                for (const node of nodes) {
-                    if (node.data?.workflowId) {
-                        await updateNodes({
-                            workflowId: node.data.workflowId,
-                            set: {
-                                state: node.data,
-                                current_step: node.data.currentStep
-                            }
-                        });
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to update nodes in database:', error);
-                // TODO: Add error handling/recovery
-            }
-        },
+        // setNodes: async (nodes: Node[]) => {
+        //     set({ nodes, edges: [...get().edges] });
+        //
+        //     try {
+        //         // Persist node updates to database
+        //         for (const node of nodes) {
+        //             if (node.data?.workflowId) {
+        //                 await updateNodes({
+        //                     workflowId: node.data.workflowId,
+        //                     set: {
+        //                         state: node.data,
+        //                         current_step: node.data.currentStep
+        //                     }
+        //                 });
+        //             }
+        //         }
+        //     } catch (error) {
+        //         console.error('Failed to update nodes in database:', error);
+        //         // TODO: Add error handling/recovery
+        //     }
+        // },
         setEdges: async (edges: Edge[]) => {
             set({ edges, nodes: [...get().nodes] });
 
@@ -197,53 +201,48 @@ export const useGraphStore = create<AppState>((set: (payload: AppState) => void,
                 // TODO: Add error handling/recovery
             }
         },
-        addNode: async (node: Node) => {
+        addNode: async (node: Node<NodeData>): Promise<Node> => {
             try {
                 // Get workflow ID from the node data
-                const workflowId = node.data?.workflowId;
+                const workflowId: string = node.data?.workflowId ?? '';
                 if (!workflowId) {
                     throw new Error('No workflow ID found in node data');
                 }
 
                 // Create node in database first
-                const nodeId = await createNodes({ workflowId });
-                if (!nodeId) {
+                const createdNode: Node<NodeData> = await createNodes({ workflowId });
+                if (!createdNode || !createdNode.id) {
                     throw new Error('Failed to create node');
                 }
 
                 const newNode = {
                     ...node,
-                    id: nodeId,
-                    data: {
-                        ...node.data,
-                        workflowId,
-                        state: {
-                            label: node.data?.label || 'New Node'
-                        },
-                        currentStep: '0'
-                    }
-                };
+                    id: createdNode.id
+                } as Node;
 
-                // Update node state in database before UI update
                 try {
+
+                    // Update node state in database before UI update
+                    // This doesn't totally make sense
+                    const nodeData = node.data as NodeData;  // Type assertion since we've checked workflowId exists
                     await updateNodes({
-                        workflowId,
-                        nodeId,
+                        workflowId: nodeData.workflowId,
+                        nodeId: newNode.id,
                         set: {
-                            state: newNode.data.state,
+                            state: WorkflowState.Initial,
                             current_step: '0',
                             updated_at: new Date()
                         }
                     });
-
-                    // Only update UI if database update succeeds
-                    set({ nodes: [...get().nodes, newNode], edges: [...get().edges] });
-                    return newNode;
                 } catch (updateError) {
                     console.error('Failed to update node state:', updateError);
                     // Try to clean up the created node
                     throw new Error('Failed to initialize node state');
                 }
+
+                // Only update UI if database update succeeds
+                set({ nodes: [...get().nodes, newNode], edges: [...get().edges] });
+                return newNode;
             } catch (error) {
                 console.error('Failed to create node:', error);
                 throw error; // Re-throw to let UI handle the error
@@ -256,27 +255,22 @@ export const useGraphStore = create<AppState>((set: (payload: AppState) => void,
                     throw new Error('Failed to create workflow');
                 }
 
-                const nodeId = await createNodes({ workflowId });
-                if (!nodeId) {
+                const newNode: Node = await createNodes({ workflowId });
+                if (!newNode || !newNode.id) {
                     throw new Error('Failed to create node');
                 }
 
-                const initialState = {
-                    label: 'Root',
-                    currentStep: '0'
-                };
-
                 const node = {
-                    id: nodeId,
-                    type: 'rootNode',
+                    id: newNode.id,
+                    type: WorkflowNode.RootNode,
                     data: {
                         label: 'Root',
+                        state: WorkflowState.Initial,
                         workflowId,
-                        state: initialState,
                         currentStep: '0'
                     },
                     position: ROOT_NODE_POSITION
-                } as Node;
+                } as Node<NodeData>;
 
                 // Update UI state
                 set({
@@ -288,7 +282,7 @@ export const useGraphStore = create<AppState>((set: (payload: AppState) => void,
                 try {
                     await updateNodes({
                         workflowId,
-                        nodeId,
+                        nodeId: node.id,
                         set: {
                             state: WorkflowState.Initial,
                             current_step: '0',
@@ -325,14 +319,12 @@ export const useGraphStore = create<AppState>((set: (payload: AppState) => void,
             if (!deletedNodes.length) {
                 return;
             }
-            console.log('Deleted nodes', deletedNodes);
             const { nodes, edges } = get();
             const connectedEdges = getConnectedEdges(deletedNodes, edges);
             // TODO: New plan is enable the target handle of a node to allow the user to link an orphan node to another
-            const [resolved] = await Promise.all([
+            await Promise.all([
                 ...deletedNodes.map(async (node: Node) => deleteNodes({ nodeId: node.id }))
             ]);
-            console.log('Deleted nodes', resolved);
 
             set({
                 nodes: nodes.filter(({ id }) => !deletedNodes.some((node: Node) => node.id === id)),

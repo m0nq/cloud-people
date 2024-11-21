@@ -1,7 +1,7 @@
 import { QueryConfig } from '@lib/definitions';
 import { queryDB } from '@lib/supabase/api';
 
-export const connectToDB = async (queryString: string, config: QueryConfig) => {
+export const connectToDB = async (queryString: string, config: QueryConfig): Promise<any> => {
     try {
         const { data, errors } = await queryDB(queryString, config);
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ReactElement } from 'react';
+import { ReactNode } from 'react';
 import { CiSearch } from 'react-icons/ci';
 import { IoCloseOutline } from 'react-icons/io5';
 
@@ -13,7 +13,7 @@ type AgentSelectionModalProps = {
     onSelect: (agentData: AgentData) => void;
 }
 
-const AgentSelectionModal = ({ isOpen, onClose, onSelect }: AgentSelectionModalProps): ReactElement => {
+const AgentSelectionModal = ({ isOpen, onClose, onSelect }: AgentSelectionModalProps): ReactNode => {
     const [activeTab, setActiveTab] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -58,10 +58,10 @@ const AgentSelectionModal = ({ isOpen, onClose, onSelect }: AgentSelectionModalP
                 {/* Agent Cards Grid */}
                 <div className="agents-grid">
                     {/* Example agents - replace with actual data */}
-                    <div onClick={() => onSelect({ name: 'Rico' })}>
+                    <div onClick={() => onSelect({ name: 'Rico', role: 'Researcher' })}>
                         <AgentCard data={{ name: 'Rico', role: 'Researcher' }} />
                     </div>
-                    <div onClick={() => onSelect({ name: 'Becca' })}>
+                    <div onClick={() => onSelect({ name: 'Becca', role: 'Researcher' })}>
                         <AgentCard data={{ name: 'Becca', role: 'Researcher' }} />
                     </div>
                 </div>

@@ -1,5 +1,5 @@
 'use client';
-import { ReactElement } from 'react';
+import { ReactNode } from 'react';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import '@xyflow/react/dist/style.css';
@@ -22,7 +22,7 @@ import { LuMousePointer } from 'react-icons/lu';
 import './sandbox.styles.css';
 import { WorkflowRenderer } from '@app/(workspace)/sandbox/workflow-renderer';
 
-const Sandbox = (): ReactElement => {
+const Sandbox = (): ReactNode => {
     const [theme, setTheme] = useState('light');
 
     useEffect(() => {
@@ -47,7 +47,7 @@ const Sandbox = (): ReactElement => {
 
     return (
         <WorkflowRenderer>
-            {({ ...props }) => (
+            {({ ...props }): ReactNode => (
                 <div className="flow-container">
                     <ReactFlow
                         nodeOrigin={[0.5, 0.5]}

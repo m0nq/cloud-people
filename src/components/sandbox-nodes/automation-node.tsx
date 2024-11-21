@@ -9,6 +9,8 @@ import './node.styles.css';
 type AutomationNodeProps = {
     id: string;
     data: {
+        name: string;
+        role: string;
         onOpenModal?: () => void;
         [key: string]: any;
     };

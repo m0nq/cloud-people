@@ -8,17 +8,23 @@ import { OnNodesDelete } from '@xyflow/react';
 import { OnBeforeDelete } from '@xyflow/react';
 import { OnConnect } from '@xyflow/react';
 import { NodeMouseHandler } from '@xyflow/react';
+import { getConnectedEdges } from '@xyflow/react';
+import { Position } from '@xyflow/react';
 import { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { useShallow } from 'zustand/react/shallow';
+import { v4 as uuid } from 'uuid';
 
 import { createEdge } from '@lib/actions/edge-actions';
 import { layoutElements } from '@lib/dagre/dagre';
 import { AppState } from '@lib/definitions';
+import { InitialStateNodeData } from '@lib/definitions';
 import { AgentData } from '@lib/definitions';
+import { WorkflowState } from '@lib/definitions';
+import { NodeData } from '@lib/definitions';
 import { useGraphStore } from '@stores/workflow-store';
 import { ROOT_NODE_SPACING_X } from '@config/layout.const';
 import { NODE_SPACING_X } from '@config/layout.const';
@@ -35,10 +41,10 @@ const RootNode = dynamic(() => import('@components/sandbox-nodes/root-node'), { 
 
 type WorkflowRendererProps = {
     children: (props: {
-        nodes: Node[];
-        edges: Edge[];
-        edgeTypes: EdgeTypes;
-        nodeTypes: NodeTypes;
+        nodes?: Node<NodeData>[];
+        edges?: Edge[];
+        edgeTypes?: EdgeTypes;
+        nodeTypes?: NodeTypes;
         onNodesChange?: OnNodesChange;
         onEdgesChange?: OnEdgesChange;
         onNodesDelete?: OnNodesDelete;
@@ -65,18 +71,17 @@ const edgeTypes = {
  * @returns An object with the following properties:
  * - nodes: The nodes in the graph.
  * - edges: The edges in the graph.
- * - onNodesChange: A callback to call when the nodes change.
  * - onEdgesChange: A callback to call when the edges change.
  * - onConnect: A callback to call when two nodes are connected.
  */
 const nodeStateSelector = (state: AppState) => ({
-    nodes: state.nodes,
+    nodes: state.nodes as (Node<NodeData> | Node<InitialStateNodeData>)[],
     edges: state.edges,
     onNodesChange: state.onNodesChange,
     onEdgesChange: state.onEdgesChange,
+    onConnect: state.onConnect,
     onBeforeDelete: state.onBeforeDelete,
-    onNodesDelete: state.onNodesDelete,
-    onConnect: state.onConnect
+    onNodesDelete: state.onNodesDelete
 });
 
 /**
@@ -142,18 +147,16 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         isOpen: false,
         parentNodeId: null
     });
-    // const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
     // Modify nodes to inject the modal open handler into root node data
     const nodesWithHandlers = useMemo(() => {
-        return nodes.map((node: Node): Node => {
+        return nodes.map((node: Node<NodeData>): Node<NodeData> => {
             if (node.type !== WorkflowNode.InitialStateNode) {
                 return {
                     ...node,
                     data: {
                         ...node.data,
                         onOpenModal: () => {
-                            // setSelectedNode(node);
                             setModalState({ isOpen: true, parentNodeId: node.id });
                         }
                     }
@@ -163,7 +166,10 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         });
     }, [nodes]);
 
-    const [layout, setLayout] = useState<{ nodes: Node[]; edges: Edge[] }>({ nodes: nodesWithHandlers, edges });
+    const [layout, setLayout] = useState<{ nodes: Node<NodeData>[]; edges: Edge[] }>({
+        nodes: nodesWithHandlers,
+        edges
+    });
 
     // Calculate layout on client-side only
     useEffect(() => {
@@ -173,76 +179,88 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
 
     const handleAgentSelection = async (agentData: AgentData): Promise<void> => {
         try {
-            const parentNode = layout.nodes.find((n: Node) => n.id === modalState.parentNodeId);
+            const parentNode = layout.nodes.find((n: Node<NodeData>) => n.id === modalState.parentNodeId);
 
-            if (!parentNode) {
-                console.error('Parent node not found. Modal state:', modalState);
-                throw new Error('Parent node not found');
+            if (!parentNode || !parentNode.data?.workflowId) {
+                console.error('Parent node not found or missing workflowId. Modal state:', modalState);
+                throw new Error('Parent node not found or missing workflowId');
             }
 
+            const workflowId = (parentNode.data as NodeData).workflowId;
+
             // Get all existing siblings and their positions
-            const siblings = edges
-                .filter((e: Edge) => e.source === modalState.parentNodeId)
+            const siblings: string[] = getConnectedEdges([parentNode], edges)
                 .map((e: Edge) => e.target);
 
             // Include the new node in sibling calculations
             const totalSiblings = siblings.length + 1;
-            const isParentRoot = parentNode.type === 'rootNode';
+            const isParentRootNode = parentNode.type === WorkflowNode.RootNode;
 
             // Create position changes for existing siblings
             const nodeChanges = siblings.map((siblingId: string, index: number) => ({
                 type: 'position' as const,
                 id: siblingId,
                 position: {
-                    x: parentNode.position.x + (isParentRoot ? ROOT_NODE_SPACING_X : NODE_SPACING_X),
+                    x: parentNode.position.x + (isParentRootNode ? ROOT_NODE_SPACING_X : NODE_SPACING_X),
                     y: parentNode.position.y + (index - (totalSiblings - 1) / 2) * NODE_SPACING_Y
                 }
             }));
 
             // Apply position changes to existing nodes
-            onNodesChange(nodeChanges);
+            onNodesChange?.(nodeChanges);
 
             // Position for the new node
             const newPosition = {
-                x: parentNode.position.x + (isParentRoot ? ROOT_NODE_SPACING_X : NODE_SPACING_X),
+                x: parentNode.position.x + (isParentRootNode ? ROOT_NODE_SPACING_X : NODE_SPACING_X),
                 y: parentNode.position.y + (siblings.length - (totalSiblings - 1) / 2) * NODE_SPACING_Y
             };
 
             // Create new node with agent data
             const newNode = {
+                id: uuid(),
                 type: WorkflowNode.AutomationNode,
                 data: {
                     ...agentData,
                     currentStep: '0',
-                    workflowId: parentNode.data?.workflowId
+                    state: WorkflowState.Initial,
+                    workflowId
                 },
-                position: newPosition
-            };
+                position: newPosition,
+                dragHandle: '.nodrag',
+                sourcePosition: Position.Right,
+                targetPosition: Position.Left
+            } as Node<NodeData>;
 
             // Add the new node
-            const { id: nodeId } = await useGraphStore.getState().addNode?.(newNode);
+            const store = useGraphStore.getState();
+            if (!store.addNode) {
+                throw new Error('addNode function is not available');
+            }
+            const { id: nodeId } = await store.addNode(newNode);
 
-            // Create edge in database
-            const edgeId = await createEdge({
-                workflowId: parentNode.data?.workflowId,
-                toNodeId: nodeId,
-                fromNodeId: modalState.parentNodeId
-            });
+            // Create edge in database only if we have a valid parent node
+            if (modalState.parentNodeId) {
+                const edgeId = await createEdge({
+                    workflowId,
+                    toNodeId: nodeId,
+                    fromNodeId: modalState.parentNodeId
+                });
 
-            // Update the store with the edge
-            const newEdge = {
-                id: edgeId,
-                source: modalState.parentNodeId,
-                target: nodeId,
-                type: WorkflowNode.AutomationEdge,
-                animated: true,
-                data: {
-                    workflowId: parentNode.data?.workflowId
-                }
-            };
+                // Update the store with the edge
+                const newEdge = {
+                    id: edgeId,
+                    source: modalState.parentNodeId,
+                    target: nodeId,
+                    type: WorkflowNode.AutomationEdge,
+                    animated: true,
+                    data: {
+                        workflowId
+                    }
+                };
 
-            const currentEdges = useGraphStore.getState().edges;
-            await useGraphStore.getState().setEdges?.([...currentEdges, newEdge]);
+                const currentEdges = useGraphStore.getState().edges;
+                await useGraphStore.getState().setEdges?.([...currentEdges, newEdge]);
+            }
         } catch (error) {
             console.error('Failed to add node or edge:', error);
             // TODO: Show error toast to user

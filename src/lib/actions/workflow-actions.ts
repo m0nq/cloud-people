@@ -114,8 +114,8 @@ export const updateWorkflow = async (config: QueryConfig = {}): Promise<Workflow
         ...config,
         set: {
             ...config.set,
-            current_step: config.set?.currentStep || null,
-            updated_at: config.set?.updatedAt ?? new Date()
+            current_step: config.set?.current_step || null,
+            updated_at: config.set?.updated_at ?? new Date()
         },
         filter: {
             ...config.filter,

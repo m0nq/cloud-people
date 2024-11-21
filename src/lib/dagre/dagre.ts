@@ -8,13 +8,13 @@ import { DEFAULT_CONTAINER_HEIGHT } from '@config/layout.const';
 import { DEFAULT_CONTAINER_WIDTH } from '@config/layout.const';
 import { ROOT_NODE_X } from '@config/layout.const';
 import { ROOT_NODE_Y } from '@config/layout.const';
-import { ROOT_NODE_SPACING_X } from '@config/layout.const';
 import { NODE_SPACING_X } from '@config/layout.const';
 import { NODE_SPACING_Y } from '@config/layout.const';
+import { NodeData } from '@lib/definitions';
 
 const { WorkflowNode: { WIDTH, HEIGHT } } = Config;
 
-export const layoutElements = (nodes: Node[], edges: Edge[]) => {
+export const layoutElements = (nodes: Node<NodeData>[], edges: Edge[]) => {
     const isInitialNodes = nodes.every(node => node?.type?.includes('initial'));
 
     // For initial nodes setup, use the original dagre layout
@@ -102,62 +102,40 @@ export const layoutElements = (nodes: Node[], edges: Edge[]) => {
             const siblingIndex = siblings.indexOf(nodeId);
             const totalSiblings = siblings.length;
 
-            // Check if parent is a root node
-            const parentId = edges.find(e => e.target === nodeId)?.source;
-            const isParentRoot = parentId && !edges.some(e => e.target === parentId);
-
-            nodePositions.set(nodeId, {
-                x: parentPosition.x + (isParentRoot ? ROOT_NODE_SPACING_X : NODE_SPACING_X),
+            // Calculate new position based on parent's position
+            const newPosition = {
+                x: parentPosition.x + NODE_SPACING_X,
                 y: parentPosition.y + (siblingIndex - (totalSiblings - 1) / 2) * NODE_SPACING_Y
-            });
+            };
+
+            nodePositions.set(nodeId, newPosition);
+        } else {
+            // Root node position
+            nodePositions.set(nodeId, { x: ROOT_NODE_X, y: ROOT_NODE_Y });
         }
+
+        // Position children
+        const children = parentChildMap.get(nodeId) || [];
+        children.forEach(childId => {
+            positionNode(childId, nodePositions.get(nodeId));
+        });
     };
 
     // Start positioning from root nodes (nodes with no incoming edges)
-    const rootNodes = nodes.filter(node => !edges.some(e => e.target === node.id));
-    rootNodes.forEach(rootNode => {
-        // Position root node at the specified position
-        nodePositions.set(rootNode.id, {
-            x: ROOT_NODE_X,
-            y: ROOT_NODE_Y
-        });
-    });
+    const rootNodes = nodes.filter(node =>
+        !edges.some(edge => edge.target === node.id)
+    );
 
-    // Position all nodes starting from roots
-    const processLevel = (nodeIds: string[], level: number = 0) => {
-        nodeIds.forEach(nodeId => {
-            const parentEdge = edges.find(e => e.target === nodeId);
-            const parentPosition = parentEdge
-                ? nodePositions.get(parentEdge.source)
-                : undefined;
+    rootNodes.forEach(node => positionNode(node.id));
 
-            positionNode(nodeId, parentPosition);
-
-            // Process children
-            const children = parentChildMap.get(nodeId) || [];
-            if (children.length > 0) {
-                processLevel(children, level + 1);
-            }
-        });
-    };
-
-    // Start processing from root nodes
-    processLevel(rootNodes.map(n => n.id));
-
-    // Apply the calculated positions
+    // Return nodes with their new positions
     return {
-        laidOutNodes: nodes.map(node => {
-            const position = nodePositions.get(node.id) || node.position;
-            return {
-                ...node,
-                targetPosition: Position.Left,
-                sourcePosition: Position.Right,
-                position: position || {
-                    x: DEFAULT_CONTAINER_WIDTH / 2,
-                    y: DEFAULT_CONTAINER_HEIGHT / 2
-                }
-            };
-        }),
+        laidOutNodes: nodes.map(node => ({
+            ...node,
+            targetPosition: Position.Left,
+            sourcePosition: Position.Right,
+            position: nodePositions.get(node.id) || node.position || { x: 0, y: 0 }
+        })) as Node<NodeData>[],
         laidOutEdges: edges
     };
 };

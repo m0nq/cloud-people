@@ -20,19 +20,40 @@ export type EdgeConnections = {
     animated?: boolean
 }
 
+export type InitialStateNodeData = {
+    id: string;
+    label: string;
+    background: string;
+    color: string;
+    workflowId?: string;
+}
+
+export type NodeData = {
+    workflowId?: string;
+    label?: string;
+    currentStep?: string;
+    state?: WorkflowState;
+    onOpenModal?: () => void;
+}
+
+export type EdgeData = {
+    workflowId?: string;
+}
+
 export type AppState = {
-    nodes: Node[];
+    nodes: (Node<NodeData> | Node<InitialStateNodeData>)[];
     edges: Edge[];
     onNodesChange?: OnNodesChange;
     onEdgesChange?: OnEdgesChange;
     onBeforeDelete?: OnBeforeDelete;
     onNodesDelete?: OnNodesDelete;
     onConnect?: OnConnect;
-    setNodes?: (nodes: Node[]) => void;
+    setNodes?: (nodes: (Node<NodeData> | Node<InitialStateNodeData>)[]) => void;
     setEdges?: (edges: Edge[]) => void;
-    addNode?: (node: Node) => void;
+    addNode?: (node: Node<NodeData>) => Promise<Node<NodeData>>;
+    addEdge?: (edge: Edge) => void;
     fetchGraph?: (workflowId: string) => void;
-    createNewWorkflow?: () => void;
+    createNewWorkflow?: () => Promise<string>;
     reset?: () => void;
 };
 
@@ -108,7 +129,8 @@ export type QueryResults = {
 
 export type AgentData = {
     id?: string;
-    name?: string;
+    name: string;
+    role: string;
     status?: 'active' | 'inactive';
     skills?: string[];
     performance?: {
@@ -116,4 +138,3 @@ export type AgentData = {
         satisfaction?: number;
     };
 };
-
