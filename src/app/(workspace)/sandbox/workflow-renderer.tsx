@@ -186,7 +186,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
                 throw new Error('Parent node not found or missing workflowId');
             }
 
-            const workflowId = (parentNode.data as NodeData).workflowId;
+            const workflowId = (parentNode.data as NodeData).workflowId ?? '';
 
             // Get all existing siblings and their positions
             const siblings: string[] = getConnectedEdges([parentNode], edges)

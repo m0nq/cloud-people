@@ -22,7 +22,6 @@
         "types": ["dompurify"],
         "noFallthroughCasesInSwitch": true,
         "forceConsistentCasingInFileNames": true,
-        "exactOptionalPropertyTypes": true,
         "noImplicitOverride": true
     },
     "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
