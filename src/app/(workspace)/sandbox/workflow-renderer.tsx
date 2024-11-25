@@ -1,5 +1,6 @@
 import { type Node } from '@xyflow/react';
 import { type Edge } from '@xyflow/react';
+import { type NodeChange } from '@xyflow/react';
 import { EdgeTypes } from '@xyflow/react';
 import { NodeTypes } from '@xyflow/react';
 import { OnNodesChange } from '@xyflow/react';
@@ -188,31 +189,42 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
 
             const workflowId = (parentNode.data as NodeData).workflowId ?? '';
 
-            // Get all existing siblings and their positions
+            // Get all existing siblings (nodes that share the same parent)
             const siblings: string[] = getConnectedEdges([parentNode], edges)
-                .map((e: Edge) => e.target);
+                .map((e: Edge) => e.target)
+                .filter((nodeId: string) => {
+                    // Find edges where this node is the target (i.e. incoming edges)
+                    const incomingEdges = edges.filter(e => e.target === nodeId);
+                    // Only include nodes that have the same parent as our new node
+                    return incomingEdges.some(e => e.source === parentNode.id);
+                });
 
-            // Include the new node in sibling calculations
+            // Only rebalance if there will be multiple siblings at this level
             const totalSiblings = siblings.length + 1;
             const isParentRootNode = parentNode.type === WorkflowNode.RootNode;
 
-            // Create position changes for existing siblings
-            const nodeChanges = siblings.map((siblingId: string, index: number) => ({
-                type: 'position' as const,
-                id: siblingId,
-                position: {
-                    x: parentNode.position.x + (isParentRootNode ? ROOT_NODE_SPACING_X : NODE_SPACING_X),
-                    y: parentNode.position.y + (index - (totalSiblings - 1) / 2) * NODE_SPACING_Y
-                }
-            }));
+            // Create position changes for existing siblings only if there are multiple siblings
+            let nodeChanges: NodeChange[] = [];
+            if (totalSiblings > 1) {
+                nodeChanges = siblings.map((siblingId: string, index: number) => ({
+                    type: 'position' as const,
+                    id: siblingId,
+                    position: {
+                        x: parentNode.position.x + (isParentRootNode ? ROOT_NODE_SPACING_X : NODE_SPACING_X),
+                        y: parentNode.position.y + (index - (totalSiblings - 1) / 2) * NODE_SPACING_Y
+                    }
+                }));
 
-            // Apply position changes to existing nodes
-            onNodesChange?.(nodeChanges);
+                // Apply position changes to existing siblings only
+                onNodesChange?.(nodeChanges);
+            }
 
-            // Position for the new node
+            // Position for the new node - for a single child, keep it in line with parent
             const newPosition = {
                 x: parentNode.position.x + (isParentRootNode ? ROOT_NODE_SPACING_X : NODE_SPACING_X),
-                y: parentNode.position.y + (siblings.length - (totalSiblings - 1) / 2) * NODE_SPACING_Y
+                y: totalSiblings > 1
+                    ? parentNode.position.y + (siblings.length - (totalSiblings - 1) / 2) * NODE_SPACING_Y
+                    : parentNode.position.y // Keep same Y position as parent for single child
             };
 
             // Create new node with agent data
