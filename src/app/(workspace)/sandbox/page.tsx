@@ -4,8 +4,6 @@ import { useState } from 'react';
 import { useEffect } from 'react';
 import '@xyflow/react/dist/style.css';
 import { Controls } from '@xyflow/react';
-import { Background } from '@xyflow/react';
-import { BackgroundVariant } from '@xyflow/react';
 import { Panel } from '@xyflow/react';
 import { ControlButton } from '@xyflow/react';
 import { ReactFlow } from '@xyflow/react';
@@ -59,7 +57,6 @@ const Sandbox = (): ReactNode => {
                         panOnDrag
                         proOptions={{ hideAttribution: true }}
                         {...props}>
-                        <Background variant={BackgroundVariant.Cross} gap={18} size={5} />
                         <Panel className="flow-panel">Sandbox</Panel>
                         <Controls position="top-center"
                             className="flow-controls"

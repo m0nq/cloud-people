@@ -3,7 +3,8 @@
 }
 
 .navigation-bar {
-  @apply w-16 h-full flex flex-col justify-between items-center rounded-2xl shadow-2xl shadow-zinc-500 mx-auto bg-white pt-2;
+  @apply w-16 h-full flex flex-col justify-between items-center rounded-2xl shadow-2xl shadow-zinc-500 mx-auto bg-[#181A1A]
+  pt-2;
 
   .navigation-primary {
     @apply h-full w-full flex flex-col justify-start items-center;
@@ -22,11 +23,10 @@
   }
 
   .nav-marker {
-    @apply after:absolute after:left-[calc(50%_-_-2rem)] after:h-9 after:w-[3px] after:rounded-md after:bg-primary;
+    @apply after:absolute after:left-[calc(50%_-_-2rem)] after:h-9 after:w-[3px] after:rounded-md;
   }
 }
 
 .navigation-bar a, .sign-out {
-  text-decoration: none;
-  @apply text-[#818181] hover:text-[#502dff] text-2xl;
+  @apply text-2xl no-underline text-[#bac5d1] hover:text-[#bac5d1]/80;
 }

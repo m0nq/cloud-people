@@ -1,6 +1,6 @@
 /* production builds need normal css structure */
 .flow-container {
-  @apply w-full h-full;
+  @apply w-full h-full bg-black;
 }
 
 .flow-container .flow-panel {
