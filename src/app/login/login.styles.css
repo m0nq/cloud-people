@@ -3,11 +3,11 @@
 }
 
 .banner {
-  @apply bg-[#56E8CD] w-3/5 h-full flex flex-col items-center justify-center text-center;
+  @apply bg-login-bg w-3/5 h-full flex flex-col items-center justify-center text-center;
 }
 
 .font-head {
-  @apply font-bold w-full uppercase tracking-[0.5rem] text-[#18642D] pt-6;
+  @apply font-bold w-full uppercase tracking-[0.5rem] text-login-text pt-6;
 }
 
 .form-area {
@@ -43,8 +43,7 @@
 }
 
 .submit-button {
-  /* TODO: add hover and active styling */
-  @apply py-3 px-4 rounded-md no-underline w-full bg-[#614CFF] text-white hover:bg-[rgba(97_76_255_4)];
+  @apply py-3 px-4 rounded-md no-underline w-full bg-login-button text-white hover:bg-login-button-hover;
 }
 
 .display-message {
