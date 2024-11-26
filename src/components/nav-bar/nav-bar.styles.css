@@ -1,9 +1,29 @@
+.nav-bar {
+  @apply fixed top-0 left-0 h-full w-24 z-50;
+}
+
 .navigation-area {
-  @apply z-50 h-full w-20 fixed top-0 left-0 px-1 py-4 mx-2 flex flex-col justify-between items-center;
+  @apply h-full fixed top-0 left-0 py-4 mx-2 flex flex-col justify-between items-center transition-transform duration-300 ease-in-out;
+}
+
+.navigation-area.hidden {
+  @apply opacity-0 -translate-x-28;
+}
+
+.toggle-button {
+  @apply fixed top-4 left-3 w-16 h-16 rounded-[20px] border border-[#3D3D3D] bg-[#181A1A]
+  shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25),0px_4px_4px_0px_rgba(0,0,0,0.25)] flex items-center justify-center text-2xl
+  text-[#bac5d1] hover:text-[#bac5d1]/80 transition-transform duration-300 ease-in-out translate-x-0;
+}
+
+.toggle-button.hidden {
+  @apply opacity-0 -translate-x-28;
 }
 
 .navigation-bar-top {
-  @apply w-16 rounded-[20px] border border-[#3D3D3D] bg-[#181A1A] shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25),0px_4px_4px_0px_rgba(0,0,0,0.25)] flex flex-col justify-between items-center pt-2;
+  @apply w-16 rounded-[20px] border border-[#3D3D3D] bg-[#181A1A]
+  shadow-[0px_4px_4px_0px_rgba(0,0,0,0.25),0px_4px_4px_0px_rgba(0,0,0,0.25)] flex flex-col justify-between items-center
+  pt-2;
 
   .navigation-primary {
     @apply w-full flex flex-col justify-start items-center;
