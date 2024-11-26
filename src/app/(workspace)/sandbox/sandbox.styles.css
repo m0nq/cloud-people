@@ -4,7 +4,7 @@
 }
 
 .flow-container .flow-panel {
-  @apply relative left-20 top-3.5 font-sans font-bold text-5xl leading-8 text-gray-300;
+  @apply relative left-20 top-3.5 font-sans font-bold text-5xl leading-8 text-gray-300 my-0 ml-4;
 }
 
 .flow-controls .flow-panel button {

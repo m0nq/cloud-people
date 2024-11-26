@@ -1,0 +1,17 @@
+.sandbox-controller {
+  @apply w-[214.494px] h-[68px] rounded-[20px] border border-nav-border bg-nav-bg flex items-center gap-0.5 px-2
+  shadow-[0px_0px_15px_0px_rgba(255,255,255,0.15),0px_0px_20px_0px_rgba(255,255,255,0.1),0px_0px_20px_0px_rgba(255,255,255,0.07)];
+
+  button {
+    @apply font-sans text-base font-bold px-5 py-2.5 transition-colors transition-all duration-300 ease-in-out
+    text-white/60 hover:text-white;
+  }
+
+  .menu-trigger {
+    @apply p-0 ml-0.5 text-white/60 hover:text-white;
+  }
+}
+
+.active {
+  @apply bg-primary text-white rounded-lg px-5 py-2.5 hover:bg-primary/80;
+}

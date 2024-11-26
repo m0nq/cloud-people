@@ -19,6 +19,7 @@ import { LuMousePointer } from 'react-icons/lu';
 
 import './sandbox.styles.css';
 import { WorkflowRenderer } from '@app/(workspace)/sandbox/workflow-renderer';
+import { SandboxController } from '@components/sandbox-controller/sandbox-controller';
 
 const Sandbox = (): ReactNode => {
     const [theme, setTheme] = useState('light');
@@ -57,7 +58,9 @@ const Sandbox = (): ReactNode => {
                         panOnDrag
                         proOptions={{ hideAttribution: true }}
                         {...props}>
-                        <Panel className="flow-panel">Sandbox</Panel>
+                        <Panel className="flow-panel">
+                            <SandboxController />
+                        </Panel>
                         <Controls position="top-center"
                             className="flow-controls"
                             showZoom={false}

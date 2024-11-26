@@ -19,41 +19,41 @@ const config: Config = {
                 // Brand colors
                 primary: '#6652ff',
                 secondary: '#56e8cd',
-                
+
                 // Navigation
-                'nav-border': '#3D3D3D',
-                'nav-bg': '#181A1A',
+                'nav-border': '#3d3d3d',
+                'nav-bg': '#181a1a',
                 'nav-text': '#bac5d1',
-                
+
                 // Text colors
                 'text-primary': '#515568',
-                'text-secondary': '#BEC1CF',
-                'text-meta': '#9D9D9D',
-                'text-light': '#E1E1EE',
-                
+                'text-secondary': '#bec1cf',
+                'text-meta': '#9d9d9d',
+                'text-light': '#e1e1ee',
+
                 // UI Elements
                 'icon-gray': '#818181',
-                'border-light': '#DBDBDB',
+                'border-light': '#dbdbdb',
                 dark: '#131414',
-                
+
                 // Login specific
-                'login-bg': '#56E8CD',
-                'login-text': '#18642D',
-                'login-button': '#614CFF',
+                'login-bg': '#56e8cd',
+                'login-text': '#18642d',
+                'login-button': '#614cff',
                 'login-button-hover': 'rgba(97, 76, 255, 0.4)',
-                
+
                 // Gradients (to be used with bg-gradient-to-r)
                 'gradient-purple': {
-                    from: '#A852FF',
-                    to: '#6A52FF'
+                    from: '#a852ff',
+                    to: '#6a52ff'
                 },
                 'gradient-teal': {
-                    from: '#86FFE2',
-                    to: '#18FFD5'
+                    from: '#86ffe2',
+                    to: '#18ffd5'
                 },
                 'gradient-blue': {
-                    from: '#868CFF',
-                    to: '#4318FF'
+                    from: '#868cff',
+                    to: '#4318ff'
                 }
             }
         }
