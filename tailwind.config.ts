@@ -15,14 +15,19 @@ const config: Config = {
             inter: ['var(--font-family-inter)', ...defaultTheme.fontFamily.sans]
         },
         extend: {
+            boxShadow: {
+                default: '0 0 15px 0px rgba(255,255,255,0.15), 0 0 20px 0 rgba(255,255,255,0.1), 0 0 20px 0 rgba(255,255,255,0.07)'
+            },
             colors: {
                 // Brand colors
                 primary: '#6652ff',
                 secondary: '#56e8cd',
 
+                // Dark mode
+                dark: '#181a1a',
+
                 // Navigation
                 'nav-border': '#3d3d3d',
-                'nav-bg': '#181a1a',
                 'nav-text': '#bac5d1',
 
                 // Text colors
@@ -34,7 +39,6 @@ const config: Config = {
                 // UI Elements
                 'icon-gray': '#818181',
                 'border-light': '#dbdbdb',
-                dark: '#131414',
 
                 // Login specific
                 'login-bg': '#56e8cd',

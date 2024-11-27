@@ -12,9 +12,9 @@
 }
 
 .toggle-button {
-  @apply fixed top-4 left-3 w-16 h-16 rounded-[20px] border border-nav-border bg-nav-bg
-  shadow-[0px_0px_20px_0px_rgba(255,255,255,0.15),0px_0px_20px_0px_rgba(255,255,255,0.1),0px_0px_20px_0px_rgba(255,255,255,0.07)]
-  flex items-center justify-center text-2xl text-nav-text hover:text-nav-text/80 transition-transform duration-300 ease-in-out translate-x-0;
+  @apply fixed top-4 left-3 w-16 h-16 rounded-[20px] border border-nav-border bg-dark shadow-default flex items-center
+  justify-center text-2xl text-nav-text hover:text-nav-text/80 transition-transform duration-300 ease-in-out
+  translate-x-0;
 }
 
 .toggle-button.hidden {
@@ -22,8 +22,7 @@
 }
 
 .navigation-bar-top {
-  @apply w-16 rounded-[20px] border border-nav-border bg-nav-bg
-  shadow-[0px_0px_20px_0px_rgba(255,255,255,0.15),0px_0px_20px_0px_rgba(255,255,255,0.1),0px_0px_20px_0px_rgba(255,255,255,0.07)] flex flex-col justify-between items-center
+  @apply w-16 rounded-[20px] border border-nav-border bg-dark shadow-default flex flex-col justify-between items-center
   pt-2;
 
   .navigation-primary {
@@ -32,9 +31,8 @@
 }
 
 .navigation-bar-bottom {
-  @apply w-16 min-h-[177.471px] rounded-[20px] border border-nav-border bg-nav-bg
-  shadow-[0px_0px_20px_0px_rgba(255,255,255,0.15),0px_0px_20px_0px_rgba(255,255,255,0.1),0px_0px_20px_0px_rgba(255,255,255,0.07)]
-  flex flex-col justify-between items-center py-4;
+  @apply w-16 min-h-[177.471px] rounded-[20px] border border-nav-border bg-dark shadow-default flex flex-col
+  justify-between items-center py-4;
 
   .navigation-secondary {
     @apply w-full flex flex-col justify-start items-center

@@ -1,13 +1,10 @@
 'use client';
 import { ReactNode } from 'react';
-import { useState } from 'react';
-import { useEffect } from 'react';
 import '@xyflow/react/dist/style.css';
 import { Controls } from '@xyflow/react';
 import { Panel } from '@xyflow/react';
 import { ControlButton } from '@xyflow/react';
 import { ReactFlow } from '@xyflow/react';
-import { PiPlayCircleThin } from 'react-icons/pi';
 import { PiClipboardLight } from 'react-icons/pi';
 import { PiArrowLeftThin } from 'react-icons/pi';
 import { PiArrowRightThin } from 'react-icons/pi';
@@ -20,29 +17,9 @@ import { LuMousePointer } from 'react-icons/lu';
 import './sandbox.styles.css';
 import { WorkflowRenderer } from '@app/(workspace)/sandbox/workflow-renderer';
 import { SandboxController } from '@components/sandbox-controller/sandbox-controller';
+import { SandboxRunButton } from '@components/sandbox-run-button/sandbox-run-button';
 
 const Sandbox = (): ReactNode => {
-    const [theme, setTheme] = useState('light');
-
-    useEffect(() => {
-        // Check system preference
-        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            setTheme('dark');
-        }
-
-        // Apply theme to html element
-        document.documentElement.setAttribute('data-theme', theme);
-        // Also add dark class for Tailwind
-        if (theme === 'dark') {
-            document.documentElement.classList.add('dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-        }
-    }, [theme]);
-
-    const toggleTheme = () => {
-        setTheme(theme === 'light' ? 'dark' : 'light');
-    };
 
     return (
         <WorkflowRenderer>
@@ -60,6 +37,7 @@ const Sandbox = (): ReactNode => {
                         {...props}>
                         <Panel className="flow-panel">
                             <SandboxController />
+                            <SandboxRunButton />
                         </Panel>
                         <Controls position="top-center"
                             className="flow-controls"
@@ -112,12 +90,6 @@ const Sandbox = (): ReactNode => {
                             className="search-button">
                             <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
                                 <CiSearch />
-                            </ControlButton>
-                        </Controls>
-                        <Controls position="top-right" className="test-button" showZoom={false} showFitView={false}
-                            showInteractive={false}>
-                            <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
-                                <PiPlayCircleThin />Test
                             </ControlButton>
                         </Controls>
                     </ReactFlow>

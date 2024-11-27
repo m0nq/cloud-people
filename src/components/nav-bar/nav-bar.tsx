@@ -3,7 +3,7 @@ import { useTransition } from 'react';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-// import Image from 'next/image';
+import Image from 'next/image';
 import { PiShoppingCartThin } from 'react-icons/pi';
 import { PiStackLight } from 'react-icons/pi';
 import { PiSignOutLight } from 'react-icons/pi';
@@ -14,17 +14,17 @@ import { BsArrowLeftShort } from 'react-icons/bs';
 
 import './nav-bar.styles.css';
 import { signOut } from '@lib/actions/authentication-actions';
-// import profileImage from '@public/example-avatar.png';
+import profileImage from '@public/example-avatar.png';
 import { Config } from '@config/constants';
 
 const { API: { EndPoints } } = Config;
 
 const primaryLinks = [
-    // {
-    //     name: 'Profile',
-    //     link: EndPoints.Profile,
-    //     iconElement: () => <Image src={profileImage} alt="Profile picture" width={25} />
-    // },
+    {
+        name: 'Profile',
+        link: EndPoints.Profile,
+        iconElement: () => <Image src={profileImage} alt="Profile picture" width={25} />
+    },
     {
         name: 'Dashboard',
         link: EndPoints.Dashboard,

@@ -4,7 +4,8 @@
 }
 
 .flow-container .flow-panel {
-  @apply relative left-20 top-3.5 font-sans font-bold text-5xl leading-8 text-gray-300 my-0 ml-4;
+  @apply flex items-center justify-between w-[22rem] h-16 left-28 top-4 font-sans font-bold text-5xl leading-8
+  text-gray-300 m-0;
 }
 
 .flow-controls .flow-panel button {
@@ -75,19 +76,3 @@
   @apply w-full h-full rounded-3xl;
 }
 
-.flow-container .test-button {
-  @apply h-16 rounded-3xl bg-white border-gray-400 text-gray-300 font-sans font-bold text-2xl flex items-center
-  justify-center ;
-}
-
-.test-button button.react-flow__controls-button {
-  @apply px-2 flex items-center justify-evenly w-full h-full rounded-3xl;
-}
-
-.test-button svg {
-  @apply size-8/12 max-h-none max-w-none text-gray-300;
-}
-
-.test-button .react-flow__controls-button {
-  @apply gap-x-2;
-}

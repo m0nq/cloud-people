@@ -1,9 +1,9 @@
 .sandbox-controller {
-  @apply w-[214.494px] h-[68px] rounded-[20px] border border-nav-border bg-nav-bg flex items-center gap-0.5 px-2
-  shadow-[0px_0px_15px_0px_rgba(255,255,255,0.15),0px_0px_20px_0px_rgba(255,255,255,0.1),0px_0px_20px_0px_rgba(255,255,255,0.07)];
+  @apply h-full rounded-[20px] border border-nav-border bg-dark flex items-center justify-evenly px-2
+  shadow-default;
 
   button {
-    @apply font-sans text-base font-bold px-5 py-2.5 transition-colors transition-all duration-300 ease-in-out
+    @apply font-sans text-base font-bold px-4 py-2.5 transition-colors transition-all duration-300 ease-in-out
     text-white/60 hover:text-white;
   }
 
