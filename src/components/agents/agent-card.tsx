@@ -8,7 +8,7 @@ type AgentCardProps = {
         name: string;
         role: string;
     };
-}
+};
 
 export const AgentCard = ({ data }: AgentCardProps) => {
     return (

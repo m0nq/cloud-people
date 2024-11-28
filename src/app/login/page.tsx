@@ -31,9 +31,7 @@ const LoginPage = async ({ searchParams }: { searchParams: Promise<{ message: st
                                 <Link href="#">Privacy Policy</Link>
                             </label>
                         </div>
-                        <AuthenticationButton className="submit-button"
-                            formAction={loginOrSignUp}
-                            buttonType="submit" />
+                        <AuthenticationButton className="submit-button" formAction={loginOrSignUp} buttonType="submit" />
                     </form>
                     <div className="separating-area">
                         <div className="w-full">

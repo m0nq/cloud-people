@@ -8,12 +8,10 @@ export const SandboxController = (): ReactNode => {
 
     return (
         <div className="sandbox-controller">
-            <button className={`${activeMode === 'sandbox' ? 'active' : ''}`}
-                onClick={() => setActiveMode('sandbox')}>
+            <button className={`${activeMode === 'sandbox' ? 'active' : ''}`} onClick={() => setActiveMode('sandbox')}>
                 Sandbox
             </button>
-            <button className={`${activeMode === 'live' ? 'active' : ''}`}
-                onClick={() => setActiveMode('live')}>
+            <button className={`${activeMode === 'live' ? 'active' : ''}`} onClick={() => setActiveMode('live')}>
                 Live
             </button>
             <button className="menu-trigger" onClick={() => {{/* TODO: Implement submenu toggle */}}}>

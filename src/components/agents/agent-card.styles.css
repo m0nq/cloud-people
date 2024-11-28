@@ -17,7 +17,7 @@
     @apply py-2 text-text-secondary text-xs leading-5 align-top;
 
     p:nth-child(2) {
-      @apply text-text-primary
+      @apply text-text-primary;
     }
   }
 

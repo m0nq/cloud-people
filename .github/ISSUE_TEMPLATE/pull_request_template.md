@@ -1,4 +1,4 @@
-<!-- 
+<!--
 Thank you for your contribution! 🎉
 
 Please ensure that your pull request is focused on a single type of change (e.g., feature, bugfix, etc.) and keep it concise. Consider splitting large changes into multiple PRs.
@@ -7,6 +7,7 @@ Please ensure that your pull request is focused on a single type of change (e.g.
 ## 🔗 Linked Issues
 
 <!-- If this pull request resolves an issue, mention the Linear issue ID here -->
+
 Closes [Linear Issue ID](https://linear.app/workspace/issue/ID-<num>)
 
 ## 📄 Description
@@ -16,6 +17,7 @@ Closes [Linear Issue ID](https://linear.app/workspace/issue/ID-<num>)
 ## 📋 Changes
 
 <!-- List your changes using a markdown checklist -->
+
 - [ ] Change 1
 - [ ] Change 2
 - [ ] Change 3
@@ -23,6 +25,7 @@ Closes [Linear Issue ID](https://linear.app/workspace/issue/ID-<num>)
 ## ✅ Checks
 
 <!-- Ensure your PR passes all necessary checks -->
+
 - [ ] Adheres to the project's code style
 - [ ] Documentation updated if necessary
 - [ ] All tests pass successfully

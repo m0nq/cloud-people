@@ -1,9 +1,7 @@
 import DashboardSkeleton from '@components/skeletons/skeletons';
 
 const DashboardLoading = () => {
-    return (
-        <DashboardSkeleton />
-    );
+    return <DashboardSkeleton />;
 };
 
 export default DashboardLoading;

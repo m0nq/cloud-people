@@ -1,9 +1,7 @@
 {
-    "extends": ["eslint:recommended", "plugin:prettier/recommended"],
-    "plugins": ["prettier-plugin-tailwindcss", "prettier"],
     "semi": true,
     "singleQuote": true,
-    "printWidth": 120,
+    "printWidth": 160,
     "tabWidth": 4,
     "jsxSingleQuote": false,
     "trailingComma": "none",
@@ -12,11 +10,33 @@
     "arrowParens": "avoid",
     "proseWrap": "always",
     "endOfLine": "lf",
+    "singleAttributePerLine": false,
+    "htmlWhitespaceSensitivity": "strict",
     "overrides": [
         {
-            "files": ["*.html"],
+            "files": ["*.{js,jsx,ts,tsx}"],
             "options": {
-                "singleQuote": false
+                "bracketSpacing": true,
+                "singleAttributePerLine": false,
+                "bracketSameLine": true,
+                "printWidth": 160,
+                "arrowParens": "avoid",
+                "singleQuote": true,
+                "semi": true,
+                "trailingComma": "none",
+                "quoteProps": "as-needed"
+            }
+        },
+        {
+            "files": ["*.css"],
+            "options": {
+                "tabWidth": 2
+            }
+        },
+        {
+            "files": ["*.json"],
+            "options": {
+                "parser": "json"
             }
         }
     ]

@@ -20,7 +20,6 @@ import { SandboxController } from '@components/sandbox-controller/sandbox-contro
 import { SandboxRunButton } from '@components/sandbox-run-button/sandbox-run-button';
 
 const Sandbox = (): ReactNode => {
-
     return (
         <WorkflowRenderer>
             {({ ...props }): ReactNode => (
@@ -39,19 +38,12 @@ const Sandbox = (): ReactNode => {
                             <SandboxController />
                             <SandboxRunButton />
                         </Panel>
-                        <Controls position="top-center"
-                            className="flow-controls"
-                            showZoom={false}
-                            showFitView={false}
+                        <Controls position="top-center" className="flow-controls" showZoom={false} showFitView={false}
                             showInteractive={false}>
                             <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
                                 <div className="arrow-icon">
-                                    <PiArrowLeftThin
-                                        className="icon-button arrow-left"
-                                        strokeWidth={2} />
-                                    <PiArrowRightThin
-                                        className="icon-button arrow-right"
-                                        strokeWidth={2} />
+                                    <PiArrowLeftThin className="icon-button arrow-left" strokeWidth={2} />
+                                    <PiArrowRightThin className="icon-button arrow-right" strokeWidth={2} />
                                 </div>
                             </ControlButton>
                             <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
@@ -61,10 +53,7 @@ const Sandbox = (): ReactNode => {
                                 <IoHandRightOutline className="icon-button hand-icon" />
                             </ControlButton>
                             <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
-                                <FiUserPlus
-                                    className="icon-button add-agent-icon"
-                                    strokeWidth={1.1}
-                                />
+                                <FiUserPlus className="icon-button add-agent-icon" strokeWidth={1.1} />
                             </ControlButton>
                             <ControlButton onClick={() => alert('Something magical just happened. ✨')}>
                                 <svg className="icon-button branches-icon" strokeWidth="1.3" viewBox="4 -4 26 26"

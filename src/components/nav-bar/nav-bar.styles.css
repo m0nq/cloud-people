@@ -1,10 +1,10 @@
 .nav-bar {
-  @apply fixed top-0 left-0 h-full w-24 z-50
+  @apply fixed top-0 left-0 h-full w-24 z-50;
 }
 
 .navigation-area {
   @apply h-full fixed top-0 left-0 py-4 mx-2 flex flex-col justify-between items-center transition-transform
-  duration-300 ease-in-out ;
+  duration-300 ease-in-out;
 }
 
 .navigation-area.hidden {
@@ -35,7 +35,7 @@
   justify-between items-center py-4;
 
   .navigation-secondary {
-    @apply w-full flex flex-col justify-start items-center
+    @apply w-full flex flex-col justify-start items-center;
   }
 }
 

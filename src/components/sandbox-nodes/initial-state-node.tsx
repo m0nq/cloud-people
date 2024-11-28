@@ -13,10 +13,7 @@ type InitialStateNodeProps = {
     };
 };
 
-const InitialStateNode = ({
-    data
-}: InitialStateNodeProps): ReactNode => {
-
+const InitialStateNode = ({ data }: InitialStateNodeProps): ReactNode => {
     // when a node is clicked, corresponding nodes will be updated by zustand
     // this needs to be a link or button to update node state with passed in setNodes
     // which, depending on which initial node it is will update to the appropriate state
@@ -42,9 +39,7 @@ const InitialStateNode = ({
     };
 
     return (
-        <button className="init-node nodrag"
-            style={{ background: data?.background, color: data?.color }}
-            onClick={handleClick}>
+        <button className="init-node nodrag" style={{ background: data?.background, color: data?.color }} onClick={handleClick}>
             <div className="init-node-label">{data.label}</div>
         </button>
     );
