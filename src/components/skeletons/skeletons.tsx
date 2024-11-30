@@ -3,7 +3,8 @@ import { ReactFlow } from '@xyflow/react';
 import { Panel } from '@xyflow/react';
 import { Controls } from '@xyflow/react';
 
-const shimmer = 'before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent';
+const shimmer =
+    'before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent';
 
 export function CardSkeleton() {
     return (
@@ -224,15 +225,12 @@ export const SandboxSkeleton = () => {
                     className={`${shimmer} relative mb-4 h-8 w-36 overflow-hidden rounded-md bg-gray-100`}
                     showZoom={false}
                     showFitView={false}
-                    showInteractive={false}>
-                </Controls>
+                    showInteractive={false} />
                 <Controls position="top-right"
-                    className={`${shimmer} w-32 h-16 rounded-3xl bg-white border-gray-400 text-gray-300 font-sans font-bold text-2xl flex items-center
-    justify-center`}
+                    className={`${shimmer} w-32 h-16 rounded-3xl bg-white border-gray-400 text-gray-300 font-sans font-bold text-2xl flex items-center justify-center`}
                     showZoom={false}
                     showFitView={false}
-                    showInteractive={false}>
-                </Controls>
+                    showInteractive={false} />
             </ReactFlow>
         </div>
     );

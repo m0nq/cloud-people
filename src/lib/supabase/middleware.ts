@@ -8,9 +8,7 @@ import { Config } from '@config/constants';
 const { API: { EndPoints } } = Config;
 
 const hasUserOrLoginPath = (user: User | null, request: NextRequest) => {
-    return user ||
-        request.nextUrl.pathname.startsWith(EndPoints.Login) ||
-        request.nextUrl.pathname.startsWith(EndPoints.Auth);
+    return user || request.nextUrl.pathname.startsWith(EndPoints.Login) || request.nextUrl.pathname.startsWith(EndPoints.Auth);
 };
 
 export const updateSession = async (request: NextRequest) => {
@@ -18,27 +16,22 @@ export const updateSession = async (request: NextRequest) => {
         request
     });
 
-    const supabase = createServerClient(
-        process.env.SUPABASE_URL!,
-        process.env.SUPABASE_ANON_KEY!,
-        {
-            cookies: {
-                getAll() {
-                    return request.cookies.getAll();
-                },
-                setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value, options }) => {
-                        request.cookies.set(name, value);
-                    });
-                    supabaseResponse = NextResponse.next({ request });
-                    cookiesToSet.forEach(({ name, value, options }) => {
-                            supabaseResponse.cookies.set(name, value, options);
-                        }
-                    );
-                }
+    const supabase = createServerClient(process.env.SUPABASE_URL!, process.env.SUPABASE_ANON_KEY!, {
+        cookies: {
+            getAll() {
+                return request.cookies.getAll();
+            },
+            setAll(cookiesToSet) {
+                cookiesToSet.forEach(({ name, value, options }) => {
+                    request.cookies.set(name, value);
+                });
+                supabaseResponse = NextResponse.next({ request });
+                cookiesToSet.forEach(({ name, value, options }) => {
+                    supabaseResponse.cookies.set(name, value, options);
+                });
             }
         }
-    );
+    });
 
     // IMPORTANT: Avoid writing any logic between createServerClient and
     // supabase.auth.getUser(). A simple mistake could make it very hard to debug

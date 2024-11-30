@@ -11,7 +11,7 @@ type AgentSelectionModalProps = {
     isOpen: boolean;
     onClose: () => void;
     onSelect: (agentData: AgentData) => void;
-}
+};
 
 const AgentSelectionModal = ({ isOpen, onClose, onSelect }: AgentSelectionModalProps): ReactNode => {
     const [activeTab, setActiveTab] = useState('all');
@@ -28,10 +28,7 @@ const AgentSelectionModal = ({ isOpen, onClose, onSelect }: AgentSelectionModalP
                     <div className="modal-actions">
                         <div className="search-container">
                             <CiSearch className="search-icon" />
-                            <input type="text"
-                                placeholder="Search"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)} />
+                            <input type="text" placeholder="Search" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
                         </div>
                         <button className="new-button">New</button>
                         <button className="close-button" onClick={onClose}>
@@ -42,15 +39,13 @@ const AgentSelectionModal = ({ isOpen, onClose, onSelect }: AgentSelectionModalP
 
                 {/* Tabs */}
                 <div className="modal-tabs">
-                    <button className={`tab ${activeTab === 'all' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('all')}>
+                    <button className={`tab ${activeTab === 'all' ? 'active' : ''}`} onClick={() => setActiveTab('all')}>
                         All Agents
                     </button>
                     <button className={`tab ${activeTab === 'my' ? 'active' : ''}`} onClick={() => setActiveTab('my')}>
                         My Agents
                     </button>
-                    <button className={`tab ${activeTab === 'store' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('store')}>
+                    <button className={`tab ${activeTab === 'store' ? 'active' : ''}`} onClick={() => setActiveTab('store')}>
                         Agent Store
                     </button>
                 </div>

@@ -31,7 +31,7 @@
 }
 
 .init-node {
-  @apply w-72 h-56 shadow-2xl shadow-zinc-500 px-11 py-11 text-left rounded-lg font-sans text-2xl font-bold leading-8
+  @apply w-72 h-56 px-11 py-11 text-left rounded-lg font-sans text-2xl font-bold leading-8
   tracking-tight;
 
   .init-node-label {

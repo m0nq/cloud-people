@@ -14,15 +14,14 @@ export const queryDB = async (query: string, variables: QueryConfig = {}) => {
     const { data: { session } } = await (await supabase).auth.getSession();
 
     const res = await fetch(`${SUPABASE_URL}${EndPoints.GraphQL}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                apikey: SUPABASE_ANON_KEY,
-                Authorization: `Bearer ${session?.access_token ?? SUPABASE_ANON_KEY}`
-            },
-            body: JSON.stringify({ query, variables })
-        }
-    );
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            apikey: SUPABASE_ANON_KEY,
+            Authorization: `Bearer ${session?.access_token ?? SUPABASE_ANON_KEY}`
+        },
+        body: JSON.stringify({ query, variables })
+    });
 
     if (!res.ok) {
         // This will activate the closest `error.js` Error Boundary

@@ -9,7 +9,7 @@ type SocialLoginButtonProps = {
     buttonType?: 'submit' | 'reset' | 'button' | undefined;
     className?: string;
     children: ReactNode;
-}
+};
 
 export const SocialLoginButton = ({
     provider,
@@ -18,11 +18,8 @@ export const SocialLoginButton = ({
     children
 }: SocialLoginButtonProps) => {
     return (
-        <button onClick={() => loginWithOAuth(provider)}
-            type={buttonType}
-            className={className}>
+        <button onClick={() => loginWithOAuth(provider)} type={buttonType} className={className}>
             {children}
         </button>
     );
 };
-

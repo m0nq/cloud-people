@@ -18,14 +18,7 @@ type RootNodeProps = {
     type?: string;
 };
 
-const RootNode = ({
-    id,
-    data,
-    isConnectable,
-    sourcePosition,
-    targetPosition
-}: RootNodeProps): ReactNode => {
-
+const RootNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: RootNodeProps): ReactNode => {
     // needs state such that starts out in pause state (displays play icon)
     // when clicked, changes to play state (displays pause icon) and activates the workflow run state
     // when clicked (again), changes to pause state (displays pause icon) and pauses current workflow at whatever step
@@ -37,16 +30,12 @@ const RootNode = ({
 
     return (
         <NodeComponent.Root className="root-node">
-            <button className="inner-circle" onClick={() => alert('Let\'s get this party started!!! 🥳')}>
+            <button className="inner-circle" onClick={() => alert("Let's get this party started!!! 🥳")}>
                 {/*  play and pause buttons go here  */}
                 <FaPlay color={'#ffffff'} size={40} />
                 {/*<FaPause color={'#ffffff'} size={40} />*/}
             </button>
-            <NodeComponent.Handle onClick={handleClick}
-                type={HandleType.SOURCE}
-                position={Position.Right}
-                id={`${id}-root`}
-                isConnectable={isConnectable} />
+            <NodeComponent.Handle onClick={handleClick} type={HandleType.SOURCE} position={Position.Right} id={`${id}-root`} isConnectable={isConnectable} />
         </NodeComponent.Root>
     );
 };

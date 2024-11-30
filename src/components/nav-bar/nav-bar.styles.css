@@ -1,32 +1,59 @@
-.navigation-area {
-  @apply z-50 h-full w-20 fixed top-0 left-0 px-1 py-4;
+.nav-bar {
+  @apply fixed top-0 left-0 h-full w-24 z-50;
 }
 
-.navigation-bar {
-  @apply w-16 h-full flex flex-col justify-between items-center rounded-2xl shadow-2xl shadow-zinc-500 mx-auto bg-white pt-2;
+.navigation-area {
+  @apply h-full fixed top-0 left-0 py-4 mx-2 flex flex-col justify-between items-center transition-transform
+  duration-300 ease-in-out;
+}
+
+.navigation-area.hidden {
+  @apply opacity-0 -translate-x-28;
+}
+
+.toggle-button {
+  @apply fixed top-4 left-3 w-16 h-16 rounded-[20px] border border-nav-border bg-dark shadow-default flex items-center
+  justify-center text-2xl text-nav-text hover:text-nav-text/80 transition-transform duration-300 ease-in-out
+  translate-x-0;
+}
+
+.toggle-button.hidden {
+  @apply opacity-0 -translate-x-28;
+}
+
+.navigation-bar-top {
+  @apply w-16 rounded-[20px] border border-nav-border bg-dark shadow-default flex flex-col justify-between items-center
+  pt-2;
 
   .navigation-primary {
-    @apply h-full w-full flex flex-col justify-start items-center;
-  }
-
-  .navigation-secondary {
-    @apply h-full w-full flex flex-col justify-end items-center;
-  }
-
-  li {
-    @apply w-full flex justify-center items-center px-1.5 py-4;
-
-    a {
-      @apply w-full h-full flex justify-center items-center;
-    }
-  }
-
-  .nav-marker {
-    @apply after:absolute after:left-[calc(50%_-_-2rem)] after:h-9 after:w-[3px] after:rounded-md after:bg-primary;
+    @apply w-full flex flex-col justify-start items-center;
   }
 }
 
-.navigation-bar a, .sign-out {
-  text-decoration: none;
-  @apply text-[#818181] hover:text-[#502dff] text-2xl;
+.navigation-bar-bottom {
+  @apply w-16 min-h-[177.471px] rounded-[20px] border border-nav-border bg-dark shadow-default flex flex-col
+  justify-between items-center py-4;
+
+  .navigation-secondary {
+    @apply w-full flex flex-col justify-start items-center;
+  }
+}
+
+.navigation-bar-top li,
+.navigation-bar-bottom li {
+  @apply w-full flex justify-center items-center px-1.5 py-4;
+
+  a {
+    @apply w-full h-full flex justify-center items-center;
+  }
+}
+
+.nav-marker {
+  @apply after:absolute after:left-[calc(50%_-_-2rem)] after:h-9 after:w-[3px] after:rounded-md;
+}
+
+.navigation-bar-top a,
+.navigation-bar-bottom a,
+.sign-out {
+  @apply text-2xl no-underline text-nav-text hover:text-nav-text/80;
 }

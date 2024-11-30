@@ -1,9 +1,7 @@
 import { SandboxSkeleton } from '@components/skeletons/skeletons';
 
 const SandboxLoading = () => {
-    return (
-        <SandboxSkeleton />
-    );
+    return <SandboxSkeleton />;
 };
 
 export default SandboxLoading;

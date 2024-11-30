@@ -2,7 +2,6 @@ import { createClient } from '@lib/supabase/server';
 import { Tables } from '@lib/db-entities.enum';
 
 const Profile = async () => {
-
     const supabase = await createClient();
     let { data, error } = await supabase
         .from(Tables.Profiles)

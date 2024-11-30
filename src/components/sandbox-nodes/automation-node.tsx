@@ -28,17 +28,10 @@ const getPosition = (position?: string): Position => {
         top: Position.Top
     } as { [direction: string]: Position };
 
-    return position && positionMap[position] || Position.Top;
+    return (position && positionMap[position]) || Position.Top;
 };
 
-const AutomationNode = ({
-    id,
-    data,
-    isConnectable,
-    sourcePosition,
-    targetPosition
-}: AutomationNodeProps): ReactNode => {
-
+const AutomationNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: AutomationNodeProps): ReactNode => {
     const sPosition = getPosition(sourcePosition);
     const tPosition = getPosition(targetPosition);
 
@@ -56,17 +49,14 @@ const AutomationNode = ({
             {/* progress bar */}
             {/* optional handles to connect bottom and top if nodes: are related? run in parallel? are dependent on each other? */}
             {/* possible styled handle extension as button or further detailed information */}
-            <NodeComponent.Handle 
+            <NodeComponent.Handle
                 onClick={() => handleClick(HandleType.SOURCE)}
                 type={HandleType.SOURCE}
-                position={sPosition} 
-                id={`${id}-a`} 
-                isConnectable={isConnectable} />
-            <NodeComponent.Handle 
-                type={HandleType.TARGET}
-                position={tPosition} 
-                id={`${id}-b`} 
-                isConnectable={isConnectable} />
+                position={sPosition}
+                id={`${id}-a`}
+                isConnectable={isConnectable}
+            />
+            <NodeComponent.Handle type={HandleType.TARGET} position={tPosition} id={`${id}-b`} isConnectable={isConnectable} />
         </NodeComponent.Root>
     );
 };

@@ -1,7 +1,4 @@
-const requiredEnvVars = [
-    'SUPABASE_URL',
-    'SUPABASE_ANON_KEY'
-];
+const requiredEnvVars = ['SUPABASE_URL', 'SUPABASE_ANON_KEY'];
 
 export const validateEnv = () => {
     for (const envVar of requiredEnvVars) {

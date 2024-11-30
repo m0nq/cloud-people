@@ -12,7 +12,9 @@ import { NODE_SPACING_X } from '@config/layout.const';
 import { NODE_SPACING_Y } from '@config/layout.const';
 import { NodeData } from '@lib/definitions';
 
-const { WorkflowNode: { WIDTH, HEIGHT } } = Config;
+const {
+    WorkflowNode: { WIDTH, HEIGHT }
+} = Config;
 
 export const layoutElements = (nodes: Node<NodeData>[], edges: Edge[]) => {
     const isInitialNodes = nodes.every(node => node?.type?.includes('initial'));
@@ -122,9 +124,7 @@ export const layoutElements = (nodes: Node<NodeData>[], edges: Edge[]) => {
     };
 
     // Start positioning from root nodes (nodes with no incoming edges)
-    const rootNodes = nodes.filter(node =>
-        !edges.some(edge => edge.target === node.id)
-    );
+    const rootNodes = nodes.filter(node => !edges.some(edge => edge.target === node.id));
 
     rootNodes.forEach(node => positionNode(node.id));
 

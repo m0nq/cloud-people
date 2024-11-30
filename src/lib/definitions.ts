@@ -10,15 +10,15 @@ import { type ReactNode } from 'react';
 export type LayoutProps = {
     params?: any;
     children?: ReactNode;
-}
+};
 
 export type EdgeConnections = {
-    id?: string,
-    source?: string,
-    target?: string,
-    type?: string,
-    animated?: boolean
-}
+    id?: string;
+    source?: string;
+    target?: string;
+    type?: string;
+    animated?: boolean;
+};
 
 export type InitialStateNodeData = {
     id: string;
@@ -26,7 +26,7 @@ export type InitialStateNodeData = {
     background: string;
     color: string;
     workflowId?: string;
-}
+};
 
 export type NodeData = {
     workflowId?: string;
@@ -34,11 +34,11 @@ export type NodeData = {
     currentStep?: string;
     state?: WorkflowState;
     onOpenModal?: () => void;
-}
+};
 
 export type EdgeData = {
     workflowId?: string;
-}
+};
 
 export type AppState = {
     nodes: (Node<NodeData> | Node<InitialStateNodeData>)[];
@@ -62,13 +62,13 @@ export type QueryUpdateConfig = {
     current_step?: string;
     data?: string;
     updated_at?: Date;
-}
+};
 
 export type QueryFilterConfig = {
     [prop: string]: {
         eq: string;
     };
-}
+};
 
 export type QueryConfig = {
     nodeId?: string;
@@ -85,7 +85,7 @@ export type QueryConfig = {
     currentStep?: string;
     toNodeId?: string;
     fromNodeId?: string;
-}
+};
 
 export enum WorkflowState {
     Initial = 'Initial',
@@ -101,7 +101,7 @@ export type WorkflowType = {
     state?: WorkflowState;
     currentStep?: string;
     data?: string;
-}
+};
 
 export type NodeType = {
     id: string;
@@ -117,15 +117,15 @@ export type EdgeType = {
     workflowId?: string;
     toNodeId?: string;
     fromNodeId?: string;
-}
+};
 
 export type QueryResults = {
     data: {
         collection: {
-            records: any[]
-        }
-    }
-}
+            records: any[];
+        };
+    };
+};
 
 export type AgentData = {
     id?: string;
