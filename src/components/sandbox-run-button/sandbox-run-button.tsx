@@ -1,14 +1,19 @@
 import { ReactNode } from 'react';
 import { PiPlayCircleThin } from 'react-icons/pi';
 
+import { useSandboxStore } from '@stores/sandbox-store';
+
 import './sandbox-run-button.styles.css';
 
 export const SandboxRunButton = (): ReactNode => {
+    const { mode } = useSandboxStore();
+    const buttonLabel = mode === 'sandbox' ? 'Test' : 'Run';
+
     return (
         <>
             <button className="test-button">
-                <PiPlayCircleThin size={40} />
-                Test
+                <PiPlayCircleThin size={48} />
+                <span className="test-button-label">{buttonLabel}</span>
             </button>
         </>
     );

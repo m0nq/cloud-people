@@ -1,14 +1,14 @@
 .sandbox-controller {
-  @apply h-full rounded-[20px] border border-nav-border bg-dark flex items-center justify-evenly px-2
+  @apply h-full rounded-[20px] border border-nav-border bg-dark flex items-center justify-between px-2
   shadow-default;
 
   button {
-    @apply font-sans text-base font-bold px-4 py-2.5 transition-colors transition-all duration-300 ease-in-out
+    @apply font-sans text-base font-bold px-4 py-2.5 transition-all duration-300 ease-in-out
     text-white/60 hover:text-white;
   }
 
   .menu-trigger {
-    @apply p-0 ml-0.5 text-white/60 hover:text-white;
+    @apply p-0 ml-1.5 text-white/60 hover:text-white;
   }
 }
 
