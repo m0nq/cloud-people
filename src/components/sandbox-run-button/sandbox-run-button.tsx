@@ -11,7 +11,7 @@ export const SandboxRunButton = (): ReactNode => {
 
     return (
         <>
-            <button className="test-button">
+            <button className="test-button" onClick={() => alert('Something magical just happened ✨')}>
                 <PiPlayCircleThin size={48} />
                 <span className="test-button-label">{buttonLabel}</span>
             </button>
