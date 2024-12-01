@@ -1,0 +1,9 @@
+# These owners will be the default owners for everything in
+# the repo. Unless a later match takes precedence,
+# they will be requested for review when someone 
+# opens a pull request.
+*       @m0nq
+
+# Add more specific rules as needed
+# /src/specific-folder/    @specific-team
+# *.js                     @js-team
