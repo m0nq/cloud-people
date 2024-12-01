@@ -15,6 +15,41 @@ Please note we have a code of conduct, please follow it in all your interactions
 4. You may merge the Pull Request in once you have the sign-off of two other developers, or if you do not have permission to do that, you may request the second
    reviewer to merge it for you.
 
+## Branch Protection Rules
+
+To maintain code quality and ensure proper review processes, we have the following branch protection rules in place:
+
+### Protected Branches
+
+- `main`: The primary branch that represents the production-ready state
+- `develop`: The development branch where features are integrated
+
+### Protection Rules
+
+1. **Required Reviews**
+
+    - At least 1 code review approval is required before merging
+    - Stale approvals are dismissed when new commits are pushed
+    - Code owners must review changes in their owned files
+
+2. **Status Checks**
+
+    - All required status checks must pass before merging
+    - Branches must be up-to-date with the base branch
+
+3. **Other Restrictions**
+    - Direct pushes to protected branches are prohibited
+    - Force pushes are not allowed
+    - Branch deletions are restricted
+
+### Workflow
+
+1. Create a feature branch from `develop`
+2. Make your changes and push to your feature branch
+3. Create a Pull Request targeting `develop`
+4. Obtain required approvals and ensure all checks pass
+5. Merge your changes
+
 ## Code of Conduct
 
 ### Our Pledge

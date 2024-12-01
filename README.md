@@ -207,18 +207,13 @@ pnpm lint
 
 ## Contributing
 
-[//]: # 'Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any'
-[//]: # 'contributions you make are **greatly appreciated**.'
-[//]: #
-[//]: # 'If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also'
-[//]: # 'simply open an issue with the tag "enhancement".'
-[//]: # "Don't forget to give the project a star! Thanks again!"
-[//]: #
-[//]: # '1. Fork the Project'
-[//]: # '2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)'
-[//]: # "3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)"
-[//]: # '4. Push to the Branch (`git push origin feature/AmazingFeature`)'
-[//]: # '5. Open a Pull Request'
+We welcome contributions to Cloud People! Please note that we have branch protection rules in place to maintain code quality:
+
+- All changes must be made through Pull Requests
+- Requires a reviewers approvals
+- All status checks must pass
+
+For detailed contribution guidelines and branch protection rules, please see our [Contributing Guide](docs/CONTRIBUTING.md).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
