@@ -75,20 +75,29 @@ jobs:
               run: pnpm build
 
     deploy:
-        needs: build
-        runs-on: ubuntu-latest
         name: Deploy to Vercel 🚀
+        #    needs: [ build, test ]
+        needs: [build]
+        runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
-
             - name: Install Vercel CLI
               run: npm install --global vercel@latest
-
             - name: Pull Vercel Environment Information
-              run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-
+              run: vercel pull --yes --environment=production --token=${{ secrets.CP_VERCEL_TOKEN }}
+            - name: Set Environment Variables
+              env:
+                  CP_VERCEL_TOKEN: ${{ secrets.CP_VERCEL_TOKEN }}
+                  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+                  SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+                  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+                  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+              run: |
+                  echo "" > .env.production
+                  echo CP_VERCEL_TOKEN="$CP_VERCEL_TOKEN" >> .env.production
+                  echo SUPABASE_URL="$SUPABASE_URL" >> .env.production
+                  echo SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" >> .env.production
             - name: Build Project Artifacts
-              run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-
+              run: vercel build --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
             - name: Deploy Project Artifacts to Vercel
-              run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+              run: vercel deploy --prebuilt --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
