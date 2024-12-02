@@ -12,28 +12,28 @@
   @apply w-full h-full;
 }
 
-.flow-controls .flow-panel button .branches-icon {
-  @apply block mx-auto;
+.icon-button {
+  @apply flex items-center justify-center text-white/60 hover:text-white transition-all duration-300 ease-in-out;
 }
 
-.branches-icon rect {
+.icon-button.branches-icon {
   @apply fill-transparent;
 }
 
 .flow-controls .react-flow__controls-button {
-  @apply w-full h-full;
+  @apply w-full h-full bg-dark border-y-0 border-x border-[#3D3D3D] border-solid;
 }
 
 .flow-controls .react-flow__controls-button:first-child {
-  @apply rounded-l-3xl;
+  @apply rounded-l-3xl border-l-0;
 }
 
 .flow-controls .react-flow__controls-button:last-child {
-  @apply rounded-r-3xl;
+  @apply rounded-r-3xl border-r-0;
 }
 
 .flow-container .flow-controls {
-  @apply w-[462px] h-16 flex flex-row justify-around items-center rounded-3xl bg-white border-gray-400 fill-icon-gray;
+  @apply w-[462px] h-16 flex flex-row justify-around items-center rounded-3xl bg-dark fill-icon-gray shadow-default;
 }
 
 .flow-container .flow-controls:first-child {
@@ -42,10 +42,6 @@
 
 .flow-container .flow-controls:last-child {
   @apply rounded-r-3xl;
-}
-
-.icon-button {
-  @apply flex items-center justify-center text-icon-gray;
 }
 
 .hand-icon path {
@@ -60,18 +56,10 @@
   @apply stroke-[0.07rem];
 }
 
-.flow-container .flow-controls .add-agent-icon {
+.flow-controls .add-agent-icon {
   @apply fill-none;
 }
 
 .react-flow__controls-button svg {
   @apply size-6 max-w-none max-h-none;
-}
-
-.flow-container .search-button {
-  @apply h-16 w-16 left-2/3 flex flex-row justify-center items-center rounded-3xl bg-white border-gray-400 text-icon-gray;
-}
-
-.search-button button {
-  @apply w-full h-full rounded-3xl;
 }
