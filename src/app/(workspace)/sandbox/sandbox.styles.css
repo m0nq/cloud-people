@@ -1,65 +1,38 @@
-/* production builds need normal css structure */
 .flow-container {
   @apply w-full h-full bg-black;
+
+  .flow-panel {
+    @apply flex items-center justify-between gap-5 w-[22rem] h-16 left-28 top-4 font-sans font-bold text-5xl leading-8
+    text-gray-300 m-0;
+  }
+
+  .flow-controls {
+    @apply flex items-center justify-around w-[38.375rem] h-16 left-[35%] top-4 bg-dark rounded-[1.25rem]
+    shadow-default;
+  }
 }
 
-.flow-container .flow-panel {
-  @apply flex items-center justify-between w-[22rem] h-16 left-28 top-4 font-sans font-bold text-5xl leading-8
-  text-gray-300 m-0;
+.react-flow__panel {
+  @apply m-0;
 }
 
-.flow-controls .flow-panel button {
-  @apply w-full h-full;
+.flow-controls button {
+  @apply flex items-center justify-around w-full h-full border-x border-solid border-[#3D3D3D]
+  text-white/60 hover:text-white transition-all duration-300 ease-in-out;
+
+  &:first-child {
+    @apply border-l-0 rounded-l-[1.25rem];
+  }
+
+  &:last-child {
+    @apply border-r-0 rounded-r-[1.25rem];
+  }
 }
 
 .icon-button {
-  @apply flex items-center justify-center text-white/60 hover:text-white transition-all duration-300 ease-in-out;
-}
+  @apply size-7 flex items-center justify-center;
 
-.icon-button.branches-icon {
-  @apply fill-transparent;
-}
-
-.flow-controls .react-flow__controls-button {
-  @apply w-full h-full bg-dark border-y-0 border-x border-[#3D3D3D] border-solid;
-}
-
-.flow-controls .react-flow__controls-button:first-child {
-  @apply rounded-l-3xl border-l-0;
-}
-
-.flow-controls .react-flow__controls-button:last-child {
-  @apply rounded-r-3xl border-r-0;
-}
-
-.flow-container .flow-controls {
-  @apply w-[462px] h-16 flex flex-row justify-around items-center rounded-3xl bg-dark fill-icon-gray shadow-default;
-}
-
-.flow-container .flow-controls:first-child {
-  @apply rounded-l-3xl;
-}
-
-.flow-container .flow-controls:last-child {
-  @apply rounded-r-3xl;
-}
-
-.hand-icon path {
-  @apply stroke-[1.3rem];
-}
-
-.flow-container .flow-controls .pointer-icon {
-  @apply fill-none;
-}
-
-.pointer-icon path {
-  @apply stroke-[0.07rem];
-}
-
-.flow-controls .add-agent-icon {
-  @apply fill-none;
-}
-
-.react-flow__controls-button svg {
-  @apply size-6 max-w-none max-h-none;
+  &.branches-icon {
+    @apply fill-transparent;
+  }
 }
