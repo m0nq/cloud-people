@@ -9,6 +9,8 @@ import { FiUserPlus } from 'react-icons/fi';
 import { PiClipboardLight } from 'react-icons/pi';
 import { CiCircleCheck } from 'react-icons/ci';
 import { CiSearch } from 'react-icons/ci';
+import { TbCalendarTime } from 'react-icons/tb';
+import { HiOutlinePencilAlt } from 'react-icons/hi';
 
 import './sandbox.styles.css';
 import { WorkflowRenderer } from '@app/(workspace)/sandbox/workflow-renderer';
@@ -44,6 +46,9 @@ const Sandbox = (): ReactNode => {
                                 <FiUserPlus className="icon-button" strokeWidth={1.5} />
                             </button>
                             <button onClick={() => alert('Something magical just happened. ✨')}>
+                                <TbCalendarTime className="icon-button" strokeWidth={1.5} />
+                            </button>
+                            <button onClick={() => alert('Something magical just happened. ✨')}>
                                 <svg className="icon-button branches-icon" viewBox="4 -4 26 26"
                                     xmlns="http://www.w3.org/2000/svg">
                                     <rect x="16.8995"
@@ -77,6 +82,9 @@ const Sandbox = (): ReactNode => {
                             </button>
                             <button onClick={() => alert('Something magical just happened. ✨')}>
                                 <CiCircleCheck className="icon-button" strokeWidth={0.5} />
+                            </button>
+                            <button onClick={() => alert('Something magical just happened. ✨')}>
+                                <HiOutlinePencilAlt className="icon-button" strokeWidth={1.5} />
                             </button>
                             <button onClick={() => alert('Something magical just happened. ✨')}>
                                 <CiSearch className="icon-button" strokeWidth={0.5} />
