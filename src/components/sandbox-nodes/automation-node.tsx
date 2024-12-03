@@ -1,10 +1,10 @@
 import { Position } from '@xyflow/react';
 import { ReactNode } from 'react';
 
+import './node.styles.css';
 import { AgentCard } from '@components/agents/agent-card';
 import { NodeComponent } from '@components/utils/node-component/node-component';
 import { HandleType } from './types.enum';
-import './node.styles.css';
 
 type AutomationNodeProps = {
     id: string;
@@ -31,7 +31,13 @@ const getPosition = (position?: string): Position => {
     return (position && positionMap[position]) || Position.Top;
 };
 
-const AutomationNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: AutomationNodeProps): ReactNode => {
+const AutomationNode = ({
+    id,
+    data,
+    isConnectable,
+    sourcePosition,
+    targetPosition
+}: AutomationNodeProps): ReactNode => {
     const sPosition = getPosition(sourcePosition);
     const tPosition = getPosition(targetPosition);
 
@@ -54,9 +60,11 @@ const AutomationNode = ({ id, data, isConnectable, sourcePosition, targetPositio
                 type={HandleType.SOURCE}
                 position={sPosition}
                 id={`${id}-a`}
-                isConnectable={isConnectable}
-            />
-            <NodeComponent.Handle type={HandleType.TARGET} position={tPosition} id={`${id}-b`} isConnectable={isConnectable} />
+                isConnectable={isConnectable} />
+            <NodeComponent.Handle type={HandleType.TARGET}
+                position={tPosition}
+                id={`${id}-b`}
+                isConnectable={isConnectable} />
         </NodeComponent.Root>
     );
 };

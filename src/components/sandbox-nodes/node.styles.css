@@ -1,5 +1,5 @@
 .automation-node {
-  @apply w-72 h-56 shadow-2xl shadow-zinc-500 p-4 rounded-lg bg-white;
+  @apply w-72 h-56 rounded-lg bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)];
 
   /*label {*/
   /*  @apply block text-[#777777] text-xl;*/

@@ -8,10 +8,10 @@ const { API: { EndPoints } } = Config;
 
 const SUPABASE_URL: string = process.env.SUPABASE_URL!;
 const SUPABASE_ANON_KEY: string = process.env.SUPABASE_ANON_KEY!;
-const supabase = createClient();
 
 export const queryDB = async (query: string, variables: QueryConfig = {}) => {
-    const { data: { session } } = await (await supabase).auth.getSession();
+    const supabase = await createClient();
+    const { data: { session } } = await supabase!.auth.getSession();
 
     const res = await fetch(`${SUPABASE_URL}${EndPoints.GraphQL}`, {
         method: 'POST',

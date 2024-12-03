@@ -30,7 +30,7 @@ export const createNodes = async (config: QueryConfig = {}): Promise<Node> => {
     try {
         const [node] = await connectToDB(insertNodeMutation, { workflowId: config.workflowId });
         if (!node?.id) {
-            throw new Error('Failed to create node: No ID returned');
+            throw new Error('No ID returned');
         }
         return node;
     } catch (error) {
