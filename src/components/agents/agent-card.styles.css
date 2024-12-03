@@ -9,20 +9,20 @@
     }
 
     .agent-name {
-      @apply font-bold text-lg leading-6 self-baseline text-text-primary;
+      @apply font-bold text-lg leading-6 self-baseline text-color-grey;
     }
   }
 
   .runner-description {
-    @apply py-2 text-text-secondary text-xs leading-5 align-top;
+    @apply py-2 text-color-slate text-xs leading-5 align-top;
 
     p:nth-child(2) {
-      @apply text-text-primary;
+      @apply text-color-grey;
     }
   }
 
   .agent-runner-status {
-    @apply flex justify-between items-center text-xs text-text-meta;
+    @apply flex justify-between items-center text-xs text-color-meta;
 
     .status-complete-info {
       @apply text-right;
