@@ -1,5 +1,5 @@
 .sandbox-controller {
-  @apply h-full rounded-[20px] border border-nav-border bg-dark flex items-center justify-between px-2
+  @apply h-full rounded-[1.25rem] border border-nav-border bg-dark flex items-center justify-between px-2
   shadow-default;
 
   button {
