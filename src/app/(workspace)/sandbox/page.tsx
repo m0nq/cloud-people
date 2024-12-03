@@ -4,6 +4,7 @@ import '@xyflow/react/dist/style.css';
 import { Panel } from '@xyflow/react';
 import { ReactFlow } from '@xyflow/react';
 import { LuMousePointer } from 'react-icons/lu';
+import { LuClock4 } from 'react-icons/lu';
 import { IoHandRightOutline } from 'react-icons/io5';
 import { FiUserPlus } from 'react-icons/fi';
 import { PiClipboardLight } from 'react-icons/pi';
@@ -90,9 +91,11 @@ const Sandbox = (): ReactNode => {
                                 <CiSearch className="icon-button" strokeWidth={0.5} />
                             </button>
                         </Panel>
-                        {/*<Controls position="top-center" showZoom={false} showFitView={false} showInteractive={false}*/}
-                        {/*    className="search-button">*/}
-                        {/*</Controls>*/}
+                        <Panel className="timing-controls">
+                            <button onClick={() => alert('Something magical just happened. ✨')}>
+                                <LuClock4 className="icon-button" strokeWidth={1.5} />
+                            </button>
+                        </Panel>
                     </ReactFlow>
                 </div>
             )}

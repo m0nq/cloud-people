@@ -8,6 +8,6 @@ interface SandboxState {
 }
 
 export const useSandboxStore = create<SandboxState>(set => ({
-    mode: 'live',
+    mode: 'sandbox',
     setMode: mode => set({ mode })
 }));

@@ -10,10 +10,18 @@
     @apply flex items-center justify-around w-[38.375rem] h-16 left-[35%] top-4 bg-dark rounded-[1.25rem]
     shadow-default;
   }
+
+  .timing-controls {
+    @apply flex items-center justify-center w-16 h-16 left-[95%] top-4 bg-dark rounded-[1.25rem] shadow-default;
+  }
 }
 
 .react-flow__panel {
   @apply m-0;
+}
+
+.timing-controls button {
+  @apply flex justify-center items-center w-full h-full text-white/60 hover:text-white transition-all duration-300 ease-in-out;
 }
 
 .flow-controls button {
