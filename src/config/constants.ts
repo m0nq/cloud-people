@@ -4,6 +4,7 @@ export const Config = {
         HEIGHT: 224,
         InitialStateNode: 'initialStateNode',
         AutomationNode: 'automationNode',
+        ApprovalNode: 'approvalNode',
         RootNode: 'rootNode',
         AutomationEdge: 'automationEdge'
     },

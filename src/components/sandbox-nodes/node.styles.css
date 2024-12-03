@@ -39,6 +39,10 @@
   }
 }
 
+.approval-node {
+  @apply w-72 h-32 rounded-xl border border-[#414141] bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)];
+}
+
 .root-node {
   @apply w-32 h-32 rounded-full bg-white stroke-1 stroke-zinc-500 drop-shadow-[0_1px_4px_rgba(0,0,0,0.15)] flex
   items-center justify-center cursor-pointer;

@@ -14,17 +14,14 @@ export const NodeComponent = {
             {children}
         </div>
     ),
-
     Handle: ({ position, ...props }: HandleProps) => (
         <Handle position={position} {...props} />
     ),
-
     Content: ({ children, className, ...props }: NodeComponentProps) => (
         <div className={className} {...props}>
             {children}
         </div>
     ),
-
     Controls: ({ children, className, ...props }: NodeComponentProps) => (
         <div className={className} {...props}>
             {children}
