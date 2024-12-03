@@ -3,14 +3,15 @@
 }
 
 .modal-container {
-  @apply bg-white rounded-2xl w-[43.25rem] max-h-[56.625rem] overflow-y-auto flex flex-col font-sans;
+  @apply bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] rounded-2xl w-[43.25rem] max-h-[56.625rem]
+  overflow-y-auto flex flex-col font-sans text-color-light;
 }
 
 .modal-header {
   @apply p-6 flex justify-between items-center;
 
   h2 {
-    @apply text-2xl font-bold text-gray-900;
+    @apply text-2xl font-bold;
   }
 }
 
@@ -22,11 +23,10 @@
   @apply relative;
 
   input {
-    @apply pl-10 pr-4 py-2 rounded-lg border border-gray-200
-    bg-gray-50 text-gray-900;
+    @apply pl-10 pr-4 py-2 rounded-lg bg-[#232629] text-color-light;
 
     &::placeholder {
-      @apply text-[#E1E1EE];
+      @apply text-[#6B7280];
     }
   }
 
@@ -35,8 +35,12 @@
   }
 }
 
+[type='text'] {
+  @apply border-none border-0;
+}
+
 .new-button {
-  @apply px-10 py-2 bg-primary text-white rounded-lg font-medium;
+  @apply px-10 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/60;
 }
 
 .close-button {
@@ -44,13 +48,13 @@
 }
 
 .modal-tabs {
-  @apply flex justify-evenly px-6 pt-4;
+  @apply flex items-center justify-evenly px-6;
 
   .tab {
-    @apply pb-2 text-[#E1E1EE] text-2xl font-bold leading-[32px] tracking-[-0.48px] not-italic relative;
+    @apply text-[#E1E1EE] text-xl font-bold w-40;
 
     &.active {
-      @apply text-[#515568];
+      @apply w-40 bg-primary text-white rounded-lg px-5 py-2.5 hover:bg-primary/80;
     }
   }
 }
@@ -60,7 +64,7 @@
   grid-template-columns: repeat(auto-fill, minmax(18.625rem, 1fr));
 
   > div {
-    @apply w-[18.625rem] h-[15.5625rem] rounded-[10px] border border-[#DBDBDB] bg-white
-    shadow-[0px_1px_14px_0px_rgba(0,0,0,0.15)] p-4;
+    @apply w-72 h-56 bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] cursor-pointer rounded-lg shadow-[0px_1px_14px_0px_rgba(0,0,0,0.15)]
+    border border-color-grey ;
   }
 }

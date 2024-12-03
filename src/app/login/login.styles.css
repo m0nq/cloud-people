@@ -3,15 +3,15 @@
 }
 
 .banner {
-  @apply bg-login-bg w-3/5 h-full flex flex-col items-center justify-center text-center;
+  @apply bg-secondary w-3/5 h-full flex flex-col items-center justify-center text-center;
 }
 
 .font-head {
-  @apply font-bold w-full uppercase tracking-[0.5rem] text-login-text pt-6;
+  @apply font-bold w-full uppercase tracking-[0.5rem] text-[#18642D] pt-6;
 }
 
 .form-area {
-  @apply w-2/5 h-screen;
+  @apply w-2/5 h-screen bg-dark text-color-light;
 }
 
 .login-form-wrapper {
@@ -27,7 +27,7 @@
 }
 
 .input {
-  @apply rounded-md w-full;
+  @apply rounded-md w-full bg-dark text-color-light;
 }
 
 .agreement-wrapper {
@@ -38,12 +38,17 @@
   @apply text-sm items-center flex grow shrink basis-auto gap-2 text-left;
 }
 
+a {
+  @apply text-color-light hover:text-primary visited:text-color-light;
+}
+
 .agreement-checkbox {
-  @apply rounded m-0;
+  @apply rounded m-0 bg-dark;
+
 }
 
 .submit-button {
-  @apply py-3 px-4 rounded-md no-underline w-full bg-login-button text-white hover:bg-login-button-hover;
+  @apply py-3 px-4 rounded-md no-underline w-full bg-primary text-white hover:bg-primary/60;
 }
 
 .display-message {
@@ -67,5 +72,5 @@
 }
 
 .social-login-area button span {
-  @apply flex justify-center gap-x-2 w-full text-sm px-4 py-3 rounded-md;
+  @apply flex justify-center gap-x-2 w-full text-sm px-4 py-3 rounded-md border border-solid border-color-light;
 }

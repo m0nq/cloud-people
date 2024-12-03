@@ -26,13 +26,18 @@ export const createWorkflow = async (): Promise<string> => {
     `;
 
     const variables = {
-        data: JSON.stringify({ label: 'Stuff and things...' }),
+        data: JSON.stringify({ label: 'New Workflow' }),
         userId: user.id
     } as QueryConfig;
 
     const [workflow] = await connectToDB(createWorkflowMutation, variables);
 
-    return workflow.id as string;
+    if (!workflow?.id) {
+        console.error('No workflow ID returned from mutation');
+        throw new Error('Failed to create workflow');
+    }
+
+    return workflow.id;
 };
 
 export const fetchWorkflows = async (config: QueryConfig = {}): Promise<WorkflowType[]> => {

@@ -8,8 +8,8 @@ type AuthButtonProps = {
 };
 
 export const AuthenticationButton = async ({ formAction, buttonType, className }: AuthButtonProps) => {
-    const supabase = createClient();
-    const { data: { user } } = await (await supabase).auth.getUser();
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
 
     return user ? (
         <div className="flex items-center gap-4">
