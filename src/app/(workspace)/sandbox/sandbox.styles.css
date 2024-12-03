@@ -1,5 +1,5 @@
 .flow-container {
-  @apply w-full h-full bg-black;
+  @apply w-full h-full bg-dark;
 
   .flow-panel {
     @apply flex items-center justify-between gap-5 w-[22rem] h-16 left-28 top-4 font-sans font-bold text-5xl leading-8
@@ -8,11 +8,12 @@
 
   .flow-controls {
     @apply flex items-center justify-around w-[38.375rem] h-16 left-[35%] top-4 bg-dark rounded-[1.25rem]
-    shadow-default;
+    shadow-default border border-nav-border;
   }
 
   .timing-controls {
-    @apply flex items-center justify-center w-16 h-16 left-[95%] top-4 bg-dark rounded-[1.25rem] shadow-default;
+    @apply flex items-center justify-center w-16 h-16 left-[95%] top-4 bg-dark rounded-[1.25rem] shadow-default border
+    border-nav-border;
   }
 }
 
