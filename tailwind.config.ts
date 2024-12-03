@@ -12,7 +12,7 @@ const config: Config = {
         },
         extend: {
             boxShadow: {
-                default: '0 0 15px 0px rgba(255,255,255,0.15), 0 0 20px 0 rgba(255,255,255,0.1), 0 0 20px 0 rgba(255,255,255,0.07)'
+                default: '0px 4px 4px 0px rgba(0, 0, 0, 0.25), 0px 4px 4px 0px rgba(0, 0, 0, 0.25), 0 0 15px 0px rgba(255,255,255,0.12), 0 0 15px 0 rgba(255,255,255,0.08), 0 0 15px 0 rgba(255,255,255,0.056)'
             },
             colors: {
                 // Brand colors
