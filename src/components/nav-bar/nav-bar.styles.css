@@ -44,7 +44,7 @@
   @apply w-full flex justify-center items-center px-1.5 py-4;
 
   a {
-    @apply w-full h-full flex justify-center items-center;
+    @apply w-full h-full flex justify-center items-center cursor-pointer;
   }
 }
 

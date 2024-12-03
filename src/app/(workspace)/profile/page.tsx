@@ -9,20 +9,18 @@ const Profile = async () => {
 
     const { email, username, first_name, last_name } = data && data?.[0];
 
-    console.log('first name is null? ->', first_name === null);
-
     if (error || !data?.length) {
         return (
             <>
-                <div>{error?.message}</div>
+                <div className="bg-dark text-color-light">{error?.message}</div>
             </>
         );
     }
 
     return (
-        <div className="flex flex-col items-center justify-center w-full">
-            <div>Welcome!</div>
-            <div>Your email {email}</div>
+        <div className="flex flex-col items-center justify-center w-full h-full bg-dark text-color-light">
+            <div>Welcome!{first_name ?? ''}</div>
+            <div>Your email: {email}</div>
         </div>
     );
 };

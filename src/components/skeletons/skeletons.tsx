@@ -3,8 +3,7 @@ import { ReactFlow } from '@xyflow/react';
 import { Panel } from '@xyflow/react';
 import { Controls } from '@xyflow/react';
 
-const shimmer =
-    'before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent';
+const shimmer = 'before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/60 before:to-transparent';
 
 export function CardSkeleton() {
     return (
@@ -85,7 +84,7 @@ export function LatestInvoicesSkeleton() {
 
 export default function DashboardSkeleton() {
     return (
-        <>
+        <div className="flex flex-row items-center justify-center w-full h-full bg-dark text-color-light">
             <div className={`${shimmer} relative mb-4 h-8 w-36 overflow-hidden rounded-md bg-gray-100`} />
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <CardSkeleton />
@@ -97,7 +96,7 @@ export default function DashboardSkeleton() {
                 <RevenueChartSkeleton />
                 <LatestInvoicesSkeleton />
             </div>
-        </>
+        </div>
     );
 }
 
@@ -215,7 +214,7 @@ export function InvoicesTableSkeleton() {
 
 export const SandboxSkeleton = () => {
     return (
-        <div className="w-full h-full">
+        <div className="flex flex-row items-center justify-center w-full h-full bg-dark text-color-light">
             <ReactFlow proOptions={{ hideAttribution: true }}>
                 <Panel
                     className={`${shimmer} relative left-20 top-3.5 font-sans font-bold text-5xl leading-8 text-gray-300`}>
