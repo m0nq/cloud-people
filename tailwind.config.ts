@@ -12,7 +12,15 @@ const config: Config = {
         },
         extend: {
             boxShadow: {
-                default: '0 0 15px 0px rgba(255,255,255,0.15), 0 0 20px 0 rgba(255,255,255,0.1), 0 0 20px 0 rgba(255,255,255,0.07)'
+                default:
+                    '0px 4px 4px 0px rgba(0, 0, 0, 0.25), ' +
+                    '0px 4px 4px 0px rgba(0, 0, 0, 0.25), ' +
+                    '0 0 15px 0px rgba(255, 255,255,0.12), ' +
+                    '0px 4px 4px 0px rgba(0, 0, 0, 0.25), ' +
+                    '0px 4px 4px 0px rgba(0, 0, 0, 0.25), ' +
+                    '0 0 15px 0px rgba(255, 255,255,0.12), ' +
+                    '0 0 15px 0 rgba(255,255,255,0.08), ' +
+                    '0 0 0 15px 0 rgba(255,255,255,0.056)'
             },
             colors: {
                 // Brand colors
@@ -26,21 +34,13 @@ const config: Config = {
                 'nav-border': '#3d3d3d',
                 'nav-text': '#bac5d1',
 
-                // Text colors
-                'text-primary': '#515568',
-                'text-secondary': '#bec1cf',
-                'text-meta': '#9d9d9d',
-                'text-light': '#e1e1ee',
+                'color-grey': '#515568',
+                'color-slate': '#bec1cf',
+                'color-meta': '#9d9d9d',
+                'color-light': '#cfcfcf',
 
-                // UI Elements
                 'icon-gray': '#818181',
                 'border-light': '#dbdbdb',
-
-                // Login specific
-                'login-bg': '#56e8cd',
-                'login-text': '#18642d',
-                'login-button': '#614cff',
-                'login-button-hover': 'rgba(97, 76, 255, 0.4)',
 
                 // Gradients (to be used with bg-gradient-to-r)
                 'gradient-purple': {
