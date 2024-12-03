@@ -36,6 +36,7 @@ const { WorkflowNode } = Config;
 
 const AgentSelectionModal = dynamic(() => import('@components/modals/agent-selection-modal'), { ssr: false });
 const AutomationNode = dynamic(() => import('@components/sandbox-nodes/automation-node'), { ssr: false });
+const ApprovalNode = dynamic(() => import('@components/sandbox-nodes/approval-node'), { ssr: false });
 const AutomationEdge = dynamic(() => import('@components/sandbox-nodes/automation-edge'), { ssr: false });
 const InitialStateNode = dynamic(() => import('@components/sandbox-nodes/initial-state-node'), { ssr: false });
 const RootNode = dynamic(() => import('@components/sandbox-nodes/root-node'), { ssr: false });
@@ -58,7 +59,8 @@ type WorkflowRendererProps = {
 const nodeTypes = {
     initialStateNode: InitialStateNode,
     rootNode: RootNode,
-    automationNode: AutomationNode
+    automationNode: AutomationNode,
+    approvalNode: ApprovalNode
 } as NodeTypes;
 
 const edgeTypes = {
