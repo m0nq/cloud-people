@@ -1,77 +1,47 @@
-/* production builds need normal css structure */
 .flow-container {
-  @apply w-full h-full bg-black;
+  @apply w-full h-full bg-dark;
+
+  .flow-panel {
+    @apply flex items-center justify-between gap-5 w-[22rem] h-16 left-28 top-4 font-sans font-bold text-5xl leading-8
+    text-gray-300 m-0;
+  }
+
+  .flow-controls {
+    @apply flex items-center justify-around w-[38.375rem] h-16 left-[35%] top-4 bg-dark rounded-[1.25rem]
+    shadow-default border border-nav-border;
+  }
+
+  .timing-controls {
+    @apply flex items-center justify-center w-16 h-16 left-[95%] top-4 bg-dark rounded-[1.25rem] shadow-default border
+    border-nav-border;
+  }
 }
 
-.flow-container .flow-panel {
-  @apply flex items-center justify-between w-[22rem] h-16 left-28 top-4 font-sans font-bold text-5xl leading-8
-  text-gray-300 m-0;
+.react-flow__panel {
+  @apply m-0;
 }
 
-.flow-controls .flow-panel button {
-  @apply w-full h-full;
+.timing-controls button {
+  @apply flex justify-center items-center w-full h-full text-white/60 hover:text-white transition-all duration-300 ease-in-out;
 }
 
-.flow-controls .flow-panel button .branches-icon {
-  @apply block mx-auto;
-}
+.flow-controls button {
+  @apply flex items-center justify-around w-full h-full border-x border-solid border-[#3D3D3D]
+  text-white/60 hover:text-white transition-all duration-300 ease-in-out;
 
-.branches-icon rect {
-  @apply fill-transparent;
-}
+  &:first-child {
+    @apply border-l-0 rounded-l-[1.25rem];
+  }
 
-.flow-controls .react-flow__controls-button {
-  @apply w-full h-full;
-}
-
-.flow-controls .react-flow__controls-button:first-child {
-  @apply rounded-l-3xl;
-}
-
-.flow-controls .react-flow__controls-button:last-child {
-  @apply rounded-r-3xl;
-}
-
-.flow-container .flow-controls {
-  @apply w-[462px] h-16 flex flex-row justify-around items-center rounded-3xl bg-white border-gray-400 fill-icon-gray;
-}
-
-.flow-container .flow-controls:first-child {
-  @apply rounded-l-3xl;
-}
-
-.flow-container .flow-controls:last-child {
-  @apply rounded-r-3xl;
+  &:last-child {
+    @apply border-r-0 rounded-r-[1.25rem];
+  }
 }
 
 .icon-button {
-  @apply flex items-center justify-center text-icon-gray;
-}
+  @apply size-7 flex items-center justify-center;
 
-.hand-icon path {
-  @apply stroke-[1.3rem];
-}
-
-.flow-container .flow-controls .pointer-icon {
-  @apply fill-none;
-}
-
-.pointer-icon path {
-  @apply stroke-[0.07rem];
-}
-
-.flow-container .flow-controls .add-agent-icon {
-  @apply fill-none;
-}
-
-.react-flow__controls-button svg {
-  @apply size-6 max-w-none max-h-none;
-}
-
-.flow-container .search-button {
-  @apply h-16 w-16 left-2/3 flex flex-row justify-center items-center rounded-3xl bg-white border-gray-400 text-icon-gray;
-}
-
-.search-button button {
-  @apply w-full h-full rounded-3xl;
+  &.branches-icon {
+    @apply fill-transparent;
+  }
 }
