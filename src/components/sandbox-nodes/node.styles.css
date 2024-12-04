@@ -36,7 +36,7 @@
 }
 
 .approval-node {
-  @apply w-72 h-32 rounded-xl border border-[#414141] bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)];
+  @apply w-72 h-32 rounded-xl border border-[#414141] bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)] relative;
 
   .approval-details-container {
     @apply w-full h-full flex flex-col items-center justify-around p-4 rounded-xl;
@@ -45,13 +45,29 @@
       @apply w-full h-full flex items-center justify-start gap-2;
 
       .pencil-icon {
-        @apply text-color-light self-start content-end stroke-1 ml-auto;
+        @apply text-color-light self-start content-end stroke-1 ml-auto cursor-pointer;
       }
     }
 
     .approval-body {
       @apply w-full h-full flex flex-col items-start justify-start;
     }
+  }
+
+  .approval-buttons {
+    @apply absolute -right-16 top-1/2 -translate-y-1/2 flex flex-col gap-2;
+
+    .approval-button {
+      @apply w-14 h-[3.8125rem] rounded-lg border border-[#414141]
+      bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)]
+      shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)]
+      flex items-center justify-center transition-all duration-200
+      hover:brightness-110 active:brightness-90;
+    }
+  }
+
+  .react-flow__handle-right {
+    @apply -right-24;
   }
 }
 
