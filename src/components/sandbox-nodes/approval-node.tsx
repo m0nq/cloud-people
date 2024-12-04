@@ -1,5 +1,6 @@
 import { Position } from '@xyflow/react';
 import { ReactNode } from 'react';
+import { HiOutlinePencilAlt } from 'react-icons/hi';
 
 import './node.styles.css';
 import { NodeComponent } from '@components/utils/node-component/node-component';
@@ -30,22 +31,28 @@ const getPosition = (position?: string): Position => {
         top: Position.Top
     } as { [direction: string]: Position };
 
-    return position && positionMap[position] || Position.Top;
+    return (position && positionMap[position]) || Position.Top;
 };
 
 const ApprovalNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: ApprovalNodeProps): ReactNode => {
     const sPosition = getPosition(sourcePosition);
     const tPosition = getPosition(targetPosition);
+
     // get user data from db
 
     return (
         <NodeComponent.Root className="approval-node">
-            <NodeComponent.Content>
-                <div className="flex flex-col p-4">
+            <NodeComponent.Content className="approval-details-container">
+                <div className="approval-header">
                     <Image src={userAvatarImage} alt={`Profile avatar of ${data.name}`} className="avatar" />
-                    <div className="text-white font-medium">{data.name}</div>
-                    <div className="text-white font-medium">Approval</div>
-                    <div className="text-gray-400 text-sm mt-1">{data.role}:</div>
+                    <div className="approval-user-content">
+                        <div className="text-white font-medium">{data.name ?? 'Me'}</div>
+                        <div className="text-white font-medium">Approval</div>
+                    </div>
+                    <HiOutlinePencilAlt className="pencil-icon" size={20} />
+                </div>
+                <div className="approval-body">
+                    <div className="text-gray-400 text-sm mt-1">Role: {data.role ?? ''}</div>
                     <div className="text-gray-400 text-sm mt-1">Please approve or give feedback</div>
                 </div>
             </NodeComponent.Content>
@@ -53,6 +60,8 @@ const ApprovalNode = ({ id, data, isConnectable, sourcePosition, targetPosition 
                 isConnectable={isConnectable} />
             <NodeComponent.Handle type={HandleType.TARGET} position={tPosition} id={`${id}-b`}
                 isConnectable={isConnectable} />
+            {/*    TODO: will need third bottom handle to connect edge to parent node.  */}
+            {/*    TODO: will need approval-edge handle to connect edge to parent node with a feedback button.  */}
         </NodeComponent.Root>
     );
 };
