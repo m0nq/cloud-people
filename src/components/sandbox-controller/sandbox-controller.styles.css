@@ -4,14 +4,14 @@
 
   button {
     @apply font-sans text-base font-bold px-4 py-2.5 transition-all duration-300 ease-in-out
-    text-white/60 hover:text-white;
+    text-white/60 hover:text-white active:brightness-90;
   }
 
   .menu-trigger {
-    @apply p-0 ml-1.5 text-white/60 hover:text-white;
+    @apply p-0 ml-1.5 text-white/60 hover:text-white active:brightness-90;
   }
 }
 
 .active {
-  @apply bg-primary text-white rounded-lg px-5 py-2.5 hover:bg-primary/80;
+  @apply bg-primary text-white rounded-lg px-5 py-2.5 hover:bg-primary/80 active:brightness-90;
 }

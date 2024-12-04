@@ -13,7 +13,7 @@
 
 .toggle-button {
   @apply fixed top-4 left-3 w-16 h-16 rounded-[20px] border border-nav-border bg-dark shadow-default flex items-center
-  justify-center text-2xl text-nav-text hover:text-nav-text/80 transition-transform duration-300 ease-in-out
+  justify-center text-2xl text-nav-text hover:text-nav-text/80 active:brightness-90 transition-transform duration-300 ease-in-out
   translate-x-0;
 }
 
@@ -55,5 +55,5 @@
 .navigation-bar-top a,
 .navigation-bar-bottom a,
 .sign-out {
-  @apply text-2xl no-underline text-nav-text hover:text-nav-text/80;
+  @apply text-2xl no-underline text-nav-text hover:text-nav-text/80 active:brightness-90;
 }
