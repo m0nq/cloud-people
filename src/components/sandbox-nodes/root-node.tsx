@@ -10,7 +10,7 @@ import './node.styles.css';
 type RootNodeProps = {
     id: string;
     data: {
-        onOpenModal?: () => void;
+        onOpenModal?: (modalType: string) => void;
     };
     targetPosition?: Position;
     sourcePosition?: Position;
@@ -25,7 +25,7 @@ const RootNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: R
     // it's at
 
     const handleClick = () => {
-        data?.onOpenModal?.();
+        data?.onOpenModal?.('agent-selection');
     };
 
     return (
