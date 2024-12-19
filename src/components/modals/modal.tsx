@@ -1,5 +1,7 @@
+import { IoMdClose } from 'react-icons/io';
 import { useEffect } from 'react';
 
+import './modal.styles.css';
 import { useModalStore } from '@stores/modal-store';
 import { useGraphStore } from '@stores/workflow-store';
 import { ModalComponents } from './modal-component.type';
@@ -25,9 +27,13 @@ const Modal = () => {
     if (!ModalComponent) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="relative bg-white rounded-lg shadow-xl">
-                <ModalComponent onSelect={addNode} onClose={closeModal} parentNodeId={parentNodeId} />
+        <div className="modal-overlay">
+            <div className="modal-container">
+                <ModalComponent onSelect={addNode} onClose={closeModal} parentNodeId={parentNodeId}>
+                    <button onClick={closeModal} className="close-button">
+                        <span className="sr-only">Close</span><IoMdClose />
+                    </button>
+                </ModalComponent>
             </div>
         </div>
     );
