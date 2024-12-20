@@ -241,7 +241,7 @@ export const useGraphStore = create<AppState>((set: (payload: AppState) => void,
             // Create new node with agent data and the ID from the created node
             const newNode = {
                 id: createdNode.id, // Use the ID from the created node
-                type: WorkflowNode.AutomationNode,
+                type: WorkflowNode.AgentNode,
                 data: {
                     ...agent,
                     currentStep: '0',

@@ -8,11 +8,11 @@ const { WorkflowNode } = Config;
 
 // these are hardcoded nodes to be replaced with nodes from the db
 const position = { x: 50, y: 100 };
-const automationNodes = [
+const agentNodes = [
     {
         id: 'horizontal-1',
         sourcePosition: Position.Right,
-        type: WorkflowNode.AutomationNode,
+        type: WorkflowNode.AgentNode,
         data: { label: 'Node 1' },
         position
     },
@@ -20,7 +20,7 @@ const automationNodes = [
         id: 'horizontal-2',
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
-        type: WorkflowNode.AutomationNode,
+        type: WorkflowNode.AgentNode,
         data: { label: 'Node 2' },
         position
     },
@@ -28,7 +28,7 @@ const automationNodes = [
         id: 'horizontal-3',
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
-        type: WorkflowNode.AutomationNode,
+        type: WorkflowNode.AgentNode,
         data: { label: 'Node 3' },
         position
     },
@@ -36,7 +36,7 @@ const automationNodes = [
         id: 'horizontal-4',
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
-        type: WorkflowNode.AutomationNode,
+        type: WorkflowNode.AgentNode,
         data: { label: 'Node 4' },
         position
     },
@@ -44,7 +44,7 @@ const automationNodes = [
         id: 'horizontal-5',
         sourcePosition: Position.Top,
         targetPosition: Position.Bottom,
-        type: WorkflowNode.AutomationNode,
+        type: WorkflowNode.AgentNode,
         data: { label: 'Node 5' },
         position
     },
@@ -52,7 +52,7 @@ const automationNodes = [
         id: 'horizontal-6',
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top,
-        type: WorkflowNode.AutomationNode,
+        type: WorkflowNode.AgentNode,
         data: { label: 'Node 6' },
         position
     },
@@ -60,7 +60,7 @@ const automationNodes = [
         id: 'horizontal-7',
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
-        type: WorkflowNode.AutomationNode,
+        type: WorkflowNode.AgentNode,
         data: { label: 'Node 7' },
         position
     },
@@ -68,7 +68,7 @@ const automationNodes = [
         id: 'horizontal-8',
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
-        type: WorkflowNode.AutomationNode,
+        type: WorkflowNode.AgentNode,
         data: { label: 'Node 8' },
         position
     }
@@ -132,7 +132,7 @@ export const fetchWorkflowNodes = (): Node[] => {
     // Get user id of signed in user
     // Get list of workflows by user id
     // Return all nodes for a selected workflow
-    return automationNodes;
+    return agentNodes;
 };
 
 export const fetchWorkflowEdges = (): Edge[] => {

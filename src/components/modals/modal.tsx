@@ -32,7 +32,7 @@ const Modal = () => {
                 <ModalComponent onSelect={addNode} onClose={closeModal} parentNodeId={parentNodeId}>
                     <button onClick={closeModal} className="close-button">
                         <span className="sr-only">Close</span>
-                        <IoMdClose fill="#ffffff" size={36} />
+                        <IoMdClose fill="#ffffff" size={24} />
                     </button>
                 </ModalComponent>
             </div>

@@ -7,7 +7,7 @@ import { NodeComponent } from '@components/utils/node-component/node-component';
 import { HandleType } from './types.enum';
 import { useModalStore } from '@stores/modal-store';
 
-type AutomationNodeProps = {
+type AgentNodeProps = {
     id: string;
     data: {
         name: string;
@@ -31,13 +31,13 @@ const getPosition = (position?: string): Position => {
     return (position && positionMap[position]) || Position.Top;
 };
 
-const AutomationNode = ({
+const AgentNode = ({
     id,
     data,
     isConnectable,
     sourcePosition,
     targetPosition
-}: AutomationNodeProps): ReactNode => {
+}: AgentNodeProps): ReactNode => {
     const sPosition = getPosition(sourcePosition);
     const tPosition = getPosition(targetPosition);
     const openModal = useModalStore(state => state.openModal);
@@ -47,7 +47,7 @@ const AutomationNode = ({
     };
 
     return (
-        <NodeComponent.Root className="automation-node">
+        <NodeComponent.Root className="agent-node">
             <NodeComponent.Content>
                 <AgentCard data={data} />
             </NodeComponent.Content>
@@ -67,4 +67,4 @@ const AutomationNode = ({
     );
 };
 
-export default AutomationNode;
+export default AgentNode;
