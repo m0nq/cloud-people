@@ -5,13 +5,13 @@ import './node.styles.css';
 import { AgentCard } from '@components/agents/agent-card';
 import { NodeComponent } from '@components/utils/node-component/node-component';
 import { HandleType } from './types.enum';
+import { useModalStore } from '@stores/modal-store';
 
 type AutomationNodeProps = {
     id: string;
     data: {
         name: string;
         role: string;
-        onOpenModal?: () => void;
         [key: string]: any;
     };
     targetPosition?: string;
@@ -40,11 +40,10 @@ const AutomationNode = ({
 }: AutomationNodeProps): ReactNode => {
     const sPosition = getPosition(sourcePosition);
     const tPosition = getPosition(targetPosition);
+    const openModal = useModalStore(state => state.openModal);
 
-    const handleClick = (type: HandleType) => {
-        if (type === HandleType.SOURCE) {
-            data?.onOpenModal?.();
-        }
+    const handleClick = () => {
+        openModal({ type: 'agent-selection', parentNodeId: id });
     };
 
     return (
@@ -55,8 +54,7 @@ const AutomationNode = ({
             {/* progress bar */}
             {/* optional handles to connect bottom and top if nodes: are related? run in parallel? are dependent on each other? */}
             {/* possible styled handle extension as button or further detailed information */}
-            <NodeComponent.Handle
-                onClick={() => handleClick(HandleType.SOURCE)}
+            <NodeComponent.Handle onClick={() => handleClick()}
                 type={HandleType.SOURCE}
                 position={sPosition}
                 id={`${id}-a`}

@@ -8,7 +8,6 @@ import { type EdgeChange } from '@xyflow/react';
 import { type Node } from '@xyflow/react';
 import { type NodeChange } from '@xyflow/react';
 import { getConnectedEdges } from '@xyflow/react';
-import { v4 as uuid } from 'uuid';
 import { create } from 'zustand';
 
 import { createEdge } from '@lib/actions/edge-actions';
@@ -163,27 +162,6 @@ export const useGraphStore = create<AppState>((set: (payload: AppState) => void,
             // TODO: Add error handling/recovery
         }
     },
-    // setNodes: async (nodes: Node[]) => {
-    //     set({ nodes, edges: [...get().edges] });
-    //
-    //     try {
-    //         // Persist node updates to database
-    //         for (const node of nodes) {
-    //             if (node.data?.workflowId) {
-    //                 await updateNodes({
-    //                     workflowId: node.data.workflowId,
-    //                     set: {
-    //                         state: node.data,
-    //                         current_step: node.data.currentStep
-    //                     }
-    //                 });
-    //             }
-    //         }
-    //     } catch (error) {
-    //         console.error('Failed to update nodes in database:', error);
-    //         // TODO: Add error handling/recovery
-    //     }
-    // },
     setEdges: async (edges: Edge[]) => {
         set({ edges, nodes: [...get().nodes] });
 
@@ -251,12 +229,18 @@ export const useGraphStore = create<AppState>((set: (payload: AppState) => void,
             // Position for the new node - for a single child, keep it in line with parent
             const newPosition = {
                 x: parentNode.position.x + (isParentRootNode ? ROOT_NODE_SPACING_X : NODE_SPACING_X),
-                y: totalSiblings > 1 ? parentNode.position.y + (siblings.length - (totalSiblings - 1) / 2) * NODE_SPACING_Y : parentNode.position.y // Keep same Y position as parent for single child
+                y: totalSiblings > 1 ? parentNode.position.y + (siblings.length - (totalSiblings - 1) / 2) * NODE_SPACING_Y : parentNode.position.y
             };
 
-            // Create new node with agent data
+            // Create node in database first
+            const createdNode = await createNodes({ workflowId });
+            if (!createdNode || !createdNode.id) {
+                throw new Error('Failed to create node');
+            }
+
+            // Create new node with agent data and the ID from the created node
             const newNode = {
-                id: uuid(),
+                id: createdNode.id, // Use the ID from the created node
                 type: WorkflowNode.AutomationNode,
                 data: {
                     ...agent,
@@ -270,41 +254,31 @@ export const useGraphStore = create<AppState>((set: (payload: AppState) => void,
                 targetPosition: Position.Left
             } as Node<NodeData>;
 
-            // Create node in database first
-            const createdNode: Node<NodeData> = await createNodes({ workflowId });
-            if (!createdNode || !createdNode.id) {
-                throw new Error('Failed to create node');
-            }
-
-            let nodeId: string;
             try {
-                // Update node state in database before UI update
-                const nodeData = createdNode.data as NodeData; // Type assertion since we've checked workflowId exists
-                nodeId = (
-                    await updateNodes({
-                        workflowId: nodeData.workflowId,
-                        nodeId: newNode.id,
-                        set: {
-                            state: WorkflowState.Initial,
-                            current_step: '0',
-                            updated_at: new Date()
-                        }
-                    })
-                ).id;
+                // Update node state in database
+                await updateNodes({
+                    workflowId: workflowId,
+                    nodeId: createdNode.id, // Use the ID from the created node
+                    set: {
+                        state: WorkflowState.Initial,
+                        current_step: '0',
+                        updated_at: new Date()
+                    }
+                });
             } catch (updateError) {
                 console.error('Failed to update node state:', updateError);
                 // Try to clean up the created node
                 throw new Error('Failed to initialize node state');
             }
 
-            // Only update UI if database update succeeds
+            // Update UI with the new node
             set({ nodes: [...get().nodes, newNode], edges: [...get().edges] });
 
             // Create edge in database only if we have a valid parent node
             if (agent.parentNodeId) {
                 const edgeId = await createEdge({
                     workflowId,
-                    toNodeId: nodeId,
+                    toNodeId: createdNode.id, // Use the ID from the created node
                     fromNodeId: agent.parentNodeId
                 });
 
@@ -312,7 +286,7 @@ export const useGraphStore = create<AppState>((set: (payload: AppState) => void,
                 const newEdge = {
                     id: edgeId,
                     source: agent.parentNodeId,
-                    target: nodeId,
+                    target: createdNode.id, // Use the ID from the created node
                     type: WorkflowNode.AutomationEdge,
                     animated: true,
                     data: {
