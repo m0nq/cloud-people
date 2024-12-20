@@ -3,7 +3,7 @@ export const Config = {
         WIDTH: 288,
         HEIGHT: 224,
         InitialStateNode: 'initialStateNode',
-        AutomationNode: 'automationNode',
+        AgentNode: 'agentNode',
         ApprovalNode: 'approvalNode',
         RootNode: 'rootNode',
         AutomationEdge: 'automationEdge'

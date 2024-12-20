@@ -8,7 +8,6 @@ import { OnNodesDelete } from '@xyflow/react';
 import { OnBeforeDelete } from '@xyflow/react';
 import { OnConnect } from '@xyflow/react';
 import { NodeMouseHandler } from '@xyflow/react';
-import { v4 as uuid } from 'uuid';
 import { ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useState } from 'react';
@@ -27,7 +26,7 @@ import { Config } from '@config/constants';
 const { WorkflowNode } = Config;
 
 const Modal = dynamic(() => import('@components/modals/modal'), { ssr: false });
-const AutomationNode = dynamic(() => import('@components/sandbox-nodes/automation-node'), { ssr: false });
+const AgentNode = dynamic(() => import('@components/sandbox-nodes/agent-node'), { ssr: false });
 const ApprovalNode = dynamic(() => import('@components/sandbox-nodes/approval-node'), { ssr: false });
 const AutomationEdge = dynamic(() => import('@components/sandbox-nodes/automation-edge'), { ssr: false });
 const InitialStateNode = dynamic(() => import('@components/sandbox-nodes/initial-state-node'), { ssr: false });
@@ -51,7 +50,7 @@ type WorkflowRendererProps = {
 const nodeTypes = {
     initialStateNode: InitialStateNode,
     rootNode: RootNode,
-    automationNode: AutomationNode,
+    agentNode: AgentNode,
     approvalNode: ApprovalNode
 } as NodeTypes;
 

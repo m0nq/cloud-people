@@ -25,11 +25,11 @@
     @apply flex items-center justify-center w-full gap-[0.1rem] py-6 flex-shrink-0;
 
     .tab {
-      @apply w-full h-full py-4 px-7 text-white bg-color-dark-grey hover:bg-color-dark-grey/80 hover:text-white/60
+      @apply w-full h-full py-4 px-7 text-white bg-color-dark-gray hover:bg-color-dark-gray/80 hover:text-white/60
       transition-all duration-200 first:rounded-l-lg last:rounded-r-lg;
 
       &.active-state {
-        @apply w-full h-full py-4 px-7 bg-color-light-grey text-white hover:bg-color-light-grey hover:text-white
+        @apply w-full h-full py-4 px-7 bg-color-light-gray text-white hover:bg-color-light-gray hover:text-white
         first:rounded-l-lg last:rounded-r-lg;
       }
     }
@@ -41,6 +41,6 @@
 
   > div {
     @apply w-72 h-56 bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] cursor-pointer rounded-lg shadow-[0px_1px_14px_0px_rgba(0,0,0,0.15)]
-    border border-color-grey;
+    border border-color-gray;
   }
 }
