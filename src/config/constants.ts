@@ -6,6 +6,7 @@ export const Config = {
         AgentNode: 'agentNode',
         ApprovalNode: 'approvalNode',
         RootNode: 'rootNode',
+        DeliveryNode: 'deliveryNode',
         AutomationEdge: 'automationEdge'
     },
     API: {

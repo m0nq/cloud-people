@@ -80,3 +80,12 @@
     justify-center;
   }
 }
+
+.delivery-node {
+  @apply flex w-20 h-20 justify-center items-center rounded-[1.25rem] border border-[#555555] bg-color-muted-gray;
+  /*shadow-[0px_1px_14px_0px_#000000];*/
+
+  .delivery-icon {
+    @apply w-full h-full;
+  }
+}
