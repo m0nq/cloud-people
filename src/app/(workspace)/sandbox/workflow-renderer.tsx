@@ -139,7 +139,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         onNodesDelete
     } = useGraphStore(useShallow(nodeStateSelector));
 
-    const { parentNodeId, isOpen, openModal, closeModal } = useModalStore();
+    const { openModal } = useModalStore();
 
     // Modify nodes to inject the modal open handler into root node data
     const nodesWithHandlers = useMemo(() => {
