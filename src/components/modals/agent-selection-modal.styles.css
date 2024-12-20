@@ -1,8 +1,8 @@
 .agent-selector-container {
-  @apply p-6 w-full h-full;
+  @apply p-6 w-full max-h-[90vh] flex flex-col;
 
   .agent-selector-header {
-    @apply flex justify-between items-center w-full;
+    @apply flex justify-between items-center w-full flex-shrink-0;
   }
 
   .selector-actions {
@@ -19,17 +19,17 @@
 }
 
 .agent-selector {
-  @apply w-full h-full;
+  @apply w-full flex-1 flex flex-col overflow-hidden;
 
   .modal-tabs {
-    @apply flex items-center justify-center w-full gap-[0.1rem];
+    @apply flex items-center justify-center w-full gap-[0.1rem] py-6 flex-shrink-0;
 
     .tab {
-      @apply w-full h-full py-2 px-5 text-white bg-color-dark-grey hover:bg-color-dark-grey/80 hover:text-white/60
+      @apply w-full h-full py-4 px-7 text-white bg-color-dark-grey hover:bg-color-dark-grey/80 hover:text-white/60
       transition-all duration-200 first:rounded-l-lg last:rounded-r-lg;
 
       &.active-state {
-        @apply w-full h-full py-2 px-5 bg-color-light-grey text-white hover:bg-color-light-grey hover:text-white
+        @apply w-full h-full py-4 px-7 bg-color-light-grey text-white hover:bg-color-light-grey hover:text-white
         first:rounded-l-lg last:rounded-r-lg;
       }
     }
@@ -37,8 +37,7 @@
 }
 
 .agents-grid {
-  @apply grid gap-4 p-6 overflow-y-auto;
-  grid-template-columns: repeat(auto-fill, minmax(18.625rem, 1fr));
+  @apply grid grid-cols-2 gap-4 py-6 overflow-y-auto justify-items-center flex-1;
 
   > div {
     @apply w-72 h-56 bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] cursor-pointer rounded-lg shadow-[0px_1px_14px_0px_rgba(0,0,0,0.15)]
