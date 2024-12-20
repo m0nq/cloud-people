@@ -1,4 +1,3 @@
-import { CiSearch } from 'react-icons/ci';
 import { useState } from 'react';
 import { ReactNode } from 'react';
 
@@ -14,38 +13,29 @@ interface AgentSelectionModalProps {
 }
 
 export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children }: AgentSelectionModalProps) => {
-    const [activeTab, setActiveTab] = useState('all');
-    const [searchQuery, setSearchQuery] = useState('');
+    const [activeTab, setActiveTab] = useState('agents');
 
     /* TODO: fetch agents from db to collect and display them. */
 
     return (
-        <div className="p-6">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Select an Agent</h2>
-                {children}
+        <div className="agent-selector-container">
+            <div className="agent-selector-header">
+                <h2 className="text-xl font-semibold text-color-light">Add Agent</h2>
+                <div className="selector-actions">
+                    <button className="agent-builder-button">Agent Builder</button>
+                    {children}
+                </div>
             </div>
             <div className="agent-selector">
                 {/* Search and Actions */}
-                <div className="selector-actions">
-                    <div className="search-container">
-                        <CiSearch className="search-icon" />
-                        <input type="text" placeholder="Search" value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)} />
-                    </div>
-                    <button className="new-button">New</button>
-                </div>
 
                 {/* Tabs */}
                 <div className="modal-tabs">
-                    <button className={`tab ${activeTab === 'all' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('all')}>
-                        All Agents
-                    </button>
-                    <button className={`tab ${activeTab === 'my' ? 'active' : ''}`} onClick={() => setActiveTab('my')}>
+                    <button className={`tab ${activeTab === 'agents' ? 'active-state' : ''}`}
+                        onClick={() => setActiveTab('agents')}>
                         My Agents
                     </button>
-                    <button className={`tab ${activeTab === 'store' ? 'active' : ''}`}
+                    <button className={`tab ${activeTab === 'store' ? 'active-state' : ''}`}
                         onClick={() => setActiveTab('store')}>
                         Agent Store
                     </button>

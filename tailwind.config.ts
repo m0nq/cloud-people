@@ -28,10 +28,15 @@ const config: Config = {
                 'nav-border': '#3d3d3d',
                 'nav-text': '#bac5d1',
 
+                // Text
+                'color-light': '#dce0f4',
+
+                'color-light-grey': '#45505a',
+                'color-dark-grey': '#2d3034',
                 'color-grey': '#515568',
                 'color-slate': '#bec1cf',
                 'color-meta': '#9d9d9d',
-                'color-light': '#cfcfcf',
+                // 'color-light': '#cfcfcf',
 
                 'icon-gray': '#818181',
                 'border-light': '#dbdbdb',

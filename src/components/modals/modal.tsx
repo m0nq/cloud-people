@@ -27,11 +27,12 @@ const Modal = () => {
     if (!ModalComponent) return null;
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-container">
+        <div className="modal-overlay" onClick={closeModal}>
+            <div className="modal-container" onClick={e => e.stopPropagation()}>
                 <ModalComponent onSelect={addNode} onClose={closeModal} parentNodeId={parentNodeId}>
                     <button onClick={closeModal} className="close-button">
-                        <span className="sr-only">Close</span><IoMdClose />
+                        <span className="sr-only">Close</span>
+                        <IoMdClose fill="#ffffff" size={36} />
                     </button>
                 </ModalComponent>
             </div>
