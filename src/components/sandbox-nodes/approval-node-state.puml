@@ -1,0 +1,45 @@
+@startuml ApprovalNode States
+
+skinparam state {
+  BackgroundColor<<pending>> #333C44
+  BackgroundColor<<approved>> #5F42F1
+  BackgroundColor<<rejected>> #5F42F1
+  BorderColor #414141
+  FontColor white
+}
+
+state "Approval Pending" as Pending <<pending>> {
+  state "Default Icons" as DefaultIcons
+  note right
+    - Default state
+    - Background: linear-gradient(89deg, #333C44 14.21%, #2D2F32 101.01%)
+    - Border: #414141
+    - Icons: Default state
+  end note
+}
+
+state "Approved" as Approved <<approved>> {
+  state "Thumbs Up Active" as ThumbsUp
+  note right
+    - Approved state
+    - Background: linear-gradient(89deg, #5F42F1 14.21%, #502DFF 101.01%)
+    - Thumbs Up Icon: Active/Selected
+    - Thumbs Down Icon: Disabled
+  end note
+}
+
+state "Rejected" as Rejected <<rejected>> {
+  state "Thumbs Down Active" as ThumbsDown
+  note right
+    - Rejected state
+    - Background: linear-gradient(89deg, #5F42F1 14.21%, #502DFF 101.01%)
+    - Thumbs Up Icon: Disabled
+    - Thumbs Down Icon: Active/Selected
+  end note
+}
+
+[*] --> Pending
+Pending --> Approved : User approves
+Pending --> Rejected : User rejects
+
+@enduml
