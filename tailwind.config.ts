@@ -33,6 +33,7 @@ const config: Config = {
 
                 'color-light-gray': '#45505a',
                 'color-dark-gray': '#2d3034',
+                'color-muted-gray': '#2d2d2d',
                 'color-gray': '#515568',
                 'color-slate': '#bec1cf',
                 'color-meta': '#9d9d9d',

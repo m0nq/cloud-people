@@ -26,11 +26,12 @@ import { Config } from '@config/constants';
 const { WorkflowNode } = Config;
 
 const Modal = dynamic(() => import('@components/modals/modal'), { ssr: false });
+const RootNode = dynamic(() => import('@components/sandbox-nodes/root-node'), { ssr: false });
+const InitialStateNode = dynamic(() => import('@components/sandbox-nodes/initial-state-node'), { ssr: false });
 const AgentNode = dynamic(() => import('@components/sandbox-nodes/agent-node'), { ssr: false });
 const ApprovalNode = dynamic(() => import('@components/sandbox-nodes/approval-node'), { ssr: false });
+const DeliveryNode = dynamic(() => import('@components/sandbox-nodes/delivery-node'), { ssr: false });
 const AutomationEdge = dynamic(() => import('@components/sandbox-nodes/automation-edge'), { ssr: false });
-const InitialStateNode = dynamic(() => import('@components/sandbox-nodes/initial-state-node'), { ssr: false });
-const RootNode = dynamic(() => import('@components/sandbox-nodes/root-node'), { ssr: false });
 
 type WorkflowRendererProps = {
     children: (props: {
@@ -51,7 +52,8 @@ const nodeTypes = {
     initialStateNode: InitialStateNode,
     rootNode: RootNode,
     agentNode: AgentNode,
-    approvalNode: ApprovalNode
+    approvalNode: ApprovalNode,
+    deliveryNode: DeliveryNode
 } as NodeTypes;
 
 const edgeTypes = {
@@ -127,9 +129,17 @@ const nodeStateSelector = (state: AppState) => ({
 export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
     // Load with initial state nodes
     // when a node is clicked, corresponding nodes will be updated by our graph store
-    const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onBeforeDelete, onNodesDelete } = useGraphStore(useShallow(nodeStateSelector));
+    const {
+        nodes,
+        edges,
+        onNodesChange,
+        onEdgesChange,
+        onConnect,
+        onBeforeDelete,
+        onNodesDelete
+    } = useGraphStore(useShallow(nodeStateSelector));
 
-    const { parentNodeId, isOpen, openModal, closeModal } = useModalStore();
+    const { openModal } = useModalStore();
 
     // Modify nodes to inject the modal open handler into root node data
     const nodesWithHandlers = useMemo(() => {

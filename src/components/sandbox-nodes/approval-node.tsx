@@ -36,6 +36,12 @@ const getPosition = (position?: string): Position => {
     return (position && positionMap[position]) || Position.Top;
 };
 
+/*
+ * ApprovalNode will have 3 states to display
+ * Approval Pending: base colors already set
+ * Approved: thumbs up icon background color changed to background: linear-gradient(89deg, #5F42F1 14.21%, #502DFF 101.01%);
+ * Rejected: thumbs down icon background color changed to background: linear-gradient(89deg, #5F42F1 14.21%, #502DFF 101.01%);
+ * */
 const ApprovalNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: ApprovalNodeProps): ReactNode => {
     const sPosition = getPosition(sourcePosition);
     const tPosition = getPosition(targetPosition);

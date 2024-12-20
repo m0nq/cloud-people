@@ -17,6 +17,7 @@ import './sandbox.styles.css';
 import { WorkflowRenderer } from '@app/(workspace)/sandbox/workflow-renderer';
 import { SandboxController } from '@components/sandbox-controller/sandbox-controller';
 import { SandboxRunButton } from '@components/sandbox-run-button/sandbox-run-button';
+import { BranchesIcon } from '@components/icons/branches-icon';
 
 const Sandbox = (): ReactNode => {
     return (
@@ -50,33 +51,7 @@ const Sandbox = (): ReactNode => {
                                 <TbCalendarTime className="icon-button" strokeWidth={1.5} />
                             </button>
                             <button onClick={() => alert('Something magical just happened. ✨')}>
-                                <svg className="icon-button branches-icon" viewBox="4 -4 26 26"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <rect x="16.8995"
-                                        y="1"
-                                        width="14"
-                                        height="14"
-                                        transform="rotate(45 16.8995 1)"
-                                        stroke="currentColor"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round" />
-                                    <path d="M1 11L7 11"
-                                        stroke="currentColor"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round" />
-                                    <path d="M22 5.65686L26.2426 1.41422"
-                                        stroke="currentColor"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round" />
-                                    <path d="M22 16L26.2426 20.2426"
-                                        stroke="currentColor"
-                                        strokeWidth="1.5"
-                                        strokeLinecap="round"
-                                        strokeLinejoin="round" />
-                                </svg>
+                                <BranchesIcon className="icon-button" />
                             </button>
                             <button onClick={() => alert('Something magical just happened. ✨')}>
                                 <PiClipboardLight className="icon-button" strokeWidth={1.5} />
