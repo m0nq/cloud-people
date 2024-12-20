@@ -8,6 +8,7 @@
     "author": "Monk Wellington <monk.wellington@gmail.com>",
     "license": "ISC",
     "version": "0.1.0",
+    "type": "module",
     "private": true,
     "scripts": {
         "dev": "next dev",

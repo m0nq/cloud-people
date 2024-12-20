@@ -33,7 +33,7 @@ export type NodeData = {
     label?: string;
     currentStep?: string;
     state?: WorkflowState;
-    onOpenModal?: () => void;
+    onOpenModal?: (modalType: string) => void;
 };
 
 export type EdgeData = {
@@ -50,7 +50,8 @@ export type AppState = {
     onConnect?: OnConnect;
     setNodes?: (nodes: (Node<NodeData> | Node<InitialStateNodeData>)[]) => void;
     setEdges?: (edges: Edge[]) => void;
-    addNode?: (node: Node<NodeData>) => Promise<Node<NodeData>>;
+    addNode?: (node: AgentData) => Promise<void>;
+    // should take a tuple of nodes?
     addEdge?: (edge: Edge) => void;
     fetchGraph?: (workflowId: string) => void;
     createNewWorkflow?: () => Promise<string>;
@@ -131,6 +132,7 @@ export type AgentData = {
     id?: string;
     name: string;
     role: string;
+    parentNodeId?: string;
     status?: 'active' | 'inactive';
     skills?: string[];
     performance?: {

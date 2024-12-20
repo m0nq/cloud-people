@@ -1,37 +1,16 @@
-.modal-overlay {
-  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
-}
+.agent-selector-container {
+  @apply p-6 w-full max-h-[90vh] flex flex-col;
 
-.modal-container {
-  @apply bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] rounded-2xl w-[43.25rem] max-h-[56.625rem]
-  overflow-y-auto flex flex-col font-sans text-color-light;
-}
-
-.modal-header {
-  @apply p-6 flex justify-between items-center;
-
-  h2 {
-    @apply text-2xl font-bold;
+  .agent-selector-header {
+    @apply flex justify-between items-center w-full flex-shrink-0;
   }
-}
 
-.modal-actions {
-  @apply flex items-center gap-4;
-}
+  .selector-actions {
+    @apply flex items-center;
 
-.search-container {
-  @apply relative;
-
-  input {
-    @apply pl-10 pr-4 py-2 rounded-lg bg-[#232629] text-color-light;
-
-    &::placeholder {
-      @apply text-[#6B7280];
+    .agent-builder-button {
+      @apply px-4 py-2 bg-primary text-white rounded-lg font-medium font-sans hover:bg-primary/60;
     }
-  }
-
-  .search-icon {
-    @apply absolute left-3 top-1/2 -translate-y-1/2 text-gray-400;
   }
 }
 
@@ -39,32 +18,29 @@
   @apply border-none border-0;
 }
 
-.new-button {
-  @apply px-10 py-2 bg-primary text-white rounded-lg font-medium hover:bg-primary/60;
-}
+.agent-selector {
+  @apply w-full flex-1 flex flex-col overflow-hidden;
 
-.close-button {
-  @apply text-2xl text-gray-500 hover:text-gray-700;
-}
+  .modal-tabs {
+    @apply flex items-center justify-center w-full gap-[0.1rem] py-6 flex-shrink-0;
 
-.modal-tabs {
-  @apply flex items-center justify-evenly px-6;
+    .tab {
+      @apply w-full h-full py-4 px-7 text-white bg-color-dark-grey hover:bg-color-dark-grey/80 hover:text-white/60
+      transition-all duration-200 first:rounded-l-lg last:rounded-r-lg;
 
-  .tab {
-    @apply text-[#E1E1EE] text-xl font-bold w-40;
-
-    &.active {
-      @apply w-40 bg-primary text-white rounded-lg px-5 py-2.5 hover:bg-primary/80;
+      &.active-state {
+        @apply w-full h-full py-4 px-7 bg-color-light-grey text-white hover:bg-color-light-grey hover:text-white
+        first:rounded-l-lg last:rounded-r-lg;
+      }
     }
   }
 }
 
 .agents-grid {
-  @apply grid gap-4 p-6 overflow-y-auto;
-  grid-template-columns: repeat(auto-fill, minmax(18.625rem, 1fr));
+  @apply grid grid-cols-2 gap-4 py-6 overflow-y-auto justify-items-center flex-1;
 
   > div {
     @apply w-72 h-56 bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] cursor-pointer rounded-lg shadow-[0px_1px_14px_0px_rgba(0,0,0,0.15)]
-    border border-color-grey ;
+    border border-color-grey;
   }
 }

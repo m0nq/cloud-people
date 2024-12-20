@@ -1,55 +1,41 @@
 import { useState } from 'react';
 import { ReactNode } from 'react';
-import { CiSearch } from 'react-icons/ci';
-import { IoCloseOutline } from 'react-icons/io5';
 
 import './agent-selection-modal.styles.css';
 import { AgentCard } from '@components/agents/agent-card';
 import { AgentData } from '@lib/definitions';
 
-type AgentSelectionModalProps = {
-    isOpen: boolean;
+interface AgentSelectionModalProps {
+    parentNodeId: string;
     onClose: () => void;
     onSelect: (agentData: AgentData) => void;
-};
+    children: ReactNode;
+}
 
-const AgentSelectionModal = ({ isOpen, onClose, onSelect }: AgentSelectionModalProps): ReactNode => {
-    const [activeTab, setActiveTab] = useState('all');
-    const [searchQuery, setSearchQuery] = useState('');
+export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children }: AgentSelectionModalProps) => {
+    const [activeTab, setActiveTab] = useState('agents');
 
-    if (!isOpen) return null;
+    /* TODO: fetch agents from db to collect and display them. */
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
-            <div className="modal-container" onClick={e => e.stopPropagation()}>
-                {/* Header */}
-                <div className="modal-header">
-                    <h2>Add Agent</h2>
-                    <div className="modal-actions">
-                        <div className="search-container">
-                            <CiSearch className="search-icon" />
-                            <input type="text"
-                                placeholder="Search"
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)} />
-                        </div>
-                        <button className="new-button">New</button>
-                        <button className="close-button" onClick={onClose}>
-                            <IoCloseOutline />
-                        </button>
-                    </div>
+        <div className="agent-selector-container">
+            <div className="agent-selector-header">
+                <h2 className="text-xl font-semibold text-color-light">Add Agent</h2>
+                <div className="selector-actions">
+                    <button className="agent-builder-button">Agent Builder</button>
+                    {children}
                 </div>
+            </div>
+            <div className="agent-selector">
+                {/* Search and Actions */}
 
                 {/* Tabs */}
                 <div className="modal-tabs">
-                    <button className={`tab ${activeTab === 'all' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('all')}>
-                        All Agents
-                    </button>
-                    <button className={`tab ${activeTab === 'my' ? 'active' : ''}`} onClick={() => setActiveTab('my')}>
+                    <button className={`tab ${activeTab === 'agents' ? 'active-state' : ''}`}
+                        onClick={() => setActiveTab('agents')}>
                         My Agents
                     </button>
-                    <button className={`tab ${activeTab === 'store' ? 'active' : ''}`}
+                    <button className={`tab ${activeTab === 'store' ? 'active-state' : ''}`}
                         onClick={() => setActiveTab('store')}>
                         Agent Store
                     </button>
@@ -58,10 +44,16 @@ const AgentSelectionModal = ({ isOpen, onClose, onSelect }: AgentSelectionModalP
                 {/* Agent Cards Grid */}
                 <div className="agents-grid">
                     {/* Example agents - replace with actual data */}
-                    <div onClick={() => onSelect({ name: 'Rico', role: 'Researcher' })}>
+                    <div onClick={() => {
+                        onSelect({ name: 'Rico', role: 'Researcher', parentNodeId });
+                        onClose();
+                    }}>
                         <AgentCard data={{ name: 'Rico', role: 'Researcher' }} />
                     </div>
-                    <div onClick={() => onSelect({ name: 'Becca', role: 'Researcher' })}>
+                    <div onClick={() => {
+                        onSelect({ name: 'Becca', role: 'Researcher', parentNodeId });
+                        onClose();
+                    }}>
                         <AgentCard data={{ name: 'Becca', role: 'Researcher' }} />
                     </div>
                 </div>
@@ -69,5 +61,3 @@ const AgentSelectionModal = ({ isOpen, onClose, onSelect }: AgentSelectionModalP
         </div>
     );
 };
-
-export default AgentSelectionModal;
