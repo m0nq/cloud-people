@@ -8,10 +8,54 @@
   min-width: 24rem;
 }
 
-.agent-details-modal {
-  @apply w-[70.9375rem] h-[55.5625rem] bg-[#25292D];
+.close-button {
+  @apply text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800;
 }
 
-.close-button {
-  @apply p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800;
+.agent-details-modal {
+  @apply w-[70.9375rem] h-[55.5625rem] bg-[#25292D] max-h-[90vh] p-4;
+
+  .agent-details-layout {
+    @apply flex gap-4 w-full h-full;
+
+    .agent-details-left-column {
+      @apply flex-1 bg-[#111212] rounded-lg overflow-auto min-h-0;
+    }
+
+    .agent-details-right-column {
+      @apply flex flex-col items-start w-96 px-[0.0625rem] rounded-lg gap-4 min-h-0;
+
+      .agent-details-search {
+        @apply w-full flex items-center justify-between gap-4 shrink-0;
+
+        .search-container {
+          @apply flex-1 relative;
+
+          .search-icon {
+            @apply absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none;
+          }
+
+          .search-input {
+            @apply w-full py-2 px-4 pl-10 rounded-[0.3125rem] bg-[#111212] text-white placeholder-gray-500 focus:outline-none;
+          }
+        }
+      }
+
+      .agent-details-content-section {
+        @apply flex flex-col items-center w-full flex-1 py-2 px-4 gap-2.5 self-stretch rounded-[0.3125rem] bg-[#111212] overflow-auto min-h-0;
+      }
+
+      .agent-details-buttons {
+        @apply w-full flex gap-5 shrink-0;
+
+        .check-button {
+          @apply flex-1 h-8 rounded-lg bg-[#515568] text-white text-center text-xs font-bold leading-8 tracking-[-0.015rem] font-sans flex items-center justify-center gap-1;
+        }
+
+        .save-button {
+          @apply flex-1 h-8 rounded-lg bg-[#56E8CD] text-[#2F3338] text-center text-xs font-bold leading-8 tracking-[-0.015rem] font-sans flex items-center justify-center gap-1;
+        }
+      }
+    }
+  }
 }
