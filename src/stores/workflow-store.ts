@@ -33,7 +33,7 @@ const { WorkflowNode } = Config;
 const initialStateNodes = [
     {
         id: 'SFS',
-        type: WorkflowNode.DeliveryNode,
+        type: WorkflowNode.InitialStateNode,
         data: {
             id: 'SFS',
             label: 'Start from Scratch',
@@ -44,7 +44,7 @@ const initialStateNodes = [
     },
     {
         id: 'SFT',
-        type: WorkflowNode.DeliveryNode,
+        type: WorkflowNode.InitialStateNode,
         data: {
             id: 'SFT',
             label: 'Start from a Template',
@@ -55,7 +55,7 @@ const initialStateNodes = [
     },
     {
         id: 'SFA',
-        type: WorkflowNode.DeliveryNode,
+        type: WorkflowNode.InitialStateNode,
         data: {
             id: 'SFA',
             label: 'Start from AI Prompt',

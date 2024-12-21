@@ -8,6 +8,10 @@
   min-width: 24rem;
 }
 
+.agent-details-modal {
+  @apply w-[70.9375rem] h-[55.5625rem] bg-[#25292D];
+}
+
 .close-button {
   @apply p-2 text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800;
 }
