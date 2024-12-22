@@ -157,7 +157,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
             }
             return node;
         });
-    }, [nodes]);
+    }, [nodes, openModal]);
 
     const [layout, setLayout] = useState<{ nodes: Node<NodeData>[]; edges: Edge[] }>({
         nodes: nodesWithHandlers,

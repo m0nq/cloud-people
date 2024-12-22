@@ -1,17 +1,20 @@
+import { ReactNode } from 'react';
+
 import './modal.styles.css';
 import { SearchIcon } from '@components/icons/search-icon';
 import { CheckMarkIcon } from '@components/icons/check-mark-icon';
 import { SaveDocumentIcon } from '@components/icons/save-document-icon';
+import { LogCard } from '@components/log-card/log-card';
 
 interface AgentDetailsModalProps {
     onClose: () => void;
-    children?: React.ReactNode;
+    children?: ReactNode;
     parentNodeId?: string;
 }
 
-export const AgentDetailsModal = ({ onClose, children }: AgentDetailsModalProps) => {
+export const AgentDetailsModal = ({ children }: AgentDetailsModalProps) => {
     return (
-        <div className="agent-details-modal h-full max-h-[90vh] p-4">
+        <div className="agent-details-modal">
             <div className="agent-details-layout">
                 {/* Left Column */}
                 <div className="agent-details-left-column">{/* Content for left column will go here */}</div>
@@ -30,16 +33,25 @@ export const AgentDetailsModal = ({ onClose, children }: AgentDetailsModalProps)
                     </div>
 
                     {/* Middle Section - Flexible height */}
-                    <div className="agent-details-content-section">{/* Content for middle section */}</div>
+                    <div className="agent-details-content-section">
+                        <LogCard>
+                            {/* We'll add the proper content here later */}
+                            Agent details will go here...
+                        </LogCard>
+                        <LogCard color="#9CA3AF">
+                            {/* We'll add the proper content here later */}
+                            {'<-'} More agent info will go there soon...
+                        </LogCard>
+                    </div>
 
                     {/* Bottom Section - Buttons */}
                     <div className="agent-details-buttons">
                         <button className="check-button">
-                            <CheckMarkIcon width={11} height={11} color="white" />
+                            <CheckMarkIcon width={18} height={18} color="white" />
                             Check
                         </button>
                         <button className="save-button">
-                            <SaveDocumentIcon width={11} height={11} />
+                            <SaveDocumentIcon width={18} height={18} />
                             Save
                         </button>
                     </div>

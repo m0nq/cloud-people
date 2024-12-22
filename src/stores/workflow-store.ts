@@ -76,8 +76,11 @@ const initialState: AppState = {
 export const useGraphStore = create<AppState>((set: (payload: AppState) => void, get: () => AppState) => ({
     ...initialState,
     onBeforeDelete: async ({ nodes }: { nodes: Node[] }): Promise<boolean> => {
-        const [node]: Node[] = nodes;
-        return !(node.type?.includes(WorkflowNode.InitialStateNode) || node.type?.includes('root'));
+        if (!nodes || nodes.length === 0) return true;
+        const [node] = nodes;
+
+        if (!node || !node.type) return true;
+        return !(node.type.includes(WorkflowNode.InitialStateNode) || node.type.includes('root'));
     },
     onNodesChange: async (changes: NodeChange<Node>[]): Promise<void> => {
         const updatedNodes: Node[] = applyNodeChanges(changes, get().nodes);

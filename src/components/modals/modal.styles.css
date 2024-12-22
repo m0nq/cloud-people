@@ -42,18 +42,21 @@
       }
 
       .agent-details-content-section {
-        @apply flex flex-col items-center w-full flex-1 py-2 px-4 gap-2.5 self-stretch rounded-[0.3125rem] bg-[#111212] overflow-auto min-h-0;
+        @apply flex flex-col items-center w-full flex-1 py-2 px-4 gap-2.5 self-stretch rounded-[0.3125rem] bg-[#111212]
+        overflow-auto min-h-0;
       }
 
       .agent-details-buttons {
         @apply w-full flex gap-5 shrink-0;
 
         .check-button {
-          @apply flex-1 h-8 rounded-lg bg-[#515568] text-white text-center text-xs font-bold leading-8 tracking-[-0.015rem] font-sans flex items-center justify-center gap-1;
+          @apply flex-1 h-11 rounded-lg bg-[#515568] text-white text-center text-lg font-bold leading-8
+          tracking-[-0.015rem] font-sans flex items-center justify-center gap-1;
         }
 
         .save-button {
-          @apply flex-1 h-8 rounded-lg bg-[#56E8CD] text-[#2F3338] text-center text-xs font-bold leading-8 tracking-[-0.015rem] font-sans flex items-center justify-center gap-1;
+          @apply flex-1 h-11 rounded-lg bg-secondary text-[#2F3338] text-center text-lg font-bold leading-8
+          tracking-[-0.015rem] font-sans flex items-center justify-center gap-1;
         }
       }
     }
