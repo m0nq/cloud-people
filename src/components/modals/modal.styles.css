@@ -15,11 +15,28 @@
 .agent-details-modal {
   @apply w-[70.9375rem] h-[55.5625rem] bg-[#25292D] max-h-[90vh] p-4;
 
-  .agent-details-layout {
+  .agent-details-container {
     @apply flex gap-4 w-full h-full;
 
     .agent-details-left-column {
-      @apply flex-1 bg-[#111212] rounded-lg overflow-auto min-h-0;
+      @apply flex-1 rounded-lg overflow-auto min-h-0 flex flex-col gap-2.5;
+
+      .left-column-top-section {
+        @apply w-full h-full flex gap-2.5;
+
+        .top-section-area {
+          @apply w-full h-full rounded-lg  bg-[#111212] justify-between items-center text-white flex flex-col gap-2;
+
+          .settings-button {
+            @apply w-full h-11 self-end rounded-lg bg-[#515568] text-center text-lg font-bold leading-8
+            tracking-[-0.015rem] font-sans flex items-center justify-center;
+          }
+        }
+      }
+
+      .left-column-bottom-section {
+        @apply w-full h-full bg-[#111212] rounded-lg;
+      }
     }
 
     .agent-details-right-column {

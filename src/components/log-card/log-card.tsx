@@ -11,7 +11,7 @@ interface LogCardProps {
     progress?: number;
 }
 
-export const LogCard = ({ children, color = '#ffffff', progress = 0 }: LogCardProps) => {
+export const LogCard = ({ children, color = '#9CA3AF', progress = 0 }: LogCardProps) => {
     return (
         <div className="log-card">
             <div className="flex items-center gap-2">
