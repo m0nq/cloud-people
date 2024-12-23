@@ -7,14 +7,14 @@ interface OpenBoxIconProps {
     strokeColor?: string;
 }
 
-export const OpenBoxIcon: React.FC<OpenBoxIconProps> = ({
+export const OpenBoxIcon = ({
     width = 107,
     height = 94,
     className,
     primaryColor = '#bac5d1',
     secondaryColor = '#bac5d1',
     strokeColor = '#bac5d1'
-}) => {
+}: OpenBoxIconProps) => {
     return (
         <svg width={width} height={height} viewBox="0 0 107 94" fill="none" xmlns="http://www.w3.org/2000/svg"
             className={className}>

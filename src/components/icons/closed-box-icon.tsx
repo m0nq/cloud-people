@@ -5,12 +5,12 @@ interface ClosedBoxIconProps {
     strokeColor?: string;
 }
 
-export const ClosedBoxIcon: React.FC<ClosedBoxIconProps> = ({
+export const ClosedBoxIcon = ({
     width = 64,
     height = 64,
     className,
     strokeColor = '#bac5d1'
-}) => {
+}: ClosedBoxIconProps) => {
     return (
         <svg width={width} height={height} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg"
             className={className}>
