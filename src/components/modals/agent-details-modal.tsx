@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-
+// import Image from 'next/image';
 import './modal.styles.css';
 import { SearchIcon } from '@components/icons/search-icon';
 import { CheckMarkIcon } from '@components/icons/check-mark-icon';
@@ -21,34 +21,43 @@ export const AgentDetailsModal = ({ children }: AgentDetailsModalProps) => {
                     <div className="left-column-top-section">
                         <div className="top-section-area">
                             {/* Agent info will go here */}
-                            <div>
-                                <div>
+                            <div className="agent-details-section">
+                                <div className="gap-4">
+                                    {/*<Image className="w-8 h-8 rounded-full"*/}
+                                    {/*    alt="Cloud Head Avatar"*/}
+                                    {/*    width={2}*/}
+                                    {/*    height={2}*/}
+                                    {/*    src="" />*/}
+                                    <div className="avatar bg-[#111212] "></div>
                                     {/* Agent avatar */}
-                                    <h3>Mike Manager</h3>
+                                    <div className="agent-name items-start">
+                                        <h3>Mike</h3>
+                                        <h3>Manager</h3>
+                                    </div>
                                 </div>
                                 <div>
-                                    <span>Time on Task</span>
-                                    <span>30:42</span>
+                                    <span className="agent-stat-title">Time on Task</span>
+                                    <span className="agent-stat">30:42</span>
                                 </div>
                                 <div>
-                                    <span>Spend</span>
-                                    <span>$0.36</span>
+                                    <span className="agent-stat-title">Spend</span>
+                                    <span className="agent-stat">$0.36</span>
                                 </div>
                                 <div>
-                                    <span>Accuracy</span>
-                                    <span>83%</span>
+                                    <span className="agent-stat-title">Accuracy</span>
+                                    <span className="agent-stat">83%</span>
                                 </div>
                                 <div>
-                                    <span>Accuracy</span>
-                                    <span>83%</span>
+                                    <span className="agent-stat-title">Training Hours</span>
+                                    <span className="agent-stat">342</span>
                                 </div>
                             </div>
                             <button className="settings-button">
                                 Settings
                             </button>
                         </div>
-                        <div className="top-section-area">{/* Area 2 content */}</div>
-                        <div className="top-section-area">{/* Area 3 content */}</div>
+                        <div className="top-section-area bg-[#111212] ">{/* Area 2 content */}</div>
+                        <div className="top-section-area bg-[#111212] ">{/* Area 3 content */}</div>
                     </div>
                     <div className="left-column-bottom-section">{/* Content for bottom section */}</div>
                 </div>
