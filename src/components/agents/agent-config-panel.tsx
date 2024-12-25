@@ -6,7 +6,7 @@ interface AgentConfigPanelProps {
     onCheck?: () => void;
 }
 
-export const AgentConfigPanel: React.FC<AgentConfigPanelProps> = ({ onSave, onCheck }) => {
+export const AgentConfigPanel = ({ onSave, onCheck }: AgentConfigPanelProps) => {
     return (
         <div className="agent-config-panel">
             <div className="agent-config-content">

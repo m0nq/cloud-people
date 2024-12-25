@@ -33,7 +33,7 @@ const { WorkflowNode } = Config;
 const initialStateNodes = [
     {
         id: 'SFS',
-        type: WorkflowNode.DeliveryNode,
+        type: WorkflowNode.InitialStateNode,
         data: {
             id: 'SFS',
             label: 'Start from Scratch',
@@ -44,7 +44,7 @@ const initialStateNodes = [
     },
     {
         id: 'SFT',
-        type: WorkflowNode.DeliveryNode,
+        type: WorkflowNode.InitialStateNode,
         data: {
             id: 'SFT',
             label: 'Start from a Template',
@@ -55,7 +55,7 @@ const initialStateNodes = [
     },
     {
         id: 'SFA',
-        type: WorkflowNode.DeliveryNode,
+        type: WorkflowNode.InitialStateNode,
         data: {
             id: 'SFA',
             label: 'Start from AI Prompt',
@@ -76,8 +76,11 @@ const initialState: AppState = {
 export const useGraphStore = create<AppState>((set: (payload: AppState) => void, get: () => AppState) => ({
     ...initialState,
     onBeforeDelete: async ({ nodes }: { nodes: Node[] }): Promise<boolean> => {
-        const [node]: Node[] = nodes;
-        return !(node.type?.includes(WorkflowNode.InitialStateNode) || node.type?.includes('root'));
+        if (!nodes || nodes.length === 0) return true;
+        const [node] = nodes;
+
+        if (!node || !node.type) return true;
+        return !(node.type.includes(WorkflowNode.InitialStateNode) || node.type.includes('root'));
     },
     onNodesChange: async (changes: NodeChange<Node>[]): Promise<void> => {
         const updatedNodes: Node[] = applyNodeChanges(changes, get().nodes);
