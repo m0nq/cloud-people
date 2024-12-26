@@ -5,6 +5,7 @@ import { SearchIcon } from '@components/icons/search-icon';
 import { CheckMarkIcon } from '@components/icons/check-mark-icon';
 import { SaveDocumentIcon } from '@components/icons/save-document-icon';
 import { LogCard } from '@components/log-card/log-card';
+import { Button } from '@components/utils/button/button';
 
 interface AgentDetailsModalProps {
     onClose: () => void;
@@ -52,9 +53,9 @@ export const AgentDetailsModal = ({ children }: AgentDetailsModalProps) => {
                                     <span className="agent-stat">342</span>
                                 </div>
                             </div>
-                            <button className="settings-button">
+                            <Button variant="primary" size="md" fullWidth>
                                 Settings
-                            </button>
+                            </Button>
                         </div>
                         <div className="top-section-area bg-[#111212] ">{/* Area 2 content */}</div>
                         <div className="top-section-area bg-[#111212] ">{/* Area 3 content */}</div>
@@ -89,14 +90,12 @@ export const AgentDetailsModal = ({ children }: AgentDetailsModalProps) => {
 
                     {/* Bottom Section - Buttons */}
                     <div className="agent-details-buttons">
-                        <button className="check-button">
-                            <CheckMarkIcon width={18} height={18} color="white" />
+                        <Button variant="primary" size="md" fullWidth icon={<CheckMarkIcon width={18} height={18} color="white" />}>
                             Check
-                        </button>
-                        <button className="save-button">
-                            <SaveDocumentIcon width={18} height={18} />
+                        </Button>
+                        <Button variant="secondary" size="md" fullWidth icon={<SaveDocumentIcon width={18} height={18} />}>
                             Save
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
