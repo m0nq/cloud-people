@@ -24,6 +24,10 @@ const config: Config = {
                 // Dark mode
                 dark: '#181a1a',
 
+                // Button colors
+                'btn-gray': '#515568',
+                'btn-muted': '#111212',
+
                 // Navigation
                 'nav-border': '#3d3d3d',
                 'nav-text': '#bac5d1',
@@ -37,7 +41,6 @@ const config: Config = {
                 'color-gray': '#515568',
                 'color-slate': '#bec1cf',
                 'color-meta': '#9d9d9d',
-                // 'color-light': '#cfcfcf',
 
                 'icon-gray': '#818181',
                 'border-light': '#dbdbdb',
@@ -54,6 +57,10 @@ const config: Config = {
                 'gradient-blue': {
                     from: '#868cff',
                     to: '#4318ff'
+                },
+                'gradient-dark': {
+                    from: '#333c44',
+                    to: '#2d2f32'
                 }
             }
         }
