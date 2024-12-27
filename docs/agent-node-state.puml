@@ -1,0 +1,11 @@
+@startuml
+[*] --> InitialState : Initialize (Editable)
+InitialState --> IdolState : Workflow Started (Not Editable)
+IdolState --> ActivatingState : Workflow Initiated (Not Editable)
+ActivatingState --> WorkingState : Self Process Started (Not Editable)
+WorkingState --> ErrorState : Error/Canceled (Editable)
+WorkingState --> AssistanceState : Need Help (Editable)
+AssistanceState --> WorkingState : Help Acquired (Not Editable)
+WorkingState --> CompleteState : Finish Task (Not Editable)
+ErrorState --> WorkingState : Restart (Not Editable)
+@enduml
