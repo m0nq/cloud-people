@@ -1,0 +1,93 @@
+.button-base {
+  @apply flex items-center justify-center gap-2 font-sans font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Variants */
+.button-primary {
+  @apply bg-btn-gray text-white hover:bg-btn-gray/60 active:bg-btn-gray/40;
+}
+
+.button-secondary {
+  @apply bg-secondary text-[#2F3338] hover:bg-secondary/80 active:bg-secondary/60;
+}
+
+.button-muted {
+  @apply bg-btn-muted text-white hover:bg-btn-muted/60 active:bg-btn-muted/40;
+}
+
+.button-dark {
+  @apply bg-dark text-white/60 hover:text-white hover:bg-dark/80 active:bg-dark/60;
+}
+
+.button-gradient {
+  background: linear-gradient(89deg, var(--gradient-from, theme('colors.gradient-dark.from')) 14.21%, var(--gradient-to, theme('colors.gradient-dark.to')) 101.01%);
+  @apply hover:brightness-110 active:brightness-90;
+}
+
+/* Custom styled button */
+.button-custom {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.button-custom:hover {
+  background-color: var(--hover-bg);
+}
+
+.button-custom:active {
+  background-color: var(--active-bg);
+}
+
+/* Active state */
+.button-secondary-active {
+  @apply bg-secondary text-white hover:bg-secondary/80 active:bg-secondary/40;
+}
+
+/* Sizes */
+.button-sm {
+  @apply h-8 px-3 text-sm;
+}
+
+.button-md {
+  @apply h-11 px-4 text-lg leading-8 tracking-[-0.015rem];
+}
+
+.button-lg {
+  @apply h-14 px-6 text-xl;
+}
+
+/* Border Radius */
+.button-radius-none {
+  @apply rounded-none;
+}
+
+.button-radius-sm {
+  @apply rounded;
+}
+
+.button-radius-md {
+  @apply rounded-md;
+}
+
+.button-radius-lg {
+  @apply rounded-lg;
+}
+
+.button-radius-xl {
+  @apply rounded-[1.25rem];
+}
+
+.button-radius-full {
+  @apply rounded-full;
+}
+
+/* Shadow */
+.button-shadow {
+  @apply shadow-default;
+}
+
+/* Icon */
+.button-icon {
+  @apply flex items-center justify-center;
+}

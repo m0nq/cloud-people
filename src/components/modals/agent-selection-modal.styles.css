@@ -6,7 +6,7 @@
   }
 
   .selector-actions {
-    @apply flex items-center;
+    @apply flex items-center gap-4;
 
     .agent-builder-button {
       @apply px-4 py-2 bg-primary text-white rounded-lg font-medium font-sans hover:bg-primary/60;

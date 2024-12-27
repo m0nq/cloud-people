@@ -16,10 +16,11 @@ const GlobalError = ({ error, reset }: { error: Error; reset: () => void }) => {
 
     return (
         <html lang="en" className={`${lexend.variable} font-sans`}>
-            <body>
+            <body className="bg-color-dark-gray">
                 <main className="h-full flex flex-col items-center justify-center">
                     <h2 className="text-center">Something went wrong!</h2>
-                    <button onClick={() => reset()} className="mt-4 rounded-md bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-400">
+                    <button onClick={() => reset()}
+                        className="mt-4 rounded-md bg-blue-500 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-400">
                         ↩ Whoa... Something weird happened. Try again?
                     </button>
                 </main>

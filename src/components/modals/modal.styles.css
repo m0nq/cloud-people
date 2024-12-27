@@ -25,7 +25,7 @@
         @apply w-full h-full flex gap-2.5;
 
         .top-section-area {
-          @apply w-full h-full rounded-lg  justify-between items-center text-white flex flex-col gap-2;
+          @apply w-full h-full rounded-lg justify-between items-center text-white flex flex-col gap-2;
 
           .agent-details-section {
             @apply flex flex-col justify-between items-center w-full h-4/5;
@@ -49,11 +49,6 @@
                 @apply w-20 h-10 bg-[#111212] rounded-full flex items-center justify-center;
               }
             }
-          }
-
-          .settings-button {
-            @apply w-full h-11 self-end rounded-lg bg-[#515568] text-center text-lg font-bold leading-8
-            tracking-[-0.015rem] font-sans flex items-center justify-center hover:bg-[#515568]/60 active:bg-[#515568]/40;
           }
         }
       }
@@ -89,16 +84,6 @@
 
       .agent-details-buttons {
         @apply w-full flex gap-5 shrink-0;
-
-        .check-button {
-          @apply flex-1 h-11 rounded-lg bg-[#515568] text-white text-center text-lg font-bold leading-8
-          tracking-[-0.015rem] font-sans flex items-center justify-center gap-1 hover:bg-[#515568]/60 active:bg-[#515568]/40;
-        }
-
-        .save-button {
-          @apply flex-1 h-11 rounded-lg bg-secondary text-[#2F3338] text-center text-lg font-bold leading-8
-          tracking-[-0.015rem] font-sans flex items-center justify-center gap-1 hover:bg-secondary/80 active:bg-secondary/60;
-        }
       }
     }
   }

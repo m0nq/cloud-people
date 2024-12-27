@@ -11,6 +11,21 @@ const config: Config = {
             inter: ['var(--font-family-inter)', ...defaultTheme.fontFamily.sans]
         },
         extend: {
+            animation: {
+                'scale-in-hor-center': 'scale-in-hor-center 0.2s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;'
+            },
+            keyframes: {
+                'scale-in-hor-center': {
+                    '0%': {
+                        transform: 'scaleX(0)',
+                        opacity: '1'
+                    },
+                    '100%': {
+                        transform: 'scaleX(1)',
+                        opacity: '1'
+                    }
+                }
+            },
             boxShadow: {
                 default: '0px 4px 4px 0px rgba(0, 0, 0, 0.25), ' +
                     '0px 4px 4px 0px rgba(0, 0, 0, 0.25), ' +
@@ -23,6 +38,10 @@ const config: Config = {
 
                 // Dark mode
                 dark: '#181a1a',
+
+                // Button colors
+                'btn-gray': '#515568',
+                'btn-muted': '#111212',
 
                 // Navigation
                 'nav-border': '#3d3d3d',
@@ -37,7 +56,6 @@ const config: Config = {
                 'color-gray': '#515568',
                 'color-slate': '#bec1cf',
                 'color-meta': '#9d9d9d',
-                // 'color-light': '#cfcfcf',
 
                 'icon-gray': '#818181',
                 'border-light': '#dbdbdb',
@@ -54,6 +72,10 @@ const config: Config = {
                 'gradient-blue': {
                     from: '#868cff',
                     to: '#4318ff'
+                },
+                'gradient-dark': {
+                    from: '#333c44',
+                    to: '#2d2f32'
                 }
             }
         }
