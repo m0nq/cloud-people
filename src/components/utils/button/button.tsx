@@ -57,14 +57,14 @@ export const Button = ({
 
     const style = customStyles
         ? ({
-              backgroundColor: customStyles.backgroundColor,
-              color: customStyles.textColor,
-              borderColor: customStyles.borderColor,
-              '--hover-bg': customStyles.hoverBackgroundColor,
-              '--active-bg': customStyles.activeBackgroundColor,
-              '--gradient-from': customStyles.gradientFrom,
-              '--gradient-to': customStyles.gradientTo
-          } as React.CSSProperties)
+            backgroundColor: customStyles.backgroundColor,
+            color: customStyles.textColor,
+            borderColor: customStyles.borderColor,
+            '--hover-bg': customStyles.hoverBackgroundColor,
+            '--active-bg': customStyles.activeBackgroundColor,
+            '--gradient-from': customStyles.gradientFrom,
+            '--gradient-to': customStyles.gradientTo
+        } as React.CSSProperties)
         : undefined;
 
     return (

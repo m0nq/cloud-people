@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 import './agent-selection-modal.styles.css';
 import { AgentCard } from '@components/agents/agent-card';
 import { AgentData } from '@lib/definitions';
+import { useModalStore } from '@stores/modal-store';
 
 interface AgentSelectionModalProps {
     parentNodeId: string;
@@ -14,15 +15,20 @@ interface AgentSelectionModalProps {
 
 export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children }: AgentSelectionModalProps) => {
     const [activeTab, setActiveTab] = useState('agents');
+    const { openModal } = useModalStore();
 
     /* TODO: fetch agents from db to collect and display them. */
+
+    const handleClick = () => {
+        openModal({ type: 'agent-config', parentNodeId, isFromModal: true });
+    };
 
     return (
         <div className="agent-selector-container">
             <div className="agent-selector-header">
                 <h2 className="text-xl font-semibold text-color-light">Add Agent</h2>
                 <div className="selector-actions">
-                    <button className="agent-builder-button">Agent Builder</button>
+                    <button className="agent-builder-button" onClick={handleClick}>Agent Builder</button>
                     {children}
                 </div>
             </div>
