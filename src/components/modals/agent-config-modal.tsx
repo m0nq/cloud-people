@@ -62,10 +62,18 @@ export const AgentConfigModal = ({ onSave, onCheck }: AgentConfigModalProps) => 
                     <div className="config-speed-section">
                         <label className="label-details">Speed<span className="info-icon">i</span></label>
                         <div className="config-speed-container">
-                            {/* consider using radio buttons */}
-                            <button className="speed-button active-button">Instant</button>
-                            <button className="speed-button">Fast</button>
-                            <button className="speed-button">Slow</button>
+                            <label className="speed-button">
+                                <input type="radio" name="speed" defaultValue="instant" defaultChecked />
+                                Instant
+                            </label>
+                            <label className="speed-button">
+                                <input type="radio" name="speed" defaultValue="fast" />
+                                Fast
+                            </label>
+                            <label className="speed-button">
+                                <input type="radio" name="speed" defaultValue="slow" />
+                                Slow
+                            </label>
                         </div>
                     </div>
 
@@ -116,15 +124,11 @@ export const AgentConfigModal = ({ onSave, onCheck }: AgentConfigModalProps) => 
 
                     {/* Action Buttons */}
                     <div className="action-buttons-section">
-                        <Button variant="primary"
-                            size="md"
-                            fullWidth
+                        <Button variant="primary" size="md" fullWidth
                             icon={<CheckMarkIcon width={18} height={18} color="white" />}>
                             Check
                         </Button>
-                        <Button variant="secondary"
-                            size="md"
-                            fullWidth
+                        <Button variant="secondary" size="md" fullWidth
                             icon={<SaveDocumentIcon width={18} height={18} />}>
                             Save
                         </Button>

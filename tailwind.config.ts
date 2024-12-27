@@ -11,6 +11,21 @@ const config: Config = {
             inter: ['var(--font-family-inter)', ...defaultTheme.fontFamily.sans]
         },
         extend: {
+            animation: {
+                'scale-in-hor-center': 'scale-in-hor-center 0.2s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;'
+            },
+            keyframes: {
+                'scale-in-hor-center': {
+                    '0%': {
+                        transform: 'scaleX(0)',
+                        opacity: '1'
+                    },
+                    '100%': {
+                        transform: 'scaleX(1)',
+                        opacity: '1'
+                    }
+                }
+            },
             boxShadow: {
                 default: '0px 4px 4px 0px rgba(0, 0, 0, 0.25), ' +
                     '0px 4px 4px 0px rgba(0, 0, 0, 0.25), ' +

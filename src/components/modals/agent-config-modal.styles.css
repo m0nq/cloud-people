@@ -47,11 +47,13 @@
           @apply flex gap-4 justify-between;
 
           .speed-button {
-            @apply w-full py-2 rounded bg-color-muted-gray text-sm text-gray-300 hover:bg-color-muted-gray/80
-            transition-colors;
+            @apply w-full p-2 flex justify-start items-center gap-2 rounded bg-color-muted-gray text-sm text-gray-300
+            hover:bg-color-muted-gray/40 transition-colors;
 
-            &.active-button {
-              @apply bg-secondary text-white;
+            input[type='radio'] {
+              @apply appearance-none w-5 h-5 rounded border-2 border-gray-700 bg-gray-600 checked:border-emerald-500
+              checked:bg-secondary checked:appearance-none checked:content-[''];
+              transition: 0.4ms all linear;
             }
           }
         }

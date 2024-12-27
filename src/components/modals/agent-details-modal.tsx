@@ -90,10 +90,16 @@ export const AgentDetailsModal = ({ children }: AgentDetailsModalProps) => {
 
                     {/* Bottom Section - Buttons */}
                     <div className="agent-details-buttons">
-                        <Button variant="primary" size="md" fullWidth icon={<CheckMarkIcon width={18} height={18} color="white" />}>
+                        <Button variant="primary"
+                            size="md"
+                            fullWidth
+                            icon={<CheckMarkIcon width={18} height={18} color="white" />}>
                             Check
                         </Button>
-                        <Button variant="secondary" size="md" fullWidth icon={<SaveDocumentIcon width={18} height={18} />}>
+                        <Button variant="secondary"
+                            size="md"
+                            fullWidth
+                            icon={<SaveDocumentIcon width={18} height={18} />}>
                             Save
                         </Button>
                     </div>
