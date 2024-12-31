@@ -82,7 +82,7 @@ create TABLE IF NOT EXISTS "public"."Edges" (
     "updated_at" timestamp with time zone
                                );
 
--- Now create the trigger function after tables exist
+-- Create the trigger function after tables exist
 create or replace function "public"."create_new_profile"()
 RETURNS "trigger"
 LANGUAGE "plpgsql"
@@ -103,22 +103,6 @@ CREATE TRIGGER on_auth_user_created
     FOR EACH ROW
     EXECUTE FUNCTION public.create_new_profile();
 
--- Create auth.users placeholder
-INSERT INTO auth.users (
-    id,
-    email,
-    encrypted_password,
-    email_confirmed_at,
-    created_at,
-    updated_at
-) VALUES (
-             'b95af058-9c5c-4ef9-98f5-c4961d94f677',
-             'test@example.com',
-             extensions.crypt('1234567890', extensions.gen_salt('bf')),
-             current_timestamp,
-             current_timestamp,
-             current_timestamp
-         );
 
 -- Set table ownership
 alter table "public"."Profiles" OWNER TO "postgres";
