@@ -54,8 +54,6 @@ create table "public"."Workflows" (
 
 alter table "public"."Workflows" enable row level security;
 
-alter table "public"."users" enable row level security;
-
 CREATE UNIQUE INDEX "Nodes_id_key" ON public."Nodes" USING btree (id);
 
 CREATE UNIQUE INDEX edges_pkey ON public."Edges" USING btree (id);
@@ -329,5 +327,29 @@ for all
 to authenticated, anon
 using ((auth.uid() = user_id));
 
+alter table "public"."Edges" drop constraint "edges_workflow_id_key";
 
+alter table "public"."Profiles" drop constraint "profiles_email_key";
 
+alter table "public"."Profiles" drop constraint "profiles_id_fkey";
+
+drop index if exists "public"."edges_workflow_id_key";
+
+drop index if exists "public"."profiles_email_key";
+
+set
+check_function_bodies = off;
+
+CREATE
+OR REPLACE FUNCTION public.create_new_profile()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+AS $function$
+begin
+insert into public."Profiles" (id, email, created_at)
+values (NEW.id, NEW.email, NEW.created_at);
+return new;
+end;
+$function$
+;

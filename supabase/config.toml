@@ -93,10 +93,12 @@ enabled = true
 enabled = true
 # The base URL of your website. Used as an allow-list for redirects and for constructing URLs used
 # in emails.
-site_url = "http://127.0.0.1:3000"
+site_url = "http://localhost:3000"
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
 additional_redirect_urls = [
-    "https://127.0.0.1:3000",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3000/**",
+    "http://localhost:3000/**",
     "http://localhost:3000",
     "http://localhost:54321/auth/v1/callback",
     "http://localhost:3000/auth/v1/callback",

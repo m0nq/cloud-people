@@ -23,6 +23,12 @@ export const isLoggedIn = async () => {
 export const loginWithOAuth = async (provider: Provider) => {
     const redirectTo = `${(await headers()).get('origin') ?? 'http://localhost:3000'}/auth/callback`;
     const supabase = await createClient();
+
+    // TODO: uncomment when agreement policy is in place
+    // if (!agreement) {
+    //     return redirect('/login?message=You need to agree to our terms and conditions');
+    // }
+
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
@@ -36,24 +42,23 @@ export const loginWithOAuth = async (provider: Provider) => {
 };
 
 export const loginOrSignUp = async (formData: FormData) => {
-    const emailRedirectTo = (await headers()).get('origin') ?? '/';
+    // Be explicit about the callback URL
+    // const emailRedirectTo = (await headers()).get('origin') ?? '/';
+    const emailRedirectTo = `${(await headers()).get('origin')}/auth/callback`;
     const supabase = await createClient();
     const email = DOMPurify.sanitize(formData.get('email') as string);
     // const agreement = DOMPurify.sanitize(formData.get('agreement') as string);
 
-    // TODO: uncomment when agreement policy is in place
-    // if (!agreement) {
-    //     return redirect('/login?message=You need to agree to our terms and conditions');
-    // }
-
     const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-            emailRedirectTo
+            emailRedirectTo,
+            shouldCreateUser: true
         }
     });
 
     if (error) {
+        console.log('Authentication failed', error);
         redirect(`${EndPoints.Login}?message=Could not authenticate user`);
     }
 

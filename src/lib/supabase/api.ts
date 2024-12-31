@@ -25,6 +25,7 @@ export const queryDB = async (query: string, variables: QueryConfig = {}) => {
 
     if (!res.ok) {
         // This will activate the closest `error.js` Error Boundary
+        console.error('GraphQL request failed:', await res.text());
         throw new Error('Failed to fetch data');
     }
 
