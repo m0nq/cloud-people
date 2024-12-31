@@ -12,6 +12,13 @@ const hasUserOrLoginPath = (user: User | null, request: NextRequest) => {
 };
 
 export const updateSession = async (request: NextRequest) => {
+    // Add development bypass
+    if (process.env.NODE_ENV === 'development') {
+        return NextResponse.next({
+            request
+        });
+    }
+
     let supabaseResponse = NextResponse.next({
         request
     });
