@@ -2,14 +2,18 @@
   @apply font-inter w-full h-full p-4 flex flex-col justify-between rounded-lg;
 
   .agent-runner-title {
-    @apply flex gap-x-4;
+    @apply flex gap-x-4 items-start;
 
     .avatar {
       @apply w-12 h-12 rounded-full;
     }
 
     .agent-name {
-      @apply font-bold text-lg leading-6 self-baseline text-color-light;
+      @apply font-bold text-lg leading-6 self-baseline text-color-light flex-grow;
+    }
+
+    .edit-button {
+      @apply text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 transition-colors;
     }
   }
 
@@ -18,10 +22,34 @@
   }
 
   .agent-runner-status {
-    @apply flex justify-between items-center text-xs text-color-slate;
+    @apply flex flex-col gap-2 text-xs text-color-slate;
 
     .status-complete-info {
       @apply text-right;
+    }
+
+    .progress-bar {
+      @apply w-full h-1 bg-gray-200 rounded-full overflow-hidden;
+
+      .progress-fill {
+        @apply h-full bg-blue-500 transition-all duration-300 ease-in-out;
+      }
+    }
+
+    .error-message {
+      @apply bg-red-50 p-2 rounded text-red-600 flex flex-col gap-2;
+
+      .restart-button {
+        @apply text-xs px-2 py-1 rounded bg-red-100 hover:bg-red-200 transition-colors self-end;
+      }
+    }
+
+    .assistance-message {
+      @apply bg-yellow-50 p-2 rounded text-yellow-600 flex flex-col gap-2;
+
+      .assist-button {
+        @apply text-xs px-2 py-1 rounded bg-yellow-100 hover:bg-yellow-200 transition-colors self-end;
+      }
     }
   }
 }

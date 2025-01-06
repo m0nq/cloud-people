@@ -39,7 +39,8 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     return (
         <NodeComponent.Root className="agent-node">
             <NodeComponent.Content>
-                <div onClick={() => openModal({ type: 'agent-details', parentNodeId: id })} className="w-full h-full cursor-pointer">
+                <div onClick={() => openModal({ type: 'agent-details', parentNodeId: id })}
+                    className="w-full h-full cursor-pointer">
                     <AgentCard data={data} />
                 </div>
             </NodeComponent.Content>
@@ -53,7 +54,8 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                 id={`${id}-a`}
                 isConnectable={isConnectable}
             />
-            <NodeComponent.Handle type={HandleType.TARGET} position={tPosition} id={`${id}-b`} isConnectable={isConnectable} />
+            <NodeComponent.Handle type={HandleType.TARGET} position={tPosition} id={`${id}-b`}
+                isConnectable={isConnectable} />
         </NodeComponent.Root>
     );
 };

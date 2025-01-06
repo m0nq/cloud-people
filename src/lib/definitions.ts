@@ -140,3 +140,22 @@ export type AgentData = {
         satisfaction?: number;
     };
 };
+
+export enum AgentStatus {
+    Initial = 'initial',
+    Idle = 'idle',
+    Activating = 'activating',
+    Working = 'working',
+    Error = 'error',
+    Assistance = 'assistance',
+    Complete = 'complete'
+}
+
+export type AgentState = {
+    status: AgentStatus;
+    isEditable: boolean;
+    completedAt?: string;
+    progress?: number;
+    error?: string;
+    assistanceMessage?: string;
+};
