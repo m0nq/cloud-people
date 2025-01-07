@@ -3,10 +3,13 @@ import { BaseAgentLayoutProps } from './base-agent-layout';
 
 export const IdleAgentLayout = (props: BaseAgentLayoutProps) => {
     return (
-        <BaseAgentLayout {...props}>
-            <div className="mt-4">
-                <span className="text-sm font-medium text-gray-600">Standing By</span>
+        <div className="agent-card-container idle">
+            <BaseAgentLayout {...props} />
+            <div className="agent-runner-status">
+                <div className="status-content idle">
+                    <span className="status-label">Standing By</span>
+                </div>
             </div>
-        </BaseAgentLayout>
+        </div>
     );
 };

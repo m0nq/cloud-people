@@ -12,6 +12,7 @@ import { BaseAgentLayout } from './layouts';
 
 type AgentCardProps = {
     data: AgentData;
+    status: AgentStatus;
     state?: AgentState;
     className?: string;
     style?: CSSProperties;
@@ -31,8 +32,8 @@ const AGENT_LAYOUTS = {
 };
 
 export const AgentCard = (props: AgentCardProps) => {
-    const { state } = props;
-    const LayoutComponent = state?.status ? AGENT_LAYOUTS[state.status] : BaseAgentLayout;
+    const { status } = props;
+    const LayoutComponent = status ? AGENT_LAYOUTS[status] : BaseAgentLayout;
 
     return <LayoutComponent {...props} />;
 };

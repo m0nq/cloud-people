@@ -5,23 +5,23 @@ export const ErrorAgentLayout = (props: BaseAgentLayoutProps) => {
     const { state, onRestart } = props;
 
     return (
-        <BaseAgentLayout {...props}>
-            <div className="mt-4 p-3 bg-red-50 rounded-md">
-                <span className="text-sm font-medium text-red-600">Error</span>
-                {state?.error && (
-                    <div className="mt-2">
-                        <p className="text-sm text-red-600">{state.error}</p>
-                        {onRestart && (
-                            <button
-                                onClick={onRestart}
-                                className="mt-2 px-3 py-1 text-sm text-red-600 border border-red-600 rounded-md hover:bg-red-100"
-                            >
-                                Restart
-                            </button>
-                        )}
-                    </div>
-                )}
+        <div className="agent-card-container error">
+            <BaseAgentLayout {...props} />
+            <div className="agent-runner-status">
+                <div className="status-content error">
+                    <span className="status-label">Error</span>
+                    {state?.error && (
+                        <div className="error-message">
+                            <p>{state.error}</p>
+                            {onRestart && (
+                                <button onClick={onRestart} className="restart-button">
+                                    Restart
+                                </button>
+                            )}
+                        </div>
+                    )}
+                </div>
             </div>
-        </BaseAgentLayout>
+        </div>
     );
 };

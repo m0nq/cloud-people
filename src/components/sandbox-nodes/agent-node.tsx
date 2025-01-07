@@ -92,6 +92,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                     <AgentCard
                         data={data}
                         state={agentStore}
+                        status={agentStore.status}
                         onEdit={agentStore.isEditable ? handleAgentDetails : undefined}
                         onAssistanceRequest={handleAssistanceRequest}
                         onRestart={handleRestart} />

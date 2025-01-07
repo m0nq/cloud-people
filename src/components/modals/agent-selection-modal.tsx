@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 import './agent-selection-modal.styles.css';
 import { AgentCard } from '@components/agents/agent-card';
 import { AgentData } from '@lib/definitions';
+import { AgentStatus } from '@lib/definitions';
 import { useModalStore } from '@stores/modal-store';
 
 interface AgentSelectionModalProps {
@@ -54,13 +55,13 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
                         onSelect({ name: 'Rico', role: 'Researcher', parentNodeId });
                         onClose();
                     }}>
-                        <AgentCard data={{ name: 'Rico', role: 'Researcher' }} />
+                        <AgentCard status={AgentStatus.Initial} data={{ name: 'Rico', role: 'Researcher' }} />
                     </div>
                     <div onClick={() => {
                         onSelect({ name: 'Becca', role: 'Researcher', parentNodeId });
                         onClose();
                     }}>
-                        <AgentCard data={{ name: 'Becca', role: 'Researcher' }} />
+                        <AgentCard status={AgentStatus.Initial} data={{ name: 'Becca', role: 'Researcher' }} />
                     </div>
                 </div>
             </div>
