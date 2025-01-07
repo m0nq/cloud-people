@@ -39,13 +39,14 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     const sPosition = getPosition(sourcePosition);
     const tPosition = getPosition(targetPosition);
     const { openModal } = useModalStore();
-    const { initializeAgent, removeAgent, transition } = useAgentStore();
-    const agentStore = useAgentStore();
+    const { removeAgent, transition, getAgentState, updateAgent } = useAgentStore();
+    const agentState = getAgentState(id);
 
-    // Initialize agent store when component mounts, using useCallback to memoize the initialization function
+    // Initialize agent when component mounts
     const handleInitialize = useCallback(() => {
-        initializeAgent(id);
-    }, [id, initializeAgent]);
+        // Initialize agent with default state and provided status
+        updateAgent(id, { status: data.status });
+    }, [id, data.status, updateAgent]);
 
     useEffect(() => {
         handleInitialize();
@@ -55,16 +56,16 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     }, [id, handleInitialize, removeAgent]);
 
     const handleAgentDetails = useCallback(() => {
-        if (agentStore?.isEditable) {
+        if (agentState?.isEditable) {
             openModal({ type: 'agent-details', parentNodeId: id });
         }
-    }, [id, openModal, agentStore?.isEditable]);
+    }, [id, openModal, agentState?.isEditable]);
 
     const handleAgentSelector = useCallback(() => {
-        if (agentStore?.status === AgentStatus.Initial || agentStore?.status === AgentStatus.Idle) {
+        if (agentState?.status === AgentStatus.Initial || agentState?.status === AgentStatus.Idle) {
             openModal({ type: 'agent-selection', parentNodeId: id });
         }
-    }, [id, openModal, agentStore?.status]);
+    }, [id, openModal, agentState?.status]);
 
     // this could make sense after user is notified an agent needs help and clicks on the agent for a modal
     const handleAssistanceRequest = useCallback(() => {
@@ -81,19 +82,19 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         });
     }, [transition]);
 
-    // Don't render until agentStore is initialized
-    if (!agentStore) return null;
+    // Don't render until agent state is initialized
+    if (!agentState) return null;
 
     return (
         <NodeComponent.Root className="agent-node">
             <NodeComponent.Content>
                 <div onClick={handleAgentDetails}
-                    className={`w-full h-full ${agentStore.isEditable ? 'cursor-pointer' : 'cursor-default'}`}>
+                    className={`w-full h-full ${agentState.isEditable ? 'cursor-pointer' : 'cursor-default'}`}>
                     <AgentCard
                         data={data}
-                        state={agentStore}
-                        status={agentStore.status}
-                        onEdit={agentStore.isEditable ? handleAgentDetails : undefined}
+                        state={agentState}
+                        status={agentState.status}
+                        onEdit={agentState.isEditable ? handleAgentDetails : undefined}
                         onAssistanceRequest={handleAssistanceRequest}
                         onRestart={handleRestart} />
                 </div>
@@ -103,17 +104,17 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                 type={HandleType.SOURCE}
                 position={sPosition}
                 id={`${id}-a`}
-                // isConnectable={isConnectable && (agentStore.status === AgentStatus.Initial || agentStore.status ===
+                // isConnectable={isConnectable && (agentState.status === AgentStatus.Initial || agentState.status ===
                 // AgentStatus.Idle)}
                 isConnectable={isConnectable}
-                className={agentStore.status === AgentStatus.Initial || agentStore.status === AgentStatus.Idle ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'} />
+                className={agentState.status === AgentStatus.Initial || agentState.status === AgentStatus.Idle ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'} />
             <NodeComponent.Handle
                 type={HandleType.TARGET}
                 position={tPosition}
                 id={`${id}-b`}
-                // isConnectable={isConnectable && agentStore.status !== AgentStatus.Complete}
+                // isConnectable={isConnectable && agentState.status !== AgentStatus.Complete}
                 isConnectable={isConnectable}
-                className={agentStore.status !== AgentStatus.Complete ? undefined : 'opacity-50'} />
+                className={agentState.status !== AgentStatus.Complete ? undefined : 'opacity-50'} />
         </NodeComponent.Root>
     );
 };

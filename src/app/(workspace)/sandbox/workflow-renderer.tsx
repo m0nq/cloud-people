@@ -168,7 +168,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
     useEffect(() => {
         let isSubscribed = true;
 
-        const calculateLayout = async () => {
+        const calculateLayout = () => {
             const { laidOutNodes, laidOutEdges } = layoutElements(nodesWithHandlers, edges);
             if (isSubscribed) {
                 setLayout({ nodes: laidOutNodes, edges: laidOutEdges });

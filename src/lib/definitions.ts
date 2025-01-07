@@ -33,6 +33,7 @@ export type NodeData = {
     label?: string;
     currentStep?: string;
     state?: WorkflowState;
+    status?: AgentStatus;
     onOpenModal?: (modalType: string) => void;
 };
 

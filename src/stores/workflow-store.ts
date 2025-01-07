@@ -31,6 +31,7 @@ import { NODE_SPACING_Y } from '@config/layout.const';
 import { ROOT_NODE_SPACING_X } from '@config/layout.const';
 import { ROOT_NODE_POSITION } from '@config/layout.const';
 import { Config } from '@config/constants';
+import { AgentStatus } from '@lib/definitions';
 
 const { WorkflowNode } = Config;
 
@@ -255,6 +256,7 @@ export const useGraphStore = create<AppState>()(
                             ...agent,
                             currentStep: '0',
                             state: WorkflowState.Initial,
+                            status: AgentStatus.Initial,
                             workflowId
                         },
                         position: newPosition,
@@ -304,7 +306,7 @@ export const useGraphStore = create<AppState>()(
                         };
 
                         const currentEdges = get().edges;
-                        await get().setEdges?.([...currentEdges, newEdge]);
+                        get().setEdges?.([...currentEdges, newEdge]);
                     }
                 } catch (error) {
                     console.error('Failed to add node or edge:', error);

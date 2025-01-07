@@ -1,55 +1,59 @@
-.agent-card-container {
-  @apply font-inter w-full h-full p-4 flex flex-col justify-between rounded-lg;
+.agent-card-base {
+  @apply flex w-full h-full p-4 flex-col items-start justify-between rounded-lg;
 
   .agent-runner-title {
-    @apply flex gap-x-4 items-start;
+    @apply flex gap-x-3 items-center w-full;
 
     .avatar {
-      @apply w-12 h-12 rounded-full;
+      @apply w-12 h-12 rounded-full flex-shrink-0;
     }
 
     .agent-name {
-      @apply font-bold text-lg leading-6 self-baseline text-color-light flex-grow;
-    }
+      @apply flex-grow min-w-0;
 
-    .edit-button {
-      @apply text-xs px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 transition-colors;
+      h3 {
+        @apply font-semibold text-white text-base truncate;
+      }
+
+      p {
+        @apply text-gray-400 text-sm truncate;
+      }
     }
   }
 
-  .runner-description {
-    @apply py-2 text-color-light text-xs leading-5 align-top;
+  .core-skills {
+    @apply w-full;
+
+    .skill-label {
+      @apply text-gray-400 text-sm mb-1;
+    }
+
+    .skill-value {
+      @apply bg-[#2A2A2A] text-white py-1.5 px-2 rounded-md w-full truncate;
+    }
   }
 
-  .agent-runner-status {
-    @apply flex flex-col gap-2 text-xs text-color-slate;
+  .stats {
+    @apply flex gap-4 w-full;
 
-    .status-complete-info {
-      @apply text-right;
-    }
+    .stat-item {
+      @apply flex items-center gap-1 text-gray-300;
 
-    .progress-bar {
-      @apply w-full h-1 bg-gray-200 rounded-full overflow-hidden;
-
-      .progress-fill {
-        @apply h-full bg-blue-500 transition-all duration-300 ease-in-out;
+      svg {
+        @apply w-4 h-4 flex-shrink-0;
       }
     }
+  }
 
-    .error-message {
-      @apply bg-red-50 p-2 rounded text-red-600 flex flex-col gap-2;
+  .tools {
+    @apply flex gap-2 w-full;
 
-      .restart-button {
-        @apply text-xs px-2 py-1 rounded bg-red-100 hover:bg-red-200 transition-colors self-end;
-      }
+    .tool-item {
+      @apply flex items-center justify-center w-8 h-8 rounded-full bg-[#2A2A2A] text-gray-300 text-sm flex-shrink-0;
     }
 
-    .assistance-message {
-      @apply bg-yellow-50 p-2 rounded text-yellow-600 flex flex-col gap-2;
-
-      .assist-button {
-        @apply text-xs px-2 py-1 rounded bg-yellow-100 hover:bg-yellow-200 transition-colors self-end;
-      }
+    .more-tools {
+      @apply flex items-center justify-center w-8 h-8 rounded-full bg-[#2A2A2A] text-gray-300 text-sm flex-shrink-0;
     }
   }
 }

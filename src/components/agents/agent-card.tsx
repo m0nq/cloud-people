@@ -12,7 +12,7 @@ import { BaseAgentLayout } from './layouts';
 
 type AgentCardProps = {
     data: AgentData;
-    status: AgentStatus;
+    status?: AgentStatus;
     state?: AgentState;
     className?: string;
     style?: CSSProperties;

@@ -17,7 +17,7 @@ type RootNodeProps = {
 };
 
 const RootNode = ({ id, isConnectable, sourcePosition, targetPosition }: RootNodeProps): ReactNode => {
-    const openModal = useModalStore(state => state.openModal);
+    const { openModal } = useModalStore();
 
     // needs state such that starts out in pause state (displays play icon)
     // when clicked, changes to play state (displays pause icon) and activates the workflow run state

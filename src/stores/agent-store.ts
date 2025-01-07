@@ -16,7 +16,6 @@ type AgentStoreState = {
 };
 
 type AgentStoreActions = {
-    initializeAgent: (agentId: string, initialState?: Partial<AgentState>) => void;
     removeAgent: (agentId: string) => void;
     transition: (agentId: string, newStatus: AgentStatus, updates?: Partial<Omit<AgentState, 'status'>>) => void;
     updateAgent: (agentId: string, updates: Partial<AgentState>) => void;
@@ -28,7 +27,7 @@ type AgentStoreSelectors = {
     isTransitionAllowed: (agentId: string, newStatus: AgentStatus) => boolean;
 };
 
-type AgentStore = AgentState & AgentStoreState & AgentStoreActions & AgentStoreSelectors;
+type AgentStore = AgentStoreState & AgentStoreActions & AgentStoreSelectors;
 
 const DEFAULT_AGENT_STATE: AgentState = {
     status: AgentStatus.Initial,
@@ -55,22 +54,7 @@ export const useAgentStore = create<AgentStore>()(
             // Initial state
             agents: {},
             errors: {},
-            status: AgentStatus.Initial,
-            isEditable: true,
-
             // Actions
-            initializeAgent: (agentId, initialState = {}) => {
-                set(state => ({
-                    agents: {
-                        ...state.agents,
-                        [agentId]: {
-                            ...DEFAULT_AGENT_STATE,
-                            ...initialState
-                        }
-                    }
-                }));
-            },
-
             removeAgent: agentId => {
                 set(state => {
                     const { [agentId]: removed, ...remainingAgents } = state.agents;
@@ -81,7 +65,6 @@ export const useAgentStore = create<AgentStore>()(
                     };
                 });
             },
-
             transition: (agentId, newStatus, updates = {}) => {
                 const currentState = get().agents[agentId];
 
@@ -124,24 +107,22 @@ export const useAgentStore = create<AgentStore>()(
                     }
                 }));
             },
-
             updateAgent: (agentId, updates) => {
                 set(state => ({
+                    ...state,
                     agents: {
                         ...state.agents,
                         [agentId]: {
-                            ...state.agents[agentId],
+                            // If agent doesn't exist, use DEFAULT_AGENT_STATE as base
+                            ...(state.agents[agentId] || DEFAULT_AGENT_STATE),
                             ...updates
                         }
                     }
                 }));
             },
-
             // Selectors
             getAgentState: agentId => get().agents[agentId],
-
             getAgentError: agentId => get().errors[agentId] || null,
-
             isTransitionAllowed: (agentId, newStatus) => {
                 const currentState = get().agents[agentId];
                 if (!currentState) return false;
