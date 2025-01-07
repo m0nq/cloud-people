@@ -1,5 +1,6 @@
 .agent-card-base {
-  @apply flex w-full h-full p-4 flex-col items-start justify-between rounded-lg;
+  @apply flex w-full h-full p-4 flex-col items-start justify-between rounded-lg border border-color-gray
+  bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] shadow-[0px_1px_14px_0px_rgba(0,0,0,0.15)];
 
   .agent-runner-title {
     @apply flex gap-x-3 items-center w-full;

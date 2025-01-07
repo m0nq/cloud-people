@@ -22,7 +22,7 @@ type AgentCardProps = {
 };
 
 const AGENT_LAYOUTS = {
-    [AgentStatus.Initial]: IdleAgentLayout,
+    [AgentStatus.Initial]: BaseAgentLayout,
     [AgentStatus.Idle]: IdleAgentLayout,
     [AgentStatus.Activating]: WorkingAgentLayout,
     [AgentStatus.Working]: WorkingAgentLayout,

@@ -87,7 +87,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
 
     return (
         <NodeComponent.Root className="agent-node">
-            <NodeComponent.Content>
+            <NodeComponent.Content className="agent-node-container">
                 <div onClick={handleAgentDetails}
                     className={`w-full h-full ${agentState.isEditable ? 'cursor-pointer' : 'cursor-default'}`}>
                     <AgentCard
