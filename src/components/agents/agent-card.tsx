@@ -2,7 +2,7 @@ import Image from 'next/image';
 import { CSSProperties } from 'react';
 
 import './agent-card.styles.css';
-import ricoResearcherImage from '@public/rico-researcher.png';
+import cloudHeadImage from '@public/pink-cloud-head.png';
 import { AgentState } from '@lib/definitions';
 import { AgentStatus } from '@lib/definitions';
 
@@ -53,7 +53,7 @@ export const AgentCard = ({
         <div className={`agent-card-container ${className}`} style={style}>
             <div>
                 <div className="agent-runner-title">
-                    <Image src={ricoResearcherImage} alt={`Profile avatar of ${data.name}`} className="avatar" />
+                    <Image src={cloudHeadImage} alt={`Profile avatar of ${data.name}`} className="avatar" />
                     <div className="agent-name">
                         <h3>{data.name}</h3>
                         <h3>{data.role}</h3>
