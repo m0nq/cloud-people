@@ -51,8 +51,7 @@ const isValidTransition = (currentStatus: AgentStatus, newStatus: AgentStatus): 
 };
 
 export const useAgentStore = create<AgentStore>()(
-    devtools(
-        (set, get) => ({
+    devtools((set, get) => ({
             // Initial state
             agents: {},
             errors: {},

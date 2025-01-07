@@ -40,10 +40,9 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     const tPosition = getPosition(targetPosition);
     const { openModal } = useModalStore();
     const { initializeAgent, removeAgent, transition } = useAgentStore();
+    const agentStore = useAgentStore();
 
-    const state = useAgentStore();
-
-    // Initialize agent state when component mounts, using useCallback to memoize the initialization function
+    // Initialize agent store when component mounts, using useCallback to memoize the initialization function
     const handleInitialize = useCallback(() => {
         initializeAgent(id);
     }, [id, initializeAgent]);
@@ -55,65 +54,65 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         };
     }, [id, handleInitialize, removeAgent]);
 
-    // Get agent state and actions using selectors
-
     const handleAgentDetails = useCallback(() => {
-        if (state?.isEditable) {
+        if (agentStore?.isEditable) {
             openModal({ type: 'agent-details', parentNodeId: id });
         }
-    }, [id, openModal, state?.isEditable]);
+    }, [id, openModal, agentStore?.isEditable]);
 
-    const handleAgentSelection = useCallback(() => {
-        if (state?.status === AgentStatus.Initial || state?.status === AgentStatus.Idle) {
+    const handleAgentSelector = useCallback(() => {
+        if (agentStore?.status === AgentStatus.Initial || agentStore?.status === AgentStatus.Idle) {
             openModal({ type: 'agent-selection', parentNodeId: id });
         }
-    }, [id, openModal, state?.status]);
+    }, [id, openModal, agentStore?.status]);
 
+    // this could make sense after user is notified an agent needs help and clicks on the agent for a modal
     const handleAssistanceRequest = useCallback(() => {
         transition(id, AgentStatus.Assistance, {
             assistanceMessage: 'Agent needs assistance to proceed with the task'
         });
-        openModal({ type: 'agent-assistance', parentNodeId: id });
+        // openModal({ type: 'agent-assistance', parentNodeId: id });
     }, [id, openModal, transition]);
 
+    // this is new...
     const handleRestart = useCallback(() => {
         transition(id, AgentStatus.Working, {
             progress: 0
         });
     }, [transition]);
 
-    // Don't render until state is initialized
-    if (!state) return null;
+    // Don't render until agentStore is initialized
+    if (!agentStore) return null;
 
     return (
         <NodeComponent.Root className="agent-node">
             <NodeComponent.Content>
                 <div onClick={handleAgentDetails}
-                    className={`w-full h-full ${state.isEditable ? 'cursor-pointer' : 'cursor-default'}`}>
+                    className={`w-full h-full ${agentStore.isEditable ? 'cursor-pointer' : 'cursor-default'}`}>
                     <AgentCard
                         data={data}
-                        state={state}
-                        onEdit={state.isEditable ? handleAgentDetails : undefined}
+                        state={agentStore}
+                        onEdit={agentStore.isEditable ? handleAgentDetails : undefined}
                         onAssistanceRequest={handleAssistanceRequest}
-                        onRestart={handleRestart}
-                    />
+                        onRestart={handleRestart} />
                 </div>
             </NodeComponent.Content>
             <NodeComponent.Handle
-                onClick={handleAgentSelection}
+                onClick={handleAgentSelector}
                 type={HandleType.SOURCE}
                 position={sPosition}
                 id={`${id}-a`}
-                isConnectable={isConnectable && (state.status === AgentStatus.Initial || state.status === AgentStatus.Idle)}
-                className={state.status === AgentStatus.Initial || state.status === AgentStatus.Idle ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}
-            />
+                // isConnectable={isConnectable && (agentStore.status === AgentStatus.Initial || agentStore.status ===
+                // AgentStatus.Idle)}
+                isConnectable={isConnectable}
+                className={agentStore.status === AgentStatus.Initial || agentStore.status === AgentStatus.Idle ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'} />
             <NodeComponent.Handle
                 type={HandleType.TARGET}
                 position={tPosition}
                 id={`${id}-b`}
-                isConnectable={isConnectable && state.status !== AgentStatus.Complete}
-                className={state.status !== AgentStatus.Complete ? undefined : 'opacity-50'}
-            />
+                // isConnectable={isConnectable && agentStore.status !== AgentStatus.Complete}
+                isConnectable={isConnectable}
+                className={agentStore.status !== AgentStatus.Complete ? undefined : 'opacity-50'} />
         </NodeComponent.Root>
     );
 };

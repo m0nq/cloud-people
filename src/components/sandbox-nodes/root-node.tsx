@@ -30,6 +30,10 @@ const RootNode = ({ id, isConnectable, sourcePosition, targetPosition }: RootNod
 
     return (
         <NodeComponent.Root className="root-node">
+            {/* When this button is clicked, the workflow is activated. All nodes states will change to idle until their state is changed to running.
+             Otherwise workflow will listen for nodes changing to error, assistance, or complete.
+             If there's another node to run, update the status of that node to running. etc...
+             */}
             <button className="inner-circle" onClick={() => alert('Let\'s get this party started!!! 🥳')}>
                 {/*  play and pause buttons go here  */}
                 <FaPlay color={'#ffffff'} size={40} />
