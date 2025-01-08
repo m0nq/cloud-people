@@ -2,7 +2,7 @@
   @apply flex w-full h-full p-4 flex-col items-start justify-between rounded-lg border border-color-gray
   bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] shadow-[0px_1px_14px_0px_rgba(0,0,0,0.15)];
 
-  .agent-runner-title {
+  .agent-title-section {
     @apply flex gap-x-3 items-center w-full;
 
     .avatar {
@@ -13,12 +13,17 @@
       @apply flex-grow min-w-0;
 
       h3 {
-        @apply font-semibold text-white text-base truncate;
+        @apply font-bold text-color-light text-lg;
+        /*truncate;*/
       }
 
       p {
         @apply text-gray-400 text-sm truncate;
       }
+    }
+
+    .info-icon-button {
+      @apply w-6 h-6 border-none;
     }
   }
 

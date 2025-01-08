@@ -5,6 +5,7 @@ import './agent-card.styles.css';
 import cloudHeadImage from '@public/pink-cloud-head.png';
 import { AgentData } from '@lib/definitions';
 import { AgentState } from '@lib/definitions';
+import { InfoIcon } from '@/components/icons/info-icon';
 
 export interface BaseAgentLayoutProps {
     data: AgentData;
@@ -20,11 +21,14 @@ export interface BaseAgentLayoutProps {
 export const BaseAgentLayout = ({ data, className = '', style, tools = [] }: BaseAgentLayoutProps) => {
     return (
         <div className={`agent-card-base ${className}`} style={style}>
-            <div className="agent-runner-title">
+            <div className="agent-title-section">
                 <Image src={cloudHeadImage} alt={`Profile avatar of ${data.name}`} className="avatar" />
                 <div className="agent-name">
+                    <h3>{data.role}</h3>
                     <h3>{data.name}</h3>
-                    <p>{data.role}</p>
+                </div>
+                <div className="info-icon-button">
+                    <InfoIcon color="#575D69" strokeWidth={2} />
                 </div>
             </div>
 
@@ -36,7 +40,8 @@ export const BaseAgentLayout = ({ data, className = '', style, tools = [] }: Bas
             <div className="stats">
                 <div className="stat-item">
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8 3.5V12.5M8 12.5L12.5 8M8 12.5L3.5 8" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M8 3.5V12.5M8 12.5L12.5 8M8 12.5L3.5 8" stroke="currentColor" strokeLinecap="round"
+                            strokeLinejoin="round" />
                     </svg>
                     342
                 </div>
@@ -48,7 +53,8 @@ export const BaseAgentLayout = ({ data, className = '', style, tools = [] }: Bas
                             strokeLinecap="round"
                             strokeLinejoin="round"
                         />
-                        <path d="M8 5.5V8.5L10 10.5" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
+                        <path d="M8 5.5V8.5L10 10.5" stroke="currentColor" strokeLinecap="round"
+                            strokeLinejoin="round" />
                     </svg>
                     83%
                 </div>

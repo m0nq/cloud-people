@@ -4,6 +4,7 @@ import { MinimizeIcon } from '@components/icons/minimize-icon';
 import { CheckMarkIcon } from '@components/icons/check-mark-icon';
 import { Button } from '@components/utils/button/button';
 import { SaveDocumentIcon } from '@components/icons/save-document-icon';
+import { InfoIcon } from '@components/icons/info-icon';
 
 interface AgentConfigModalProps {
     onSave?: () => void;
@@ -49,7 +50,7 @@ export const AgentConfigModal = ({ onSave, onCheck }: AgentConfigModalProps) => 
                     <div className="agent-description-container">
                         <label className="label-details">
                             What does this agent do, what are their goals?
-                            <span className="info-icon">i</span>
+                            <InfoIcon color="#575D69" strokeWidth={2} />
                         </label>
                         <p className="agent-description">
                             Does research on historical data and current trends to identify trends and holes in the
@@ -60,7 +61,7 @@ export const AgentConfigModal = ({ onSave, onCheck }: AgentConfigModalProps) => 
                 <div className="config-adjustments-section">
                     {/* Speed Section */}
                     <div className="config-speed-section">
-                        <label className="label-details">Speed<span className="info-icon">i</span></label>
+                        <label className="label-details">Speed<InfoIcon color="#575D69" strokeWidth={2} /></label>
                         <div className="config-speed-container">
                             <label className="speed-button">
                                 <input type="radio" name="speed" defaultValue="instant" defaultChecked />
@@ -79,7 +80,10 @@ export const AgentConfigModal = ({ onSave, onCheck }: AgentConfigModalProps) => 
 
                     {/* Context Window */}
                     <div className="config-context-section">
-                        <label className="label-details">Context Window<span className="info-icon">i</span></label>
+                        <label className="label-details">
+                            Context Window
+                            <InfoIcon color="#575D69" strokeWidth={2} />
+                        </label>
                         <input placeholder="Text field, prompt, upload file or all of the above"
                             type="text"
                             className="context-input" />
@@ -88,7 +92,10 @@ export const AgentConfigModal = ({ onSave, onCheck }: AgentConfigModalProps) => 
                     {/* Memory and Budget Section */}
                     <div className="memory-budget-section">
                         <div className="memory-container">
-                            <label className="label-details">Memory limit<span className="info-icon">i</span></label>
+                            <label className="label-details">
+                                Memory limit
+                                <InfoIcon color="#575D69" strokeWidth={2} />
+                            </label>
                             <select className="config-select">
                                 <option>8g</option>
                             </select>
@@ -96,7 +103,7 @@ export const AgentConfigModal = ({ onSave, onCheck }: AgentConfigModalProps) => 
                         <div className="budget-container">
                             <label className="label-details">
                                 Assign a budget
-                                <span className="info-icon">i</span>
+                                <InfoIcon color="#575D69" strokeWidth={2} />
                             </label>
                             <input type="text" value="$1000" className="config-input" />
                         </div>
@@ -105,7 +112,10 @@ export const AgentConfigModal = ({ onSave, onCheck }: AgentConfigModalProps) => 
                     {/* AI Models and Tools Section */}
                     <div className="models-tools-section">
                         <div className="models-section">
-                            <label className="label-details">AI models<span className="info-icon">i</span></label>
+                            <label className="label-details">
+                                AI models
+                                <InfoIcon color="#575D69" strokeWidth={2} />
+                            </label>
                             <input type="text" placeholder="Search" className="config-input" />
                             <div className="models-container">
                                 <div className="model-icon bg-emerald-500"></div>
@@ -113,7 +123,7 @@ export const AgentConfigModal = ({ onSave, onCheck }: AgentConfigModalProps) => 
                             </div>
                         </div>
                         <div className="tools-section">
-                            <label className="label-details">Tools<span className="info-icon">i</span></label>
+                            <label className="label-details">Tools<InfoIcon color="#575D69" strokeWidth={2} /></label>
                             <input type="text" placeholder="Search" className="config-input" />
                             <div className="tools-container">
                                 <div className="tool-icon bg-emerald-500"></div>
