@@ -6,6 +6,9 @@ import cloudHeadImage from '@public/pink-cloud-head.png';
 import { AgentData } from '@lib/definitions';
 import { AgentState } from '@lib/definitions';
 import { InfoIcon } from '@/components/icons/info-icon';
+import { RefreshIcon } from '@/components/icons/refresh-icon';
+import { TargetIcon } from '@/components/icons/target-icon';
+import { DocumentIcon } from '@/components/icons/document-icon';
 
 export interface BaseAgentLayoutProps {
     data: AgentData;
@@ -39,35 +42,15 @@ export const BaseAgentLayout = ({ data, className = '', style, tools = [] }: Bas
 
             <div className="stats">
                 <div className="stat-item">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M8 3.5V12.5M8 12.5L12.5 8M8 12.5L3.5 8" stroke="currentColor" strokeLinecap="round"
-                            strokeLinejoin="round" />
-                    </svg>
+                    <RefreshIcon width={19} height={19} />
                     342
                 </div>
                 <div className="stat-item">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                            d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14Z"
-                            stroke="currentColor"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                        />
-                        <path d="M8 5.5V8.5L10 10.5" stroke="currentColor" strokeLinecap="round"
-                            strokeLinejoin="round" />
-                    </svg>
+                    <TargetIcon width={19} height={19} />
                     83%
                 </div>
                 <div className="stat-item">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                            d="M13 8.5V12.5C13 13.0523 12.5523 13.5 12 13.5H3.5C2.94772 13.5 2.5 13.0523 2.5 12.5V4C2.5 3.44772 2.94772 3 3.5 3H7.5"
-                            stroke="currentColor"
-                            strokeLinecap="round"
-                        />
-                        <path d="M10 2.5H13.5V6" stroke="currentColor" strokeLinecap="round" />
-                        <path d="M6.5 9.5L13.5 2.5" stroke="currentColor" strokeLinecap="round" />
-                    </svg>
+                    <DocumentIcon width={20} height={21} />
                     1.3k
                 </div>
             </div>
