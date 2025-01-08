@@ -50,7 +50,7 @@ export const AgentConfigModal = ({ onSave, onCheck }: AgentConfigModalProps) => 
                     <div className="agent-description-container">
                         <label className="label-details">
                             What does this agent do, what are their goals?
-                            <InfoIcon color="#575D69" strokeWidth={2} />
+                            <InfoIcon color="#575D69" width={16} height={16} strokeWidth={2} />
                         </label>
                         <p className="agent-description">
                             Does research on historical data and current trends to identify trends and holes in the
@@ -61,7 +61,10 @@ export const AgentConfigModal = ({ onSave, onCheck }: AgentConfigModalProps) => 
                 <div className="config-adjustments-section">
                     {/* Speed Section */}
                     <div className="config-speed-section">
-                        <label className="label-details">Speed<InfoIcon color="#575D69" strokeWidth={2} /></label>
+                        <label className="label-details">
+                            Speed
+                            <InfoIcon color="#575D69" width={16} height={16} strokeWidth={2} />
+                        </label>
                         <div className="config-speed-container">
                             <label className="speed-button">
                                 <input type="radio" name="speed" defaultValue="instant" defaultChecked />
@@ -82,7 +85,7 @@ export const AgentConfigModal = ({ onSave, onCheck }: AgentConfigModalProps) => 
                     <div className="config-context-section">
                         <label className="label-details">
                             Context Window
-                            <InfoIcon color="#575D69" strokeWidth={2} />
+                            <InfoIcon color="#575D69" width={16} height={16} strokeWidth={2} />
                         </label>
                         <input placeholder="Text field, prompt, upload file or all of the above"
                             type="text"
@@ -94,7 +97,7 @@ export const AgentConfigModal = ({ onSave, onCheck }: AgentConfigModalProps) => 
                         <div className="memory-container">
                             <label className="label-details">
                                 Memory limit
-                                <InfoIcon color="#575D69" strokeWidth={2} />
+                                <InfoIcon color="#575D69" width={16} height={16} strokeWidth={2} />
                             </label>
                             <select className="config-select">
                                 <option>8g</option>
@@ -103,7 +106,7 @@ export const AgentConfigModal = ({ onSave, onCheck }: AgentConfigModalProps) => 
                         <div className="budget-container">
                             <label className="label-details">
                                 Assign a budget
-                                <InfoIcon color="#575D69" strokeWidth={2} />
+                                <InfoIcon color="#575D69" width={16} height={16} strokeWidth={2} />
                             </label>
                             <input type="text" value="$1000" className="config-input" />
                         </div>
@@ -114,7 +117,7 @@ export const AgentConfigModal = ({ onSave, onCheck }: AgentConfigModalProps) => 
                         <div className="models-section">
                             <label className="label-details">
                                 AI models
-                                <InfoIcon color="#575D69" strokeWidth={2} />
+                                <InfoIcon color="#575D69" width={16} height={16} strokeWidth={2} />
                             </label>
                             <input type="text" placeholder="Search" className="config-input" />
                             <div className="models-container">
@@ -123,7 +126,10 @@ export const AgentConfigModal = ({ onSave, onCheck }: AgentConfigModalProps) => 
                             </div>
                         </div>
                         <div className="tools-section">
-                            <label className="label-details">Tools<InfoIcon color="#575D69" strokeWidth={2} /></label>
+                            <label className="label-details">
+                                Tools
+                                <InfoIcon color="#575D69" width={16} height={16} strokeWidth={2} />
+                            </label>
                             <input type="text" placeholder="Search" className="config-input" />
                             <div className="tools-container">
                                 <div className="tool-icon bg-emerald-500"></div>

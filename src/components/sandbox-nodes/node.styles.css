@@ -1,5 +1,5 @@
 .agent-node {
-  @apply w-72 h-56 rounded-lg;
+  @apply w-72 h-64 rounded-lg;
 
   .agent-node-container {
     @apply w-full h-full rounded-lg;

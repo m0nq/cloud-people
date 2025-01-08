@@ -35,46 +35,54 @@ export const BaseAgentLayout = ({ data, className = '', style, tools = [] }: Bas
                 </div>
             </div>
 
-            <div className="core-skills">
+            <div className="core-skills-section">
                 <p className="skill-label">Core Skills</p>
                 <div className="skill-value">Making Interface</div>
             </div>
 
-            <div className="stats">
-                <div className="stat-item">
-                    <RefreshIcon width={19} height={19} />
-                    342
-                </div>
-                <div className="stat-item">
-                    <TargetIcon width={19} height={19} />
-                    83%
-                </div>
-                <div className="stat-item">
-                    <DocumentIcon width={20} height={21} />
-                    1.3k
+            <div className="stats-section">
+                <p className="stat-label">Stats</p>
+                <div className="stat-item-container">
+                    <div className="stat-item">
+                        <RefreshIcon width={19} height={19} />
+                        342
+                    </div>
+                    <div className="stat-item">
+                        <TargetIcon width={19} height={19} />
+                        83%
+                    </div>
+                    <div className="stat-item">
+                        <DocumentIcon width={20} height={21} />
+                        1.3k
+                    </div>
                 </div>
             </div>
 
-            <div className="tools">
-                {tools.slice(0, 2).map(tool => (
-                    <div key={tool.id} className="tool-item" title={tool.name}>
-                        {/* Placeholder circle - will be replaced with actual tool icon */}
-                        <div className="w-4 h-4 rounded-full bg-gray-500" />
-                    </div>
-                ))}
-                {tools.length > 2 && <div className="more-tools">+{tools.length - 2}</div>}
-                {/* Show empty circles if no tools provided */}
-                {tools.length === 0 && (
-                    <>
-                        <div className="tool-item">
+            <div className="agent-tools-section">
+                <p className="tool-label">Tools</p>
+                <div className="tool-item-container">
+                    {tools.slice(0, 2).map(tool => (
+                        <div key={tool.id} className="tool-item" title={tool.name}>
+                            {/* Placeholder circle - will be replaced with actual tool icon */}
                             <div className="w-4 h-4 rounded-full bg-gray-500" />
                         </div>
-                        <div className="tool-item">
-                            <div className="w-4 h-4 rounded-full bg-gray-500" />
-                        </div>
-                        <div className="more-tools">+2</div>
-                    </>
-                )}
+                    ))}
+                    {tools.length > 2 && <div className="more-tools">+{tools.length - 2}</div>}
+                    {/* Show empty circles if no tools provided */}
+                    {tools.length === 0 && (
+                        <>
+                            <div className="tool-item">
+                                <div className="tool-item-placeholder" />
+                                <p>Figma</p>
+                            </div>
+                            <div className="tool-item">
+                                <div className="tool-item-placeholder" />
+                                <p>Dribble</p>
+                            </div>
+                            <div className="more-tools">+2</div>
+                        </>
+                    )}
+                </div>
             </div>
         </div>
     );
