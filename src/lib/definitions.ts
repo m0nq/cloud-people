@@ -39,6 +39,7 @@ export type NodeData = {
 
 export type EdgeData = {
     workflowId?: string;
+    type: string;
 };
 
 export type AppState = {

@@ -73,14 +73,15 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
             assistanceMessage: 'Agent needs assistance to proceed with the task'
         });
         // openModal({ type: 'agent-assistance', parentNodeId: id });
-    }, [id, openModal, transition]);
+        // }, [id, openModal, transition]);
+    }, [id, transition]);
 
     // this is new...
     const handleRestart = useCallback(() => {
         transition(id, AgentStatus.Working, {
             progress: 0
         });
-    }, [transition]);
+    }, [id, transition]);
 
     // Don't render until agent state is initialized
     if (!agentState) return null;

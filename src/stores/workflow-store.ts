@@ -25,13 +25,13 @@ import { NodeData } from '@lib/definitions';
 import { WorkflowState } from '@lib/definitions';
 import { InitialStateNodeData } from '@lib/definitions';
 import { EdgeData } from '@lib/definitions';
+import { AgentStatus } from '@lib/definitions';
 import { INITIAL_NODE_POSITION } from '@config/layout.const';
 import { NODE_SPACING_X } from '@config/layout.const';
 import { NODE_SPACING_Y } from '@config/layout.const';
 import { ROOT_NODE_SPACING_X } from '@config/layout.const';
 import { ROOT_NODE_POSITION } from '@config/layout.const';
 import { Config } from '@config/constants';
-import { AgentStatus } from '@lib/definitions';
 
 const { WorkflowNode } = Config;
 
@@ -146,27 +146,41 @@ export const useGraphStore = create<AppState>()(
             },
             onConnect: async (connection: Connection) => {
                 try {
+                    // First create the edge in the database
+                    const workflowId = get()?.nodes.find(n => n.id === connection.source)?.data?.workflowId;
+                    if (!workflowId) {
+                        throw new Error('No workflow ID found for source node');
+                    }
+
+                    const edgeId = await createEdge({
+                        workflowId,
+                        toNodeId: connection.target,
+                        fromNodeId: connection.source
+                    });
+
+                    // Then create the edge in the UI with the database ID
+                    /**
+                     * WORKAROUND: Converting boolean to string to avoid React DOM warnings.
+                     * This is inconsistent with @xyflow/react's documentation and type definitions
+                     * which specify these properties as booleans. This is part of a larger issue
+                     * where multiple props (animated, selectable, deletable) are typed as booleans
+                     * but React expects them as strings.
+                     * TODO: Remove this workaround once xyflow fixes the type/implementation mismatch
+                     * @see https://github.com/xyflow/xyflow/issues/4935
+                     */
                     const newEdge = {
-                        ...connection,
-                        id: `edge-${connection.source}-${connection.target}`,
+                        id: edgeId,
+                        source: connection.source,
+                        target: connection.target,
                         type: WorkflowNode.AutomationEdge,
-                        animated: true,
+                        animated: 'true' as any, // Convert to string to avoid React DOM attribute warning
                         data: {
-                            workflowId: get()?.nodes.find(n => n.id === connection.source)?.data?.workflowId
+                            workflowId
                         }
                     } as Edge<EdgeData>;
-                    // } as WorkflowEdge;  // Type assertion to our custom edge type
+
                     const updatedEdges = addEdge(newEdge, get().edges);
                     set({ edges: updatedEdges, nodes: [...get().nodes] });
-
-                    // Persist new edge to database
-                    if (newEdge.data?.workflowId) {
-                        await createEdge({
-                            workflowId: newEdge.data.workflowId,
-                            toNodeId: newEdge.target,
-                            fromNodeId: newEdge.source
-                        });
-                    }
                 } catch (error) {
                     console.error('Failed to create edge in database:', error);
                     // TODO: Add error handling/recovery
@@ -299,7 +313,7 @@ export const useGraphStore = create<AppState>()(
                             source: agent.parentNodeId,
                             target: createdNode.id, // Use the ID from the created node
                             type: WorkflowNode.AutomationEdge,
-                            animated: true,
+                            animated: 'true' as any, // Convert to string to avoid React DOM attribute warning
                             data: {
                                 workflowId
                             }
@@ -403,5 +417,6 @@ export const useGraphStore = create<AppState>()(
             name: 'Workflow Store',
             enabled: process.env.NODE_ENV === 'development',
             maxAge: process.env.NODE_ENV === 'development' ? 50 : 0
-        })
+        }
+    )
 );
