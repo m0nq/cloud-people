@@ -159,21 +159,12 @@ export const useGraphStore = create<AppState>()(
                     });
 
                     // Then create the edge in the UI with the database ID
-                    /**
-                     * WORKAROUND: Converting boolean to string to avoid React DOM warnings.
-                     * This is inconsistent with @xyflow/react's documentation and type definitions
-                     * which specify these properties as booleans. This is part of a larger issue
-                     * where multiple props (animated, selectable, deletable) are typed as booleans
-                     * but React expects them as strings.
-                     * TODO: Remove this workaround once xyflow fixes the type/implementation mismatch
-                     * @see https://github.com/xyflow/xyflow/issues/4935
-                     */
                     const newEdge = {
                         id: edgeId,
                         source: connection.source,
                         target: connection.target,
                         type: WorkflowNode.AutomationEdge,
-                        animated: 'true' as any, // Convert to string to avoid React DOM attribute warning
+                        animated: true,
                         data: {
                             workflowId
                         }
@@ -208,7 +199,8 @@ export const useGraphStore = create<AppState>()(
             },
             addNode: async (agent: AgentData): Promise<void> => {
                 try {
-                    const parentNode = get().nodes.find((n: Node<NodeData>) => n.id === agent.parentNodeId);
+                    const parentNode = get().nodes
+                        .find((n: Node<NodeData>) => n.id === agent.parentNodeId);
 
                     if (!parentNode || !parentNode.data?.workflowId) {
                         console.error('Parent node not found or missing workflowId. Modal state:', parentNode);
@@ -313,11 +305,11 @@ export const useGraphStore = create<AppState>()(
                             source: agent.parentNodeId,
                             target: createdNode.id, // Use the ID from the created node
                             type: WorkflowNode.AutomationEdge,
-                            animated: 'true' as any, // Convert to string to avoid React DOM attribute warning
+                            animated: true,
                             data: {
                                 workflowId
                             }
-                        };
+                        } as Edge<EdgeData>;
 
                         const currentEdges = get().edges;
                         get().setEdges?.([...currentEdges, newEdge]);

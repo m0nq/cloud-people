@@ -130,7 +130,6 @@ web_modules/
 *.tgz
 
 # pnpm
-pnpm-lock.yaml
 .pnpm-debug.log*
 
 # dotenv environment variable files

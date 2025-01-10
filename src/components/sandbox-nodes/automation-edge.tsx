@@ -12,7 +12,7 @@ const AutomationEdge = ({
     targetX,
     targetY,
     targetPosition,
-    ...props
+    animated
 }: EdgeProps) => {
     const [edgePath] = getSmoothStepPath({
         sourceX,
@@ -25,7 +25,7 @@ const AutomationEdge = ({
 
     return (
         <>
-            <BaseEdge id={id} path={edgePath} className="automation-edge" {...props} />
+            <BaseEdge id={id} path={edgePath} className={`automation-edge ${animated ? 'animated' : ''}`} />
             {/* To add a custom label - also takes any react component as a child */}
             {/* <EdgeLabelRenderer></EdgeLabelRenderer> */}
         </>
