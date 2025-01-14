@@ -9,6 +9,7 @@ import { ErrorAgentLayout } from './layouts';
 import { AssistanceAgentLayout } from './layouts';
 import { CompleteAgentLayout } from './layouts';
 import { BaseAgentLayout } from './layouts';
+import { ActivatingAgentLayout } from './layouts';
 
 type AgentCardProps = {
     data: AgentData;
@@ -24,7 +25,7 @@ type AgentCardProps = {
 const AGENT_LAYOUTS = {
     [AgentStatus.Initial]: BaseAgentLayout,
     [AgentStatus.Idle]: IdleAgentLayout,
-    [AgentStatus.Activating]: WorkingAgentLayout,
+    [AgentStatus.Activating]: ActivatingAgentLayout,
     [AgentStatus.Working]: WorkingAgentLayout,
     [AgentStatus.Error]: ErrorAgentLayout,
     [AgentStatus.Assistance]: AssistanceAgentLayout,

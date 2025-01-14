@@ -25,7 +25,7 @@ export const BaseAgentLayout = ({ data, className = '', style, tools = [] }: Bas
     return (
         <div className={`agent-card-base ${className}`} style={style}>
             <div className="agent-title-section">
-                <Image src={cloudHeadImage} alt={`Profile avatar of ${data.name}`} className="avatar" />
+                <Image src={data.image || cloudHeadImage} alt={`Profile avatar of ${data.name}`} className="avatar" />
                 <div className="agent-name">
                     <h3>{data.role}</h3>
                     <h3>{data.name}</h3>

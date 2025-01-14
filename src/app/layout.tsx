@@ -22,7 +22,7 @@ const RootLayout = ({ children }: LayoutProps) => {
 
     return (
         <html lang="en">
-            <body className={`${dmSans.variable} ${lexend.variable} ${inter.variable}`}>
+            <body className={`${dmSans.variable} ${lexend.variable} ${inter.variable}`} suppressHydrationWarning>
                 {children}
             </body>
         </html>

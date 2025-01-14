@@ -134,13 +134,10 @@ export type AgentData = {
     id?: string;
     name: string;
     role: string;
+    image?: string;
     parentNodeId?: string;
     status?: 'active' | 'inactive';
     skills?: string[];
-    performance?: {
-        calls?: number;
-        satisfaction?: number;
-    };
 };
 
 export enum AgentStatus {

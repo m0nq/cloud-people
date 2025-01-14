@@ -86,3 +86,24 @@
     }
   }
 }
+
+.activating-agent-card {
+  @apply flex w-72 h-52 p-2.5 flex-col justify-center items-center gap-2.5 rounded-lg border border-[#414141]
+    bg-gradient-to-br from-[#2d2e32] via-[#4b4d54] to-[#2d2e32] text-white;
+
+  .avatar {
+    @apply rounded-3xl border border-white w-12 h-12;
+  }
+
+  .agent-info-container {
+    @apply flex flex-col items-center justify-center gap-1 w-1/2 p-2 text-[#9BA0B8] font-inter;
+
+    .agent-name {
+      @apply flex items-center justify-center gap-1 w-full text-[#DCE0F4] font-inter text-xl font-bold leading-8;
+    }
+  }
+}
+
+/*.status-content.activating {*/
+/*  @apply flex items-center justify-center;*/
+/*}*/

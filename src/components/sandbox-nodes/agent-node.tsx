@@ -16,6 +16,7 @@ type AgentNodeProps = {
     data: {
         name: string;
         role: string;
+        image?: string;
         [key: string]: any;
     };
     targetPosition?: string;
@@ -94,7 +95,8 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                     <AgentCard
                         data={data}
                         state={agentState}
-                        status={agentState.status}
+                        // status={agentState.status}
+                        status={AgentStatus.Activating}
                         onEdit={agentState.isEditable ? handleAgentDetails : undefined}
                         onAssistanceRequest={handleAssistanceRequest}
                         onRestart={handleRestart} />
