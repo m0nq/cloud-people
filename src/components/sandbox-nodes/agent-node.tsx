@@ -95,8 +95,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                     <AgentCard
                         data={data}
                         state={agentState}
-                        // status={agentState.status}
-                        status={AgentStatus.Activating}
+                        status={agentState.status}
                         onEdit={agentState.isEditable ? handleAgentDetails : undefined}
                         onAssistanceRequest={handleAssistanceRequest}
                         onRestart={handleRestart} />
