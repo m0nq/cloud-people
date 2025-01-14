@@ -7,16 +7,14 @@ import { BaseAgentLayoutProps } from './base-agent-layout';
 export const ActivatingAgentLayout = ({ data }: BaseAgentLayoutProps) => {
     return (
         <div className="activating-agent-card">
-            {/*<div className="agent-title-section">*/}
             <Image src={data.image || cloudHeadImage}
                 alt={`Profile avatar of ${data.name}`}
                 className="avatar"
                 width={48}
                 height={48} />
-            <div className="agent-info-container">
+            <div className="agent-info-section">
                 <div className="status-content activating">
                     <span className="status-label">Activating</span>
-                    {/*</div>*/}
                 </div>
                 <div className="agent-name">
                     <p>{data.role}</p>

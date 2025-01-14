@@ -95,7 +95,7 @@
     @apply rounded-3xl border border-white w-12 h-12;
   }
 
-  .agent-info-container {
+  .agent-info-section {
     @apply flex flex-col items-center justify-center gap-1 w-1/2 p-2 text-[#9BA0B8] font-inter;
 
     .agent-name {
@@ -144,5 +144,71 @@
 
   .buttons-container {
     @apply flex items-center gap-2 font-sans font-bold text-[#7d829a];
+  }
+}
+
+.working-agent-card {
+  @apply w-72 h-fit py-4 px-6 relative flex flex-col gap-2.5 items-start justify-between rounded-lg border border-[#414141]
+  bg-gradient-to-r from-[#333C44] to-[#2D2F32] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)] font-inter text-white;
+
+  /* Animated border */
+
+  &::before {
+    content: '';
+    @apply absolute inset-[-1px] bg-gradient-to-r from-[#414141] to-[#414141] rounded-lg;
+    /*animation: rotate 4s linear infinite;*/
+    z-index: -1;
+  }
+
+  /* Background blobs container */
+
+  .background-blobs {
+    @apply absolute inset-0 overflow-hidden rounded-[10px_0_0_0] pointer-events-none;
+    z-index: -2;
+
+    .blob {
+      @apply absolute w-48 h-48 rounded-full blur-3xl opacity-20;
+
+      &.blob-1 {
+        @apply bg-blue-400 -top-24 -left-24;
+      }
+
+      &.blob-2 {
+        @apply bg-blue-500 bottom-0 right-0;
+      }
+    }
+  }
+
+  .agent-info-section {
+    @apply flex items-center justify-center gap-2;
+
+    .agent-name {
+      @apply flex flex-col font-bold text-lg leading-6 self-center;
+    }
+  }
+
+  .agent-tasks-section {
+    @apply bg-[#232629] w-full h-24 rounded-lg p-2 overflow-y-auto text-sm text-[#BEC1CF];
+
+    .agent-tasks-title {
+      @apply flex items-center justify-start gap-2;
+    }
+
+    .agent-tasks-container {
+
+    }
+  }
+
+  .buttons-container {
+    @apply flex items-center gap-2 w-full font-sans font-bold;
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }
