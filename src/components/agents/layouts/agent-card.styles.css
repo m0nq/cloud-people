@@ -89,7 +89,7 @@
 
 .activating-agent-card {
   @apply flex w-72 h-52 p-2.5 flex-col justify-center items-center gap-2.5 rounded-lg border border-[#414141]
-    bg-gradient-to-br from-[#2d2e32] via-[#4b4d54] to-[#2d2e32] text-white;
+  bg-gradient-to-br from-[#2d2e32] via-[#4b4d54] to-[#2d2e32] text-white;
 
   .avatar {
     @apply rounded-3xl border border-white w-12 h-12;
@@ -104,6 +104,45 @@
   }
 }
 
-/*.status-content.activating {*/
-/*  @apply flex items-center justify-center;*/
-/*}*/
+.idle-agent-card {
+  @apply w-72 h-fit py-5 px-6 border border-[#414141] rounded-lg bg-gradient-to-r from-[#333C44] to-[#2D2F32]
+  shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)] text-white font-inter;
+
+  .agent-name {
+    @apply font-bold text-lg leading-6 self-center;
+  }
+
+  .content-container {
+    @apply flex flex-col gap-3;
+  }
+
+  .idle-agent-info-section {
+    @apply flex items-start gap-3;
+  }
+
+  .idle-agent-status-section {
+    @apply flex flex-col text-[#BEC1CE];
+
+    .status-label {
+    }
+
+    .status-value {
+    }
+  }
+
+  .idle-agent-tools-section {
+    @apply flex gap-2;
+
+    .tools-indicator-container {
+      @apply flex gap-1;
+
+      .indicator {
+        @apply w-9 h-9 rounded-lg bg-[#141517] overflow-x-auto;
+      }
+    }
+  }
+
+  .buttons-container {
+    @apply flex items-center gap-2 font-sans font-bold text-[#7d829a];
+  }
+}
