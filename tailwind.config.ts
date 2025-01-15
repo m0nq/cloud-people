@@ -12,7 +12,8 @@ const config: Config = {
         },
         extend: {
             animation: {
-                'scale-in-hor-center': 'scale-in-hor-center 0.2s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;'
+                'scale-in-hor-center': 'scale-in-hor-center 0.2s cubic-bezier(0.250, 0.460, 0.450, 0.940) both;',
+                'border-spin': 'border-spin 8s linear infinite'
             },
             keyframes: {
                 'scale-in-hor-center': {
@@ -24,12 +25,18 @@ const config: Config = {
                         transform: 'scaleX(1)',
                         opacity: '1'
                     }
+                },
+                'border-spin': {
+                    '0%': {
+                        transform: 'rotate(0deg)'
+                    },
+                    '100%': {
+                        transform: 'rotate(360deg)'
+                    }
                 }
             },
             boxShadow: {
-                default: '0px 4px 4px 0px rgba(0, 0, 0, 0.25), ' +
-                    '0px 4px 4px 0px rgba(0, 0, 0, 0.25), ' +
-                    '0px 0px 10px 0px rgba(246, 246, 246, 0.20)'
+                default: '0px 4px 4px 0px rgba(0, 0, 0, 0.25), ' + '0px 4px 4px 0px rgba(0, 0, 0, 0.25), ' + '0px 0px 10px 0px rgba(246, 246, 246, 0.20)'
             },
             colors: {
                 // Brand colors

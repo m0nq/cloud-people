@@ -148,63 +148,42 @@
 }
 
 .working-agent-card {
-  @apply w-72 h-fit py-4 px-6 relative flex flex-col gap-2.5 items-start justify-between rounded-lg border border-[#414141]
-  bg-gradient-to-r from-[#333C44] to-[#2D2F32] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)] font-inter text-white;
-
-  /* Animated border */
+  @apply w-72 h-fit flex items-center justify-center relative bg-gradient-to-b from-slate-700 to-slate-800
+  rounded-lg p-0.5 overflow-hidden;
 
   &::before {
-    content: '';
-    @apply absolute inset-[-1px] bg-gradient-to-r from-[#414141] to-[#414141] rounded-lg;
-    /*animation: rotate 4s linear infinite;*/
-    z-index: -1;
+    background: conic-gradient(transparent 280deg, #ffffff 300deg, #e1e1e1 360deg);
+    @apply absolute h-[150%] w-[150%] -left-1/4 -top-1/4 rounded-lg animate-border-spin content-[''];
   }
 
-  /* Background blobs container */
+  .working-agent-wrapper {
+    @apply w-full h-fit py-4 px-6 relative flex flex-col gap-2.5 items-start justify-between rounded-lg
+    bg-gradient-to-r from-[#333C44] to-[#2D2F32] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)] font-inter text-white;
 
-  .background-blobs {
-    @apply absolute inset-0 overflow-hidden rounded-[10px_0_0_0] pointer-events-none;
-    z-index: -2;
-
-    .blob {
-      @apply absolute w-48 h-48 rounded-full blur-3xl opacity-20;
-
-      &.blob-1 {
-        @apply bg-blue-400 -top-24 -left-24;
-      }
-
-      &.blob-2 {
-        @apply bg-blue-500 bottom-0 right-0;
+    .agent-info-section {
+      .agent-name {
+        @apply font-bold text-lg leading-6 self-center;
       }
     }
-  }
 
-  .agent-info-section {
-    @apply flex items-center justify-center gap-2;
+    .agent-tasks-section {
+      @apply bg-[#232629] w-full h-24 rounded-lg p-2 overflow-y-auto text-sm text-[#BEC1CF];
 
-    .agent-name {
-      @apply flex flex-col font-bold text-lg leading-6 self-center;
-    }
-  }
+      .agent-tasks-title {
+        @apply flex items-center justify-start gap-2;
+      }
 
-  .agent-tasks-section {
-    @apply bg-[#232629] w-full h-24 rounded-lg p-2 overflow-y-auto text-sm text-[#BEC1CF];
-
-    .agent-tasks-title {
-      @apply flex items-center justify-start gap-2;
+      .agent-tasks-container {
+      }
     }
 
-    .agent-tasks-container {
-
+    .buttons-container {
+      @apply flex items-center gap-2 w-full font-sans font-bold;
     }
-  }
-
-  .buttons-container {
-    @apply flex items-center gap-2 w-full font-sans font-bold;
   }
 }
 
-@keyframes rotate {
+@keyframes border-spin {
   from {
     transform: rotate(0deg);
   }
