@@ -254,3 +254,42 @@
     @apply w-fit h-fit bg-secondary;
   }
 }
+
+.complete-agent-card {
+  @apply w-full h-full bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] rounded-lg flex flex-col;
+
+  .header-section {
+    @apply flex items-center gap-3 p-4;
+
+    .avatar-container {
+      @apply relative w-10 h-10;
+    }
+
+    .info-container {
+      @apply flex items-center justify-between gap-6;
+
+      .name-section {
+        h3 {
+          @apply text-white font-medium;
+        }
+      }
+
+      .status-section {
+        @apply flex flex-col items-start justify-start;
+
+        .status-label {
+          @apply text-gray-400 text-sm;
+        }
+
+        .status-value {
+          @apply text-gray-300 text-sm;
+        }
+      }
+    }
+  }
+
+  .review-button {
+    @apply w-full flex-1 bg-[linear-gradient(89deg,#8FA3B5_14.21%,#376995_101.01%)] hover:bg-gray-600
+    text-white rounded-b-lg flex flex-col items-center justify-center gap-2 transition-colors;
+  }
+}

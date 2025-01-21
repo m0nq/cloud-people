@@ -1,23 +1,31 @@
-import { BaseAgentLayout} from './base-agent-layout';
+import Image from 'next/image';
+
+import cloudHeadImage from '@public/pink-cloud-head.png';
 import { BaseAgentLayoutProps } from './base-agent-layout';
+import { PlayIcon } from '@components/icons/play-icon';
 
-export const CompleteAgentLayout = (props: BaseAgentLayoutProps) => {
-    const { state } = props;
-
+export const CompleteAgentLayout = ({ data }: BaseAgentLayoutProps) => {
     return (
-        <div className="agent-card-container complete">
-            <BaseAgentLayout {...props} />
-            <div className="agent-runner-status">
-                <div className="status-content complete">
-                    <span className="status-label">Completed</span>
-                    {state?.completedAt && (
-                        <div className="completion-info">
-                            <p>Completed on</p>
-                            <p>{state.completedAt}</p>
-                        </div>
-                    )}
+        <div className="complete-agent-card">
+            <div className="header-section">
+                <div className="avatar-container">
+                    <Image src={data.image || cloudHeadImage} alt="Cloud head avatar" width={48} height={48} />
+                </div>
+                <div className="info-container">
+                    <div className="name-section">
+                        <h3>Manager</h3>
+                        <h3>Mike</h3>
+                    </div>
+                    <div className="status-section">
+                        <span className="status-label">Status:</span>
+                        <span className="status-value">Waiting Review</span>
+                    </div>
                 </div>
             </div>
+            <button className="review-button">
+                <PlayIcon width={28} height={28} />
+                <span>Review Summary</span>
+            </button>
         </div>
     );
 };
