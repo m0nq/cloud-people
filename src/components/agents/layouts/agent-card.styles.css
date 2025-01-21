@@ -196,61 +196,61 @@
   @apply w-full h-full rounded-lg border-2 border-[#DCE0F4]
   bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)]
   shadow-[0px_4.885px_51.294px_0px_rgba(255,255,255,0.25)_inset,0px_1.221px_4.885px_0px_rgba(0,0,0,0.15)]
-  p-6 flex flex-col gap-1;
+  p-6 flex flex-col gap-1 relative overflow-visible;
+}
 
-  .agent-header {
-    @apply flex items-center gap-3;
+.agent-header {
+  @apply flex items-center gap-3;
 
-    .agent-avatar {
-      @apply rounded-full bg-[#F4F4F4] flex items-center justify-center;
-
-      /*img {*/
-      /*  @apply w-6 h-6;*/
-      /*}*/
-    }
-
-    .agent-title {
-      @apply text-white font-inter font-bold;
-
-      h3 {
-        @apply text-lg font-semibold;
-      }
-    }
+  .agent-avatar {
+    @apply rounded-full bg-[#F4F4F4] flex items-center justify-center;
   }
 
-  .agent-status {
-    @apply flex flex-col;
+  .agent-title {
+    @apply text-white font-inter font-bold;
 
-    .status-label {
-      @apply text-[#BEC1CE] text-sm flex items-center justify-start gap-1;
-    }
-
-    .status-value {
-      @apply text-[#BEC1CE] font-medium;
+    h3 {
+      @apply text-lg font-semibold;
     }
   }
+}
 
-  .assistance-message-container {
-    @apply w-full h-16 bg-[#3E4A55] rounded-lg overflow-auto px-2 flex items-center justify-center;
+.agent-status {
+  @apply flex flex-col;
+
+  .status-label {
+    @apply text-[#BEC1CE] text-sm flex items-center justify-start gap-1;
   }
 
-  .message-box {
-    @apply text-[#BEC1CE] text-sm;
+  .status-value {
+    @apply text-[#BEC1CE] font-medium;
+  }
+}
+
+.assistance-message-container {
+  @apply w-full h-16 bg-[#3E4A55] rounded-lg overflow-hidden px-2 flex items-center justify-center relative;
+}
+
+.message-box {
+  @apply text-[#BEC1CE] text-sm;
+}
+
+.hand-icon-container {
+  @apply absolute -right-4 top-0 z-10;
+}
+
+.action-buttons {
+  @apply w-full h-11 flex justify-between items-center gap-2 mt-auto;
+
+  .button {
+    @apply flex-1 px-4 py-2 flex items-center justify-center rounded-lg text-sm font-medium font-sans;
   }
 
-  .action-buttons {
-    @apply w-full h-11 flex justify-between items-center gap-2 mt-auto;
+  .help-button {
+    @apply bg-[#232629]  text-[#7D829A] gap-1;
+  }
 
-    .button {
-      @apply flex-1 px-4 py-2 flex items-center justify-center rounded-lg text-sm font-medium font-sans;
-    }
-
-    .help-button {
-      @apply bg-[#232629]  text-[#7D829A] gap-1;
-    }
-
-    .action-button {
-      @apply w-fit h-fit bg-secondary;
-    }
+  .action-button {
+    @apply w-fit h-fit bg-secondary;
   }
 }

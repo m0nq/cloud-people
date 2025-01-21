@@ -5,6 +5,7 @@ import './agent-card.styles.css';
 import cloudHeadImage from '@public/pink-cloud-head.png';
 import { AgentData } from '@lib/definitions';
 import { AgentState } from '@lib/definitions';
+import { AgentStatus } from '@lib/definitions';
 import { InfoIcon } from '@/components/icons/info-icon';
 import { RefreshIcon } from '@/components/icons/refresh-icon';
 import { TargetIcon } from '@/components/icons/target-icon';
@@ -13,6 +14,7 @@ import { DocumentIcon } from '@/components/icons/document-icon';
 export interface BaseAgentLayoutProps {
     data: AgentData;
     state?: AgentState;
+    status?: AgentStatus;
     className?: string;
     style?: CSSProperties;
     tools?: { id: string; name: string }[];
