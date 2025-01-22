@@ -8,10 +8,6 @@
   @apply flex items-center gap-2 text-color-slate;
 }
 
-.info-icon {
-  @apply text-gray-400 rounded-full border border-gray-400 w-4 h-4 flex items-center justify-center text-xs;
-}
-
 /* Main panel container */
 .agent-config-panel {
   @apply h-[90vh] w-[34rem] bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] text-white

@@ -17,7 +17,7 @@ type RootNodeProps = {
 };
 
 const RootNode = ({ id, isConnectable, sourcePosition, targetPosition }: RootNodeProps): ReactNode => {
-    const openModal = useModalStore(state => state.openModal);
+    const { openModal } = useModalStore();
 
     // needs state such that starts out in pause state (displays play icon)
     // when clicked, changes to play state (displays pause icon) and activates the workflow run state
@@ -30,6 +30,10 @@ const RootNode = ({ id, isConnectable, sourcePosition, targetPosition }: RootNod
 
     return (
         <NodeComponent.Root className="root-node">
+            {/* When this button is clicked, the workflow is activated. All nodes states will change to idle until their state is changed to running.
+             Otherwise workflow will listen for nodes changing to error, assistance, or complete.
+             If there's another node to run, update the status of that node to running. etc...
+             */}
             <button className="inner-circle" onClick={() => alert('Let\'s get this party started!!! 🥳')}>
                 {/*  play and pause buttons go here  */}
                 <FaPlay color={'#ffffff'} size={40} />

@@ -1,45 +1,39 @@
-import Image from 'next/image';
+import { CSSProperties } from 'react';
 
-import './agent-card.styles.css';
-import ricoResearcherImage from '@public/rico-researcher.png';
+import { AgentData } from '@lib/definitions';
+import { AgentState } from '@lib/definitions';
+import { AgentStatus } from '@lib/definitions';
+import { IdleAgentLayout } from './layouts';
+import { WorkingAgentLayout } from './layouts';
+import { AssistanceAgentLayout } from './layouts';
+import { CompleteAgentLayout } from './layouts';
+import { BaseAgentLayout } from './layouts';
+import { ActivatingAgentLayout } from './layouts';
 
 type AgentCardProps = {
-    data: {
-        name: string;
-        role: string;
-    };
+    data: AgentData;
+    status?: AgentStatus;
+    state?: AgentState;
+    className?: string;
+    style?: CSSProperties;
+    onEdit?: () => void;
+    onAssistanceRequest?: () => void;
+    onRestart?: () => void;
 };
 
-export const AgentCard = ({ data }: AgentCardProps) => {
-    return (
-        <div className="agent-card-container">
-            <div>
-                <div className="agent-runner-title">
-                    <Image src={ricoResearcherImage} alt={`Profile avatar of ${data.name}`} className="avatar" />
-                    <div className="agent-name">
-                        <h3>{data.name}</h3>
-                        <h3>{data.role}</h3>
-                    </div>
-                    {/* conditional edit &/or price icon */}
-                </div>
-                <div className="runner-description">
-                    <p>Core Skill:</p>
-                    <p>TikTok Trend Analysis</p>
-                </div>
-            </div>
-            {/* conditional: */}
-            {/* list of app icons runner uses */}
-            {/* prompt text box */}
-            {/* training hours section */}
-            {/* status */}
-            <div className="agent-runner-status">
-                <p>Standing by</p>
-                <div className="status-complete-info">
-                    <p>Completed on</p>
-                    {/* optional completed date */}
-                    <p>1/24 @ 11:33</p>
-                </div>
-            </div>
-        </div>
-    );
+const AGENT_LAYOUTS = {
+    [AgentStatus.Initial]: BaseAgentLayout,
+    [AgentStatus.Idle]: IdleAgentLayout,
+    [AgentStatus.Activating]: ActivatingAgentLayout,
+    [AgentStatus.Working]: WorkingAgentLayout,
+    [AgentStatus.Error]: AssistanceAgentLayout,
+    [AgentStatus.Assistance]: AssistanceAgentLayout,
+    [AgentStatus.Complete]: CompleteAgentLayout
+};
+
+export const AgentCard = (props: AgentCardProps) => {
+    const { status } = props;
+    const LayoutComponent = status ? AGENT_LAYOUTS[status] : BaseAgentLayout;
+
+    return <LayoutComponent {...props} />;
 };

@@ -14,6 +14,8 @@ const nextConfig = {
     experimental: {
         // implement for partial pre-rendering
         // ppr: 'incremental'
+        // currently not playing well with react-icons library
+        // reactCompiler: true
     }
 };
 

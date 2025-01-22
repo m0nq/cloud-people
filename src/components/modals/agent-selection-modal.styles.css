@@ -37,10 +37,9 @@
 }
 
 .agents-grid {
-  @apply grid grid-cols-2 gap-4 py-6 overflow-y-auto justify-items-center flex-1;
+  @apply grid grid-cols-2 gap-2 py-6 overflow-y-auto justify-items-center flex-1;
 
-  > div {
-    @apply w-72 h-56 bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] cursor-pointer rounded-lg shadow-[0px_1px_14px_0px_rgba(0,0,0,0.15)]
-    border border-color-gray;
+  .agent-card-container {
+    @apply w-72 h-64 cursor-pointer rounded-lg;
   }
 }

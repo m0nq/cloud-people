@@ -26,7 +26,7 @@ const LoginPage = async ({ searchParams }: { searchParams: Promise<{ message: st
                         <div className="agreement-wrapper">
                             <label htmlFor="agreement" className="agreement-label">
                                 <input className="agreement-checkbox" type="checkbox" id="agreement" name="agreement" />
-                                I agree to DopeSass<Link href="#">Terms of Service</Link>and{' '}
+                                I agree to the <Link href="#">Terms of Service</Link>and{' '}
                                 <Link href="#">Privacy Policy</Link>
                             </label>
                         </div>

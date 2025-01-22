@@ -17,7 +17,9 @@ export async function GET(request: Request) {
         if (!error) {
             const forwardedHost = request.headers.get('x-forwarded-host'); // original origin before load balancer
             if (forwardedHost) {
-                return NextResponse.redirect(`https://${forwardedHost}${next}`);
+                // Use HTTP for localhost, HTTPS for other environments
+                const protocol = forwardedHost.includes('localhost') ? 'http' : 'https';
+                return NextResponse.redirect(`${protocol}://${forwardedHost}${next}`);
             } else {
                 return NextResponse.redirect(`${origin}${next}`);
             }

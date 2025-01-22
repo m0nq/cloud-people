@@ -33,11 +33,13 @@ export type NodeData = {
     label?: string;
     currentStep?: string;
     state?: WorkflowState;
+    status?: AgentStatus;
     onOpenModal?: (modalType: string) => void;
 };
 
 export type EdgeData = {
     workflowId?: string;
+    type: string;
 };
 
 export type AppState = {
@@ -132,11 +134,27 @@ export type AgentData = {
     id?: string;
     name: string;
     role: string;
+    image?: string;
     parentNodeId?: string;
     status?: 'active' | 'inactive';
     skills?: string[];
-    performance?: {
-        calls?: number;
-        satisfaction?: number;
-    };
+};
+
+export enum AgentStatus {
+    Initial = 'initial',
+    Idle = 'idle',
+    Activating = 'activating',
+    Working = 'working',
+    Error = 'error',
+    Assistance = 'assistance',
+    Complete = 'complete'
+}
+
+export type AgentState = {
+    status: AgentStatus;
+    isEditable: boolean;
+    completedAt?: string;
+    progress?: number;
+    error?: string;
+    assistanceMessage?: string;
 };

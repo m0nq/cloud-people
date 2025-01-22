@@ -23,6 +23,7 @@ export const isLoggedIn = async () => {
 export const loginWithOAuth = async (provider: Provider) => {
     const redirectTo = `${(await headers()).get('origin') ?? 'http://localhost:3000'}/auth/callback`;
     const supabase = await createClient();
+    // const agreement = DOMPurify.sanitize(formData.get('agreement') as string);
 
     // TODO: uncomment when agreement policy is in place
     // if (!agreement) {

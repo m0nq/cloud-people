@@ -50,13 +50,13 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
                 {/* Agent Cards Grid */}
                 <div className="agents-grid">
                     {/* Example agents - replace with actual data */}
-                    <div onClick={() => {
+                    <div className="agent-card-container" onClick={() => {
                         onSelect({ name: 'Rico', role: 'Researcher', parentNodeId });
                         onClose();
                     }}>
                         <AgentCard data={{ name: 'Rico', role: 'Researcher' }} />
                     </div>
-                    <div onClick={() => {
+                    <div className="agent-card-container" onClick={() => {
                         onSelect({ name: 'Becca', role: 'Researcher', parentNodeId });
                         onClose();
                     }}>

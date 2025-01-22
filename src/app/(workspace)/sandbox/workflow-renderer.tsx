@@ -166,9 +166,34 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
 
     // Calculate layout on client-side only
     useEffect(() => {
-        const { laidOutNodes, laidOutEdges } = layoutElements(nodesWithHandlers, edges);
-        setLayout({ nodes: laidOutNodes, edges: laidOutEdges });
+        let isSubscribed = true;
+
+        const calculateLayout = () => {
+            const { laidOutNodes, laidOutEdges } = layoutElements(nodesWithHandlers, edges);
+            if (isSubscribed) {
+                setLayout({ nodes: laidOutNodes, edges: laidOutEdges });
+            }
+        };
+
+        calculateLayout();
+
+        // Cleanup function
+        return () => {
+            isSubscribed = false;
+        };
     }, [nodesWithHandlers, edges]);
+
+    // Cleanup memoized handlers when component unmounts
+    useEffect(() => {
+        return () => {
+            // Clean up any stored node handlers
+            nodesWithHandlers.forEach((node: Node<NodeData>) => {
+                if (node.data?.onOpenModal) {
+                    node.data.onOpenModal = undefined;
+                }
+            });
+        };
+    }, [nodesWithHandlers]);
 
     return (
         <>

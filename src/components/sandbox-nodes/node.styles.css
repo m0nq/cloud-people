@@ -1,5 +1,9 @@
 .agent-node {
-  @apply w-72 h-56 rounded-lg bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)];
+  @apply w-72 h-64 rounded-lg;
+
+  .agent-node-container {
+    @apply w-full h-full rounded-lg;
+  }
 }
 
 .react-flow__handle {

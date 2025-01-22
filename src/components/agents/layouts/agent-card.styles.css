@@ -1,0 +1,295 @@
+.agent-card-base {
+  @apply flex w-full h-full p-4 flex-col items-start justify-between rounded-lg border border-color-gray font-inter
+  text-sm bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] shadow-[0px_1px_14px_0px_rgba(0,0,0,0.15)];
+
+  .agent-title-section {
+    @apply flex gap-x-3 items-center w-full;
+
+    .avatar {
+      @apply w-12 h-12 rounded-full flex-shrink-0;
+    }
+
+    .agent-name {
+      @apply flex-grow min-w-0;
+
+      h3 {
+        @apply font-bold text-color-light text-base;
+      }
+
+      p {
+        @apply text-gray-400 text-sm truncate;
+      }
+    }
+
+    .info-icon-button {
+      @apply w-6 h-6 border-none self-start;
+    }
+  }
+
+  .core-skills-section {
+    @apply flex flex-col w-full text-color-light;
+
+    .skill-label {
+      @apply font-medium pl-2 w-full;
+    }
+
+    .skill-value {
+      @apply bg-[#3C464F] text-color-light py-1.5 px-2 rounded-md w-full truncate;
+    }
+  }
+
+  .stats-section {
+    @apply flex flex-col w-full text-color-light;
+
+    .stat-label {
+      @apply font-medium pl-2 w-full;
+    }
+
+    .stat-item-container {
+      @apply flex w-full justify-between items-center;
+
+      .stat-item {
+        @apply flex items-center justify-center gap-1 w-20 h-8 bg-[#45505A] rounded-lg py-1 px-1;
+
+        svg {
+          @apply w-4 h-4 flex-shrink-0;
+        }
+      }
+    }
+  }
+
+  .agent-tools-section {
+    @apply flex flex-col w-full text-color-light;
+
+    .tool-label {
+      @apply font-medium pl-2 w-full;
+    }
+
+    .tool-item-container {
+      @apply flex justify-between w-full h-full font-semibold;
+
+      .tool-item {
+        @apply flex items-center gap-1 w-2/5 h-8 rounded-lg bg-[#39434B] py-2 px-2;
+
+        .tool-item-placeholder {
+          @apply flex-shrink-0 w-6 h-6 rounded-full bg-dark;
+        }
+
+        p {
+          @apply truncate min-w-0;
+        }
+      }
+
+      .more-tools {
+        @apply flex items-center justify-center w-8 h-8 rounded-full bg-[#39434B] text-sm py-1 px-2 flex-shrink-0;
+      }
+    }
+  }
+}
+
+.activating-agent-card {
+  @apply flex w-72 h-52 p-2.5 flex-col justify-center items-center gap-2.5 rounded-lg border border-[#414141]
+  bg-gradient-to-br from-[#2d2e32] via-[#4b4d54] to-[#2d2e32] text-white;
+
+  .avatar {
+    @apply rounded-3xl border border-white w-12 h-12;
+  }
+
+  .agent-info-section {
+    @apply flex flex-col items-center justify-center gap-1 w-1/2 p-2 text-[#9BA0B8] font-inter;
+
+    .agent-name {
+      @apply flex items-center justify-center gap-1 w-full text-[#DCE0F4] font-inter text-xl font-bold leading-8;
+    }
+  }
+}
+
+.idle-agent-card {
+  @apply w-72 h-fit py-5 px-6 border border-[#414141] rounded-lg bg-gradient-to-r from-[#333C44] to-[#2D2F32]
+  shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)] text-white font-inter;
+
+  .agent-name {
+    @apply font-bold text-lg leading-6 self-center;
+  }
+
+  .content-container {
+    @apply flex flex-col gap-3;
+  }
+
+  .idle-agent-info-section {
+    @apply flex items-start gap-3;
+  }
+
+  .idle-agent-status-section {
+    @apply flex flex-col text-[#BEC1CE];
+
+    .status-label {
+    }
+
+    .status-value {
+    }
+  }
+
+  .idle-agent-tools-section {
+    @apply flex gap-2;
+
+    .tools-indicator-container {
+      @apply flex gap-1;
+
+      .indicator {
+        @apply w-9 h-9 rounded-lg bg-[#141517] overflow-x-auto;
+      }
+    }
+  }
+
+  .buttons-container {
+    @apply flex items-center gap-2 font-sans font-bold text-[#7d829a];
+  }
+}
+
+.working-agent-card {
+  @apply w-72 h-fit flex items-center justify-center relative bg-gradient-to-b from-slate-700 to-slate-800
+  rounded-lg p-0.5 overflow-hidden;
+
+  &::before {
+    background: conic-gradient(transparent 280deg, #ffffff 300deg, #e1e1e1 360deg);
+    @apply absolute h-[150%] w-[150%] -left-1/4 -top-1/4 rounded-lg animate-border-spin content-[''];
+  }
+
+  .working-agent-wrapper {
+    @apply w-full h-fit py-4 px-6 relative flex flex-col gap-2.5 items-start justify-between rounded-lg
+    bg-gradient-to-r from-[#333C44] to-[#2D2F32] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)] font-inter text-white;
+
+    .agent-info-section {
+      .agent-name {
+        @apply font-bold text-lg leading-6 self-center;
+      }
+    }
+
+    .agent-tasks-section {
+      @apply bg-[#232629] w-full h-24 rounded-lg p-2 overflow-y-auto text-sm text-[#BEC1CF];
+
+      .agent-tasks-title {
+        @apply flex items-center justify-start gap-2;
+      }
+
+      .agent-tasks-container {
+      }
+    }
+
+    .buttons-container {
+      @apply flex items-center gap-2 w-full font-sans font-bold;
+    }
+  }
+}
+
+@keyframes border-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.assistance-card {
+  @apply w-full h-full rounded-lg border-2 border-[#DCE0F4]
+  bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)]
+  shadow-[0px_4.885px_51.294px_0px_rgba(255,255,255,0.25)_inset,0px_1.221px_4.885px_0px_rgba(0,0,0,0.15)]
+  p-6 flex flex-col gap-1 relative overflow-visible;
+}
+
+.agent-header {
+  @apply flex items-center gap-3;
+
+  .agent-avatar {
+    @apply rounded-full bg-[#F4F4F4] flex items-center justify-center;
+  }
+
+  .agent-title {
+    @apply text-white font-inter font-bold;
+
+    h3 {
+      @apply text-lg font-semibold;
+    }
+  }
+}
+
+.agent-status {
+  @apply flex flex-col;
+
+  .status-label {
+    @apply text-[#BEC1CE] text-sm flex items-center justify-start gap-1;
+  }
+
+  .status-value {
+    @apply text-[#BEC1CE] font-medium;
+  }
+}
+
+.assistance-message-container {
+  @apply w-full h-16 bg-[#3E4A55] rounded-lg overflow-hidden px-2 flex items-center justify-center relative;
+}
+
+.message-box {
+  @apply text-[#BEC1CE] text-sm;
+}
+
+.hand-icon-container {
+  @apply absolute -right-4 top-0 z-10;
+}
+
+.action-buttons {
+  @apply w-full h-11 flex justify-between items-center gap-2 mt-auto;
+
+  .button {
+    @apply flex-1 px-4 py-2 flex items-center justify-center rounded-lg text-sm font-medium font-sans;
+  }
+
+  .help-button {
+    @apply bg-[#232629]  text-[#7D829A] gap-1;
+  }
+
+  .action-button {
+    @apply w-fit h-fit bg-secondary;
+  }
+}
+
+.complete-agent-card {
+  @apply w-full h-full bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] rounded-lg flex flex-col;
+
+  .header-section {
+    @apply flex items-center gap-3 p-4;
+
+    .avatar-container {
+      @apply relative w-10 h-10;
+    }
+
+    .info-container {
+      @apply flex items-center justify-between gap-6;
+
+      .name-section {
+        h3 {
+          @apply text-white font-medium;
+        }
+      }
+
+      .status-section {
+        @apply flex flex-col items-start justify-start;
+
+        .status-label {
+          @apply text-gray-400 text-sm;
+        }
+
+        .status-value {
+          @apply text-gray-300 text-sm;
+        }
+      }
+    }
+  }
+
+  .review-button {
+    @apply w-full flex-1 bg-[linear-gradient(89deg,#8FA3B5_14.21%,#376995_101.01%)] hover:bg-gray-600
+    text-white rounded-b-lg flex flex-col items-center justify-center gap-2 transition-colors;
+  }
+}
