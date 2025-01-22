@@ -44,7 +44,7 @@ export const AssistanceAgentLayout = ({ data, status, onAssistanceRequest }: Bas
                 {/*{data?.assistanceMessage && (*/}
                 <div className="message-box">
                     {/*<p>{data.assistanceMessage}</p>*/}
-                    <p>Can't find a button. Something is blocking progression.</p>
+                    <p>Can&apos;t find a button. Something is blocking progression.</p>
                 </div>
             </div>
 
