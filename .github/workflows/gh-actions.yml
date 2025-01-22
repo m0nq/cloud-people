@@ -46,7 +46,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: latest-lts
+          version: latest
           run_install: false
 
       - name: Get pnpm store directory
@@ -89,7 +89,7 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: latest-lts
+          version: latest
           run_install: false
 
       - name: Get pnpm store directory
