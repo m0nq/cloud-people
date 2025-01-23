@@ -2,78 +2,68 @@ interface OpenBoxIconProps {
     width?: number;
     height?: number;
     className?: string;
-    primaryColor?: string;
-    secondaryColor?: string;
-    strokeColor?: string;
 }
 
-export const OpenBoxIcon = ({
-    width = 107,
-    height = 94,
-    className,
-    primaryColor = '#bac5d1',
-    secondaryColor = '#bac5d1',
-    strokeColor = '#bac5d1'
-}: OpenBoxIconProps) => {
+export const OpenBoxIcon = ({ width = 116, height = 112, className }: OpenBoxIconProps) => {
     return (
-        <svg width={width} height={height} viewBox="0 0 107 94" fill="none" xmlns="http://www.w3.org/2000/svg"
+        <svg xmlns="http://www.w3.org/2000/svg"
+            width={width}
+            height={height}
+            viewBox="0 0 116 112"
+            fill="none"
             className={className}>
-            <g filter="url(#filter0_f_1528_3066)">
-                <path fill={secondaryColor}
-                    d="M84.8946 70.4167C84.9121 90.9071 77.3182 77.1093 61.1878 74.5374C47.7598 69.8576 51.9599 86.7701 34.9037 69.5516C17.8476 52.333 53.0156 54.2887 70.5706 36.1561C88.1257 18.0235 84.8771 49.9264 84.8946 70.4167Z" />
-                <path stroke={strokeColor}
-                    d="M84.8946 70.4167C84.9121 90.9071 77.3182 77.1093 61.1878 74.5374C47.7598 69.8576 51.9599 86.7701 34.9037 69.5516C17.8476 52.333 53.0156 54.2887 70.5706 36.1561C88.1257 18.0235 84.8771 49.9264 84.8946 70.4167Z" />
+            <g filter="url(#filter0_f_1794_837)">
+                <path fill="#827EDA"
+                    stroke="black"
+                    d="M85.3956 70.5044C85.4131 90.9947 77.8192 77.197 61.6888 74.625C48.2608 69.9452 52.4608 86.8578 35.4047 69.6392C18.3485 52.4207 53.5166 54.3763 71.0716 36.2437C88.6266 18.1111 85.3781 50.014 85.3956 70.5044Z" />
             </g>
-            <path
-                d="M76.6013 69.0733V55.4863C76.6006 54.8907 76.4434 54.3056 76.1453 53.7899C75.8472 53.2742 75.4187 52.846 74.9029 52.5481L63.0143 45.7546C62.4979 45.4565 61.9121 45.2996 61.3159 45.2996C60.7196 45.2996 60.1339 45.4565 59.6175 45.7546L47.7289 52.5481C47.213 52.846 46.7846 53.2742 46.4865 53.7899C46.1884 54.3056 46.0311 54.8907 46.0305 55.4863V69.0733C46.0311 69.669 46.1884 70.254 46.4865 70.7697C46.7846 71.2854 47.213 71.7137 47.7289 72.0115L59.6175 78.805C60.1339 79.1031 60.7196 79.2601 61.3159 79.2601C61.9121 79.2601 62.4979 79.1031 63.0143 78.805L74.9029 72.0115C75.4187 71.7137 75.8472 71.2854 76.1453 70.7697C76.4434 70.254 76.6006 69.669 76.6013 69.0733Z"
-                fill={primaryColor}
-                stroke={strokeColor}
+            <path fill="#CDDBE9"
+                stroke="#2D3742"
                 strokeWidth="2"
                 strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M77.1022 69.161V55.574C77.1016 54.9783 76.9444 54.3933 76.6463 53.8776C76.3482 53.3619 75.9197 52.9336 75.4039 52.6358L63.5152 45.8423C62.9989 45.5442 62.4131 45.3872 61.8169 45.3872C61.2206 45.3872 60.6349 45.5442 60.1185 45.8423L48.2299 52.6358C47.714 52.9336 47.2855 53.3619 46.9874 53.8776C46.6893 54.3933 46.5321 54.9783 46.5315 55.574V69.161C46.5321 69.7566 46.6893 70.3417 46.9874 70.8574C47.2855 71.3731 47.714 71.8013 48.2299 72.0992L60.1185 78.8927C60.6349 79.1908 61.2206 79.3477 61.8169 79.3477C62.4131 79.3477 62.9989 79.1908 63.5152 78.8927L75.4039 72.0992C75.9197 71.8013 76.3482 71.3731 76.6463 70.8574C76.9444 70.3417 77.1016 69.7566 77.1022 69.161Z" />
+            <path d="M61.8169 79.4873V62.3677" stroke="#2D3742" strokeWidth="2" strokeLinecap="round"
                 strokeLinejoin="round" />
-            <path d="M61.3159 79.3996V62.28" stroke={strokeColor} strokeWidth="2" strokeLinecap="round"
+            <path d="M61.8169 64.1094V46.9897" stroke="#2D3742" strokeWidth="2" strokeLinecap="round"
                 strokeLinejoin="round" />
-            <path d="M61.3159 64.0217V46.9021" stroke={strokeColor} strokeWidth="2" strokeLinecap="round"
-                strokeLinejoin="round" />
-            <path
-                d="M70.0429 36.2949L62.6174 45.5959L77.0002 54.4644L85.1933 44.7792L70.0429 36.2949Z"
-                fill={primaryColor}
-                stroke={strokeColor}
+            <path fill="#CDDBE9"
+                stroke="#2D3742"
                 strokeWidth="2"
                 strokeLinecap="round"
-                strokeLinejoin="round" />
-            <path
-                d="M35.5004 54.1774L46.5002 53.4644L61.5002 62.4644L52.4689 65.0858L35.5004 54.1774Z"
-                fill={primaryColor}
-                stroke={strokeColor}
+                strokeLinejoin="round"
+                d="M70.5438 36.3826L63.1184 45.6835L77.5012 54.552L85.6943 44.8669L70.5438 36.3826Z" />
+            <path fill="#CDDBE9"
+                stroke="#2D3742"
                 strokeWidth="2"
                 strokeLinecap="round"
-                strokeLinejoin="round" />
-            <circle cx="58.0594" cy="53.6575" r="3.86383" fill={primaryColor} />
-            <circle cx="73.3127" cy="52.5344" r="2.74071" fill={primaryColor} />
-            <circle cx="65.8508" cy="51.4805" r="3.23265" fill={primaryColor} />
-            <circle cx="51.3257" cy="50.8502" r="3.86383" fill={primaryColor} />
-            <circle cx="62.2411" cy="58.8044" r="2.83392" fill={primaryColor} />
-            <circle cx="59.5644" cy="45.4533" r="3.05363" fill={primaryColor} />
-            <circle cx="70.5725" cy="45.1235" r="2.72384" fill={primaryColor} />
-            <circle cx="54.1959" cy="54.714" r="1.93983" fill={primaryColor} />
-            <circle cx="62.881" cy="49.5912" r="1.93983" fill={primaryColor} />
-            <circle cx="61.8158" cy="53.6574" r="1.93983" fill={primaryColor} />
-            <circle cx="69.7885" cy="52.3226" r="1.93983" fill={primaryColor} />
-            <circle cx="65.0756" cy="40.4599" r="1.93983" fill={primaryColor} />
-            <circle cx="58.4506" cy="32.0717" r="1.93983" fill={primaryColor} />
-            <circle cx="67.7904" cy="27.9398" r="1.93983" fill={primaryColor} />
+                strokeLinejoin="round"
+                d="M36.0013 54.2651L47.0012 53.552L62.0012 62.552L52.9699 65.1735L36.0013 54.2651Z" />
+            <circle cx="58.5604" cy="53.7452" r="3.86383" fill="white" />
+            <circle cx="73.8137" cy="52.6221" r="2.74071" fill="white" />
+            <circle cx="66.3518" cy="51.5681" r="3.23265" fill="white" />
+            <circle cx="51.8267" cy="50.9378" r="3.86383" fill="white" />
+            <circle cx="62.7421" cy="58.892" r="2.83392" fill="white" />
+            <circle cx="60.0653" cy="45.5409" r="3.05363" fill="white" />
+            <circle cx="71.0734" cy="45.2111" r="2.72384" fill="white" />
+            <circle cx="54.6969" cy="54.8016" r="1.93983" fill="white" />
+            <circle cx="63.382" cy="49.6788" r="1.93983" fill="white" />
+            <circle cx="62.3168" cy="53.745" r="1.93983" fill="white" />
+            <circle cx="70.2894" cy="52.4103" r="1.93983" fill="white" />
+            <circle cx="65.5765" cy="40.5475" r="1.93983" fill="white" />
+            <circle cx="58.9515" cy="32.1593" r="1.93983" fill="white" />
+            <circle cx="68.2914" cy="28.0275" r="1.93983" fill="white" />
             <path
-                d="M60.413 61.0329L49.3875 54.3374L50.9912 53.2148L73.8039 53.5757L74.2449 55.2195L64.2619 60.9928L60.413 61.0329Z"
-                fill={primaryColor} />
-            <path d="M46.8799 53.1772L61.2119 62.2488L75.5766 54.1668" stroke={strokeColor} strokeWidth="2"
+                d="M60.914 61.1205L49.8884 54.425L51.4922 53.3025L74.3049 53.6633L74.7459 55.3071L64.7628 61.0805L60.914 61.1205Z"
+                fill="white" />
+            <path d="M47.3809 53.2649L61.7129 62.3365L76.0776 54.2544" stroke="#2D3742" strokeWidth="2"
                 strokeLinecap="round" strokeLinejoin="round" />
             <defs>
-                <filter id="filter0_f_1528_3066" x="0.357178" y="0.782471" width="114.764" height="110.683"
+                <filter id="filter0_f_1794_837" x="0.858154" y="0.870117" width="114.764" height="110.683"
                     filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
                     <feFlood floodOpacity="0" result="BackgroundImageFix" />
                     <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
-                    <feGaussianBlur stdDeviation="15" result="effect1_foregroundBlur_1528_3066" />
+                    <feGaussianBlur stdDeviation="15" result="effect1_foregroundBlur_1794_837" />
                 </filter>
             </defs>
         </svg>
