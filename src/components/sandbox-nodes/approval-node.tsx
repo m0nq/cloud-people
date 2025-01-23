@@ -1,5 +1,6 @@
 import { Position } from '@xyflow/react';
 import { ReactNode } from 'react';
+import { useState } from 'react';
 import { HiOutlinePencilAlt } from 'react-icons/hi';
 import { BiLike } from 'react-icons/bi';
 import { BiDislike } from 'react-icons/bi';
@@ -17,6 +18,7 @@ type ApprovalNodeProps = {
         name: string;
         role: string;
         onOpenModal?: () => void;
+        approvalState?: 'pending' | 'approved' | 'rejected';
         [key: string]: any;
     };
     targetPosition?: string;
@@ -45,8 +47,28 @@ const getPosition = (position?: string): Position => {
 const ApprovalNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: ApprovalNodeProps): ReactNode => {
     const sPosition = getPosition(sourcePosition);
     const tPosition = getPosition(targetPosition);
+    const [approvalState, setApprovalState] = useState<'pending' | 'approved' | 'rejected'>(
+        data.approvalState || 'pending'
+    );
 
-    // get user data from db
+    const handleApprove = () => {
+        setApprovalState('approved');
+    };
+
+    const handleReject = () => {
+        setApprovalState('rejected');
+    };
+
+    const getButtonStyle = (type: 'approve' | 'reject') => {
+        const baseStyle = 'approval-button';
+        if (type === 'approve' && approvalState === 'approved') {
+            return `${baseStyle} approval-button-approved`;
+        }
+        if (type === 'reject' && approvalState === 'rejected') {
+            return `${baseStyle} approval-button-rejected`;
+        }
+        return baseStyle;
+    };
 
     return (
         <NodeComponent.Root className="approval-node">
@@ -68,10 +90,10 @@ const ApprovalNode = ({ id, data, isConnectable, sourcePosition, targetPosition 
                 </div>
             </NodeComponent.Content>
             <div className="approval-buttons">
-                <button className="approval-button">
+                <button className={getButtonStyle('approve')} onClick={handleApprove}>
                     <BiLike size={24} color="#fff" />
                 </button>
-                <button className="approval-button">
+                <button className={getButtonStyle('reject')} onClick={handleReject}>
                     <BiDislike size={24} color="#fff" />
                 </button>
             </div>
