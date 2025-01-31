@@ -1,6 +1,6 @@
 # Cloud People
 
-## Where all the code lives for the cloud people project
+## Modern Monorepo for Cloud People Project
 
 <!-- PROJECT SHIELDS -->
 <!--
@@ -60,150 +60,88 @@
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
+    <li><a href="#project-structure">Project Structure</a></li>
     <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
 </details>
 
-<!-- ABOUT THE PROJECT -->
-
 ## About The Project
 
-[//]: # '[![Product Name Screen Shot][product-screenshot]](https://example.com)'
-
-Description coming soon...
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+Cloud People is a modern web application built using a monorepo architecture. This structure allows us to maintain multiple related packages and applications in a single repository while sharing code and dependencies efficiently.
 
 ### Built With
 
-- [![React][React.js]][React-url]
-- [![Next.js][Next.js]][Next-url]
-- [![TailwindCSS][TailwindCSS]][Tailwind-url]
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- GETTING STARTED -->
+* [Next.js](https://nextjs.org/) - React framework for the web application
+* [Turborepo](https://turbo.build/repo) - High-performance build system for JavaScript/TypeScript monorepos
+* [pnpm](https://pnpm.io/) - Fast, disk space efficient package manager
+* [TypeScript](https://www.typescriptlang.org/) - Type-safe JavaScript
+* [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
 
 ## Getting Started
 
-Fork &/or clone this repo get a local copy. To get up and running, follow these simple example steps:
-
 ### Prerequisites
 
-- Node.js 20.x or later
-- pnpm 8.x or later
+* [Node.js](https://nodejs.org/) (v18 or later)
+* [pnpm](https://pnpm.io/) (v9.15.4 or later)
+```bash
+npm install -g pnpm
+```
 
 ### Installation
 
-1. Clone the repo
-
-    ```sh
-    git clone https://github.com/m0nq/cloud-people.git
-    ```
-
-2. Install pnpm (if not already installed)
-
-    ```sh
-    npm install -g pnpm
-    ```
-
-3. Install dependencies
-
-    ```sh
-    pnpm install
-    ```
-
-4. Create a `.env` file in the root directory and add your environment variables
-    ```sh
-    cp .env.example .env
-    ```
-
-### Development
-
-Run the development server:
-
-```sh
-pnpm dev
+1. Clone the repository
+```bash
+git clone https://github.com/m0nq/cloud-people.git
+cd cloud-people
 ```
 
-Run tests:
-
-```sh
-pnpm test
+2. Install dependencies
+```bash
+pnpm install
 ```
 
-Run linting:
+## Project Structure
 
-```sh
-pnpm lint
+The monorepo is organized into the following workspaces:
+
 ```
-
-### Build
-
-Build for production:
-
-```sh
-pnpm build
+cloud-people/
+├── apps/
+│   ├── web/          # Next.js web application
+│   └── server/       # Backend server
+├── packages/         # Shared packages
+├── docs/            # Documentation
+└── turbo.json       # Turborepo configuration
 ```
-
-Start production server:
-
-```sh
-pnpm start
-```
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- USAGE EXAMPLES -->
 
 ## Usage
 
-```sh
-# Start development server
+Development:
+```bash
+# Run all applications in development mode
 pnpm dev
-# or
+
+# Run specific applications
+pnpm app:dev      # Run web app only
+pnpm server:dev   # Run server only
+```
+
+Building:
+```bash
+# Build all applications
 pnpm build
+
+# Run all applications in production mode
 pnpm start
 ```
 
-```sh
-# Run tests
-pnpm test
+Other Commands:
+```bash
+pnpm lint        # Run linting
+pnpm test        # Run tests
 ```
-
-```sh
-# Lint code
-pnpm lint
-```
-
-[//]: # 'Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos'
-[//]: # 'work well in this space. You may also link to more resources.'
-[//]: # '_For more examples, please refer to the [Documentation](https://example.com)_'
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- ROADMAP -->
-
-## Roadmap
-
-- [x] Add back to top links
-- [ ] Add Changelog
-- [ ] Add Additional Templates w/ Examples
-- [ ] Add "components" document to easily copy & paste sections of the readme
-- [ ] Multi-language Support
-    - [ ] Spanish
-
-[//]: # 'See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a full list of proposed features ('
-[//]: # 'and known issues).'
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- CONTRIBUTING -->
 
 ## Contributing
 
@@ -216,19 +154,6 @@ We welcome contributions to Cloud People! Please note that we have branch protec
 For detailed contribution guidelines and branch protection rules, please see our [Contributing Guide](docs/CONTRIBUTING.md).
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- CODE STANDARD -->
-
-## Coding Standard
-
-Always use clean coding standards [JS](https://github.com/ryanmcdermott/clean-code-javascript), [TS](https://github.com/labs42io/clean-code-typescript)
-
-- JS: Use [Google style guide](https://google.github.io/styleguide/jsguide.html) or [JS Semistandard](https://github.com/standard/semistandard)
-- TS: Use [Google style guide](https://google.github.io/styleguide/tsguide.html)
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-<!-- LICENSE -->
 
 ## License
 
