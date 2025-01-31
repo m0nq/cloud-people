@@ -1,5 +1,6 @@
 'use client';
 import { ReactNode } from 'react';
+import { ChangeEvent } from 'react';
 import { useCallback } from 'react';
 import { useState } from 'react';
 import { useMemo } from 'react';
@@ -40,7 +41,8 @@ export const DatePicker = ({ isOpen, onClose, onDateSelect }: DatePickerProps): 
         [selectedDate]
     );
 
-    const handleTimeChange = (value: string) => {
+    const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.value;
         if (!value) return;
         setSelectedTime(value);
     };
@@ -110,7 +112,7 @@ export const DatePicker = ({ isOpen, onClose, onDateSelect }: DatePickerProps): 
                     />
                     <UnstyledButton className="time-toggle-button" onClick={() => setShowTimeInput(!showTimeInput)}>
                         <div className="time-toggle-content">
-                            <span>Select Time</span>
+                            <span>Time (Optional)</span>
                             <ChevronIcon className={showTimeInput ? 'chevron-rotated' : ''} />
                         </div>
                     </UnstyledButton>
