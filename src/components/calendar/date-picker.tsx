@@ -110,7 +110,7 @@ export const DatePicker = ({ isOpen, onClose, onDateSelect }: DatePickerProps): 
                     />
                     <UnstyledButton className="time-toggle-button" onClick={() => setShowTimeInput(!showTimeInput)}>
                         <div className="time-toggle-content">
-                            <span>Select Time</span>
+                            <span>Time (Optional)</span>
                             <ChevronIcon className={showTimeInput ? 'chevron-rotated' : ''} />
                         </div>
                     </UnstyledButton>
