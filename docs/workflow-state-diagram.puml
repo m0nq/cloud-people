@@ -1,0 +1,41 @@
+@startuml
+
+[*] --> InitialState : "Page Load"
+
+state InitialState {
+    [*] --> StartFromScratch : "Start from Scratch"
+    [*] --> StartFromTemplate : "Start from Template"
+    [*] --> StartFromAI : "Start from AI Prompt"
+}
+
+state BuildState {
+    [*] --> BuildFromScratch : "Build from Scratch"
+    [*] --> BuildFromTemplate : "Build from Template"
+    [*] --> BuildFromAI : "Build from AI"
+}
+
+state RunningState {
+    [*] --> NodeState
+}
+
+BuildFromScratch --> RunningState : "Test/Run Workflow"
+BuildFromTemplate --> RunningState : "Test/Run Workflow"
+BuildFromAI --> RunningState : "Test/Run Workflow"
+
+RunningState --> ErrorState : "Error Occurred"
+RunningState --> CompletionState : "Workflow Completed"
+RunningState --> BuildState : "Cancel Workflow"
+
+ErrorState --> BuildState : "Acknowledge Error"
+
+CompletionState --> BuildState : "Build New / Edit Workflow"
+
+InitialState --> BuildState : "Choose Option"
+
+note right of ErrorState
+  Notify User:
+  - For approval for next steps
+  - If errors happen
+end note
+
+@enduml

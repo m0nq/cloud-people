@@ -1,0 +1,26 @@
+{
+  "name": "@cloud-people/server",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "start": "node dist/server.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "build": "tsc",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "@cloud-people/types": "workspace:*",
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "@cloud-people/eslint-config": "workspace:*",
+    "@cloud-people/tsconfig": "workspace:*",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.10",
+    "eslint": "^8.56.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.3"
+  }
+}
