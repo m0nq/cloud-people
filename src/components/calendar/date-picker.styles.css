@@ -8,7 +8,7 @@
 }
 
 .calendar-container {
-  @apply w-full h-full inline-flex flex-col justify-center items-center rounded-lg;
+  @apply w-full h-full inline-flex flex-col justify-center items-center rounded-lg py-1;
 }
 
 .mantine-InputWrapper-root {
@@ -36,6 +36,10 @@
 
 .submit-button {
   @apply flex-1 flex flex-col items-center justify-center bg-[#0052ff] text-[#c4c4c4] text-lg hover:text-white hover:bg-[#0052ff]/80;
+}
+
+.submit-button:disabled {
+  @apply opacity-50 cursor-not-allowed hover:bg-[#0052ff] hover:text-[#c4c4c4];
 }
 
 /* Calendar day cells */

@@ -24,24 +24,36 @@ export const DatePicker = ({ isOpen, onClose, onDateSelect }: DatePickerProps): 
     // const [date, setDate] = useState(moment().toDate());
     const [selected, setSelected] = useState<Date[]>([]);
 
-    const handleDateSelect = useCallback((date: Date) => {
-        const isSelected = selected.some(s => dayjs(date).isSame(s, 'date'));
-        if (isSelected) {
-            setSelected(current => current.filter(d => !dayjs(d).isSame(date, 'date')));
-        } else if (selected.length < 3) {
-            setSelected(current => [...current, date]);
-        }
-    }, [onDateSelect]);
+    const handleDateSelect = useCallback(
+        (date: Date) => {
+            const isSelected = selected.some(s => dayjs(date).isSame(s, 'date'));
+            if (isSelected) {
+                setSelected(current => current.filter(d => !dayjs(d).isSame(date, 'date')));
+            } else if (selected.length < 3) {
+                // Ensure we don't add duplicates
+                setSelected(current => {
+                    const isDuplicate = current.some(d => dayjs(d).isSame(date, 'date'));
+                    if (isDuplicate) return current;
+                    return [...current, date];
+                });
+            }
+        },
+        [selected]
+    );
 
-    const config = useMemo(() => ({
-        settings: {
-            consistentWeeks: true,
-            theme: { colorScheme: 'dark' }
-        }
-    }), []);
+    const config = useMemo(
+        () => ({
+            settings: {
+                consistentWeeks: true,
+                theme: { colorScheme: 'dark' }
+            }
+        }),
+        []
+    );
 
     return (
-        <Modal opened={isOpen}
+        <Modal
+            opened={isOpen}
             onClose={onClose}
             centered
             padding={0}
@@ -77,6 +89,7 @@ export const DatePicker = ({ isOpen, onClose, onDateSelect }: DatePickerProps): 
                 </Button>
                 <Button
                     className="submit-button"
+                    disabled={!selected.length}
                     onClick={() => {
                         onDateSelect(selected);
                         onClose();
