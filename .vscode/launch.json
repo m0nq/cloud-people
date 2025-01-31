@@ -1,0 +1,137 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Next.js: Dev",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["dev"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Next.js: Start",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["build", "&&", "pnpm", "start"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Next.js: Build",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["build"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Next.js: Analyze Build",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["analyze"],
+            "console": "integratedTerminal",
+            "env": {
+                "ANALYZE": "true"
+            }
+        },
+        {
+            "name": "Serve Built Output",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["serve"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Lint Code",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["lint"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Format Code",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["pretty"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Check Formatting",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["pretty:check"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Jest: All Tests",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["test"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Jest: Coverage",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["test:coverage"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Jest: Watch",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["test:watch"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Cypress E2E",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["e2e:cypress"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Start Supabase",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["start:supabase"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Stop Supabase",
+            "type": "node",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "runtimeExecutable": "pnpm",
+            "runtimeArgs": ["stop:supabase"],
+            "console": "integratedTerminal"
+        }
+    ]
+}

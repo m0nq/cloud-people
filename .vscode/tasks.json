@@ -1,0 +1,83 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "command": "yarn",
+            "args": ["dev"],
+            "label": "yarn: dev",
+            "detail": "next dev",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "type": "shell",
+            "command": "yarn",
+            "args": ["build"],
+            "label": "yarn: build",
+            "detail": "next build",
+            "group": "build"
+        },
+        {
+            "type": "shell",
+            "command": "yarn",
+            "args": ["start"],
+            "label": "yarn: start",
+            "detail": "next start",
+            "dependsOn": "yarn: build",
+            "problemMatcher": [
+                "$eslint-compact"
+            ]
+        },
+        {
+            "type": "shell",
+            "command": "yarn",
+            "args": ["lint"],
+            "label": "yarn: lint",
+            "detail": "next lint",
+            "problemMatcher": [
+                "$eslint-stylish"
+            ]
+        },
+        {
+            "type": "shell",
+            "command": "yarn",
+            "args": ["pretty"],
+            "label": "yarn: pretty",
+            "detail": "pretty",
+            "group": "none"
+        },
+        {
+            "type": "shell",
+            "command": "yarn",
+            "args": ["pretty:check"],
+            "label": "yarn: pretty:check",
+            "detail": "pretty check",
+            "group": "none"
+        },
+        {
+            "type": "shell",
+            "command": "yarn",
+            "args": ["test"],
+            "label": "yarn: test",
+            "detail": "jest",
+            "group": "test"
+        },
+        {
+            "type": "shell",
+            "command": "yarn",
+            "args": ["start:supabase"],
+            "label": "yarn: start:supabase",
+            "detail": "supabase start"
+        },
+        {
+            "type": "shell",
+            "command": "yarn",
+            "args": [ "stop:supabase" ],
+            "label": "yarn: stop:supabase",
+            "detail": "supabase stop"
+        }
+    ]
+}
