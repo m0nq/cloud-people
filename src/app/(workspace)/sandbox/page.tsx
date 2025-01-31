@@ -1,5 +1,6 @@
 'use client';
 import { ReactNode } from 'react';
+import { useState } from 'react';
 import '@xyflow/react/dist/style.css';
 import { Panel } from '@xyflow/react';
 import { ReactFlow } from '@xyflow/react';
@@ -18,13 +19,22 @@ import { WorkflowRenderer } from '@app/(workspace)/sandbox/workflow-renderer';
 import { SandboxController } from '@components/sandbox-controller/sandbox-controller';
 import { SandboxRunButton } from '@components/sandbox-run-button/sandbox-run-button';
 import { BranchesIcon } from '@components/icons/branches-icon';
+import { DatePicker } from '@/components/calendar/date-picker';
 
 const Sandbox = (): ReactNode => {
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+    const handleDateSelect = (dates: Date[]) => {
+        console.log('Selected date:', dates);
+        // Add your date handling logic here
+    };
+
     return (
         <WorkflowRenderer>
             {({ ...props }): ReactNode => (
                 <div className="flow-container">
-                    <ReactFlow nodeOrigin={[0.5, 0.5]}
+                    <ReactFlow
+                        nodeOrigin={[0.5, 0.5]}
                         nodesDraggable
                         nodesFocusable
                         autoPanOnConnect
@@ -47,7 +57,7 @@ const Sandbox = (): ReactNode => {
                             <button onClick={() => alert('Something magical just happened. ✨')}>
                                 <FiUserPlus className="icon-button" strokeWidth={1.5} />
                             </button>
-                            <button onClick={() => alert('Something magical just happened. ✨')}>
+                            <button onClick={() => setIsCalendarOpen(true)}>
                                 <TbCalendarTime className="icon-button" strokeWidth={1.5} />
                             </button>
                             <button onClick={() => alert('Something magical just happened. ✨')}>
@@ -71,6 +81,12 @@ const Sandbox = (): ReactNode => {
                                 <LuClock4 className="icon-button" strokeWidth={1.5} />
                             </button>
                         </Panel>
+                        {isCalendarOpen && (
+                            <Panel className="calendar-panel">
+                                <DatePicker isOpen={isCalendarOpen} onClose={() => setIsCalendarOpen(false)}
+                                    onDateSelect={handleDateSelect} />
+                            </Panel>
+                        )}
                     </ReactFlow>
                 </div>
             )}

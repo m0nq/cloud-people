@@ -16,3 +16,5 @@ export const inter = Inter({
     subsets: ['latin'],
     variable: '--font-family-inter'
 });
+
+// TODO: install Neue Montreal?

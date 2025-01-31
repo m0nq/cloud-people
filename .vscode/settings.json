@@ -7,7 +7,9 @@
     "npm.enableRunFromFolder": true,
     "task.quickOpen.showAll": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.formatOnSave": true,
+    "editor.formatOnSave": false,
+    "editor.formatOnPaste": false,
+    "editor.formatOnType": false,
     "files.associations": {
         "*.css": "tailwindcss"
     },
