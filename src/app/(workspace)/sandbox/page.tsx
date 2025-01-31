@@ -24,8 +24,8 @@ import { DatePicker } from '@/components/calendar/date-picker';
 const Sandbox = (): ReactNode => {
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
-    const handleDateSelect = (date: Date) => {
-        console.log('Selected date:', date);
+    const handleDateSelect = (dates: Date[]) => {
+        console.log('Selected date:', dates);
         // Add your date handling logic here
     };
 
@@ -83,7 +83,8 @@ const Sandbox = (): ReactNode => {
                         </Panel>
                         {isCalendarOpen && (
                             <Panel className="calendar-panel">
-                                <DatePicker isOpen={isCalendarOpen} onClose={() => setIsCalendarOpen(false)} onDateSelect={handleDateSelect} />
+                                <DatePicker isOpen={isCalendarOpen} onClose={() => setIsCalendarOpen(false)}
+                                    onDateSelect={handleDateSelect} />
                             </Panel>
                         )}
                     </ReactFlow>

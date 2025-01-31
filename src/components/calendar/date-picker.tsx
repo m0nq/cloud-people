@@ -1,56 +1,47 @@
 'use client';
-
+import dayjs from 'dayjs';
 import { ReactNode } from 'react';
 import { useCallback } from 'react';
 import { useState } from 'react';
+import { useMemo } from 'react';
 import '@mantine/dates/styles.css';
 import '@mantine/core/styles.css';
 import { Modal } from '@mantine/core';
-import { DatePickerInput } from '@mantine/dates';
-import { DateValue } from '@mantine/dates';
-import moment from 'moment';
+import { Calendar } from '@mantine/dates';
+import { DatesProvider } from '@mantine/dates';
 
 import './date-picker.styles.css';
+import { Button } from '@components/utils/button/button';
 
 interface DatePickerProps {
     isOpen: boolean;
     onClose: () => void;
-    onDateSelect: (date: Date) => void;
+    onDateSelect: (dates: Date[]) => void;
 }
-
-const getDayProps = (date: Date) => {
-    const dayOfWeek = date.getDay();
-
-    if (dayOfWeek === 5 && date.getDate() === 13) {
-        return {
-            style: {
-                backgroundColor: 'var(--mantine-color-red-filled)',
-                color: 'var(--mantine-color-white)'
-            }
-        };
-    }
-
-    return {};
-};
 
 export const DatePicker = ({ isOpen, onClose, onDateSelect }: DatePickerProps): ReactNode => {
     // const [value, setValue] = useState<Date | null>(null);
-    const [date, setDate] = useState(moment().toDate());
+    // const [date, setDate] = useState(moment().toDate());
+    const [selected, setSelected] = useState<Date[]>([]);
 
-    const handleDateSelect = useCallback(
-        (value: DateValue) => {
-            if (value !== null) {
-                setDate((current: Date) => new Date(current.getFullYear() + 1, 1));
-            }
+    const handleDateSelect = useCallback((date: Date) => {
+        const isSelected = selected.some(s => dayjs(date).isSame(s, 'date'));
+        if (isSelected) {
+            setSelected(current => current.filter(d => !dayjs(d).isSame(date, 'date')));
+        } else if (selected.length < 3) {
+            setSelected(current => [...current, date]);
+        }
+    }, [onDateSelect]);
 
-            setDate(moment(value).toDate());
-        },
-        [onClose, onDateSelect]
-    );
+    const config = useMemo(() => ({
+        settings: {
+            consistentWeeks: true,
+            theme: { colorScheme: 'dark' }
+        }
+    }), []);
 
     return (
-        <Modal
-            opened={isOpen}
+        <Modal opened={isOpen}
             onClose={onClose}
             centered
             padding={0}
@@ -69,23 +60,30 @@ export const DatePicker = ({ isOpen, onClose, onDateSelect }: DatePickerProps): 
             }}>
             <div className="calendar-container">
                 {/* TODO: give user ability to change first day of week */}
-                <DatePickerInput
-                    placeholder={date?.toDateString() ?? 'Pick date'}
-                    value={date}
-                    onChange={handleDateSelect}
-                    allowDeselect
-                    firstDayOfWeek={0}
-                    getDayProps={getDayProps}
-                />
+                <DatesProvider settings={config.settings}>
+                    <Calendar
+                        getDayProps={(date: Date) => ({
+                            selected: selected.some(s => dayjs(date).isSame(s, 'date')),
+                            onClick: () => handleDateSelect(date)
+                        })}
+                        firstDayOfWeek={0}
+                        aria-label="Date Time Picker"
+                    />
+                </DatesProvider>
             </div>
-            {/* <div className="button-container">
-             <Button variant="default" className="cancel-button" onClick={onClose}>
-             Cancel
-             </Button>
-             <Button className="submit-button" onClick={() => handleDateSelect(new Date())}>
-             Choose Date
-             </Button>
-             </div> */}
+            <div className="button-container">
+                <Button className="cancel-button" onClick={onClose}>
+                    Cancel
+                </Button>
+                <Button
+                    className="submit-button"
+                    onClick={() => {
+                        onDateSelect(selected);
+                        onClose();
+                    }}>
+                    Select
+                </Button>
+            </div>
         </Modal>
     );
 };

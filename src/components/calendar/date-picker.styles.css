@@ -1,14 +1,10 @@
 .mantine-Paper-root,
 .mantine-Modal-content {
-  @apply w-[424px] h-fit flex rounded-lg;
+  @apply w-[300px] h-fit flex rounded-lg text-white;
 }
 
 .mantine-Modal-body {
   @apply w-full h-fit rounded-lg;
-}
-
-.mantine-Popover-dropdown {
-  @apply w-auto h-auto inline-flex flex-col justify-center items-center p-5 gap-5 rounded-lg;
 }
 
 .calendar-container {
@@ -20,19 +16,66 @@
 }
 
 /* Style the DatePickerInput to match container width */
-.mantine-DatePickerInput-input {
+.mantine-DateTimePicker-input {
   @apply w-full h-fit rounded-lg border-2 border-[#1F5EFF] bg-[#2A2F3B] text-white flex items-center
-  justify-center;
+  justify-between py-1;
+}
+
+.mantine-Popover-dropdown {
+  @apply w-auto h-auto inline-flex flex-col justify-center items-center p-5 gap-5 rounded-lg bg-[#323741] text-white
+  border border-[#3B414A];
 }
 
 .button-container {
-  @apply flex p-4 gap-2 border-t border-white/10;
+  @apply flex items-center justify-center p-4 gap-2 border-t border-white/10;
 }
 
 .cancel-button {
-  @apply flex-1 bg-[#1f242d] text-white border-none;
+  @apply flex-1 bg-[#1f242d] text-[#C4C4C4] border-none text-lg hover:text-white;
 }
 
 .submit-button {
-  @apply flex-1 bg-[#0052ff] text-white;
+  @apply flex-1 flex flex-col items-center justify-center bg-[#0052ff] text-[#c4c4c4] text-lg hover:text-white hover:bg-[#0052ff]/80;
+}
+
+/* Calendar day cells */
+.mantine-Calendar-day {
+  @apply text-white bg-transparent transition-colors duration-200 !important;
+}
+
+.mantine-Calendar-day:not([data-outside='true']) {
+  @apply bg-[#3B414A] rounded-lg !important;
+}
+
+.mantine-Calendar-day:hover {
+  @apply bg-[#474B52] text-white !important;
+}
+
+.mantine-Calendar-day[data-selected='true'] {
+  @apply bg-[#3BC9AF] text-white !important;
+}
+
+.mantine-Calendar-day[data-selected='true']:hover {
+  @apply bg-[#3BC9AF]/90 text-white !important;
+}
+
+/* Outside month days */
+.mantine-Calendar-day[data-outside='true'] {
+  @apply text-white/30 !important;
+}
+
+/* Calendar heading controls */
+.mantine-Calendar-calendarHeaderControl,
+.mantine-Calendar-calendarHeaderLevel {
+  @apply bg-transparent text-white !important;
+}
+
+.mantine-Calendar-calendarHeaderControl:hover,
+.mantine-Calendar-calendarHeaderLevel:hover {
+  @apply bg-[#474B52] text-white !important;
+}
+
+/* Make weekday labels white */
+.mantine-Calendar-weekdayCell {
+  @apply text-white/60 !important;
 }
