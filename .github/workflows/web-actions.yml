@@ -94,9 +94,12 @@ jobs:
 
             - name: Debug Directory Structure
               run: |
-                  pwd
+                  echo "Current directory: $(pwd)"
+                  echo "Directory contents:"
                   ls -la
-                  ls -la apps/
+                  echo "Repository root contents:"
+                  cd /home/runner/work/cloud-people/cloud-people
+                  ls -la
 
             - name: Setup Node.js
               uses: actions/setup-node@v4
@@ -123,19 +126,22 @@ jobs:
                       ${{ runner.os }}-pnpm-store-
 
             - name: Install dependencies
+              working-directory: /home/runner/work/cloud-people/cloud-people
               run: pnpm install --frozen-lockfile
 
             - name: Install Vercel CLI
               run: pnpm add -g vercel@latest
 
             - name: Link Project
+              working-directory: /home/runner/work/cloud-people/cloud-people
               run: vercel link --confirm --token=${{ secrets.CP_VERCEL_TOKEN }}
 
             - name: Pull Vercel Environment Information
+              working-directory: /home/runner/work/cloud-people/cloud-people
               run: vercel pull --yes --environment=production --token=${{ secrets.CP_VERCEL_TOKEN }}
 
             - name: Set Environment Variables
-              working-directory: apps/web
+              working-directory: /home/runner/work/cloud-people/cloud-people/apps/web
               env:
                   CP_VERCEL_TOKEN: ${{ secrets.CP_VERCEL_TOKEN }}
                   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -149,11 +155,13 @@ jobs:
                   echo SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" >> .env.production
 
             - name: Build Project Artifacts
+              working-directory: /home/runner/work/cloud-people/cloud-people
               env:
                   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-              run: vercel build apps/web --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
+              run: vercel build --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
 
             - name: Deploy Project Artifacts to Vercel
+              working-directory: /home/runner/work/cloud-people/cloud-people
               env:
                   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
               run: vercel deploy --prebuilt --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
