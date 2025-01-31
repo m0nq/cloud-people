@@ -3,11 +3,10 @@ import { Tables } from '@lib/db-entities.enum';
 
 const Profile = async () => {
     const supabase = await createClient();
-    let { data, error } = await supabase
-        .from(Tables.Profiles)
-        .select('*');
+    let { data, error } = await supabase.from(Tables.Profiles).select('*');
 
-    const { email, username, first_name, last_name } = data && data?.[0];
+    // const { email, username, first_name, last_name } = data && data?.[0];
+    const { email, first_name } = data && data?.[0];
 
     if (error || !data?.length) {
         return (
