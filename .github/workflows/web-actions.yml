@@ -92,15 +92,6 @@ jobs:
               with:
                   fetch-depth: 2
 
-            - name: Debug Directory Structure
-              run: |
-                  echo "Current directory: $(pwd)"
-                  echo "Directory contents:"
-                  ls -la
-                  echo "Repository root contents:"
-                  cd /home/runner/work/cloud-people/cloud-people
-                  ls -la
-
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
@@ -125,16 +116,18 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-pnpm-store-
 
-            - name: Install root dependencies
-              working-directory: /home/runner/work/cloud-people/cloud-people
-              run: pnpm install --frozen-lockfile
-
-            - name: Install web app dependencies
-              working-directory: /home/runner/work/cloud-people/cloud-people/apps/web
+            - name: Install Dependencies
               run: |
+                  cd /home/runner/work/cloud-people/cloud-people
+                  echo "Installing root dependencies..."
+                  pnpm install --frozen-lockfile
+                  echo "Verifying workspace setup..."
+                  pnpm ls -r
+                  echo "Checking Next.js installation..."
+                  cd apps/web
+                  ls -la node_modules/next || echo "Next.js not found in node_modules"
                   echo "Installing web app dependencies..."
                   pnpm install --frozen-lockfile
-                  echo "Verifying next.js installation..."
                   ls -la node_modules/next
 
             - name: Install Vercel CLI
@@ -142,7 +135,9 @@ jobs:
 
             - name: Link Project
               working-directory: /home/runner/work/cloud-people/cloud-people/apps/web
-              run: vercel link --confirm --token=${{ secrets.CP_VERCEL_TOKEN }}
+              run: |
+                  echo "Linking project in $(pwd)..."
+                  vercel link --confirm --token=${{ secrets.CP_VERCEL_TOKEN }}
 
             - name: Pull Vercel Environment Information
               working-directory: /home/runner/work/cloud-people/cloud-people/apps/web
@@ -167,7 +162,10 @@ jobs:
               env:
                   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
               run: |
-                  echo "Building with Next.js from $(pwd)"
+                  echo "Building from $(pwd) with Next.js..."
+                  echo "Node modules contents:"
+                  ls -la node_modules/next || echo "Next.js not found in node_modules"
+                  echo "Running Vercel build..."
                   vercel build --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
 
             - name: Deploy Project Artifacts to Vercel
