@@ -103,6 +103,11 @@ jobs:
                   version: latest
                   run_install: false
 
+            - name: Configure pnpm
+              run: |
+                  echo "node-linker=hoisted" > .npmrc
+                  cat .npmrc
+
             - name: Get pnpm store directory
               shell: bash
               run: |
@@ -118,17 +123,11 @@ jobs:
 
             - name: Install Dependencies
               run: |
-                  cd /home/runner/work/cloud-people/cloud-people
-                  echo "Installing root dependencies..."
+                  echo "Installing dependencies with hoisted node_modules..."
                   pnpm install --frozen-lockfile
-                  echo "Verifying workspace setup..."
-                  pnpm ls -r
-                  echo "Checking Next.js installation..."
-                  cd apps/web
-                  ls -la node_modules/next || echo "Next.js not found in node_modules"
-                  echo "Installing web app dependencies..."
-                  pnpm install --frozen-lockfile
-                  ls -la node_modules/next
+                  echo "Verifying Next.js installation..."
+                  ls -la apps/web/node_modules/next || echo "Next.js not found in web app node_modules"
+                  ls -la node_modules/next || echo "Next.js not found in root node_modules"
 
             - name: Install Vercel CLI
               run: pnpm add -g vercel@latest
@@ -163,8 +162,9 @@ jobs:
                   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
               run: |
                   echo "Building from $(pwd) with Next.js..."
-                  echo "Node modules contents:"
-                  ls -la node_modules/next || echo "Next.js not found in node_modules"
+                  echo "Node modules structure:"
+                  ls -la node_modules/next || echo "Next.js not found in web app node_modules"
+                  ls -la ../../node_modules/next || echo "Next.js not found in root node_modules"
                   echo "Running Vercel build..."
                   vercel build --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
 
