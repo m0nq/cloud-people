@@ -87,7 +87,16 @@ jobs:
         needs: [build]
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v4
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 2
+
+            - name: Debug Directory Structure
+              run: |
+                  pwd
+                  ls -la
+                  ls -la apps/
 
             - name: Setup Node.js
               uses: actions/setup-node@v4
@@ -142,14 +151,9 @@ jobs:
             - name: Build Project Artifacts
               env:
                   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-              run: |
-                  cd apps/web
-                  vercel build --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
+              run: vercel build apps/web --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
 
-                  
             - name: Deploy Project Artifacts to Vercel
               env:
                   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-              run: |
-                  cd apps/web
-                  vercel deploy --prebuilt --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
+              run: vercel deploy --prebuilt --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
