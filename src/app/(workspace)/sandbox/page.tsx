@@ -15,11 +15,11 @@ import { TbCalendarTime } from 'react-icons/tb';
 import { HiOutlinePencilAlt } from 'react-icons/hi';
 
 import './sandbox.styles.css';
-import { WorkflowRenderer } from '@app/(workspace)/sandbox/workflow-renderer';
+import { WorkflowRenderer } from './workflow-renderer';
 import { SandboxController } from '@components/sandbox-controller/sandbox-controller';
 import { SandboxRunButton } from '@components/sandbox-run-button/sandbox-run-button';
 import { BranchesIcon } from '@components/icons/branches-icon';
-import { DatePicker } from '@/components/calendar/date-picker';
+import { DatePicker } from '@components/calendar/date-picker';
 
 const Sandbox = (): ReactNode => {
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);

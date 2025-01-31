@@ -71,8 +71,7 @@ export const DatePicker = ({ isOpen, onClose, onDateSelect }: DatePickerProps): 
         onClose();
     };
 
-    const config = useMemo(
-        () => ({
+    const config = useMemo(() => ({
             settings: {
                 consistentWeeks: true,
                 theme: { colorScheme: 'dark' }
