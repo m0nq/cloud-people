@@ -60,7 +60,6 @@ jobs:
 
             - name: Get pnpm store directory
               shell: bash
-              working-directory: .
               run: |
                   echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
@@ -73,13 +72,14 @@ jobs:
                       ${{ runner.os }}-pnpm-store-
 
             - name: Install dependencies
-              working-directory: .
-              run: pnpm install
+              run: pnpm install --frozen-lockfile
 
             - name: Run linter
+              working-directory: apps/web
               run: pnpm lint
 
             - name: Build
+              working-directory: apps/web
               run: pnpm build
 
     deploy:
@@ -102,7 +102,6 @@ jobs:
 
             - name: Get pnpm store directory
               shell: bash
-              working-directory: .
               run: |
                   echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
@@ -115,16 +114,16 @@ jobs:
                       ${{ runner.os }}-pnpm-store-
 
             - name: Install dependencies
-              working-directory: .
-              run: pnpm install
+              run: pnpm install --frozen-lockfile
 
             - name: Install Vercel CLI
-              run: npm install --global vercel@latest
+              run: pnpm add -g vercel@latest
 
             - name: Pull Vercel Environment Information
               run: vercel pull --yes --environment=production --token=${{ secrets.CP_VERCEL_TOKEN }}
 
             - name: Set Environment Variables
+              working-directory: apps/web
               env:
                   CP_VERCEL_TOKEN: ${{ secrets.CP_VERCEL_TOKEN }}
                   SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -138,7 +137,7 @@ jobs:
                   echo SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" >> .env.production
 
             - name: Build Project Artifacts
-              run: vercel build --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
+              run: vercel build apps/web --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
 
             - name: Deploy Project Artifacts to Vercel
               run: vercel deploy --prebuilt --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
