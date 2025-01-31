@@ -1,5 +1,8 @@
 import { Viewport } from 'next';
 import { Metadata } from 'next';
+import { MantineProvider } from '@mantine/core';
+import '@mantine/core/styles.css';
+import '@mantine/dates/styles.css';
 
 import './globals.css';
 import { dmSans } from '@lib/fonts';
@@ -23,7 +26,7 @@ const RootLayout = ({ children }: LayoutProps) => {
     return (
         <html lang="en">
             <body className={`${dmSans.variable} ${lexend.variable} ${inter.variable}`} suppressHydrationWarning>
-                {children}
+                <MantineProvider>{children}</MantineProvider>
             </body>
         </html>
     );

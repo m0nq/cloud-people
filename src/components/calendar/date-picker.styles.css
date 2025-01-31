@@ -1,0 +1,38 @@
+.mantine-Paper-root,
+.mantine-Modal-content {
+  @apply w-[424px] h-fit flex rounded-lg;
+}
+
+.mantine-Modal-body {
+  @apply w-full h-fit rounded-lg;
+}
+
+.mantine-Popover-dropdown {
+  @apply w-auto h-auto inline-flex flex-col justify-center items-center p-5 gap-5 rounded-lg;
+}
+
+.calendar-container {
+  @apply w-full h-full inline-flex flex-col justify-center items-center rounded-lg;
+}
+
+.mantine-InputWrapper-root {
+  @apply w-full h-fit rounded-lg;
+}
+
+/* Style the DatePickerInput to match container width */
+.mantine-DatePickerInput-input {
+  @apply w-full h-fit rounded-lg border-2 border-[#1F5EFF] bg-[#2A2F3B] text-white flex items-center
+  justify-center;
+}
+
+.button-container {
+  @apply flex p-4 gap-2 border-t border-white/10;
+}
+
+.cancel-button {
+  @apply flex-1 bg-[#1f242d] text-white border-none;
+}
+
+.submit-button {
+  @apply flex-1 bg-[#0052ff] text-white;
+}
