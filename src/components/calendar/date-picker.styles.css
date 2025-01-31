@@ -8,7 +8,7 @@
 }
 
 .calendar-container {
-  @apply w-full h-full inline-flex flex-col justify-center items-center rounded-lg py-1;
+  @apply w-full h-full inline-flex flex-col justify-center items-center rounded-lg py-1.5;
 }
 
 .mantine-InputWrapper-root {
@@ -35,11 +35,27 @@
 }
 
 .submit-button {
-  @apply flex-1 flex flex-col items-center justify-center bg-[#0052ff] text-[#c4c4c4] text-lg hover:text-white hover:bg-[#0052ff]/80;
+  @apply flex-1 text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
-.submit-button:disabled {
-  @apply opacity-50 cursor-not-allowed hover:bg-[#0052ff] hover:text-[#c4c4c4];
+.time-input-container {
+  @apply p-4 bg-[#2a2f3b];
+}
+
+.time-input-container :global(.mantine-TimeInput-input) {
+  @apply bg-[#2a2f3b] text-white border-gray-600;
+}
+
+.time-toggle-button {
+  @apply w-full p-4 text-white hover:bg-gray-700 transition-colors duration-200;
+}
+
+.time-toggle-content {
+  @apply flex items-center justify-between;
+}
+
+.chevron-rotated {
+  @apply transform rotate-180 transition-transform duration-200;
 }
 
 /* Calendar day cells */
@@ -82,4 +98,9 @@
 /* Make weekday labels white */
 .mantine-Calendar-weekdayCell {
   @apply text-white/60 !important;
+}
+
+.mantine-TimeInput-input,
+.time-input-container {
+  @apply bg-[#2a2f3b] w-full px-4 py-2 text-white;
 }
