@@ -125,9 +125,17 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-pnpm-store-
 
-            - name: Install dependencies
+            - name: Install root dependencies
               working-directory: /home/runner/work/cloud-people/cloud-people
               run: pnpm install --frozen-lockfile
+
+            - name: Install web app dependencies
+              working-directory: /home/runner/work/cloud-people/cloud-people/apps/web
+              run: |
+                  echo "Installing web app dependencies..."
+                  pnpm install --frozen-lockfile
+                  echo "Verifying next.js installation..."
+                  ls -la node_modules/next
 
             - name: Install Vercel CLI
               run: pnpm add -g vercel@latest
@@ -158,7 +166,9 @@ jobs:
               working-directory: /home/runner/work/cloud-people/cloud-people/apps/web
               env:
                   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-              run: vercel build --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
+              run: |
+                  echo "Building with Next.js from $(pwd)"
+                  vercel build --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
 
             - name: Deploy Project Artifacts to Vercel
               working-directory: /home/runner/work/cloud-people/cloud-people/apps/web
