@@ -133,11 +133,11 @@ jobs:
               run: pnpm add -g vercel@latest
 
             - name: Link Project
-              working-directory: /home/runner/work/cloud-people/cloud-people
+              working-directory: /home/runner/work/cloud-people/cloud-people/apps/web
               run: vercel link --confirm --token=${{ secrets.CP_VERCEL_TOKEN }}
 
             - name: Pull Vercel Environment Information
-              working-directory: /home/runner/work/cloud-people/cloud-people
+              working-directory: /home/runner/work/cloud-people/cloud-people/apps/web
               run: vercel pull --yes --environment=production --token=${{ secrets.CP_VERCEL_TOKEN }}
 
             - name: Set Environment Variables
@@ -155,13 +155,13 @@ jobs:
                   echo SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" >> .env.production
 
             - name: Build Project Artifacts
-              working-directory: /home/runner/work/cloud-people/cloud-people
+              working-directory: /home/runner/work/cloud-people/cloud-people/apps/web
               env:
                   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
               run: vercel build --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
 
             - name: Deploy Project Artifacts to Vercel
-              working-directory: /home/runner/work/cloud-people/cloud-people
+              working-directory: /home/runner/work/cloud-people/cloud-people/apps/web
               env:
                   VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
               run: vercel deploy --prebuilt --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
