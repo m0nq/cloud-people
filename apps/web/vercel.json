@@ -8,13 +8,8 @@
         "enabled": true,
         "silent": true
     },
-    "buildCommand": "pnpm build",
-    "installCommand": "pnpm install",
     "framework": "nextjs",
-    "checks": {
-        "wait": {
-            "enabled": true,
-            "requiredChecks": ["build"]
-        }
-    }
+    "buildCommand": null,
+    "installCommand": null,
+    "ignoreCommand": null
 }
