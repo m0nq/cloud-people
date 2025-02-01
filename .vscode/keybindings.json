@@ -1,0 +1,18 @@
+{
+    "version": "2.0.0",
+    "keybindings": [
+        {
+            "key": "ctrl+alt+cmd+r",
+            "command": "workbench.action.tasks.runTask"
+        },
+        {
+            "key": "ctrl+alt+cmd+s",
+            "command": "workbench.action.tasks.terminate"
+        },
+        {
+            "key": "alt+cmd+l",
+            "command": "editor.action.formatDocument",
+            "when": "editorHasDocumentFormattingProvider && editorTextFocus && !editorReadonly && !inCompositeEditor"
+        }
+    ]
+}
