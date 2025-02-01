@@ -10,5 +10,11 @@
     },
     "buildCommand": "pnpm build",
     "installCommand": "pnpm install",
-    "framework": "nextjs"
+    "framework": "nextjs",
+    "checks": {
+        "wait": {
+            "enabled": true,
+            "requiredChecks": ["build"]
+        }
+    }
 }
