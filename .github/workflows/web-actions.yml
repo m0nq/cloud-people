@@ -106,6 +106,7 @@ jobs:
             - name: Configure pnpm
               run: |
                   echo "node-linker=hoisted" > .npmrc
+                  echo "shamefully-hoist=true" >> .npmrc
                   cat .npmrc
 
             - name: Get pnpm store directory
@@ -128,6 +129,12 @@ jobs:
                   echo "Verifying Next.js installation..."
                   ls -la apps/web/node_modules/next || echo "Next.js not found in web app node_modules"
                   ls -la node_modules/next || echo "Next.js not found in root node_modules"
+
+            - name: Install styled-jsx
+              working-directory: /home/runner/work/cloud-people/cloud-people/apps/web
+              run: |
+                  echo "Installing styled-jsx explicitly..."
+                  pnpm add styled-jsx@latest
 
             - name: Install Vercel CLI
               run: pnpm add -g vercel@latest
@@ -165,6 +172,8 @@ jobs:
                   echo "Node modules structure:"
                   ls -la node_modules/next || echo "Next.js not found in web app node_modules"
                   ls -la ../../node_modules/next || echo "Next.js not found in root node_modules"
+                  echo "Verifying styled-jsx installation:"
+                  ls -la node_modules/styled-jsx || echo "styled-jsx not found in web app node_modules"
                   echo "Running Vercel build..."
                   vercel build --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
 
