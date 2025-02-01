@@ -5,6 +5,10 @@
         }
     },
     "github": {
-        "enabled": false
-    }
+        "enabled": true,
+        "silent": true
+    },
+    "buildCommand": "pnpm build",
+    "installCommand": "pnpm install",
+    "framework": "nextjs"
 }
