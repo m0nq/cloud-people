@@ -8,8 +8,7 @@
         "enabled": true,
         "silent": true
     },
-    "framework": "nextjs",
-    "buildCommand": null,
-    "installCommand": null,
-    "ignoreCommand": null
+    "buildCommand": "pnpm build",
+    "installCommand": "pnpm install",
+    "framework": "nextjs"
 }
