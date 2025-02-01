@@ -1,9 +1,7 @@
-# Workflow for building and deploying the web application to Vercel
+# Workflow for building and testing the web application
 
 name: Web App CI/CD Pipeline
 env:
-    VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-    VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
     SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
     NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -36,7 +34,7 @@ defaults:
 
 jobs:
     build:
-        name: Build Web App 🛠️
+        name: Build and Test Web App 
         runs-on: ubuntu-latest
         env:
             SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -44,7 +42,7 @@ jobs:
             NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
             NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         steps:
-            - name: Checkout 🛎️
+            - name: Checkout 
               uses: actions/checkout@v4
 
             - name: Setup Node.js
@@ -81,107 +79,3 @@ jobs:
             - name: Build
               working-directory: apps/web
               run: pnpm build
-
-    deploy:
-        name: Deploy Web App to Vercel 🚀
-        needs: [build]
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout Repository
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 2
-
-            - name: Setup Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 'lts/*'
-
-            - name: Install pnpm
-              uses: pnpm/action-setup@v2
-              with:
-                  version: latest
-                  run_install: false
-
-            - name: Configure pnpm
-              run: |
-                  echo "node-linker=hoisted" > .npmrc
-                  echo "shamefully-hoist=true" >> .npmrc
-                  echo "strict-peer-dependencies=false" >> .npmrc
-                  echo "public-hoist-pattern[]=*next*" >> .npmrc
-                  echo "public-hoist-pattern[]=*styled-jsx*" >> .npmrc
-                  cat .npmrc
-
-            - name: Get pnpm store directory
-              shell: bash
-              run: |
-                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-            - name: Setup pnpm cache
-              uses: actions/cache@v4
-              with:
-                  path: ${{ env.STORE_PATH }}
-                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-                  restore-keys: |
-                      ${{ runner.os }}-pnpm-store-
-
-            - name: Install Dependencies
-              run: |
-                  echo "Installing dependencies with hoisted node_modules..."
-                  pnpm install --frozen-lockfile --no-frozen-lockfile
-                  echo "Installing Next.js dependencies..."
-                  cd apps/web && pnpm install next@latest styled-jsx@latest
-                  echo "Verifying installations..."
-                  ls -la node_modules/next || echo "Next.js not found in root node_modules"
-
-            - name: Install Vercel CLI
-              run: pnpm add -g vercel@latest
-
-            - name: Link Project
-              working-directory: /home/runner/work/cloud-people/cloud-people/apps/web
-              run: |
-                  echo "Linking project in $(pwd)..."
-                  vercel link --confirm --token=${{ secrets.CP_VERCEL_TOKEN }}
-
-            - name: Pull Vercel Environment Information
-              working-directory: /home/runner/work/cloud-people/cloud-people/apps/web
-              run: vercel pull --yes --environment=production --token=${{ secrets.CP_VERCEL_TOKEN }}
-
-            - name: Set Environment Variables
-              working-directory: /home/runner/work/cloud-people/cloud-people/apps/web
-              env:
-                  CP_VERCEL_TOKEN: ${{ secrets.CP_VERCEL_TOKEN }}
-                  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-                  SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-                  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-                  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-              run: |
-                  echo "" > .env.production
-                  echo CP_VERCEL_TOKEN="$CP_VERCEL_TOKEN" >> .env.production
-                  echo SUPABASE_URL="$SUPABASE_URL" >> .env.production
-                  echo SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" >> .env.production
-
-            - name: Build Project Artifacts
-              working-directory: /home/runner/work/cloud-people/cloud-people/apps/web
-              env:
-                  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-              run: |
-                  echo "Building from $(pwd)..."
-                  echo "Node version: $(node -v)"
-                  echo "PNPM version: $(pnpm -v)"
-                  echo "Verifying node_modules structure:"
-                  ls -la node_modules/next || echo "Next.js not found in web app node_modules"
-                  ls -la node_modules/styled-jsx || echo "styled-jsx not found in web app node_modules"
-                  echo "Running build with production optimization..."
-                  NEXT_TELEMETRY_DISABLED=1 NODE_ENV=production pnpm build
-                  vercel build --prod --token=${{ secrets.CP_VERCEL_TOKEN }}
-
-            - name: Deploy Project Artifacts to Vercel
-              working-directory: /home/runner/work/cloud-people/cloud-people/apps/web
-              env:
-                  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-              run: |
-                  echo "Deploying from $(pwd)..."
-                  echo "Verifying .vercel directory:"
-                  ls -la .vercel || echo ".vercel directory not found"
-                  vercel deploy --prebuilt --prod --token=${{ secrets.CP_VERCEL_TOKEN }} --cwd .
