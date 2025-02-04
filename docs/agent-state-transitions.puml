@@ -1,0 +1,103 @@
+@startuml Agent Runtime States
+
+' Purpose: This diagram illustrates the runtime states of dynamic agents in the system.
+' It focuses on the backend/system perspective of how agents operate during execution.
+' This is distinct from workflow-node-states.puml which shows UI/workflow builder behavior.
+
+' Styling
+skinparam StateBackgroundColor #FEFEFE
+skinparam StateBorderColor #666666
+skinparam ArrowColor #666666
+skinparam StateStartColor #445566
+skinparam StateEndColor #445566
+
+' Title
+title Agent Runtime States
+
+' States
+[*] --> Creating : Factory Creates Agent
+
+state Creating {
+    [*] --> LoadingDefinition
+    LoadingDefinition --> ValidatingCapabilities
+    ValidatingCapabilities --> InitializingTools
+    InitializingTools --> ReadyForUse : Success
+    
+    LoadingDefinition --> CreationFailed : Definition Not Found
+    ValidatingCapabilities --> CreationFailed : Invalid Capabilities
+    InitializingTools --> CreationFailed : Tool Init Failed
+}
+
+Creating --> Idle : Creation Success
+Creating --> Failed : Creation Failed
+
+state Idle {
+    [*] --> WaitingForTask
+    WaitingForTask --> PreparingExecution : Task Received
+    PreparingExecution --> WaitingForTask : Task Rejected
+    PreparingExecution --> ReadyToExecute : Task Accepted
+}
+
+Idle --> Executing : Start Task
+
+state Executing {
+    [*] --> LoadingContext
+    LoadingContext --> ProcessingTask
+    ProcessingTask --> UsingTool
+    UsingTool --> ProcessingTask : Tool Success
+    UsingTool --> ErrorHandling : Tool Error
+    
+    ErrorHandling --> ProcessingTask : Recovery Success
+    ErrorHandling --> Failed : Recovery Failed
+    
+    ProcessingTask --> SavingResults : Task Complete
+    SavingResults --> [*] : Results Saved
+}
+
+Executing --> Idle : Task Complete
+Executing --> Error : Execution Error
+
+state Error {
+    [*] --> DiagnosingError
+    DiagnosingError --> AttemptingRecovery : Recoverable
+    DiagnosingError --> RequiringIntervention : Unrecoverable
+    
+    AttemptingRecovery --> Reconfiguring : Need Adjustment
+    Reconfiguring --> DiagnosingError : Retry Recovery
+    
+    RequiringIntervention --> WaitingForFix : Manual Fix Needed
+    WaitingForFix --> DiagnosingError : Fix Applied
+}
+
+Error --> Idle : Recovery Success
+Error --> Failed : Recovery Failed
+
+Failed --> [*]
+
+' Notes
+note right of Creating
+  - Loading agent definition
+  - Validating capabilities
+  - Initializing required tools
+end note
+
+note right of Idle
+  - Minimal resource usage
+  - Maintaining tool connections
+  - Ready for quick start
+end note
+
+note right of Executing
+  - Active task processing
+  - Tool usage
+  - State management
+  - Result handling
+end note
+
+note right of Error
+  - Automatic recovery
+  - Capability adjustment
+  - Manual intervention
+end note
+
+@enduml

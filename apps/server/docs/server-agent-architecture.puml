@@ -4,60 +4,139 @@
 skinparam componentStyle rectangle
 skinparam packageStyle rectangle
 skinparam backgroundColor white
-skinparam monochrome true
+skinparam ArrowColor #666666
+skinparam ComponentBackgroundColor #FEFEFE
+skinparam PackageBackgroundColor #FAFAFA
 
 ' Components
 package "Express Server" {
     [Server (server.ts)] as Server
-    [Routes (browser.routes.ts)] as Routes
-    [Controller (browser.controller.ts)] as Controller
+    
+    package "Routes" {
+        [Dynamic Agent Routes] as AgentRoutes
+        [Core Routes] as CoreRoutes
+    }
+    
+    package "Controllers" {
+        [Agent Controller] as AgentController
+        [Core Controller] as CoreController
+    }
 }
 
-package "Browser Automation" {
-    [BrowserAgent] as Agent
-    [BrowserChain] as Chain
-    [BrowserTools] as Tools
+package "Agent System" {
+    package "Core Components" {
+        [BaseAgent] as BaseAgent
+        [AgentConfiguration] as AgentConfig
+    }
+    
+    package "Dynamic Agents" {
+        [DynamicAgent] as DynamicAgent
+        [AgentCapabilities] as AgentCap
+        [AgentTools] as AgentTools
+    }
+    
+    package "Tool System" {
+        [ToolRegistry] as ToolRegistry
+        [ToolLoader] as ToolLoader
+        [ToolValidator] as ToolValidator
+    }
+    
+    package "Agent Services" {
+        [AgentFactory] as AgentFactory
+        [AgentOrchestrator] as AgentOrchestrator
+    }
 }
 
-package "External Services" {
-    [Playwright Browser] as Browser
-    [Anthropic Claude API] as Claude
+package "Workflow System" {
+    [WorkflowEngine] as WorkflowEngine
+    [GraphEngine] as GraphEngine
+    [StateManager] as StateManager
+}
+
+package "Infrastructure" {
+    package "External Services" {
+        [LangChain/LangGraph] as LangChain
+        [Anthropic Claude API] as Claude
+        [Tool Services] as ToolServices
+    }
+    
+    package "Storage" {
+        database "Supabase" as Supabase {
+            [Agent Definitions] as AgentDefs
+            [Agent Capabilities] as CapabilitiesStore
+            [Tool Configurations] as ToolConfigs
+        }
+        [Cache] as Cache
+    }
+    
+    package "Observability" {
+        [Metrics] as Metrics
+        [Logging] as Logging
+    }
 }
 
 ' Interfaces
 interface "HTTP API" as API
-interface "Browser Control" as BrowserControl
-interface "LLM Interface" as LLMInterface
+interface "WebSocket" as WS
 
 ' Dependencies and Relationships
 Client --> API : HTTP Requests
+Client --> WS : Real-time Updates
+
 API --> Server
-Server --> Routes : Routes Requests
-Routes --> Controller : Delegates Actions
-Controller --> Agent : Executes Tasks
-Agent --> Chain : Uses
-Chain --> Tools : Implements Actions
-Tools --> Browser : Controls
-Chain --> Claude : Plans Actions
+Server --> AgentRoutes
+Server --> CoreRoutes
+
+AgentRoutes --> AgentController
+CoreRoutes --> CoreController
+
+AgentController --> AgentOrchestrator : Agent Tasks
+CoreController --> AgentOrchestrator : Core Tasks
+
+AgentOrchestrator --> AgentFactory : Create Agents
+AgentOrchestrator --> WorkflowEngine : Execute Workflows
+AgentOrchestrator --> GraphEngine : Execute Graph-based Workflows
+
+AgentFactory --> BaseAgent : Instantiate
+BaseAgent --> AgentConfig : Configure
+DynamicAgent --|> BaseAgent : Extends
+
+DynamicAgent --> AgentCap : Define Capabilities
+DynamicAgent --> AgentTools : Use Tools
+
+AgentTools --> ToolRegistry : Get Tools
+ToolRegistry --> ToolLoader : Load Tools
+ToolLoader --> ToolValidator : Validate
+
+ToolRegistry --> ToolServices : External Tool Integration
+ToolServices --> Claude : LLM Services
+ToolServices --> LangChain : Workflow Tools
+
+WorkflowEngine --> StateManager : Manages State
+GraphEngine --> StateManager : Manages State
+StateManager --> Supabase : Persists
+StateManager --> Cache : Caches
+
+AgentOrchestrator --> Metrics : Reports
+AgentOrchestrator --> Logging : Logs
 
 ' Notes
-note right of Chain
-  LangChain orchestrates the interaction
-  between browser automation and LLM
+note right of DynamicAgent
+  Agents are created dynamically
+  with capabilities defined at
+  creation/configuration time
 end note
 
-note right of Agent
-  Manages browser lifecycle and
-  coordinates automation tasks
+note right of ToolRegistry
+  Central registry of all available
+  tools that can be assigned to
+  agents based on their needs
 end note
 
-note right of Tools
-  Implements concrete browser
-  actions using Playwright
+note right of AgentCap
+  Capabilities are stored in
+  Supabase and loaded when
+  creating new agents
 end note
-
-' Layout Hints
-Client -[hidden]-> API
-API -[hidden]-> Server
 
 @enduml

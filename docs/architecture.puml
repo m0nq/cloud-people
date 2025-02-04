@@ -18,26 +18,47 @@ package "Interface Layer" {
     [WebSocket Handler] as WSH
     [REST API Controller] as API
     interface "HTTP/WS Interface" as HTTPInterface
+    
+    package "API Routes" {
+        [Core Routes] as CR
+        [Dynamic Agent Routes] as DAR
+    }
 }
 
 package "Application Layer" {
     [Workflow Orchestrator] as WO
-    [Agent Factory] as AF
+    [Dynamic Agent Factory] as DAF
     [State Manager] as SM
     [Security Manager] as SecM
     [Load Balancer] as LB
+    [Graph Engine] as GE
 }
 
 package "Domain Layer" {
     package "Workflow Domain" {
         [Workflow] as W
+        [Graph Workflow] as GW
         [WorkflowAgent] as WA
         [AgentExecution] as AE
     }
 
     package "Agent Domain" {
-        [Agent] as A
-        [AgentConfiguration] as AC
+        package "Core Components" {
+            [BaseAgent] as BA
+            [AgentConfiguration] as AC
+        }
+        
+        package "Dynamic Agents" {
+            [DynamicAgent] as DA
+            [AgentCapabilities] as CAP
+            [AgentTools] as AT
+        }
+        
+        package "Tool System" {
+            [ToolRegistry] as TR
+            [ToolLoader] as TL
+            [ToolValidator] as TV
+        }
     }
 }
 
@@ -57,11 +78,13 @@ package "Infrastructure Layer" {
     package "External Services" {
         [Anthropic Claude] as LLM
         [LangChain/LangGraph] as LC
+        [Playwright] as PW
     }
 
-    package "Monitoring & Logging" {
-        [Monitoring Service] as MS
+    package "Observability" {
+        [Metrics Service] as MS
         [Logging Service] as LS
+        [Performance Monitor] as PM
     }
 }
 
@@ -79,93 +102,43 @@ UIB --> SA : User Authentication
 
 HTTPInterface --> API
 HTTPInterface --> WSH
+API --> CR
+API --> DAR
 
-API --> LB : Distribute Requests
+CR --> LB : Core Requests
+DAR --> LB : Agent Requests
 LB --> WO : Forward to Orchestrator
 WSH --> SM : Subscribe to Updates
 
-WO --> AF : Create Agents
+WO --> DAF : Create Dynamic Agents
+WO --> GE : Execute Graph Workflows
 WO --> SM : Manage State
 WO --> EB : Publish Events
 WO --> MS : Send Metrics
 WO --> LS : Log Activities
 
-AF --> LC : Build Graph
-AF --> LLM : Initialize Model
-AF --> SVDB : Store/Fetch Embeddings
+DAF --> TR : Load Available Tools
+DAF --> TL : Initialize Tools
+DAF --> TV : Validate Configurations
+DAF --> SVDB : Store/Fetch Embeddings
+
+GE --> W : Execute Standard Workflows
+GE --> GW : Execute Graph Workflows
+
+BA --> AC : Configure
+DA --> CAP : Define Capabilities
+DA --> AT : Use Tools
+
+AT --> TR : Get Available Tools
+TR --> TL : Load Tool Implementation
+TL --> TV : Validate Tool
 
 SM --> SS : Store State
 SM --> WS : Store Workflow Data
 SM --> EB : Publish State Changes
 SM --> C : Cache State Data
 
-EB --> MB : Queue Events
-MB --> WSH : Broadcast Updates
-
-W --> WA : Contains
-WA --> AE : Executes
-WA --> AC : Configures
-A --> AC : Uses
-
-' Security Connections
-HTTPInterface --> SecM : Authenticate/Authorize
-WO --> SecM : Validate Permissions
-AF --> SecM : Secure Agent Creation
-
-' Notes
-note right of WO
-  Orchestrates workflow execution,
-  manages agent lifecycle,
-  and handles error management.
-end note
-
-note right of AF
-  Creates agent instances based
-  on workflow configuration
-  with dynamic adaptability.
-end note
-
-note right of EB
-  Handles asynchronous communication,
-  real-time updates,
-  and ensures message durability.
-end note
-
-note right of SM
-  Manages workflow state,
-  persistence,
-  and ensures consistency.
-end note
-
-note right of SecM
-  Manages authentication,
-  authorization,
-  and data encryption.
-end note
-
-note right of LB
-  Distributes incoming requests
-  to ensure scalability and performance.
-end note
-
-note right of MS
-  Monitors system performance
-  and health metrics.
-end note
-
-note right of LS
-  Logs system activities
-  for auditing and debugging.
-end note
-
-note right of SVDB
-  Stores vector embeddings for
-  efficient similarity searches.
-end note
-
-note right of SA
-  Handles client-side user
-  authentication.
-end note
+PM --> MS : Report Metrics
+PM --> LS : Log Performance
 
 @enduml

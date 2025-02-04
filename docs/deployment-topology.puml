@@ -1,0 +1,182 @@
+@startuml Deployment Topology
+
+' Purpose: This diagram illustrates the deployment topology of the Cloud People system,
+' including CI/CD pipeline, scaling strategies, network boundaries, and communication paths
+
+!define RECTANGLE class
+
+skinparam {
+    BackgroundColor transparent
+    ArrowColor #666666
+    DefaultFontColor #333333
+    DefaultFontSize 12
+    DefaultFontName Arial
+    
+    NodeBackgroundColor #FEFEFE
+    NodeBorderColor #333333
+    
+    CloudBackgroundColor #F0F8FF
+    
+    RectangleBackgroundColor #FEFEFE
+    RectangleBorderColor #666666
+}
+
+' Source Control and CI/CD
+frame "Development Pipeline" {
+    rectangle "GitHub" as github {
+        component "Source Code" as source
+        component "GitHub Actions" as actions {
+            component "Frontend CI" as feci
+            component "Backend CI" as beci
+        }
+    }
+}
+
+' Cloud Environment
+cloud "Cloud Infrastructure" {
+    ' Frontend (Vercel)
+    node "Vercel Platform" as vercel {
+        rectangle "Frontend Deployment" {
+            component "Edge Network" as edge
+            rectangle "Next.js App Production" as nextprod
+            rectangle "Next.js App Preview" as nextpreview
+            rectangle "Next.js App Development" as nextdev
+        }
+    }
+    
+    ' Load Balancer Layer
+    node "Load Balancer Tier" {
+        rectangle "CloudFlare" as cf {
+            component "DNS" as dns
+            component "CDN" as cdn
+            component "DDoS Protection" as ddos
+        }
+    }
+    
+    ' Backend Application Layer
+    frame "Backend Tier" {
+        node "Backend Cluster" {
+            rectangle "API Gateway Pod 1" as api1 {
+                component "API Service" as apis1
+                component "Rate Limiter" as rate1
+            }
+            rectangle "API Gateway Pod 2" as api2 {
+                component "API Service" as apis2
+                component "Rate Limiter" as rate2
+            }
+            
+            rectangle "Auth Service Pod 1" as auth1
+            rectangle "Auth Service Pod 2" as auth2
+            
+            rectangle "Agent Service Pod 1" as agent1
+            rectangle "Agent Service Pod 2" as agent2
+        }
+    }
+    
+    ' Data Layer
+    frame "Data Tier" {
+        database "Supabase" {
+            storage "PostgreSQL" as pg {
+                rectangle "Primary DB" as dbprimary
+                rectangle "Read Replica 1" as dbrep1
+                rectangle "Read Replica 2" as dbrep2
+            }
+            
+            storage "Object Storage" as obj
+            component "Real-time Service" as rt
+        }
+        
+        database "Redis Cluster" as redis {
+            rectangle "Cache Primary" as cacheprimary
+            rectangle "Cache Replica 1" as cacherep1
+            rectangle "Cache Replica 2" as cacherep2
+        }
+    }
+    
+    ' External Services
+    frame "External Services" {
+        cloud "AI Services" as ai {
+            rectangle "Anthropic" as anthropic
+            rectangle "OpenAI" as openai
+        }
+        cloud "Tool Services" as tools
+    }
+}
+
+' Network Boundaries
+rectangle "Network Boundaries" as boundaries {
+    rectangle "Public Zone" as public #LightGreen
+    rectangle "Application Zone" as appzone #LightYellow
+    rectangle "Data Zone" as datazone #LightPink
+}
+
+' Deployment Flows
+source --> actions : "Git Push"
+feci --> vercel : "Deploy Frontend"
+beci --> api1 : "Deploy Backend"
+beci --> api2 : "Deploy Backend"
+
+' Communication Paths
+cf --> vercel : "HTTPS"
+nextprod --> api1 : "gRPC"
+nextprod --> api2 : "gRPC"
+
+api1 --> auth1 : "Internal HTTP"
+api2 --> auth2 : "Internal HTTP"
+
+auth1 --> pg : "PostgreSQL Protocol"
+auth2 --> pg : "PostgreSQL Protocol"
+
+api1 --> redis : "Redis Protocol"
+api2 --> redis : "Redis Protocol"
+
+agent1 --> ai : "HTTPS"
+agent2 --> ai : "HTTPS"
+
+agent1 --> tools : "HTTPS"
+agent2 --> tools : "HTTPS"
+
+' CI/CD Pipeline Notes
+note right of actions
+    CI/CD Pipeline:
+    * GitHub Actions triggers on push/PR
+    * Frontend: Auto-deploy to Vercel
+    * Backend: Container build & deploy
+    * Automated tests and checks
+end note
+
+' Vercel Deployment Notes
+note right of vercel
+    Vercel Deployments:
+    * Production: main branch
+    * Preview: PR deployments
+    * Development: feature branches
+    * Edge Network for global CDN
+end note
+
+' Scaling Notes
+note right of api2
+    Backend Scaling:
+    * API Gateway: Scales with request load
+    * Auth Service: Minimum 2 replicas
+    * Agent Service: Scales with workflow demand
+end note
+
+note right of dbrep2
+    Data Tier Scaling:
+    * PostgreSQL: Primary with read replicas
+    * Redis: Primary-replica for HA
+    * Object Storage: Distributed system
+end note
+
+note right of boundaries
+    Security Zones:
+    * Public: Edge services, CDN
+    * Application: Services, APIs
+    * Data: Databases, Caches
+    
+    All cross-zone communication
+    is encrypted and authenticated
+end note
+
+@enduml

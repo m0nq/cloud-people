@@ -1,0 +1,98 @@
+@startuml Workflow Node States
+
+' Purpose: This diagram illustrates the states of a node within the workflow builder interface.
+' It focuses on the UI/UX perspective of how nodes behave during workflow editing and execution.
+' This is distinct from the agent-state-transitions.puml which shows runtime agent behavior.
+
+' Styling
+skinparam StateBackgroundColor #FEFEFE
+skinparam StateBorderColor #666666
+skinparam ArrowColor #666666
+skinparam StateStartColor #445566
+skinparam StateEndColor #445566
+
+' Title
+title Workflow Node States (UI Perspective)
+
+' States
+[*] --> Initial : Create Node
+
+state Initial {
+    [*] --> ConfiguringCapabilities
+    ConfiguringCapabilities --> ValidatingConfig : Save Config
+    ValidatingConfig --> ConfiguringCapabilities : Invalid Config
+    ValidatingConfig --> ReadyToConnect : Valid Config
+}
+
+Initial --> Idle : Node Connected
+
+state Idle {
+    [*] --> AwaitingExecution
+    AwaitingExecution --> ValidatingConnections : Workflow Start
+    ValidatingConnections --> ReadyForActivation : Valid
+    ValidatingConnections --> RequiresEditing : Invalid
+    RequiresEditing --> AwaitingExecution : Fixed
+}
+
+Idle --> Activating : Workflow Running
+
+state Activating {
+    [*] --> LoadingCapabilities
+    LoadingCapabilities --> WaitingForDependencies
+    WaitingForDependencies --> ReadyToWork
+}
+
+Activating --> Working : Dependencies Met
+
+state Working {
+    [*] --> ProcessingTask
+    ProcessingTask --> NeedsAssistance : User Input Required
+    NeedsAssistance --> ProcessingTask : Input Received
+    ProcessingTask --> TaskError : Error Occurred
+    TaskError --> ProcessingTask : Auto Recovery
+}
+
+Working --> Error : Unrecoverable Error
+Working --> Complete : Task Finished
+Error --> Working : Manual Fix Applied
+
+state Error {
+    [*] --> AnalyzingIssue
+    AnalyzingIssue --> WaitingForFix
+    WaitingForFix --> ApplyingFix
+    ApplyingFix --> AnalyzingIssue : Fix Failed
+}
+
+Complete --> [*]
+
+' Notes
+note right of Initial
+  Node is being configured with:
+  - Required capabilities
+  - Tool access
+  - Operating parameters
+end note
+
+note right of Idle
+  Node is connected but not active:
+  - Configuration locked
+  - Connections validated
+  - Ready for execution
+end note
+
+note right of Working
+  Node is actively executing:
+  - Processing inputs
+  - Using tools
+  - Generating outputs
+  - Can request assistance
+end note
+
+note right of Error
+  Node requires attention:
+  - Error analysis
+  - Manual intervention
+  - Configuration adjustments
+end note
+
+@enduml

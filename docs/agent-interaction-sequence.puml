@@ -1,0 +1,131 @@
+@startuml Agent Interaction Sequence
+
+' Styling
+skinparam ParticipantBackgroundColor #FEFEFE
+skinparam ParticipantBorderColor #666666
+skinparam SequenceGroupBackgroundColor transparent
+skinparam SequenceGroupBorderColor #666666
+skinparam ArrowColor #666666
+skinparam NoteBackgroundColor #FEFEFE
+skinparam NoteBorderColor #666666
+
+' Title
+title Dynamic Agent Interaction Sequence
+
+' Participants
+participant "Workflow\nOrchestrator" as WO
+participant "Dynamic Agent\nFactory" as DAF
+participant "Tool\nRegistry" as TR
+participant "State\nManager" as SM
+participant "Agent A" as A1
+participant "Agent B" as A2
+database "Supabase" as DB
+queue "Event Bus" as EB
+
+' Sequence
+autonumber
+group Workflow Initialization
+    WO -> DAF: Request agent creation
+    activate DAF
+    
+    DAF -> DB: Fetch agent definitions
+    DB --> DAF: Return capabilities & configs
+    
+    DAF -> TR: Load required tools
+    activate TR
+    TR -> TR: Validate tool compatibility
+    TR --> DAF: Return initialized tools
+    deactivate TR
+    
+    DAF -> A1 **: Create Agent A
+    DAF -> A2 **: Create Agent B
+    
+    A1 -> SM: Register state
+    A2 -> SM: Register state
+    deactivate DAF
+end
+
+group Execution Setup
+    WO -> A1: Initialize with capabilities
+    activate A1
+    A1 -> TR: Request tool access
+    TR --> A1: Grant tool access
+    A1 --> WO: Ready
+    deactivate A1
+    
+    WO -> A2: Initialize with capabilities
+    activate A2
+    A2 -> TR: Request tool access
+    TR --> A2: Grant tool access
+    A2 --> WO: Ready
+    deactivate A2
+end
+
+group Workflow Execution
+    WO -> A1: Execute task
+    activate A1
+    
+    A1 -> TR: Use tool
+    TR --> A1: Tool result
+    
+    A1 -> SM: Update state
+    SM -> EB: Publish state change
+    EB -> A2: Notify state change
+    
+    A1 -> A2: Pass data
+    activate A2
+    
+    A2 -> TR: Use tool
+    TR --> A2: Tool result
+    
+    A2 -> SM: Update state
+    SM -> EB: Publish state change
+    
+    A2 --> A1: Return result
+    deactivate A2
+    
+    A1 --> WO: Task complete
+    deactivate A1
+end
+
+group Error Handling
+    WO -> A1: Execute task
+    activate A1
+    
+    A1 -> TR: Use tool
+    TR --> A1: Tool error
+    
+    A1 -> SM: Log error
+    SM -> EB: Publish error event
+    
+    A1 -> A1: Attempt recovery
+    
+    alt Recovery successful
+        A1 -> SM: Update state
+        A1 --> WO: Task recovered
+    else Recovery failed
+        A1 -> WO: Request intervention
+        WO -> DAF: Request agent adjustment
+        DAF -> A1: Adjust capabilities
+        A1 --> WO: Ready to retry
+    end
+    deactivate A1
+end
+
+group Cleanup
+    WO -> A1: Cleanup request
+    activate A1
+    A1 -> TR: Release tools
+    A1 -> SM: Clear state
+    A1 --> WO: Cleanup complete
+    deactivate A1
+    
+    WO -> A2: Cleanup request
+    activate A2
+    A2 -> TR: Release tools
+    A2 -> SM: Clear state
+    A2 --> WO: Cleanup complete
+    deactivate A2
+end
+
+@enduml

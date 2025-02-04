@@ -1,0 +1,150 @@
+@startuml Data Flow
+
+' Styling
+skinparam componentStyle rectangle
+skinparam DatabaseBackgroundColor #FEFEFE
+skinparam DatabaseBorderColor #666666
+skinparam ArrowColor #666666
+skinparam CloudBackgroundColor #FEFEFE
+skinparam RectangleBackgroundColor #FEFEFE
+skinparam RectangleBorderColor #666666
+skinparam QueueBackgroundColor #FEFEFE
+skinparam QueueBorderColor #666666
+
+' Title
+title Cloud People - Data Flow Diagram
+
+' External Systems
+cloud "External Services" as ExtServices {
+    rectangle "LangChain/\nLangGraph" as LangChain
+    rectangle "Anthropic\nClaude" as Claude
+    rectangle "External\nTools" as ExtTools
+}
+
+' Storage Systems
+database "Supabase" as Supabase {
+    frame "Vector Store" as VectorStore
+    frame "Agent Definitions" as AgentDefs {
+        [Capabilities]
+        [Configurations]
+        [Tool Access]
+    }
+    frame "Workflow Data" as WorkflowData {
+        [Workflow Definitions]
+        [Execution History]
+        [Performance Metrics]
+    }
+    frame "User Data" as UserData {
+        [Profiles]
+        [Preferences]
+        [API Keys]
+    }
+}
+
+database "Cache Layer" as Cache {
+    [State Cache]
+    [Tool Results]
+    [Execution Context]
+}
+
+' Message Queue
+queue "Event Bus" as EventBus
+
+' Core Components
+rectangle "API Layer" as API {
+    [HTTP Endpoints]
+    [WebSocket Server]
+}
+
+rectangle "Workflow Engine" as WorkflowEngine {
+    [Graph Processor]
+    [State Manager]
+    [Execution Tracker]
+}
+
+rectangle "Agent System" as AgentSystem {
+    [Dynamic Agent Factory]
+    [Tool Registry]
+    [Capability Manager]
+}
+
+rectangle "Data Processors" as DataProcessors {
+    [State Transformer]
+    [Event Handler]
+    [Metric Collector]
+}
+
+' Data Flows
+API -down-> WorkflowEngine : Workflow Commands
+API -down-> AgentSystem : Agent Operations
+API -down-> DataProcessors : Real-time Updates
+
+WorkflowEngine -right-> AgentSystem : Create/Configure Agents
+WorkflowEngine -down-> EventBus : Execution Events
+WorkflowEngine -left-> Cache : State Updates
+
+AgentSystem -up-> ExtServices : Tool Operations
+AgentSystem -down-> EventBus : Agent Events
+AgentSystem -left-> Cache : Context Cache
+
+DataProcessors -up-> EventBus : Process Events
+DataProcessors -down-> Supabase : Persist Data
+DataProcessors -right-> Cache : Cache Updates
+
+Supabase -up-> AgentSystem : Load Definitions
+Supabase -up-> WorkflowEngine : Load Workflows
+Cache -up-> WorkflowEngine : Retrieve State
+
+EventBus -right-> API : Real-time Updates
+EventBus -down-> DataProcessors : Event Processing
+
+' Notes
+note right of API
+  Handles both synchronous (HTTP)
+  and asynchronous (WebSocket)
+  communication
+end note
+
+note right of AgentSystem
+  Dynamic creation and configuration
+  of agents based on capabilities
+  and tool requirements
+end note
+
+note right of WorkflowEngine
+  Manages workflow execution
+  and state transitions using
+  graph-based processing
+end note
+
+note right of DataProcessors
+  Transforms and processes data
+  for storage, caching, and
+  real-time updates
+end note
+
+note right of Supabase
+  Persistent storage for all
+  system configurations and
+  execution history
+end note
+
+note right of Cache
+  In-memory storage for
+  high-performance access to
+  active execution data
+end note
+
+note right of EventBus
+  Enables asynchronous
+  communication between
+  system components
+end note
+
+note right of ExtServices
+  Integration points for
+  AI, automation, and
+  external tool capabilities
+end note
+
+@enduml
