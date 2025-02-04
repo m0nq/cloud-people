@@ -1,0 +1,63 @@
+@startuml Server Architecture
+
+' Styling
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam backgroundColor white
+skinparam monochrome true
+
+' Components
+package "Express Server" {
+    [Server (server.ts)] as Server
+    [Routes (browser.routes.ts)] as Routes
+    [Controller (browser.controller.ts)] as Controller
+}
+
+package "Browser Automation" {
+    [BrowserAgent] as Agent
+    [BrowserChain] as Chain
+    [BrowserTools] as Tools
+}
+
+package "External Services" {
+    [Playwright Browser] as Browser
+    [Anthropic Claude API] as Claude
+}
+
+' Interfaces
+interface "HTTP API" as API
+interface "Browser Control" as BrowserControl
+interface "LLM Interface" as LLMInterface
+
+' Dependencies and Relationships
+Client --> API : HTTP Requests
+API --> Server
+Server --> Routes : Routes Requests
+Routes --> Controller : Delegates Actions
+Controller --> Agent : Executes Tasks
+Agent --> Chain : Uses
+Chain --> Tools : Implements Actions
+Tools --> Browser : Controls
+Chain --> Claude : Plans Actions
+
+' Notes
+note right of Chain
+  LangChain orchestrates the interaction
+  between browser automation and LLM
+end note
+
+note right of Agent
+  Manages browser lifecycle and
+  coordinates automation tasks
+end note
+
+note right of Tools
+  Implements concrete browser
+  actions using Playwright
+end note
+
+' Layout Hints
+Client -[hidden]-> API
+API -[hidden]-> Server
+
+@enduml

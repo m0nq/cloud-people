@@ -1,0 +1,120 @@
+@startuml Server Architecture Detailed
+
+' Styling
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam backgroundColor white
+skinparam monochrome true
+skinparam classAttributeIconSize 0
+
+' Class Definitions
+package "Express Layer" {
+    class Server {
+        +port: number
+        +app: Express
+        +start()
+    }
+
+    class BrowserRoutes {
+        +router: Router
+        +setupRoutes()
+    }
+
+    class BrowserController {
+        +navigateToGoogle()
+        -handleError()
+    }
+}
+
+package "Browser Automation Layer" {
+    class BrowserAgent {
+        -browser: Browser
+        -page: Page
+        -chain: BrowserChain
+        +initialize()
+        +executeTask()
+        +cleanup()
+    }
+
+    class BrowserChain {
+        -browser: Browser
+        -page: Page
+        -model: ChatAnthropic
+        -executor: AgentExecutor
+        +initialize()
+        +executeTask()
+        +cleanup()
+    }
+
+    class DynamicTools {
+        +navigate()
+        +clickElement()
+        +readText()
+        +typeText()
+    }
+}
+
+package "External Services" {
+    interface "Playwright" {
+        +launch()
+        +newPage()
+    }
+
+    interface "Anthropic API" {
+        +messages.create()
+    }
+
+    interface "LangChain" {
+        +initializeAgentExecutor()
+        +DynamicTool
+    }
+}
+
+' Data Types
+class TaskRequest {
+    +instruction: string
+}
+
+class TaskResponse {
+    +success: boolean
+    +results: any[]
+    +error?: string
+}
+
+' Relationships
+Client --> Server: HTTP Request
+Server --> BrowserRoutes: Routes
+BrowserRoutes --> BrowserController: Delegates
+BrowserController --> BrowserAgent: Creates/Uses
+BrowserAgent --> BrowserChain: Uses
+BrowserChain --> DynamicTools: Defines/Uses
+
+BrowserChain --> Playwright: Controls Browser
+BrowserChain --> "Anthropic API": Plans Tasks
+BrowserChain --> LangChain: Orchestrates
+
+' Data Flow
+TaskRequest ..> BrowserController
+BrowserController ..> TaskResponse
+
+' Notes
+note right of BrowserAgent
+  Manages browser lifecycle and
+  coordinates task execution
+end note
+
+note right of BrowserChain
+  Integrates LangChain with browser
+  automation and LLM planning
+end note
+
+note right of DynamicTools
+  Implements concrete browser actions
+  as LangChain tools
+end note
+
+' Layout Hints
+Client -[hidden]down-> TaskRequest
+TaskResponse -[hidden]down-> Server
+
+@enduml

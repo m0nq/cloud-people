@@ -1,0 +1,171 @@
+@startuml Enhanced Multi-Agent Workflow Architecture with Supabase
+
+' Styling
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam backgroundColor white
+skinparam ArrowColor #666666
+skinparam ComponentBackgroundColor #FEFEFE
+skinparam PackageBackgroundColor #FAFAFA
+skinparam InterfaceBackgroundColor #FEFEFE
+skinparam DatabaseBackgroundColor #FEFEFE
+
+' Title
+title Enhanced Multi-Agent Workflow Architecture with Supabase
+
+' Packages and Components
+package "Interface Layer" {
+    [WebSocket Handler] as WSH
+    [REST API Controller] as API
+    interface "HTTP/WS Interface" as HTTPInterface
+}
+
+package "Application Layer" {
+    [Workflow Orchestrator] as WO
+    [Agent Factory] as AF
+    [State Manager] as SM
+    [Security Manager] as SecM
+    [Load Balancer] as LB
+}
+
+package "Domain Layer" {
+    package "Workflow Domain" {
+        [Workflow] as W
+        [WorkflowAgent] as WA
+        [AgentExecution] as AE
+    }
+
+    package "Agent Domain" {
+        [Agent] as A
+        [AgentConfiguration] as AC
+    }
+}
+
+package "Infrastructure Layer" {
+    package "Event System" {
+        [Event Bus] as EB
+        database "Message Broker" as MB
+    }
+
+    package "Storage" {
+        database "State Store" as SS
+        database "Workflow Store" as WS
+        [Cache] as C
+        [Supabase Vector DB] as SVDB
+    }
+
+    package "External Services" {
+        [Anthropic Claude] as LLM
+        [LangChain/LangGraph] as LC
+    }
+
+    package "Monitoring & Logging" {
+        [Monitoring Service] as MS
+        [Logging Service] as LS
+    }
+}
+
+' Client Side
+cloud "Client Application" {
+    [UI Workflow Builder] as UIB
+    [Real-time Updates] as RTU
+    [Supabase Auth] as SA
+}
+
+' Connections
+UIB --> HTTPInterface : HTTP/WS
+RTU --> HTTPInterface : WebSocket
+UIB --> SA : User Authentication
+
+HTTPInterface --> API
+HTTPInterface --> WSH
+
+API --> LB : Distribute Requests
+LB --> WO : Forward to Orchestrator
+WSH --> SM : Subscribe to Updates
+
+WO --> AF : Create Agents
+WO --> SM : Manage State
+WO --> EB : Publish Events
+WO --> MS : Send Metrics
+WO --> LS : Log Activities
+
+AF --> LC : Build Graph
+AF --> LLM : Initialize Model
+AF --> SVDB : Store/Fetch Embeddings
+
+SM --> SS : Store State
+SM --> WS : Store Workflow Data
+SM --> EB : Publish State Changes
+SM --> C : Cache State Data
+
+EB --> MB : Queue Events
+MB --> WSH : Broadcast Updates
+
+W --> WA : Contains
+WA --> AE : Executes
+WA --> AC : Configures
+A --> AC : Uses
+
+' Security Connections
+HTTPInterface --> SecM : Authenticate/Authorize
+WO --> SecM : Validate Permissions
+AF --> SecM : Secure Agent Creation
+
+' Notes
+note right of WO
+  Orchestrates workflow execution,
+  manages agent lifecycle,
+  and handles error management.
+end note
+
+note right of AF
+  Creates agent instances based
+  on workflow configuration
+  with dynamic adaptability.
+end note
+
+note right of EB
+  Handles asynchronous communication,
+  real-time updates,
+  and ensures message durability.
+end note
+
+note right of SM
+  Manages workflow state,
+  persistence,
+  and ensures consistency.
+end note
+
+note right of SecM
+  Manages authentication,
+  authorization,
+  and data encryption.
+end note
+
+note right of LB
+  Distributes incoming requests
+  to ensure scalability and performance.
+end note
+
+note right of MS
+  Monitors system performance
+  and health metrics.
+end note
+
+note right of LS
+  Logs system activities
+  for auditing and debugging.
+end note
+
+note right of SVDB
+  Stores vector embeddings for
+  efficient similarity searches.
+end note
+
+note right of SA
+  Handles client-side user
+  authentication.
+end note
+
+@enduml

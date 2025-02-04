@@ -19,7 +19,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.24.3",
+    "@anthropic-ai/sdk": "^0.36.3",
     "@cloud-people/types": "workspace:*",
     "@playwright/test": "^1.41.1",
     "cors": "^2.8.5",

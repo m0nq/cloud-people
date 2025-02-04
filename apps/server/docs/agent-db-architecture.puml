@@ -1,0 +1,58 @@
+@startuml
+entity agents {
+    *id : uuid
+    --
+    *name : varchar(255)
+    description : text
+    config : jsonb
+    created_at : timestamptz
+    updated_at : timestamptz
+}
+
+entity tools {
+    *id : uuid
+    --
+    *name : varchar(255)
+    description : text
+    *category : varchar(50)
+    parameters : jsonb
+    version : varchar(20)
+    created_at : timestamptz
+    updated_at : timestamptz
+}
+
+entity agent_tools {
+    *agent_id : uuid
+    *tool_id : uuid
+    --
+    configuration : jsonb
+    created_at : timestamptz
+}
+
+entity executions {
+    *id : uuid
+    --
+    *agent_id : uuid
+    *session_id : uuid
+    input : jsonb
+    output : jsonb
+    errors : jsonb
+    metrics : jsonb
+    created_at : timestamptz
+}
+
+entity vector_memories {
+    *id : uuid
+    --
+    *agent_id : uuid
+    content : text
+    embedding : vector(1536)
+    metadata : jsonb
+    created_at : timestamptz
+}
+
+agents ||--o{ agent_tools : "has"
+tools ||--o{ agent_tools : "used by"
+agents ||--o{ executions : "performs"
+agents ||--o{ vector_memories : "stores"
+@enduml

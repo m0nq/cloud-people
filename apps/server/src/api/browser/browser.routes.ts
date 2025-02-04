@@ -1,9 +1,10 @@
 import { Router } from 'express';
 
-import { browserController } from './browser.controller.js';
+import { BrowserController } from './browser.controller';
 
 const router = Router();
+const controller = new BrowserController();
 
-router.post('/navigate/google', browserController.navigateToGoogle);
+router.post('/execute', (req, res) => controller.executeTask(req, res));
 
-export const browserRoutes = router;
+export default router;

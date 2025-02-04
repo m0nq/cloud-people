@@ -1,33 +1,35 @@
-import { Request, Response } from 'express';
-import { BrowserAgent } from '../../agents/browser/browser.agent.js';
+import { Request } from 'express';
+import { Response } from 'express';
 
-export const browserController = {
-  async navigateToGoogle(req: Request, res: Response) {
-    const agent = new BrowserAgent();
-    
-    try {
-      await agent.initialize();
-      const results = await agent.executeTask('Navigate to google.com');
-      res.json({ 
-        success: true, 
-        results 
-      });
-    } catch (error: any) {
-      console.error('Browser navigation error:', error);
-      
-      // Determine if this is a known error type
-      const isCreditsError = error.message.includes('Insufficient credits');
-      
-      res.status(isCreditsError ? 402 : 500).json({
-        success: false,
-        error: error.message,
-        type: isCreditsError ? 'INSUFFICIENT_CREDITS' : 'EXECUTION_ERROR',
-        ...(isCreditsError && {
-          resolution: 'Please add credits to your Anthropic account at https://console.anthropic.com'
-        })
-      });
-    } finally {
-      await agent.cleanup();
-    }
-  }
-};
+import { BrowserAgent } from '@agents/browser/browser.agent';
+
+export class BrowserController {
+	private agent: BrowserAgent;
+
+	constructor() {
+		this.agent = new BrowserAgent({
+			headless: false, // Set to false for development to see the browser
+			screenshotOnError: true
+		});
+	}
+
+	async executeTask(req: Request, res: Response): Promise<void> {
+		try {
+			if (!req.body.instruction) {
+				res.status(400).json({ error: 'Missing instruction in request body' });
+				return;
+			}
+
+			await this.agent.initialize();
+			const result = await this.agent.execute(req.body.instruction);
+			await this.agent.cleanup();
+
+			res.json(result);
+		} catch (error) {
+			console.error('Error executing browser task:', error);
+			res.status(500).json({
+				error: error instanceof Error ? error.message : 'Unknown error occurred'
+			});
+		}
+	}
+}
