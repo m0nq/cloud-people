@@ -74,6 +74,7 @@ jobs:
         if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         run: |
           echo "📝 Generating TypeScript types"
+          mkdir -p types
           supabase gen types typescript --local > types/supabase.ts
 
           # Verify if types have changed
