@@ -1,28 +1,28 @@
 {
-	"name": "cloud-people",
-	"version": "1.0.0",
-	"description": "",
-	"main": "index.js",
-	"scripts": {
-		"app:start": "pnpm -r --filter @cloud-people/web run start",
-		"app:dev": "pnpm -r --filter @cloud-people/web run dev",
-		"server:start": "pnpm -r --filter @cloud-people/server run start",
-		"server:dev": "pnpm -r --filter @cloud-people/server run dev",
-		"start": "pnpm -r run start",
-		"build": "turbo run build",
-		"dev": "turbo run dev",
-		"lint": "turbo run lint",
-		"test": "turbo run test"
-	},
-	"keywords": [],
-	"author": "",
-	"license": "ISC",
-	"packageManager": "pnpm@9.15.4+sha512.b2dc20e2fc72b3e18848459b37359a32064663e5627a51e4c74b2c29dd8e8e0491483c3abb40789cfd578bf362fb6ba8261b05f0387d76792ed6e23ea3b1b6a0",
-	"devDependencies": {
-		"@typescript-eslint/eslint-plugin": "^8.22.0",
-		"@typescript-eslint/parser": "^8.22.0",
-		"prettier": "^3.4.2",
-		"turbo": "^2.4.0",
-		"typescript": "^5.7.3"
-	}
+  "name": "cloud-people",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "app:start": "pnpm -r --filter @cloud-people/web run start",
+    "app:dev": "pnpm -r --filter @cloud-people/web run dev",
+    "server:start": "pnpm -r --filter @cloud-people/server run start",
+    "server:dev": "pnpm -r --filter @cloud-people/server run dev",
+    "start": "pnpm -r run start",
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.2.0+sha512.0d27364e0139c6aadeed65ada153135e0ca96c8da42123bd50047f961339dc7a758fc2e944b428f52be570d1bd3372455c1c65fa2e7aa0bfbf931190f9552001",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.22.0",
+    "@typescript-eslint/parser": "^8.22.0",
+    "prettier": "^3.4.2",
+    "turbo": "^2.4.0",
+    "typescript": "^5.7.3"
+  }
 }
