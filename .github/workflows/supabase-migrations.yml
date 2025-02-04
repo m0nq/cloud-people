@@ -1,0 +1,64 @@
+name: Supabase Database Migrations
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'supabase/migrations/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'supabase/migrations/**'
+  workflow_dispatch: # Allow manual triggering
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-migrations:
+    name: Deploy Database Migrations 🔄
+    runs-on: ubuntu-latest
+    environment: production
+
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+      PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+
+    steps:
+      - name: Checkout repository 🛎️
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI 🔧
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link to Supabase project 🔗
+        run: supabase link --project-ref $PROJECT_ID
+
+      - name: Run migration validation
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "🔍 Validating migrations (dry run)"
+          supabase db push --dry-run
+
+      - name: Apply migrations
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: |
+          echo "🚀 Applying migrations to production database"
+          supabase db push
+
+      - name: Generate and validate TypeScript types
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        run: |
+          echo "📝 Generating TypeScript types"
+          supabase gen types typescript --local > types/supabase.ts
+
+          # Verify if types have changed
+          if ! git diff --ignore-space-at-eol --exit-code --quiet types/supabase.ts; then
+            echo "⚠️ Warning: Database schema changes detected. TypeScript types have been updated."
+            echo "Please commit the updated types/supabase.ts file."
+          fi
