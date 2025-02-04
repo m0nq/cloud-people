@@ -1,0 +1,59 @@
+%%{init: {'theme': 'neutral'}}%%
+graph TD
+%% Legend with More Descriptive Labels
+    subgraph Legend
+        SyncCall["Synchronous Call<br>High Interaction Coupling"]:::sync
+        AsyncEvent["Asynchronous Event<br>Loose Interaction Coupling"]:::async
+        DataDep["Data Dependency<br>Moderate Interaction Coupling"]:::data
+        ConfigDep["Configuration Dependency<br>Minimal Interaction Coupling"]:::config
+    end
+    classDef sync fill:#87CEEB,stroke:#333,stroke-width:1px
+    classDef async fill:#98FB98,stroke:#333,stroke-width:1px
+    classDef data fill:#FFA07A,stroke:#333,stroke-width:1px
+    classDef config fill:#F0E68C,stroke:#333,stroke-width:1px
+
+%% Main Component Matrix
+    subgraph "System Component Interactions"
+        APIGateway["API Gateway<br>Entry point for all external requests"]
+        WorkflowEngine["Workflow Engine<br>Manages complex process orchestration"]
+        AgentFactory["Agent Factory<br>Dynamically creates and manages agents"]
+        ToolRegistry["Tool Registry<br>Centralized tool configuration and discovery"]
+        StateManager["State Manager<br>Tracks and manages system-wide state"]
+        EventBus["Event Bus<br>Facilitates loose-coupled communication"]
+        DatabaseService["Supabase Database<br>Persistent data storage"]
+        CacheService["Distributed Cache<br>High-performance data retrieval"]
+        ExternalServices["External Services<br>Third-party integrations"]
+
+    %% Interaction Definitions
+        APIGateway -->|"Synchronous Request"| WorkflowEngine
+        APIGateway -->|"Async Agent Dispatch"| AgentFactory
+        APIGateway -->|"Async State Update"| StateManager
+        APIGateway -->|"Event Notification"| EventBus
+        APIGateway -->|"Data Retrieval"| DatabaseService
+        APIGateway -->|"Cache Query"| CacheService
+
+        WorkflowEngine -->|"Response Handling"| APIGateway
+        WorkflowEngine -->|"Agent Coordination"| AgentFactory
+        WorkflowEngine -->|"Tool Configuration"| ToolRegistry
+        WorkflowEngine -->|"State Sync"| StateManager
+        WorkflowEngine -->|"Event Publishing"| EventBus
+        WorkflowEngine -->|"Persistent Storage"| DatabaseService
+        WorkflowEngine -->|"Caching Mechanism"| CacheService
+        WorkflowEngine -->|"External Integration"| ExternalServices
+
+        AgentFactory -->|"Async Status Update"| APIGateway
+        AgentFactory -->|"Workflow Coordination"| WorkflowEngine
+        AgentFactory -->|"Tool Registration"| ToolRegistry
+        AgentFactory -->|"Agent State Management"| StateManager
+        AgentFactory -->|"Event Signaling"| EventBus
+        AgentFactory -->|"Persistent Agent Data"| DatabaseService
+        AgentFactory -->|"Agent Caching"| CacheService
+        AgentFactory -->|"External Agent Integration"| ExternalServices
+    end
+
+%% Insights Section
+    subgraph "System Insights"
+        HighTrafficPaths["High Traffic Paths<br>Key interaction routes"]
+        PotentialBottlenecks["Potential Bottlenecks<br>Areas requiring optimization"]
+        CriticalDependencies["Critical Dependencies<br>Essential component relationships"]
+    end

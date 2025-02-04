@@ -1,0 +1,142 @@
+@startuml Server Architecture
+
+' Styling
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam backgroundColor white
+skinparam ArrowColor #666666
+skinparam ComponentBackgroundColor #FEFEFE
+skinparam PackageBackgroundColor #FAFAFA
+
+' Components
+package "Express Server" {
+    [Server (server.ts)] as Server
+    
+    package "Routes" {
+        [Dynamic Agent Routes] as AgentRoutes
+        [Core Routes] as CoreRoutes
+    }
+    
+    package "Controllers" {
+        [Agent Controller] as AgentController
+        [Core Controller] as CoreController
+    }
+}
+
+package "Agent System" {
+    package "Core Components" {
+        [BaseAgent] as BaseAgent
+        [AgentConfiguration] as AgentConfig
+    }
+    
+    package "Dynamic Agents" {
+        [DynamicAgent] as DynamicAgent
+        [AgentCapabilities] as AgentCap
+        [AgentTools] as AgentTools
+    }
+    
+    package "Tool System" {
+        [ToolRegistry] as ToolRegistry
+        [ToolLoader] as ToolLoader
+        [ToolValidator] as ToolValidator
+    }
+    
+    package "Agent Services" {
+        [AgentFactory] as AgentFactory
+        [AgentOrchestrator] as AgentOrchestrator
+    }
+}
+
+package "Workflow System" {
+    [WorkflowEngine] as WorkflowEngine
+    [GraphEngine] as GraphEngine
+    [StateManager] as StateManager
+}
+
+package "Infrastructure" {
+    package "External Services" {
+        [LangChain/LangGraph] as LangChain
+        [Anthropic Claude API] as Claude
+        [Tool Services] as ToolServices
+    }
+    
+    package "Storage" {
+        database "Supabase" as Supabase {
+            [Agent Definitions] as AgentDefs
+            [Agent Capabilities] as CapabilitiesStore
+            [Tool Configurations] as ToolConfigs
+        }
+        [Cache] as Cache
+    }
+    
+    package "Observability" {
+        [Metrics] as Metrics
+        [Logging] as Logging
+    }
+}
+
+' Interfaces
+interface "HTTP API" as API
+interface "WebSocket" as WS
+
+' Dependencies and Relationships
+Client --> API : HTTP Requests
+Client --> WS : Real-time Updates
+
+API --> Server
+Server --> AgentRoutes
+Server --> CoreRoutes
+
+AgentRoutes --> AgentController
+CoreRoutes --> CoreController
+
+AgentController --> AgentOrchestrator : Agent Tasks
+CoreController --> AgentOrchestrator : Core Tasks
+
+AgentOrchestrator --> AgentFactory : Create Agents
+AgentOrchestrator --> WorkflowEngine : Execute Workflows
+AgentOrchestrator --> GraphEngine : Execute Graph-based Workflows
+
+AgentFactory --> BaseAgent : Instantiate
+BaseAgent --> AgentConfig : Configure
+DynamicAgent --|> BaseAgent : Extends
+
+DynamicAgent --> AgentCap : Define Capabilities
+DynamicAgent --> AgentTools : Use Tools
+
+AgentTools --> ToolRegistry : Get Tools
+ToolRegistry --> ToolLoader : Load Tools
+ToolLoader --> ToolValidator : Validate
+
+ToolRegistry --> ToolServices : External Tool Integration
+ToolServices --> Claude : LLM Services
+ToolServices --> LangChain : Workflow Tools
+
+WorkflowEngine --> StateManager : Manages State
+GraphEngine --> StateManager : Manages State
+StateManager --> Supabase : Persists
+StateManager --> Cache : Caches
+
+AgentOrchestrator --> Metrics : Reports
+AgentOrchestrator --> Logging : Logs
+
+' Notes
+note right of DynamicAgent
+  Agents are created dynamically
+  with capabilities defined at
+  creation/configuration time
+end note
+
+note right of ToolRegistry
+  Central registry of all available
+  tools that can be assigned to
+  agents based on their needs
+end note
+
+note right of AgentCap
+  Capabilities are stored in
+  Supabase and loaded when
+  creating new agents
+end note
+
+@enduml

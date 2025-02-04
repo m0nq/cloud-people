@@ -1,0 +1,83 @@
+@startuml Server Interaction Flow
+
+' Styling
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 100
+skinparam sequenceGroupBodyBackgroundColor transparent
+
+' Participants
+actor Client
+participant "Express Server" as Server
+participant "BrowserRoutes" as Routes
+participant "BrowserController" as Controller
+participant "BrowserAgent" as Agent
+participant "BrowserChain" as Chain
+participant "Playwright" as Browser
+participant "Anthropic API" as Claude
+participant "LangChain" as LC
+
+' Flow
+Client -> Server: POST /api/browser/navigate
+activate Server
+
+Server -> Routes: Route request
+activate Routes
+
+Routes -> Controller: navigateToGoogle()
+activate Controller
+
+Controller -> Agent: new BrowserAgent()
+activate Agent
+
+Agent -> Chain: new BrowserChain()
+activate Chain
+
+' Browser initialization
+Agent -> Browser: launch()
+Browser --> Agent: browser instance
+Agent -> Browser: newPage()
+Browser --> Agent: page instance
+
+Agent -> Chain: initialize(browser, page)
+Chain -> LC: initializeAgentExecutor()
+LC --> Chain: executor instance
+
+' Task execution
+Controller -> Agent: executeTask("Navigate to google.com")
+Agent -> Chain: executeTask(instruction)
+
+' Planning phase
+Chain -> Claude: messages.create()
+note right: Generate task plan
+Claude --> Chain: task steps
+
+' Execution phase
+group For each step in plan
+    Chain -> LC: executor.call()
+    LC -> Browser: execute browser action
+    Browser --> LC: action result
+    LC --> Chain: step result
+end
+
+Chain --> Agent: execution results
+Agent --> Controller: results
+
+' Cleanup phase
+Controller -> Agent: cleanup()
+Agent -> Chain: cleanup()
+Chain -> Browser: close()
+
+' Response
+Controller --> Routes: success response
+Routes --> Server: formatted response
+Server --> Client: JSON response
+
+' Deactivate all
+deactivate Chain
+deactivate Agent
+deactivate Controller
+deactivate Routes
+deactivate Server
+
+@enduml

@@ -1,0 +1,86 @@
+@startuml Workflow State Transitions
+
+' Styling
+skinparam StateBackgroundColor #FEFEFE
+skinparam StateBorderColor #666666
+skinparam ArrowColor #666666
+skinparam StateStartColor #445566
+skinparam StateEndColor #445566
+
+' Title
+title Workflow State Transitions
+
+' States
+[*] --> Draft : Create Workflow
+
+state Draft {
+    [*] --> Editing : Open Editor
+    Editing --> Saving : Auto-save
+    Saving --> Editing : Continue Editing
+    Editing --> Validating : Request Validation
+    Validating --> Editing : Validation Failed
+    Validating --> ReadyToDeploy : Validation Passed
+    ReadyToDeploy --> Editing : Make Changes
+}
+
+Draft --> Deploying : Deploy
+Deploying --> Running : Initialization Success
+Deploying --> Failed : Initialization Error
+
+state Running {
+    [*] --> Initializing
+    
+    Initializing --> Active : Agents Ready
+    Initializing --> Error : Agent Init Failed
+    
+    Active --> Paused : Pause Request
+    Paused --> Active : Resume Request
+    
+    Active --> Error : Runtime Error
+    Error --> Active : Auto Recovery
+    Error --> Paused : Manual Intervention
+    
+    Active --> Completing : All Tasks Done
+    Completing --> [*] : Cleanup Success
+}
+
+Running --> Completed : Successful Execution
+Running --> Failed : Unrecoverable Error
+
+state Failed {
+    [*] --> AnalyzingError
+    AnalyzingError --> AttemptingRecovery : Recovery Possible
+    AnalyzingError --> UnrecoverableState : Recovery Impossible
+    AttemptingRecovery --> UnrecoverableState : Recovery Failed
+    AttemptingRecovery --> Running : Recovery Success
+}
+
+Completed --> [*]
+Failed --> [*]
+
+' Notes
+note right of Draft
+  - Workflow being created/edited
+  - Continuous validation
+  - Auto-saving enabled
+end note
+
+note right of Running
+  - Active workflow execution
+  - Real-time monitoring
+  - Auto-recovery enabled
+end note
+
+note right of Failed
+  - Error analysis
+  - Recovery attempts
+  - Failure documentation
+end note
+
+note right of Completed
+  - Execution history saved
+  - Metrics collected
+  - Resources cleaned up
+end note
+
+@enduml

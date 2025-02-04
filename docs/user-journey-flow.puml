@@ -1,0 +1,165 @@
+@startuml User Journey Flow
+
+' Styling
+skinparam ActivityBackgroundColor #FEFEFE
+skinparam ActivityBorderColor #666666
+skinparam ArrowColor #666666
+skinparam ActivityDiamondBackgroundColor #FEFEFE
+skinparam ActivityDiamondBorderColor #666666
+skinparam NoteBackgroundColor #FEFEFE
+skinparam NoteBorderColor #666666
+
+' Title
+title Cloud People - User Journey Flow
+
+|#LightGrey|Entry|
+|#LightBlue|Main Navigation|
+|#LightGreen|Workflow Creation|
+|#LightYellow|Execution|
+|#LightPink|Community|
+
+|Entry|
+start
+:Landing Page;
+note right
+  Users learn about Cloud People's
+  automation capabilities
+end note
+
+:Login/Register;
+if (Authenticated?) then (yes)
+  |Main Navigation|
+  :Dashboard;
+  note right
+    Overview of:
+    * Active Workflows
+    * Agent Status
+    * Recent Activities
+  end note
+else (no)
+  :Show Login Error;
+  note right: Redirect to login with error message
+  stop
+endif
+
+|Main Navigation|
+fork
+  :View Dashboard;
+fork again
+  :Browse Agent Store;
+  note right
+    * Browse Agent Templates
+    * View Available Tools
+    * Explore Agent Capabilities
+  end note
+fork again
+  :Access Community;
+fork again
+  :Create Workflow;
+  |Workflow Creation|
+  :Open Sandbox;
+  note right
+    Visual workflow builder
+    with drag-and-drop interface
+  end note
+  
+  :Design Workflow;
+  fork
+    :Create/Configure Agents;
+    note right
+      Define:
+      * Agent Capabilities
+      * Required Tools
+      * Operating Parameters
+      * Performance Settings
+    end note
+  fork again
+    :Configure Nodes;
+    note right
+      Set up:
+      * Agent Instructions
+      * Decision Logic
+      * Error Handling
+      * Tool Access
+    end note
+  fork again
+    :Set Connections;
+    note right
+      Define:
+      * Data Flow
+      * Dependencies
+      * Conditions
+      * State Management
+    end note
+  end fork
+  
+  :Save Workflow;
+  note right
+    * Auto-saves to Supabase
+    * Version Control
+    * Capability Validation
+  end note
+  
+  |Execution|
+  :Deploy Workflow;
+  fork
+    :Monitor Execution;
+    note right
+      Real-time monitoring of:
+      * Agent Status
+      * Tool Usage
+      * Performance Metrics
+      * Resource Consumption
+    end note
+  fork again
+    :View Logs;
+    note right
+      * Execution History
+      * Tool Interactions
+      * State Changes
+      * Error Traces
+    end note
+  fork again
+    :Handle Errors;
+    note right
+      * Automatic Retries
+      * Capability Adjustments
+      * Manual Intervention
+      * Error Recovery
+    end note
+  end fork
+end fork
+
+|Community|
+fork
+  :Share Agent Templates;
+  note right
+    * Share Agent Configurations
+    * Define Required Capabilities
+    * Set Usage Guidelines
+    * Share Best Practices
+  end note
+fork again
+  :Browse Templates;
+  note right
+    * Community Agent Templates
+    * Workflow Templates
+    * Capability Combinations
+    * Success Stories
+  end note
+fork again
+  :Collaborate;
+  note right
+    * Team Workspace
+    * Version Control
+    * Capability Sharing
+    * Knowledge Base
+  end note
+end fork
+
+:Return to Dashboard;
+note right: Complete feedback loop
+
+stop
+
+@enduml

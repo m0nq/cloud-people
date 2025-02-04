@@ -1,0 +1,101 @@
+@startuml Authentication and Authorization Flow
+
+' Purpose: This diagram illustrates the authentication and authorization flow
+' in the Cloud People system, including OAuth2/OpenID Connect integration with Supabase
+
+skinparam {
+    BackgroundColor transparent
+    ArrowColor #666666
+    DefaultFontColor #333333
+    DefaultFontSize 12
+    DefaultFontName Arial
+    ParticipantPadding 20
+    BoxPadding 10
+}
+
+' Actors and Systems
+actor "User" as user
+participant "Frontend\nApplication" as frontend
+participant "API Gateway" as api
+participant "Auth Service" as auth
+database "Supabase" as supabase
+participant "External\nOAuth Provider" as oauth
+
+' Initial Authentication
+group Initial Authentication
+    user -> frontend: Access application
+    frontend -> api: Check session status
+    api -> supabase: Verify session token
+    
+    alt No valid session
+        supabase --> api: Session invalid
+        api --> frontend: Redirect to login
+        frontend --> user: Display login options
+    else Valid session
+        supabase --> api: Session valid
+        api --> frontend: Session details
+        frontend --> user: Access granted
+    end
+end
+
+' OAuth2 Login Flow
+group OAuth2 Login Flow
+    user -> frontend: Click OAuth provider login
+    frontend -> auth: Initiate OAuth flow
+    auth -> oauth: Redirect to provider
+    oauth -> user: Display consent screen
+    user -> oauth: Grant permissions
+    oauth -> auth: Authorization code
+    auth -> oauth: Exchange code for tokens
+    oauth -> auth: Access & ID tokens
+    auth -> supabase: Store tokens & user info
+    auth --> frontend: Login success
+    frontend --> user: Redirect to dashboard
+end
+
+' Token Lifecycle
+group Token Lifecycle #LightBlue
+    frontend -> api: Request with access token
+    api -> supabase: Validate token
+    
+    alt Token valid
+        supabase --> api: Token OK
+        api --> frontend: Process request
+    else Token expired
+        supabase --> api: Token expired
+        api -> auth: Refresh token
+        auth -> supabase: Update tokens
+        supabase --> api: New tokens
+        api --> frontend: Update session
+    end
+end
+
+' Access Control
+group Access Control #LightYellow
+    frontend -> api: Request protected resource
+    api -> auth: Check permissions
+    auth -> supabase: Get user roles
+    
+    alt Authorized
+        supabase --> auth: User has permission
+        auth --> api: Access granted
+        api --> frontend: Resource data
+    else Unauthorized
+        supabase --> auth: Insufficient permissions
+        auth --> api: Access denied
+        api --> frontend: 403 Forbidden
+    end
+end
+
+' Security Notes
+note right of auth
+    Security Measures:
+    * PKCE for OAuth flows
+    * JWTs for session management
+    * Role-based access control
+    * Token refresh mechanism
+    * Rate limiting
+    * CORS policies
+end note
+
+@enduml

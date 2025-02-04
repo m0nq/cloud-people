@@ -1,0 +1,144 @@
+@startuml Enhanced Multi-Agent Workflow Architecture with Supabase
+
+' Styling
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam backgroundColor white
+skinparam ArrowColor #666666
+skinparam ComponentBackgroundColor #FEFEFE
+skinparam PackageBackgroundColor #FAFAFA
+skinparam InterfaceBackgroundColor #FEFEFE
+skinparam DatabaseBackgroundColor #FEFEFE
+
+' Title
+title Enhanced Multi-Agent Workflow Architecture with Supabase
+
+' Packages and Components
+package "Interface Layer" {
+    [WebSocket Handler] as WSH
+    [REST API Controller] as API
+    interface "HTTP/WS Interface" as HTTPInterface
+    
+    package "API Routes" {
+        [Core Routes] as CR
+        [Dynamic Agent Routes] as DAR
+    }
+}
+
+package "Application Layer" {
+    [Workflow Orchestrator] as WO
+    [Dynamic Agent Factory] as DAF
+    [State Manager] as SM
+    [Security Manager] as SecM
+    [Load Balancer] as LB
+    [Graph Engine] as GE
+}
+
+package "Domain Layer" {
+    package "Workflow Domain" {
+        [Workflow] as W
+        [Graph Workflow] as GW
+        [WorkflowAgent] as WA
+        [AgentExecution] as AE
+    }
+
+    package "Agent Domain" {
+        package "Core Components" {
+            [BaseAgent] as BA
+            [AgentConfiguration] as AC
+        }
+        
+        package "Dynamic Agents" {
+            [DynamicAgent] as DA
+            [AgentCapabilities] as CAP
+            [AgentTools] as AT
+        }
+        
+        package "Tool System" {
+            [ToolRegistry] as TR
+            [ToolLoader] as TL
+            [ToolValidator] as TV
+        }
+    }
+}
+
+package "Infrastructure Layer" {
+    package "Event System" {
+        [Event Bus] as EB
+        database "Message Broker" as MB
+    }
+
+    package "Storage" {
+        database "State Store" as SS
+        database "Workflow Store" as WS
+        [Cache] as C
+        [Supabase Vector DB] as SVDB
+    }
+
+    package "External Services" {
+        [Anthropic Claude] as LLM
+        [LangChain/LangGraph] as LC
+        [Playwright] as PW
+    }
+
+    package "Observability" {
+        [Metrics Service] as MS
+        [Logging Service] as LS
+        [Performance Monitor] as PM
+    }
+}
+
+' Client Side
+cloud "Client Application" {
+    [UI Workflow Builder] as UIB
+    [Real-time Updates] as RTU
+    [Supabase Auth] as SA
+}
+
+' Connections
+UIB --> HTTPInterface : HTTP/WS
+RTU --> HTTPInterface : WebSocket
+UIB --> SA : User Authentication
+
+HTTPInterface --> API
+HTTPInterface --> WSH
+API --> CR
+API --> DAR
+
+CR --> LB : Core Requests
+DAR --> LB : Agent Requests
+LB --> WO : Forward to Orchestrator
+WSH --> SM : Subscribe to Updates
+
+WO --> DAF : Create Dynamic Agents
+WO --> GE : Execute Graph Workflows
+WO --> SM : Manage State
+WO --> EB : Publish Events
+WO --> MS : Send Metrics
+WO --> LS : Log Activities
+
+DAF --> TR : Load Available Tools
+DAF --> TL : Initialize Tools
+DAF --> TV : Validate Configurations
+DAF --> SVDB : Store/Fetch Embeddings
+
+GE --> W : Execute Standard Workflows
+GE --> GW : Execute Graph Workflows
+
+BA --> AC : Configure
+DA --> CAP : Define Capabilities
+DA --> AT : Use Tools
+
+AT --> TR : Get Available Tools
+TR --> TL : Load Tool Implementation
+TL --> TV : Validate Tool
+
+SM --> SS : Store State
+SM --> WS : Store Workflow Data
+SM --> EB : Publish State Changes
+SM --> C : Cache State Data
+
+PM --> MS : Report Metrics
+PM --> LS : Log Performance
+
+@enduml
