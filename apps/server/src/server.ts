@@ -2,8 +2,15 @@ import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { readFileSync } from 'fs';
 import express from 'express';
+import { createServer } from 'http';
+
+import { AgentExecutionService } from '@agents/services/agent-execution.service';
+import { AgentDefinitionRepository } from '@agents/infrastructure/agent-definition.repository';
 
 import browserRoutes from '@api/browser/browser.routes';
+import agentRoutes from '@api/core/agent.routes';
+
+import { createClient } from '@supabase/supabase-js';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const rootDir = join(__dirname, '../../..');
@@ -35,7 +42,13 @@ try {
 	console.error('Error loading .env file:', error);
 }
 
+const supabaseUrl = process.env.SUPABASE_URL!;
+const supabaseKey = process.env.SUPABASE_KEY!;
+
+const supabase = createClient(supabaseUrl, supabaseKey);
+
 const app = express();
+const httpServer = createServer(app);
 const port = process.env.PORT || 3001;
 
 // Middleware
@@ -46,8 +59,14 @@ app.get('/', (_req, res) => {
 	res.json({ message: 'Cloud People API' });
 });
 
-app.use('/api/browser', browserRoutes);
+// Agent routes
+app.use('/api/agent', agentRoutes);
+app.use('/api/browser', browserRoutes); // Keep for backward compatibility
 
-app.listen(port, () => {
+// Initialize services
+const agentDefinitionRepo = new AgentDefinitionRepository(supabase);
+const agentExecutionService = new AgentExecutionService(httpServer, agentDefinitionRepo);
+
+httpServer.listen(port, () => {
 	console.log(`Server running at http://localhost:${port}`);
 });

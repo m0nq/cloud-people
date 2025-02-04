@@ -4,14 +4,26 @@ import { ITool } from './interfaces/tool.interface';
 import { AgentProvider } from './interfaces/provider.interface';
 import { AgentProviderFactory } from './interfaces/provider.interface';
 import { MetricsCollector } from '@shared/metrics/metrics-collector';
+import { BrowserAgent } from '@agents/browser/browser.agent';
+import { DynamicAgent } from '@agents/dynamic/dynamic.agent';
+import { AgentDefinition } from '@agents/types/agent-definition.types';
+import { ToolRegistry } from './tool-registry';
+
+// Predefined system agent types
+export type SystemAgentType = 'browser';
+export type AgentType = SystemAgentType | string;
 
 export class AgentBuilder<TContext = unknown, TResult = unknown> {
     private provider: AgentProvider<TContext, TResult>;
     private tools: ITool<TContext, TResult>[] = [];
     private config: Partial<IAgentConfig> = {};
     private metricsCollector: MetricsCollector | null = null;
+    private agentDefinition?: AgentDefinition;
 
-    constructor(providerType: 'langchain' | 'praisonai') {
+    constructor(
+        private agentType?: SystemAgentType,
+        providerType: 'langchain' | 'praisonai' = 'praisonai'
+    ) {
         this.provider = AgentProviderFactory.create<TContext, TResult>(providerType);
         this.metricsCollector = new MetricsCollector();
     }
@@ -31,21 +43,53 @@ export class AgentBuilder<TContext = unknown, TResult = unknown> {
         return this;
     }
 
+    withAgentDefinition(definition: AgentDefinition): this {
+        this.agentDefinition = definition;
+        return this;
+    }
+
     async build(): Promise<IAgent<TContext, TResult>> {
+        const filteredTools = this.tools.filter((tool): tool is ITool<TContext, TResult> => tool !== undefined);
         const fullConfig: IAgentConfig = {
-            name: 'default',
+            name: this.agentDefinition?.name || 'default',
             maxConcurrency: 1,
             timeout: 30000,
             ...this.config,
-            tools: this.tools
+            tools: filteredTools
         };
 
         if (!this.provider.validateConfig(fullConfig)) {
             throw new Error('Invalid agent configuration');
         }
 
-        const agent = await this.provider.createAgent(fullConfig, this.tools);
-        return this.wrapWithMetrics(agent as IAgent<TContext, TResult>);
+        let agent: IAgent<TContext, TResult>;
+
+        if (this.agentDefinition) {
+            // Create dynamic agent based on definition
+            const toolRegistry = ToolRegistry.getInstance();
+            const tools = (await Promise.all(
+                this.agentDefinition.tools.map(toolId => toolRegistry.getTool(toolId))
+            )).filter((tool): tool is ITool<unknown, unknown> => tool !== undefined);
+
+            agent = new DynamicAgent(
+                this.agentDefinition,
+                tools,
+                { ...this.agentDefinition.default_config, ...fullConfig }
+            ) as unknown as IAgent<TContext, TResult>;
+        } else if (this.agentType) {
+            // Create predefined system agent
+            switch (this.agentType) {
+                case 'browser':
+                    agent = new BrowserAgent(fullConfig) as unknown as IAgent<TContext, TResult>;
+                    break;
+                default:
+                    throw new Error(`Unsupported system agent type: ${this.agentType}`);
+            }
+        } else {
+            throw new Error('Either agentType or agentDefinition must be provided');
+        }
+
+        return this.wrapWithMetrics(agent);
     }
 
     private wrapWithMetrics(agent: IAgent<TContext, TResult>): IAgent<TContext, TResult> {

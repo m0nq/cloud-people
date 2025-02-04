@@ -1,35 +1,23 @@
 import { Request } from 'express';
 import { Response } from 'express';
 
-import { BrowserAgent } from '@agents/browser/browser.agent';
+import { AgentController } from '@api/core/agent.controller';
 
-export class BrowserController {
-	private agent: BrowserAgent;
-
-	constructor() {
-		this.agent = new BrowserAgent({
-			headless: false, // Set to false for development to see the browser
-			screenshotOnError: true
-		});
-	}
-
+export class BrowserController extends AgentController {
 	async executeTask(req: Request, res: Response): Promise<void> {
-		try {
-			if (!req.body.instruction) {
-				res.status(400).json({ error: 'Missing instruction in request body' });
-				return;
+		// Add browser-specific config
+		req.body = {
+			...req.body,
+			agentType: 'browser',
+			providerType: 'praisonai',
+			config: {
+				...req.body.config,
+				headless: process.env.NODE_ENV === 'production',
+				screenshotOnError: true
 			}
+		};
 
-			await this.agent.initialize();
-			const result = await this.agent.execute(req.body.instruction);
-			await this.agent.cleanup();
-
-			res.json(result);
-		} catch (error) {
-			console.error('Error executing browser task:', error);
-			res.status(500).json({
-				error: error instanceof Error ? error.message : 'Unknown error occurred'
-			});
-		}
+		// Use base controller execution
+		await super.executeTask(req, res);
 	}
 }
