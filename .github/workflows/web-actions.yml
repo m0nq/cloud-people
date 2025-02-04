@@ -15,7 +15,13 @@ on:
             - 'packages/**'
             - 'package.json'
             - 'pnpm-lock.yaml'
-            - '.github/workflows/**'
+            - '.github/workflows/web-actions.yml'
+        paths-ignore:
+            - '.github/workflows/supabase-migrations.yml'
+            - '.github/workflows/server-actions.yml'
+            - '**/*.md'
+            - '**/*.mdx'
+            - 'apps/web/supabase/migrations/**'
     workflow_dispatch:
 
 permissions:
