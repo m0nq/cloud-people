@@ -101,8 +101,20 @@ jobs:
           echo "🚀 Applying migrations to production database"
           supabase db push
 
+      - name: Start Supabase for type generation 🏁
+        run: |
+          echo "🏁 Starting Supabase..."
+          supabase start || {
+            echo "⚠️ Failed to start Supabase normally, trying with debug..."
+            supabase start --debug
+          }
+
       - name: Generate and update types 📝
         run: |
           echo "📝 Generating TypeScript types"
           mkdir -p types
           supabase gen types typescript --local > types/supabase.ts
+
+      - name: Stop Supabase 🛑
+        if: always()
+        run: supabase stop

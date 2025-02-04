@@ -11,17 +11,23 @@ on:
     push:
         branches: ['main']
         paths:
+            # Include web app changes
             - 'apps/web/**'
+            # Exclude specific web app paths
+            - '!apps/web/supabase/migrations/**'
+            - '!apps/web/**/*.md'
+            - '!apps/web/**/*.mdx'
+            # Include package changes
             - 'packages/**'
+            - '!packages/**/*.md'
+            - '!packages/**/*.mdx'
+            # Include root config files
             - 'package.json'
             - 'pnpm-lock.yaml'
+            # Only include this workflow file
             - '.github/workflows/web-actions.yml'
-        paths-ignore:
-            - '.github/workflows/supabase-migrations.yml'
-            - '.github/workflows/server-actions.yml'
-            - '**/*.md'
-            - '**/*.mdx'
-            - 'apps/web/supabase/migrations/**'
+            - '!.github/workflows/supabase-migrations.yml'
+            - '!.github/workflows/server-actions.yml'
     workflow_dispatch:
 
 permissions:
