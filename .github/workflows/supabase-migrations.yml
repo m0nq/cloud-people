@@ -50,6 +50,14 @@ jobs:
       - name: Link to Supabase project 🔗
         run: supabase link --project-ref $PROJECT_ID
 
+      - name: Sync with remote database 🔄
+        run: |
+          echo "📥 Pulling current database state..."
+          supabase db pull
+
+          echo "🔧 Repairing migration history if needed..."
+          supabase migration repair --status reverted || true
+
       - name: Run migration validation
         if: github.event_name == 'pull_request'
         run: |
