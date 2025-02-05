@@ -104,12 +104,15 @@ jobs:
       - name: Pull remote migrations 🔄
         run: |
           echo "📥 Pulling remote migrations first..."
-          supabase migration list
+          # Store migration list output
+          migration_list=$(supabase migration list)
+          echo "$migration_list"
           
           echo "🔍 Checking for remote-only migrations..."
-          remote_migrations=$(supabase migration list | grep -o '[0-9]\{14\}_remote_schema')
-          if [ ! -z "$remote_migrations" ]; then
+          # Look for lines with empty LOCAL but filled REMOTE
+          if echo "$migration_list" | grep -q "^[[:space:]]*│[[:space:]]*[0-9]"; then
             echo "⚠️ Found remote migrations not in local repository. Please pull these migrations first."
+            echo "💡 Tip: Use 'supabase db pull' to get the latest migrations"
             exit 1
           fi
 
