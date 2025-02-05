@@ -1,4 +1,4 @@
-create extension if not exists "vector" with schema "public" version '0.7.4';
+create extension if not exists "vector" with schema "public";
 
 alter table "public"."Profiles" drop constraint "profiles_email_key";
 
@@ -379,6 +379,3 @@ to public
 using ((EXISTS ( SELECT 1
    FROM "Agents"
   WHERE (("Agents".id = "VectorMemories".agent_id) AND ((("Agents".config ->> 'owner_id'::text))::uuid = auth.uid())))));
-
-
-
