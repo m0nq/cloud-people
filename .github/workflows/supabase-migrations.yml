@@ -18,7 +18,7 @@ permissions:
 
 jobs:
   validate:
-    name: Validate Migrations 🔍
+    name: Validate Migrations 🚀
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-22.04
     defaults:
@@ -30,15 +30,15 @@ jobs:
       SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
     steps:
-      - name: Checkout repository 🛎️
+      - name: Checkout repository 📁
         uses: actions/checkout@v4
 
-      - name: Setup Supabase CLI 🔧
+      - name: Setup Supabase CLI 🚀
         uses: supabase/setup-cli@v1
         with:
           version: latest
 
-      - name: Start Supabase local dev 🏁
+      - name: Start Supabase local dev 🚀
         run: supabase start
 
       - name: Link to Supabase Project 🔗
@@ -48,11 +48,14 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
-      - name: Verify migrations (dry run) ✨
+      - name: Verify migrations (dry run) 📝
         run: supabase db push --dry-run
 
       - name: Verify generated types 📝
         run: |
+          # Ensure types directory exists
+          mkdir -p types
+          # Generate types
           supabase gen types typescript --local > types/supabase.ts
           if [ "$(git diff --ignore-space-at-eol types/supabase.ts | wc -l)" -gt "0" ]; then
             echo "⚠️ Warning: Generated types are not up-to-date. Please run 'supabase gen types typescript --local > types/supabase.ts' locally and commit the changes."
@@ -75,10 +78,10 @@ jobs:
       PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
 
     steps:
-      - name: Checkout repository 🛎️
+      - name: Checkout repository 📁
         uses: actions/checkout@v4
 
-      - name: Setup Supabase CLI 🔧
+      - name: Setup Supabase CLI 🚀
         uses: supabase/setup-cli@v1
         with:
           version: latest
@@ -90,7 +93,7 @@ jobs:
           echo " Linking to project..."
           supabase link --project-ref $PROJECT_ID
 
-      - name: Check migration status
+      - name: Check migration status 📝
         run: |
           echo " Listing all migrations..."
           supabase migration list
@@ -100,28 +103,28 @@ jobs:
 
       - name: Sync with remote database 🔄
         run: |
-          echo "📥 Pulling current database state..."
+          echo " Pulling current database state..."
           # Capture the output of db pull to parse for migration IDs if it fails
           output=$(supabase db pull 2>&1) || {
             echo "$output"
             if echo "$output" | grep -q "migration repair --status reverted"; then
               migration_id=$(echo "$output" | grep -o '[0-9]\{14\}')
               if [ ! -z "$migration_id" ]; then
-                echo "🔧 Repairing specific migration: $migration_id"
+                echo " Repairing specific migration: $migration_id"
                 supabase migration repair --status reverted "$migration_id"
               fi
             fi
           }
 
-          echo "🔧 Running general migration repair if needed..."
+          echo " Running general migration repair if needed..."
           supabase migration repair --status reverted || true
 
-          echo "🔄 Pulling database state again after repairs..."
+          echo " Pulling database state again after repairs..."
           supabase db pull
 
       - name: Apply migrations 🔄
         run: |
-          echo "🚀 Applying migrations to production database"
+          echo " Applying migrations to production database"
           supabase db push --debug
 
           echo " Verifying migrations were applied..."
@@ -130,20 +133,20 @@ jobs:
           echo " Checking for remaining differences..."
           supabase db diff || true
 
-      - name: Start Supabase for type generation 🏁
+      - name: Start Supabase for type generation 🚀
         run: |
-          echo "🏁 Starting Supabase..."
+          echo " Starting Supabase..."
           supabase start || {
-            echo "⚠️ Failed to start Supabase normally, trying with debug..."
+            echo " Failed to start Supabase normally, trying with debug..."
             supabase start --debug
           }
 
       - name: Generate and update types 📝
         run: |
-          echo "📝 Generating TypeScript types"
+          echo " Generating TypeScript types"
           mkdir -p types
           supabase gen types typescript --local > types/supabase.ts
 
-      - name: Stop Supabase 🛑
+      - name: Stop Supabase 🛑️
         if: always()
         run: supabase stop
