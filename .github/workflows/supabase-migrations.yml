@@ -73,7 +73,19 @@ jobs:
           version: latest
 
       - name: Link to Supabase project 🔗
-        run: supabase link --project-ref $PROJECT_ID
+        run: |
+          echo " Verifying project connection..."
+          supabase projects list
+          echo " Linking to project..."
+          supabase link --project-ref $PROJECT_ID
+
+      - name: Check migration status
+        run: |
+          echo " Listing all migrations..."
+          supabase migration list
+
+          echo " Checking for schema differences..."
+          supabase db diff || true
 
       - name: Sync with remote database 🔄
         run: |
@@ -99,7 +111,13 @@ jobs:
       - name: Apply migrations 🔄
         run: |
           echo "🚀 Applying migrations to production database"
-          supabase db push
+          supabase db push --debug
+
+          echo " Verifying migrations were applied..."
+          supabase migration list
+
+          echo " Checking for remaining differences..."
+          supabase db diff || true
 
       - name: Start Supabase for type generation 🏁
         run: |
