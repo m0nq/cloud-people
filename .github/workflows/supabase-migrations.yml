@@ -119,23 +119,36 @@ jobs:
       - name: Sync with remote database 🔄
         run: |
           echo "📥 Pulling current database state..."
-          # Capture the output of db pull to parse for migration IDs if it fails
+          # First attempt to pull
           output=$(supabase db pull 2>&1) || {
             echo "$output"
+            
+            # Handle reverted migrations
             if echo "$output" | grep -q "migration repair --status reverted"; then
               migration_id=$(echo "$output" | grep -o '[0-9]\{14\}')
               if [ ! -z "$migration_id" ]; then
-                echo "🔧 Repairing specific migration: $migration_id"
+                echo "🔧 Repairing reverted migration: $migration_id"
                 echo "y" | supabase migration repair --status reverted "$migration_id"
               fi
             fi
+            
+            # Handle applied migrations
+            if echo "$output" | grep -q "migration repair --status applied"; then
+              echo "🔧 Repairing applied migrations..."
+              echo "$output" | grep "migration repair --status applied" | while read -r line; do
+                migration_id=$(echo "$line" | grep -o '[0-9]\{14\}')
+                if [ ! -z "$migration_id" ]; then
+                  echo "🔧 Repairing applied migration: $migration_id"
+                  echo "y" | supabase migration repair --status applied "$migration_id"
+                fi
+              done
+            fi
           }
 
-          echo "🔧 Running general migration repair if needed..."
-          # Use yes command to automatically answer "y" to the prompt
-          yes | supabase migration repair --status reverted || true
+          echo "🔧 Verifying migration status..."
+          supabase migration list
 
-          echo "🔄 Pulling database state again after repairs..."
+          echo "🔄 Final database state pull..."
           supabase db pull
 
       - name: Apply migrations 🔄
