@@ -101,25 +101,38 @@ jobs:
           echo " Checking for schema differences..."
           supabase db diff || true
 
+      - name: Pull remote migrations 🔄
+        run: |
+          echo "📥 Pulling remote migrations first..."
+          supabase migration list
+          
+          echo "🔍 Checking for remote-only migrations..."
+          remote_migrations=$(supabase migration list | grep -o '[0-9]\{14\}_remote_schema')
+          if [ ! -z "$remote_migrations" ]; then
+            echo "⚠️ Found remote migrations not in local repository. Please pull these migrations first."
+            exit 1
+          fi
+
       - name: Sync with remote database 🔄
         run: |
-          echo " Pulling current database state..."
+          echo "📥 Pulling current database state..."
           # Capture the output of db pull to parse for migration IDs if it fails
           output=$(supabase db pull 2>&1) || {
             echo "$output"
             if echo "$output" | grep -q "migration repair --status reverted"; then
               migration_id=$(echo "$output" | grep -o '[0-9]\{14\}')
               if [ ! -z "$migration_id" ]; then
-                echo " Repairing specific migration: $migration_id"
-                supabase migration repair --status reverted "$migration_id"
+                echo "🔧 Repairing specific migration: $migration_id"
+                echo "y" | supabase migration repair --status reverted "$migration_id"
               fi
             fi
           }
 
-          echo " Running general migration repair if needed..."
-          supabase migration repair --status reverted || true
+          echo "🔧 Running general migration repair if needed..."
+          # Use yes command to automatically answer "y" to the prompt
+          yes | supabase migration repair --status reverted || true
 
-          echo " Pulling database state again after repairs..."
+          echo "🔄 Pulling database state again after repairs..."
           supabase db pull
 
       - name: Apply migrations 🔄
