@@ -42,9 +42,20 @@ export type EdgeData = {
     type: string;
 };
 
+export type WorkflowExecution = {
+    workflowId: string;
+    sessionId: string;
+    currentNodeId: string | null;
+    state: WorkflowState;
+    startedAt: Date;
+    completedAt?: Date;
+    error?: string;
+} | null;
+
 export type AppState = {
     nodes: (Node<NodeData> | Node<InitialStateNodeData>)[];
     edges: Edge[];
+    workflowExecution: WorkflowExecution;
     onNodesChange?: OnNodesChange;
     onEdgesChange?: OnEdgesChange;
     onBeforeDelete?: OnBeforeDelete;
@@ -53,11 +64,14 @@ export type AppState = {
     setNodes?: (nodes: (Node<NodeData> | Node<InitialStateNodeData>)[]) => void;
     setEdges?: (edges: Edge[]) => void;
     addNode?: (node: AgentData) => Promise<void>;
-    // should take a tuple of nodes?
     addEdge?: (edge: Edge) => void;
     fetchGraph?: (workflowId: string) => void;
     createNewWorkflow?: () => Promise<string>;
     reset?: () => void;
+    startWorkflow: () => Promise<void>;
+    pauseWorkflow: () => void;
+    resumeWorkflow: () => Promise<void>;
+    progressWorkflow: (nodeId: string, status: AgentStatus) => Promise<void>;
 };
 
 export type QueryUpdateConfig = {
@@ -92,8 +106,8 @@ export type QueryConfig = {
 
 export enum WorkflowState {
     Initial = 'Initial',
-    Build = 'Build',
     Running = 'Running',
+    Paused = 'Paused',
     Error = 'Error',
     Complete = 'Complete'
 }
@@ -130,15 +144,25 @@ export type QueryResults = {
     };
 };
 
-export type AgentData = {
-    id?: string;
+export type AgentAction = {
+    type: 'browser';
+    action: 'open' | 'navigate_to_google';
+    params?: Record<string, string>;
+};
+
+export type AgentConfig = {
+    actions: AgentAction[];
+    aiEnabled: boolean;
+    metadata?: Record<string, unknown>;
+};
+
+export interface AgentData {
+    id: string;
     name: string;
     role: string;
-    image?: string;
+    config: AgentConfig;
     parentNodeId?: string;
-    status?: 'active' | 'inactive';
-    skills?: string[];
-};
+}
 
 export enum AgentStatus {
     Initial = 'initial',

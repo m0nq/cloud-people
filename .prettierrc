@@ -14,7 +14,9 @@
         {
             "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
             "options": {
-                "printWidth": 120
+                "printWidth": 120,
+                "breakChains": true,
+                "chainBreakTest": "always"
             }
         },
         {

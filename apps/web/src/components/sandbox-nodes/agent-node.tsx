@@ -1,15 +1,18 @@
-import { Position } from '@xyflow/react';
 import { ReactNode } from 'react';
 import { useCallback } from 'react';
 import { useEffect } from 'react';
 
-import './node.styles.css';
+import { Position } from '@xyflow/react';
+
 import { AgentCard } from '@components/agents/agent-card';
 import { NodeComponent } from '@components/utils/node-component/node-component';
-import { HandleType } from './types.enum';
 import { useModalStore } from '@stores/modal-store';
 import { useAgentStore } from '@stores/agent-store';
 import { AgentStatus } from '@lib/definitions';
+
+import { useAgent } from '@hooks/use-agent';
+import { HandleType } from './types.enum';
+import './node.styles.css';
 
 type AgentNodeProps = {
     id: string;
@@ -42,6 +45,10 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     const { openModal } = useModalStore();
     const { removeAgent, transition, getAgentState, updateAgent } = useAgentStore();
     const agentState = getAgentState(id);
+
+    const { executeAction, isProcessing, messages } = useAgent(id, (status) => {
+        transition(id, status);
+    });
 
     // Initialize agent when component mounts
     const handleInitialize = useCallback(() => {
@@ -77,7 +84,6 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         // }, [id, openModal, transition]);
     }, [id, transition]);
 
-    // this is new...
     const handleRestart = useCallback(() => {
         transition(id, AgentStatus.Working, {
             progress: 0

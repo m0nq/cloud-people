@@ -19,6 +19,7 @@ import { deleteNodes } from '@lib/actions/node-actions';
 import { fetchWorkflowEdges } from '@lib/actions/sandbox-actions';
 import { fetchWorkflowNodes } from '@lib/actions/sandbox-actions';
 import { createWorkflow } from '@lib/actions/workflow-actions';
+import { updateWorkflow } from '@lib/actions/workflow-actions';
 import { AgentData } from '@lib/definitions';
 import { AppState } from '@lib/definitions';
 import { NodeData } from '@lib/definitions';
@@ -74,14 +75,54 @@ const initialStateNodes = [
 // define the initial state
 const initialState: AppState = {
     nodes: initialStateNodes,
-    edges: [] as Edge[]
+    edges: [] as Edge[],
+    workflowExecution: null,
+    startWorkflow: async () => {},
+    pauseWorkflow: () => {},
+    resumeWorkflow: async () => {},
+    progressWorkflow: async () => {}
 };
 
-// should implement all the on* state change handlers here
-// this is where agent states will be controlled
+// Helper function to find the root node in a workflow
+const findRootNode = (nodes: Node<NodeData | InitialStateNodeData>[]): Node<NodeData> | undefined => {
+    return nodes.find(node => node.type === WorkflowNode.RootNode) as Node<NodeData>;
+};
+
+// Helper function to find the next node to execute
+const findNextNode = (nodes: Node[], edges: Edge[], currentNodeId: string): Node | undefined => {
+    // Find all edges where current node is the source
+    const outgoingEdges = edges.filter(edge => edge.source === currentNodeId);
+    if (!outgoingEdges.length) return undefined;
+
+    // For now, just take the first edge's target node
+    // TODO: Add logic for conditional branching based on agent results
+    const nextNodeId = outgoingEdges[0].target;
+    return nodes.find(node => node.id === nextNodeId);
+};
+
+// Helper functions to check node types
+const isInitialStateNode = (node: Node<NodeData | InitialStateNodeData>): node is Node<InitialStateNodeData> => {
+    return node.type?.includes(WorkflowNode.InitialStateNode) ?? false;
+};
+
+const isWorkflowNode = (node: Node<NodeData | InitialStateNodeData>): node is Node<NodeData> => {
+    return !isInitialStateNode(node);
+};
+
 export const useGraphStore = create<AppState>()(
-    devtools((set: (payload: AppState) => void, get: () => AppState) => ({
+    devtools((set: (payload: AppState) => void, get: () => AppState) => {
+        // Create a helper to merge new state with existing state
+        const updateState = (newState: Partial<Omit<AppState, keyof typeof initialState>>) => {
+            const currentState = get();
+            set({
+                ...currentState,
+                ...newState
+            });
+        };
+
+        return {
             ...initialState,
+
             onBeforeDelete: async ({ nodes }: { nodes: Node[] }): Promise<boolean> => {
                 if (!nodes || nodes.length === 0) return true;
                 const [node] = nodes;
@@ -91,19 +132,14 @@ export const useGraphStore = create<AppState>()(
             },
             onNodesChange: async (changes: NodeChange<Node>[]): Promise<void> => {
                 const updatedNodes: Node[] = applyNodeChanges(changes, get().nodes);
-                set({ nodes: updatedNodes, edges: [...get().edges] });
+                updateState({ nodes: updatedNodes });
 
                 try {
                     // Update database for each changed node
                     for (const node of updatedNodes) {
-                        // Only update nodes that:
-                        // 1. Have a workflowId
-                        // 2. Are not initial state nodes
-                        // 3. Have state data
                         if (node.data?.workflowId && node.data?.state && !node.type?.includes(WorkflowNode.InitialStateNode)) {
                             try {
-                                const nodeData = node.data as NodeData; // Type assertion since we've checked workflowId
-                                // exists
+                                const nodeData = node.data as NodeData;
                                 await updateNodes({
                                     workflowId: nodeData.workflowId,
                                     nodeId: node.id,
@@ -115,18 +151,16 @@ export const useGraphStore = create<AppState>()(
                                 });
                             } catch (nodeError) {
                                 console.error(`Failed to update node ${node.id}:`, nodeError);
-                                // Continue with other nodes even if one fails
                             }
                         }
                     }
                 } catch (error) {
                     console.error('Failed to process node changes:', error);
-                    // Keep UI state even if database update fails
                 }
             },
             onEdgesChange: async (changes: EdgeChange<Edge>[]) => {
                 const updatedEdges = applyEdgeChanges(changes, get().edges);
-                set({ edges: updatedEdges, nodes: [...get().nodes] });
+                updateState({ edges: updatedEdges });
 
                 try {
                     // Persist edge changes to database
@@ -171,14 +205,14 @@ export const useGraphStore = create<AppState>()(
                     } as Edge<EdgeData>;
 
                     const updatedEdges = addEdge(newEdge, get().edges);
-                    set({ edges: updatedEdges, nodes: [...get().nodes] });
+                    updateState({ edges: updatedEdges });
                 } catch (error) {
                     console.error('Failed to create edge in database:', error);
                     // TODO: Add error handling/recovery
                 }
             },
             setEdges: async (edges: Edge[]) => {
-                set({ edges, nodes: [...get().nodes] });
+                updateState({ edges });
 
                 try {
                     // Persist edge updates to database
@@ -199,8 +233,7 @@ export const useGraphStore = create<AppState>()(
             },
             addNode: async (agent: AgentData): Promise<void> => {
                 try {
-                    const parentNode = get().nodes
-                        .find((n: Node<NodeData>) => n.id === agent.parentNodeId);
+                    const parentNode = get().nodes.find((n: Node<NodeData>) => n.id === agent.parentNodeId);
 
                     if (!parentNode || !parentNode.data?.workflowId) {
                         console.error('Parent node not found or missing workflowId. Modal state:', parentNode);
@@ -289,7 +322,7 @@ export const useGraphStore = create<AppState>()(
                     }
 
                     // Update UI with the new node
-                    set({ nodes: [...get().nodes, newNode], edges: [...get().edges] });
+                    updateState({ nodes: [...get().nodes, newNode] });
 
                     // Create edge in database only if we have a valid parent node
                     if (agent.parentNodeId) {
@@ -344,7 +377,7 @@ export const useGraphStore = create<AppState>()(
                     } as Node<NodeData>;
 
                     // Update UI state
-                    set({
+                    updateState({
                         nodes: [node],
                         edges: []
                     });
@@ -377,7 +410,7 @@ export const useGraphStore = create<AppState>()(
                     // make a fetch to back end api to get a workflow by the id
                     // will need to parse graph into singular lists of nodes and edges
                     // then update zustand state
-                    set({
+                    updateState({
                         nodes: fetchWorkflowNodes(),
                         edges: fetchWorkflowEdges()
                     });
@@ -396,19 +429,284 @@ export const useGraphStore = create<AppState>()(
                 // another
                 await Promise.all([...deletedNodes.map(async (node: Node) => deleteNodes({ nodeId: node.id }))]);
 
-                set({
+                updateState({
                     nodes: nodes.filter(({ id }) => !deletedNodes.some((node: Node) => node.id === id)),
                     edges: edges.filter(({ id }) => !connectedEdges.some((edge: Edge) => edge.id === id))
                 });
             },
             reset: () => {
-                set(initialState);
+                updateState(initialState);
+            },
+            startWorkflow: async (): Promise<void> => {
+                const { nodes, edges } = get();
+                const rootNode = findRootNode(nodes);
+
+                if (!rootNode?.data?.workflowId) {
+                    throw new Error('No workflow root node found');
+                }
+
+                const workflowExecution = {
+                    workflowId: rootNode.data.workflowId,
+                    sessionId: crypto.randomUUID(),
+                    currentNodeId: rootNode.id,
+                    state: WorkflowState.Running,
+                    startedAt: new Date()
+                };
+
+                // Update all nodes to idle state except first connected node
+                const firstNodeId = getConnectedEdges([rootNode], edges).find(edge => edge.source === rootNode.id)?.target;
+
+                const updatedNodes = nodes.map(node => {
+                    if (isInitialStateNode(node)) {
+                        return node;
+                    }
+                    return {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            state: WorkflowState.Running,
+                            status: node.id === firstNodeId ? AgentStatus.Working : AgentStatus.Idle
+                        }
+                    };
+                });
+
+                // Update workflow state in database
+                await updateWorkflow({
+                    filter: {
+                        id: { eq: rootNode.data.workflowId }
+                    },
+                    set: {
+                        state: WorkflowState.Running,
+                        current_step: firstNodeId,
+                        data: JSON.stringify({
+                            sessionId: workflowExecution.sessionId,
+                            startedAt: workflowExecution.startedAt
+                        })
+                    }
+                });
+
+                updateState({
+                    nodes: updatedNodes,
+                    workflowExecution
+                });
+            },
+
+            pauseWorkflow: (): void => {
+                const { workflowExecution, nodes } = get();
+                if (!workflowExecution) return;
+
+                const updatedNodes = nodes.map(node => {
+                    if (isInitialStateNode(node)) {
+                        return node;
+                    }
+                    return {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            state: WorkflowState.Paused
+                        }
+                    };
+                });
+
+                // Update workflow state in database
+                updateWorkflow({
+                    filter: {
+                        id: { eq: workflowExecution.workflowId }
+                    },
+                    set: {
+                        state: WorkflowState.Paused,
+                        data: JSON.stringify({
+                            ...workflowExecution,
+                            state: WorkflowState.Paused
+                        })
+                    }
+                }).catch(error => {
+                    console.error('Failed to update workflow state:', error);
+                });
+
+                updateState({
+                    nodes: updatedNodes,
+                    workflowExecution: {
+                        ...workflowExecution,
+                        state: WorkflowState.Paused
+                    }
+                });
+            },
+
+            resumeWorkflow: async (): Promise<void> => {
+                const { workflowExecution, nodes } = get();
+                if (!workflowExecution) return;
+
+                const updatedNodes = nodes.map(node => {
+                    if (isInitialStateNode(node)) {
+                        return node;
+                    }
+                    return {
+                        ...node,
+                        data: {
+                            ...node.data,
+                            state: WorkflowState.Running
+                        }
+                    };
+                });
+
+                // Update workflow state in database
+                await updateWorkflow({
+                    filter: {
+                        id: { eq: workflowExecution.workflowId }
+                    },
+                    set: {
+                        state: WorkflowState.Running,
+                        data: JSON.stringify({
+                            ...workflowExecution,
+                            state: WorkflowState.Running
+                        })
+                    }
+                });
+
+                updateState({
+                    nodes: updatedNodes,
+                    workflowExecution: {
+                        ...workflowExecution,
+                        state: WorkflowState.Running
+                    }
+                });
+            },
+
+            progressWorkflow: async (nodeId: string, status: AgentStatus): Promise<void> => {
+                const { nodes, edges, workflowExecution } = get();
+                if (!workflowExecution) return;
+
+                // Handle node completion
+                if (status === AgentStatus.Complete) {
+                    const nextNode = findNextNode(nodes, edges, nodeId);
+
+                    if (!nextNode) {
+                        // No more nodes to execute - workflow is complete
+                        const updatedNodes = nodes.map(node => {
+                            if (isInitialStateNode(node)) {
+                                return node;
+                            }
+                            return {
+                                ...node,
+                                data: {
+                                    ...node.data,
+                                    state: WorkflowState.Complete,
+                                    status: node.id === nodeId ? AgentStatus.Complete : node.data.status
+                                }
+                            };
+                        });
+
+                        const completedAt = new Date();
+
+                        // Update workflow completion in database
+                        await updateWorkflow({
+                            filter: {
+                                id: { eq: workflowExecution.workflowId }
+                            },
+                            set: {
+                                state: WorkflowState.Complete,
+                                current_step: nodeId,
+                                data: JSON.stringify({
+                                    ...workflowExecution,
+                                    completedAt,
+                                    state: WorkflowState.Complete
+                                })
+                            }
+                        });
+
+                        updateState({
+                            nodes: updatedNodes,
+                            workflowExecution: {
+                                ...workflowExecution,
+                                state: WorkflowState.Complete,
+                                completedAt
+                            }
+                        });
+                        return;
+                    }
+
+                    // Update current node to complete and next node to working
+                    const updatedNodes = nodes.map(node => {
+                        if (isInitialStateNode(node)) {
+                            return node;
+                        }
+                        return {
+                            ...node,
+                            data: {
+                                ...node.data,
+                                status: node.id === nodeId ? AgentStatus.Complete : node.id === nextNode.id ? AgentStatus.Working : node.data.status
+                            }
+                        };
+                    });
+
+                    // Update workflow progress in database
+                    await updateWorkflow({
+                        filter: {
+                            id: { eq: workflowExecution.workflowId }
+                        },
+                        set: {
+                            current_step: nextNode.id,
+                            data: JSON.stringify({
+                                ...workflowExecution,
+                                currentNodeId: nextNode.id
+                            })
+                        }
+                    });
+
+                    updateState({
+                        nodes: updatedNodes,
+                        workflowExecution: {
+                            ...workflowExecution,
+                            currentNodeId: nextNode.id
+                        }
+                    });
+                }
+
+                // Handle node error
+                if (status === AgentStatus.Error) {
+                    const updatedNodes = nodes.map(node => {
+                        if (isInitialStateNode(node)) {
+                            return node;
+                        }
+                        return {
+                            ...node,
+                            data: {
+                                ...node.data,
+                                state: WorkflowState.Error,
+                                status: node.id === nodeId ? AgentStatus.Error : node.data.status
+                            }
+                        };
+                    });
+
+                    const error = `Error in node: ${nodeId}`;
+
+                    // Update workflow error in database
+                    await updateWorkflow({
+                        filter: {
+                            id: { eq: workflowExecution.workflowId }
+                        },
+                        set: {
+                            state: WorkflowState.Error,
+                            current_step: nodeId,
+                            data: JSON.stringify({
+                                ...workflowExecution,
+                                error,
+                                state: WorkflowState.Error
+                            })
+                        }
+                    });
+
+                    updateState({
+                        nodes: updatedNodes,
+                        workflowExecution: {
+                            ...workflowExecution,
+                            state: WorkflowState.Error,
+                            error
+                        }
+                    });
+                }
             }
-        }),
-        {
-            name: 'Workflow Store',
-            enabled: process.env.NODE_ENV === 'development',
-            maxAge: process.env.NODE_ENV === 'development' ? 50 : 0
-        }
-    )
+        };
+    })
 );
