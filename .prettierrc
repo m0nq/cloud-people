@@ -16,11 +16,14 @@
             "options": {
                 "printWidth": 120,
                 "breakChains": true,
-                "chainBreakTest": "always"
+                "chainBreakTest": "always",
+                "arrowFunctionParentheses": "avoid",
+                "arrowBodyStyle": "as-needed",
+                "singleLineFunctions": false
             }
         },
         {
-            "files": ["*.json", "*.yml", "*.yaml"],
+            "files": ["*.json", "*.md"],
             "options": {
                 "tabWidth": 2
             }

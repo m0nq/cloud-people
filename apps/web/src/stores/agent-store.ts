@@ -19,6 +19,8 @@ type AgentStoreActions = {
     removeAgent: (agentId: string) => void;
     transition: (agentId: string, newStatus: AgentStatus, updates?: Partial<Omit<AgentState, 'status'>>) => void;
     updateAgent: (agentId: string, updates: Partial<AgentState>) => void;
+    resetAgent: (agentId: string) => void;
+    resetErroredAgents: () => void;
 };
 
 type AgentStoreSelectors = {
@@ -41,9 +43,9 @@ const isValidTransition = (currentStatus: AgentStatus, newStatus: AgentStatus): 
         [AgentStatus.Idle]: [AgentStatus.Activating],
         [AgentStatus.Activating]: [AgentStatus.Working],
         [AgentStatus.Working]: [AgentStatus.Complete, AgentStatus.Error, AgentStatus.Assistance],
-        [AgentStatus.Error]: [AgentStatus.Working],
-        [AgentStatus.Assistance]: [AgentStatus.Working],
-        [AgentStatus.Complete]: []
+        [AgentStatus.Error]: [AgentStatus.Working, AgentStatus.Initial], // Allow Error -> Initial transition
+        [AgentStatus.Assistance]: [AgentStatus.Working, AgentStatus.Initial], // Allow Assistance -> Initial transition
+        [AgentStatus.Complete]: [AgentStatus.Initial] // Allow Complete -> Initial transition
     };
 
     return transitions[currentStatus]?.includes(newStatus) ?? false;
@@ -109,24 +111,37 @@ export const useAgentStore = create<AgentStore>()(
             },
             updateAgent: (agentId, updates) => {
                 set(state => ({
-                    ...state,
                     agents: {
                         ...state.agents,
                         [agentId]: {
-                            // If agent doesn't exist, use DEFAULT_AGENT_STATE as base
-                            ...(state.agents[agentId] || DEFAULT_AGENT_STATE),
+                            ...state.agents[agentId],
                             ...updates
                         }
                     }
                 }));
+            },
+            resetAgent: (agentId) => {
+                const currentState = get().agents[agentId];
+                if (!currentState) return;
+
+                // Reset to Initial, then to Idle
+                get().transition(agentId, AgentStatus.Initial);
+                get().transition(agentId, AgentStatus.Idle);
+            },
+            resetErroredAgents: () => {
+                const { agents } = get();
+                Object.entries(agents).forEach(([agentId, agent]) => {
+                    if ([AgentStatus.Error, AgentStatus.Assistance].includes(agent.status)) {
+                        get().resetAgent(agentId);
+                    }
+                });
             },
             // Selectors
             getAgentState: agentId => get().agents[agentId],
             getAgentError: agentId => get().errors[agentId] || null,
             isTransitionAllowed: (agentId, newStatus) => {
                 const currentState = get().agents[agentId];
-                if (!currentState) return false;
-                return isValidTransition(currentState.status, newStatus);
+                return currentState ? isValidTransition(currentState.status, newStatus) : false;
             }
         }),
         {

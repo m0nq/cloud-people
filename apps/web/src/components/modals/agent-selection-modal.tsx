@@ -4,13 +4,60 @@ import { ReactNode } from 'react';
 import './agent-selection-modal.styles.css';
 import { AgentCard } from '@components/agents/agent-card';
 import { AgentData } from '@lib/definitions';
+import { AgentStatus } from '@lib/definitions';
 import { useModalStore } from '@stores/modal-store';
+
+// Define available agent capabilities
+const AGENT_CAPABILITIES = {
+    BROWSER_NAVIGATION: {
+        id: 'browser_navigation',
+        name: 'Browser Navigation',
+        description: 'Navigate to specified websites',
+        action: 'navigate_to_google'
+    }
+    // Add more capabilities as needed
+} as const;
+
+// Define available agents with their capabilities
+const AVAILABLE_AGENTS: AgentData[] = [
+    {
+        id: 'rico-browser-agent',
+        name: 'Rico',
+        role: 'Browser Navigator',
+        capability: AGENT_CAPABILITIES.BROWSER_NAVIGATION,
+        config: {
+            actions: [
+                {
+                    type: 'browser',
+                    action: 'navigate_to_google'
+                }
+            ],
+            aiEnabled: true
+        }
+    },
+    {
+        id: 'becca-browser-agent',
+        name: 'Becca',
+        role: 'Browser Navigator',
+        capability: AGENT_CAPABILITIES.BROWSER_NAVIGATION,
+        config: {
+            actions: [
+                {
+                    type: 'browser',
+                    action: 'navigate_to_google'
+                }
+            ],
+            aiEnabled: true
+        }
+    }
+    // Add more agents as needed
+];
 
 interface AgentSelectionModalProps {
     parentNodeId: string;
     onClose: () => void;
     onSelect: (agentData: AgentData) => void;
-    children: ReactNode;
+    children?: ReactNode;
 }
 
 export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children }: AgentSelectionModalProps) => {
@@ -28,7 +75,9 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
             <div className="agent-selector-header">
                 <h2 className="text-xl font-semibold text-color-light">Add Agent</h2>
                 <div className="selector-actions">
-                    <button className="agent-builder-button" onClick={handleClick}>Agent Builder</button>
+                    <button className="agent-builder-button" onClick={handleClick}>
+                        Agent Builder
+                    </button>
                     {children}
                 </div>
             </div>
@@ -37,31 +86,33 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
 
                 {/* Tabs */}
                 <div className="modal-tabs">
-                    <button className={`tab ${activeTab === 'agents' ? 'active-state' : ''}`}
-                        onClick={() => setActiveTab('agents')}>
+                    <button className={`tab ${activeTab === 'agents' ? 'active-state' : ''}`} onClick={() => setActiveTab('agents')}>
                         My Agents
                     </button>
-                    <button className={`tab ${activeTab === 'store' ? 'active-state' : ''}`}
-                        onClick={() => setActiveTab('store')}>
+                    <button className={`tab ${activeTab === 'store' ? 'active-state' : ''}`} onClick={() => setActiveTab('store')}>
                         Agent Store
                     </button>
                 </div>
 
                 {/* Agent Cards Grid */}
                 <div className="agents-grid">
-                    {/* Example agents - replace with actual data */}
-                    <div className="agent-card-container" onClick={() => {
-                        onSelect({ name: 'Rico', role: 'Researcher', parentNodeId });
-                        onClose();
-                    }}>
-                        <AgentCard data={{ name: 'Rico', role: 'Researcher' }} />
-                    </div>
-                    <div className="agent-card-container" onClick={() => {
-                        onSelect({ name: 'Becca', role: 'Researcher', parentNodeId });
-                        onClose();
-                    }}>
-                        <AgentCard data={{ name: 'Becca', role: 'Researcher' }} />
-                    </div>
+                    {AVAILABLE_AGENTS.map(agent => (
+                        <div key={agent.name}
+                            className="agent-card-container"
+                            onClick={() => {
+                                onSelect({ ...agent, parentNodeId });
+                                onClose();
+                            }}>
+                            <AgentCard
+                                data={agent}
+                                state={{
+                                    status: AgentStatus.Initial,
+                                    isEditable: true,
+                                    progress: 0
+                                }}
+                            />
+                        </div>
+                    ))}
                 </div>
             </div>
         </div>

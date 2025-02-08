@@ -8,7 +8,12 @@ import { ChatIcon } from '@components/icons/chat-icon';
 import { TaskStatusIcon } from '@components/icons/task-status-icon';
 import { WatchIcon } from '@components/icons/watch-icon';
 
-export const WorkingAgentLayout = ({ data }: BaseAgentLayoutProps) => {
+export const WorkingAgentLayout = ({ 
+    data, 
+    isLoading, 
+    isProcessing, 
+    onExecute 
+}: BaseAgentLayoutProps) => {
     return (
         <div className="working-agent-card">
             <div className="working-agent-wrapper">
@@ -33,7 +38,7 @@ export const WorkingAgentLayout = ({ data }: BaseAgentLayoutProps) => {
                         <span>Current Task:</span>
                     </div>
                     <div className="agent-tasks-container">
-                        <p>Name of task</p>
+                        <p>{isProcessing ? 'Processing...' : isLoading ? 'Loading...' : 'Ready'}</p>
                     </div>
                 </div>
                 <div className="buttons-container">
@@ -42,6 +47,8 @@ export const WorkingAgentLayout = ({ data }: BaseAgentLayoutProps) => {
                         size="sm"
                         radius="lg"
                         fullWidth
+                        disabled={isLoading || isProcessing}
+                        onClick={onExecute}
                         icon={<WatchIcon />}>
                         Watch
                     </Button>

@@ -3,6 +3,7 @@ import { CSSProperties } from 'react';
 import { AgentData } from '@lib/definitions';
 import { AgentState } from '@lib/definitions';
 import { AgentStatus } from '@lib/definitions';
+import { useAgent } from '@hooks/use-agent';
 import { IdleAgentLayout } from './layouts';
 import { WorkingAgentLayout } from './layouts';
 import { AssistanceAgentLayout } from './layouts';
@@ -32,8 +33,10 @@ const AGENT_LAYOUTS = {
 };
 
 export const AgentCard = (props: AgentCardProps) => {
-    const { status } = props;
+    const { data, status } = props;
+    const { isLoading, isProcessing, executeAction } = useAgent(data.id);
+
     const LayoutComponent = status ? AGENT_LAYOUTS[status] : BaseAgentLayout;
 
-    return <LayoutComponent {...props} />;
+    return <LayoutComponent {...props} isLoading={isLoading} isProcessing={isProcessing} onExecute={executeAction} />;
 };

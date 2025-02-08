@@ -33,6 +33,7 @@ import { NODE_SPACING_Y } from '@config/layout.const';
 import { ROOT_NODE_SPACING_X } from '@config/layout.const';
 import { ROOT_NODE_POSITION } from '@config/layout.const';
 import { Config } from '@config/constants';
+import { useAgentStore } from './agent-store';
 
 const { WorkflowNode } = Config;
 
@@ -79,6 +80,7 @@ const initialState: AppState = {
     workflowExecution: null,
     startWorkflow: async () => {},
     pauseWorkflow: () => {},
+    isCurrentNode: () => false,
     resumeWorkflow: async () => {},
     progressWorkflow: async () => {}
 };
@@ -105,23 +107,21 @@ const isInitialStateNode = (node: Node<NodeData | InitialStateNodeData>): node i
     return node.type?.includes(WorkflowNode.InitialStateNode) ?? false;
 };
 
-const isWorkflowNode = (node: Node<NodeData | InitialStateNodeData>): node is Node<NodeData> => {
-    return !isInitialStateNode(node);
-};
-
 export const useGraphStore = create<AppState>()(
-    devtools((set: (payload: AppState) => void, get: () => AppState) => {
-        // Create a helper to merge new state with existing state
-        const updateState = (newState: Partial<Omit<AppState, keyof typeof initialState>>) => {
-            const currentState = get();
-            set({
+    devtools((set, get) => {
+        const updateState = (newState: Partial<AppState>) => {
+            set(currentState => ({
                 ...currentState,
                 ...newState
-            });
+            }));
         };
 
         return {
             ...initialState,
+            isCurrentNode: (nodeId: string): boolean => {
+                const state = get();
+                return state.workflowExecution?.currentNodeId === nodeId;
+            },
 
             onBeforeDelete: async ({ nodes }: { nodes: Node[] }): Promise<boolean> => {
                 if (!nodes || nodes.length === 0) return true;
@@ -537,6 +537,10 @@ export const useGraphStore = create<AppState>()(
                 const { workflowExecution, nodes } = get();
                 if (!workflowExecution) return;
 
+                // Reset any agents that are in error or assistance state
+                const { resetErroredAgents } = useAgentStore.getState();
+                resetErroredAgents();
+
                 const updatedNodes = nodes.map(node => {
                     if (isInitialStateNode(node)) {
                         return node;
@@ -673,7 +677,7 @@ export const useGraphStore = create<AppState>()(
                             ...node,
                             data: {
                                 ...node.data,
-                                state: WorkflowState.Error,
+                                state: WorkflowState.Paused,
                                 status: node.id === nodeId ? AgentStatus.Error : node.data.status
                             }
                         };
@@ -687,12 +691,12 @@ export const useGraphStore = create<AppState>()(
                             id: { eq: workflowExecution.workflowId }
                         },
                         set: {
-                            state: WorkflowState.Error,
+                            state: WorkflowState.Paused,
                             current_step: nodeId,
                             data: JSON.stringify({
                                 ...workflowExecution,
                                 error,
-                                state: WorkflowState.Error
+                                state: WorkflowState.Paused
                             })
                         }
                     });
@@ -701,7 +705,7 @@ export const useGraphStore = create<AppState>()(
                         nodes: updatedNodes,
                         workflowExecution: {
                             ...workflowExecution,
-                            state: WorkflowState.Error,
+                            state: WorkflowState.Paused,
                             error
                         }
                     });

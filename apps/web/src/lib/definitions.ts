@@ -34,6 +34,8 @@ export type NodeData = {
     currentStep?: string;
     state?: WorkflowState;
     status?: AgentStatus;
+    capability?: AgentCapability;
+    config?: AgentConfig;
     onOpenModal?: (modalType: string) => void;
 };
 
@@ -72,6 +74,7 @@ export type AppState = {
     pauseWorkflow: () => void;
     resumeWorkflow: () => Promise<void>;
     progressWorkflow: (nodeId: string, status: AgentStatus) => Promise<void>;
+    isCurrentNode: (nodeId: string) => boolean;
 };
 
 export type QueryUpdateConfig = {
@@ -156,11 +159,21 @@ export type AgentConfig = {
     metadata?: Record<string, unknown>;
 };
 
+export interface AgentCapability {
+    id: string;
+    name: string;
+    description: string;
+    action: string;
+    parameters?: Record<string, any>;
+}
+
 export interface AgentData {
     id: string;
     name: string;
     role: string;
+    image?: string;
     config: AgentConfig;
+    capability: AgentCapability;
     parentNodeId?: string;
 }
 

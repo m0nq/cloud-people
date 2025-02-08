@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { useCallback } from 'react';
 import { useEffect } from 'react';
+import { useMemo } from 'react';
 
 import { Position } from '@xyflow/react';
 
@@ -8,7 +9,10 @@ import { AgentCard } from '@components/agents/agent-card';
 import { NodeComponent } from '@components/utils/node-component/node-component';
 import { useModalStore } from '@stores/modal-store';
 import { useAgentStore } from '@stores/agent-store';
+import { useGraphStore } from '@stores/workflow-store';
 import { AgentStatus } from '@lib/definitions';
+import { AgentCapability } from '@lib/definitions';
+import { AgentConfig } from '@lib/definitions';
 
 import { useAgent } from '@hooks/use-agent';
 import { HandleType } from './types.enum';
@@ -20,6 +24,8 @@ type AgentNodeProps = {
         name: string;
         role: string;
         image?: string;
+        capability: AgentCapability;
+        config: AgentConfig;
         [key: string]: any;
     };
     targetPosition?: string;
@@ -44,10 +50,28 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     const tPosition = getPosition(targetPosition);
     const { openModal } = useModalStore();
     const { removeAgent, transition, getAgentState, updateAgent } = useAgentStore();
+    const { progressWorkflow, isCurrentNode } = useGraphStore();
     const agentState = getAgentState(id);
+    const isCurrentWorkflowNode = isCurrentNode(id);
 
-    const { executeAction, isProcessing, messages } = useAgent(id, (status) => {
+    const agentData = useMemo(() => ({
+            ...data,
+            id,
+            capability: data.capability || {
+                action: 'navigate_to_google',
+                parameters: {},
+                description: 'Navigate to Google search'
+            }
+        }),
+        [data, id]
+    );
+
+    const { executeAction, isProcessing, messages } = useAgent(id, status => {
         transition(id, status);
+        // Only update workflow progress for terminal states
+        if (status === AgentStatus.Complete || status === AgentStatus.Error) {
+            progressWorkflow(id, status);
+        }
     });
 
     // Initialize agent when component mounts
@@ -62,6 +86,13 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
             removeAgent(id);
         };
     }, [id, handleInitialize, removeAgent]);
+
+    // Start agent execution when it becomes the current node in workflow
+    useEffect(() => {
+        if (isCurrentWorkflowNode && agentState?.status === AgentStatus.Idle) {
+            executeAction();
+        }
+    }, [isCurrentWorkflowNode, agentState?.status, executeAction]);
 
     const handleAgentDetails = useCallback(() => {
         if (agentState?.isEditable) {
@@ -96,10 +127,9 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     return (
         <NodeComponent.Root className="agent-node">
             <NodeComponent.Content className="agent-node-container">
-                <div className={`w-full h-full ${agentState.isEditable ? 'cursor-pointer' : 'cursor-default'}`}
-                    onClick={handleAgentDetails}>
+                <div className={`w-full h-full ${agentState.isEditable ? 'cursor-pointer' : 'cursor-default'}`} onClick={handleAgentDetails}>
                     <AgentCard
-                        data={data}
+                        data={agentData}
                         state={agentState}
                         status={agentState.status}
                         onEdit={agentState.isEditable ? handleAgentDetails : undefined}
