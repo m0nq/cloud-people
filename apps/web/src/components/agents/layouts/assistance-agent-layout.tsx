@@ -9,16 +9,15 @@ import { NotificationBellIcon } from '@components/icons/notification-bell-icon';
 import { WatchIcon } from '@components/icons/watch-icon';
 import { AgentStatus } from '@lib/definitions';
 
-export const AssistanceAgentLayout = ({ data, status, onAssistanceRequest }: BaseAgentLayoutProps) => {
+export const AssistanceAgentLayout = ({ data, state, onAssistanceRequest }: BaseAgentLayoutProps) => {
     return (
         <div className="assistance-card">
-            {status === AgentStatus.Assistance && (
+            {state?.status === AgentStatus.Assistance && (
                 <div className="hand-icon-container absolute right-2 top-1/2 -translate-y-1/2">
                     <HandIcon
                         width={44} // ~2.76863rem
                         height={50} // ~3.14456rem
-                        fillColor="white"
-                    />
+                        fillColor="white" />
                 </div>
             )}
 

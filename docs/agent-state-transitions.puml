@@ -1,8 +1,7 @@
-@startuml Agent Runtime States
+@startuml Agent State Machine
 
-' Purpose: This diagram illustrates the runtime states of dynamic agents in the system.
-' It focuses on the backend/system perspective of how agents operate during execution.
-' This is distinct from workflow-node-states.puml which shows UI/workflow builder behavior.
+' Purpose: This diagram illustrates the runtime states of agents in the system.
+' It reflects the actual implementation in agent-store.ts.
 
 ' Styling
 skinparam StateBackgroundColor #FEFEFE
@@ -12,92 +11,87 @@ skinparam StateStartColor #445566
 skinparam StateEndColor #445566
 
 ' Title
-title Agent Runtime States
+title Agent State Machine
 
 ' States
-[*] --> Creating : Factory Creates Agent
+[*] --> Initial : Create Agent
 
-state Creating {
-    [*] --> LoadingDefinition
-    LoadingDefinition --> ValidatingCapabilities
-    ValidatingCapabilities --> InitializingTools
-    InitializingTools --> ReadyForUse : Success
-    
-    LoadingDefinition --> CreationFailed : Definition Not Found
-    ValidatingCapabilities --> CreationFailed : Invalid Capabilities
-    InitializingTools --> CreationFailed : Tool Init Failed
+state Initial {
+    state "isEditable = true" as Editable
 }
 
-Creating --> Idle : Creation Success
-Creating --> Failed : Creation Failed
+Initial --> Idle : Workflow Start
+Idle --> Initial : Reset for Edit
+Idle --> Activating : Node's Turn
+Activating --> Working : Ready to Execute
 
-state Idle {
-    [*] --> WaitingForTask
-    WaitingForTask --> PreparingExecution : Task Received
-    PreparingExecution --> WaitingForTask : Task Rejected
-    PreparingExecution --> ReadyToExecute : Task Accepted
+state Working {
+    [*] --> Processing
+    Processing --> NeedHelp : Request Assistance
+    Processing --> TaskError : Error Occurred
+    Processing --> TaskDone : Success
 }
 
-Idle --> Executing : Start Task
+Working --> Complete : Task Success
+Working --> Error : Task Failed
+Working --> Assistance : Need Help
 
-state Executing {
-    [*] --> LoadingContext
-    LoadingContext --> ProcessingTask
-    ProcessingTask --> UsingTool
-    UsingTool --> ProcessingTask : Tool Success
-    UsingTool --> ErrorHandling : Tool Error
-    
-    ErrorHandling --> ProcessingTask : Recovery Success
-    ErrorHandling --> Failed : Recovery Failed
-    
-    ProcessingTask --> SavingResults : Task Complete
-    SavingResults --> [*] : Results Saved
-}
+Error --> Working : Resume
+Error --> Initial : Reset for Edit
 
-Executing --> Idle : Task Complete
-Executing --> Error : Execution Error
+Assistance --> Working : Help Received
+Assistance --> Initial : Reset for Edit
 
-state Error {
-    [*] --> DiagnosingError
-    DiagnosingError --> AttemptingRecovery : Recoverable
-    DiagnosingError --> RequiringIntervention : Unrecoverable
-    
-    AttemptingRecovery --> Reconfiguring : Need Adjustment
-    Reconfiguring --> DiagnosingError : Retry Recovery
-    
-    RequiringIntervention --> WaitingForFix : Manual Fix Needed
-    WaitingForFix --> DiagnosingError : Fix Applied
-}
-
-Error --> Idle : Recovery Success
-Error --> Failed : Recovery Failed
-
-Failed --> [*]
+Complete --> Initial : Reset for Edit
 
 ' Notes
-note right of Creating
-  - Loading agent definition
-  - Validating capabilities
-  - Initializing required tools
+note right of Initial
+  Default state when agent is:
+  - First created
+  - Reset for editing
+  - Reset after error/completion
 end note
 
 note right of Idle
-  - Minimal resource usage
-  - Maintaining tool connections
-  - Ready for quick start
+  Agent is:
+  - Connected to workflow
+  - Waiting for its turn
+  - Can be reset to Initial
 end note
 
-note right of Executing
-  - Active task processing
-  - Tool usage
-  - State management
-  - Result handling
+note right of Activating
+  Transitional state when:
+  - Agent's turn starts
+  - Preparing for execution
+end note
+
+note right of Working
+  Agent is:
+  - Executing its task
+  - Using tools
+  - Can request help
+  - Can encounter errors
 end note
 
 note right of Error
-  - Automatic recovery
-  - Capability adjustment
-  - Manual intervention
+  Agent has failed:
+  - Can be resumed
+  - Can be reset
+  - Pauses workflow
+end note
+
+note right of Assistance
+  Agent needs help:
+  - Waiting for input
+  - Can continue
+  - Can be reset
+end note
+
+note right of Complete
+  Agent finished:
+  - Task successful
+  - Can be reset
+  - Workflow continues
 end note
 
 @enduml

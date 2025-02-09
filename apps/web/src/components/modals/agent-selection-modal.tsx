@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useCallback } from 'react';
+import { useMemo } from 'react';
 import { ReactNode } from 'react';
 
 import './agent-selection-modal.styles.css';
@@ -60,22 +62,37 @@ interface AgentSelectionModalProps {
     children?: ReactNode;
 }
 
-export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children }: AgentSelectionModalProps) => {
+export const AgentSelectionModal = ({
+    onClose,
+    onSelect,
+    parentNodeId,
+    children
+}: AgentSelectionModalProps) => {
     const [activeTab, setActiveTab] = useState('agents');
     const { openModal } = useModalStore();
 
     /* TODO: fetch agents from db to collect and display them. */
 
-    const handleClick = () => {
-        openModal({ type: 'agent-config', parentNodeId, isFromModal: true });
-    };
+    const handleBuildAgentClick = useCallback(() => {
+        openModal({
+            type: 'agent-config',
+            parentNodeId,
+            isFromModal: true
+        });
+    }, [parentNodeId, openModal]);
+
+    const initialAgentState = useMemo(() => ({
+        status: AgentStatus.Initial,
+        isEditable: true,
+        progress: 0
+    }), []);
 
     return (
         <div className="agent-selector-container">
             <div className="agent-selector-header">
                 <h2 className="text-xl font-semibold text-color-light">Add Agent</h2>
                 <div className="selector-actions">
-                    <button className="agent-builder-button" onClick={handleClick}>
+                    <button className="agent-builder-button" onClick={handleBuildAgentClick}>
                         Agent Builder
                     </button>
                     {children}
@@ -86,10 +103,12 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
 
                 {/* Tabs */}
                 <div className="modal-tabs">
-                    <button className={`tab ${activeTab === 'agents' ? 'active-state' : ''}`} onClick={() => setActiveTab('agents')}>
+                    <button className={`tab ${activeTab === 'agents' ? 'active-state' : ''}`}
+                        onClick={() => setActiveTab('agents')}>
                         My Agents
                     </button>
-                    <button className={`tab ${activeTab === 'store' ? 'active-state' : ''}`} onClick={() => setActiveTab('store')}>
+                    <button className={`tab ${activeTab === 'store' ? 'active-state' : ''}`}
+                        onClick={() => setActiveTab('store')}>
                         Agent Store
                     </button>
                 </div>
@@ -103,14 +122,7 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
                                 onSelect({ ...agent, parentNodeId });
                                 onClose();
                             }}>
-                            <AgentCard
-                                data={agent}
-                                state={{
-                                    status: AgentStatus.Initial,
-                                    isEditable: true,
-                                    progress: 0
-                                }}
-                            />
+                            <AgentCard data={agent} state={initialAgentState} />
                         </div>
                     ))}
                 </div>

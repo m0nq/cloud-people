@@ -74,22 +74,8 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         }
     });
 
-    // Initialize agent when component mounts
-    const handleInitialize = useCallback(() => {
-        // Initialize agent with default state and provided status
-        updateAgent(id, { status: data.status });
-    }, [id, data.status, updateAgent]);
-
     useEffect(() => {
-        handleInitialize();
-        return () => {
-            removeAgent(id);
-        };
-    }, [id, handleInitialize, removeAgent]);
-
-    // Start agent execution when it becomes the current node in workflow
-    useEffect(() => {
-        if (isCurrentWorkflowNode && agentState?.status === AgentStatus.Idle) {
+        if (isCurrentWorkflowNode && agentState?.status === AgentStatus.Working) {
             executeAction();
         }
     }, [isCurrentWorkflowNode, agentState?.status, executeAction]);
@@ -100,7 +86,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         }
     }, [id, openModal, agentState?.isEditable]);
 
-    const handleAgentSelector = useCallback(() => {
+    const handleOpenAgentSelection = useCallback(() => {
         if (agentState?.status === AgentStatus.Initial || agentState?.status === AgentStatus.Idle) {
             openModal({ type: 'agent-selection', parentNodeId: id });
         }
@@ -121,15 +107,21 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         });
     }, [id, transition]);
 
+    useEffect(() => {
+        return () => {
+            removeAgent(id);
+        };
+    }, [id, removeAgent]);
+
     // Don't render until agent state is initialized
     if (!agentState) return null;
 
     return (
         <NodeComponent.Root className="agent-node">
             <NodeComponent.Content className="agent-node-container">
-                <div className={`w-full h-full ${agentState.isEditable ? 'cursor-pointer' : 'cursor-default'}`} onClick={handleAgentDetails}>
-                    <AgentCard
-                        data={agentData}
+                <div className={`w-full h-full ${agentState.isEditable ? 'cursor-pointer' : 'cursor-default'}`}
+                    onClick={handleAgentDetails}>
+                    <AgentCard data={agentData}
                         state={agentState}
                         status={agentState.status}
                         onEdit={agentState.isEditable ? handleAgentDetails : undefined}
@@ -138,7 +130,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                 </div>
             </NodeComponent.Content>
             <NodeComponent.Handle
-                onClick={handleAgentSelector}
+                onClick={handleOpenAgentSelection}
                 type={HandleType.SOURCE}
                 position={sPosition}
                 id={`${id}-a`}

@@ -13,6 +13,7 @@ import { devtools } from 'zustand/middleware';
 
 import { createEdge } from '@lib/actions/edge-actions';
 import { updateEdges } from '@lib/actions/edge-actions';
+import { deleteEdges } from '@lib/actions/edge-actions';
 import { createNodes } from '@lib/actions/node-actions';
 import { updateNodes } from '@lib/actions/node-actions';
 import { deleteNodes } from '@lib/actions/node-actions';
@@ -76,7 +77,7 @@ const initialStateNodes = [
 // define the initial state
 const initialState: AppState = {
     nodes: initialStateNodes,
-    edges: [] as Edge[],
+    edges: [] as Edge<EdgeData>[],
     workflowExecution: null,
     startWorkflow: async () => {},
     pauseWorkflow: () => {},
@@ -122,7 +123,6 @@ export const useGraphStore = create<AppState>()(
                 const state = get();
                 return state.workflowExecution?.currentNodeId === nodeId;
             },
-
             onBeforeDelete: async ({ nodes }: { nodes: Node[] }): Promise<boolean> => {
                 if (!nodes || nodes.length === 0) return true;
                 const [node] = nodes;
@@ -159,76 +159,112 @@ export const useGraphStore = create<AppState>()(
                 }
             },
             onEdgesChange: async (changes: EdgeChange<Edge>[]) => {
-                const updatedEdges = applyEdgeChanges(changes, get().edges);
-                updateState({ edges: updatedEdges });
+                // Keep track of original edges for rollback
+                const originalEdges = get().edges;
 
                 try {
-                    // Persist edge changes to database
-                    for (const edge of updatedEdges) {
-                        if (edge.data?.workflowId) {
-                            await updateEdges({
-                                workflowId: edge.data.workflowId,
-                                toNodeId: edge.target,
-                                fromNodeId: edge.source
-                            });
-                        }
+                    // Group changes by type for atomic operations
+                    const deleteChanges = changes.filter(change => change.type === 'remove');
+                    const updateChanges = changes.filter(change => change.type !== 'remove');
+
+                    // Handle deletions first
+                    if (!deleteChanges.length) {
+                        // Delete edges from database
+                        await Promise.all(
+                            deleteChanges.map(async change => {
+                                const edge = originalEdges.find(e => e.id === change.id);
+                                if (edge) {
+                                    // Get workflowId from source node since edge data might not have it
+                                    const sourceNode = get().nodes.find(n => n.id === edge.source);
+                                    const workflowId = sourceNode?.data?.workflowId;
+
+                                    if (workflowId) {
+                                        await deleteEdges({
+                                            edgeId: edge.id,
+                                            workflowId
+                                        });
+                                    }
+                                }
+                            })
+                        );
+                    }
+
+                    // Apply changes to UI state
+                    const updatedEdges = applyEdgeChanges(changes, originalEdges);
+                    updateState({ edges: updatedEdges });
+
+                    // Handle updates (source/target changes)
+                    if (!updateChanges.length) {
+                        await Promise.all(
+                            updatedEdges.map(async (edge) => {
+                                const originalEdge = originalEdges.find(e => e.id === edge.id);
+                                // Only update if source or target changed
+                                if (originalEdge &&
+                                    (originalEdge.source !== edge.source ||
+                                        originalEdge.target !== edge.target)) {
+                                    // Get workflowId from source node
+                                    const sourceNode = get().nodes.find(n => n.id === edge.source);
+                                    const workflowId = sourceNode?.data?.workflowId;
+
+                                    if (workflowId) {
+                                        await updateEdges({
+                                            workflowId,
+                                            toNodeId: edge.target,
+                                            fromNodeId: edge.source,
+                                            edgeId: edge.id
+                                        });
+                                    }
+                                }
+                            })
+                        );
                     }
                 } catch (error) {
-                    console.error('Failed to update edges in database:', error);
-                    // TODO: Add error handling/recovery
+                    console.error('Failed to update edges:', error);
+                    // Rollback UI state on error
+                    updateState({ edges: originalEdges });
+                    throw new Error('Failed to update edges. Changes have been reverted.');
                 }
             },
             onConnect: async (connection: Connection) => {
+                // Keep track of original edges for rollback
+                const originalEdges = get().edges;
+
                 try {
-                    // First create the edge in the database
-                    const workflowId = get()?.nodes.find(n => n.id === connection.source)?.data?.workflowId;
+                    // Get workflow ID from source node
+                    const sourceNode = get().nodes.find(n => n.id === connection.source);
+                    const workflowId = sourceNode?.data?.workflowId;
                     if (!workflowId) {
                         throw new Error('No workflow ID found for source node');
                     }
 
+                    // First create the edge in the database
                     const edgeId = await createEdge({
                         workflowId,
                         toNodeId: connection.target,
                         fromNodeId: connection.source
                     });
 
-                    // Then create the edge in the UI with the database ID
-                    const newEdge = {
+                    // Create the edge object for UI
+                    const newEdge: Edge<EdgeData> = {
                         id: edgeId,
                         source: connection.source,
                         target: connection.target,
                         type: WorkflowNode.AutomationEdge,
                         animated: true,
                         data: {
-                            workflowId
+                            workflowId,
+                            type: WorkflowNode.AutomationEdge
                         }
-                    } as Edge<EdgeData>;
+                    };
 
-                    const updatedEdges = addEdge(newEdge, get().edges);
+                    // Update UI state
+                    const updatedEdges = addEdge(newEdge, originalEdges);
                     updateState({ edges: updatedEdges });
                 } catch (error) {
-                    console.error('Failed to create edge in database:', error);
-                    // TODO: Add error handling/recovery
-                }
-            },
-            setEdges: async (edges: Edge[]) => {
-                updateState({ edges });
-
-                try {
-                    // Persist edge updates to database
-                    for (const edge of edges) {
-                        if (edge.data?.workflowId) {
-                            await updateEdges({
-                                workflowId: edge.data.workflowId,
-                                toNodeId: edge.target,
-                                fromNodeId: edge.source,
-                                edgeId: edge.id
-                            });
-                        }
-                    }
-                } catch (error) {
-                    console.error('Failed to update edges in database:', error);
-                    // TODO: Add error handling/recovery
+                    console.error('Failed to create edge:', error);
+                    // Rollback UI state on error
+                    updateState({ edges: originalEdges });
+                    throw new Error('Failed to create edge. Changes have been reverted.');
                 }
             },
             addNode: async (agent: AgentData): Promise<void> => {
@@ -295,7 +331,6 @@ export const useGraphStore = create<AppState>()(
                             ...agent,
                             currentStep: '0',
                             state: WorkflowState.Initial,
-                            status: AgentStatus.Initial,
                             workflowId
                         },
                         position: newPosition,
@@ -333,19 +368,20 @@ export const useGraphStore = create<AppState>()(
                         });
 
                         // Update the store with the edge
-                        const newEdge = {
+                        const newEdge: Edge<EdgeData> = {
                             id: edgeId,
                             source: agent.parentNodeId,
                             target: createdNode.id, // Use the ID from the created node
                             type: WorkflowNode.AutomationEdge,
                             animated: true,
                             data: {
-                                workflowId
+                                workflowId,
+                                type: WorkflowNode.AutomationEdge
                             }
-                        } as Edge<EdgeData>;
+                        };
 
                         const currentEdges = get().edges;
-                        get().setEdges?.([...currentEdges, newEdge]);
+                        updateState({ edges: [...currentEdges, newEdge] });
                     }
                 } catch (error) {
                     console.error('Failed to add node or edge:', error);
@@ -440,73 +476,60 @@ export const useGraphStore = create<AppState>()(
             startWorkflow: async (): Promise<void> => {
                 const { nodes, edges } = get();
                 const rootNode = findRootNode(nodes);
+                if (!rootNode) return;
 
-                if (!rootNode?.data?.workflowId) {
-                    throw new Error('No workflow root node found');
-                }
+                const firstNodeId = getConnectedEdges([rootNode], edges)
+                    .find((edge: Edge) => edge.source === rootNode.id)
+                    ?.target;
+
+                if (!firstNodeId) return;
 
                 const workflowExecution = {
-                    workflowId: rootNode.data.workflowId,
+                    workflowId: rootNode.data.workflowId!,
                     sessionId: crypto.randomUUID(),
-                    currentNodeId: rootNode.id,
+                    currentNodeId: firstNodeId,
                     state: WorkflowState.Running,
                     startedAt: new Date()
                 };
 
-                // Update all nodes to idle state except first connected node
-                const firstNodeId = getConnectedEdges([rootNode], edges).find(edge => edge.source === rootNode.id)?.target;
+                // Sync agent states in agent store following valid transitions
+                const agentStore = useAgentStore.getState();
+                nodes.forEach(node => {
+                    if (!isInitialStateNode(node)) {
+                        // First transition all nodes from Initial to Idle
+                        agentStore.transition(node.id, AgentStatus.Idle);
 
-                const updatedNodes = nodes.map(node => {
-                    if (isInitialStateNode(node)) {
-                        return node;
-                    }
-                    return {
-                        ...node,
-                        data: {
-                            ...node.data,
-                            state: WorkflowState.Running,
-                            status: node.id === firstNodeId ? AgentStatus.Working : AgentStatus.Idle
+                        // Then transition the first node through Activating to Working
+                        if (node.id === firstNodeId) {
+                            agentStore.transition(node.id, AgentStatus.Activating);
+                            agentStore.transition(node.id, AgentStatus.Working);
                         }
-                    };
+                    }
                 });
 
-                // Update workflow state in database
+                // Update workflow execution in database
                 await updateWorkflow({
                     filter: {
-                        id: { eq: rootNode.data.workflowId }
+                        id: { eq: workflowExecution.workflowId }
                     },
                     set: {
                         state: WorkflowState.Running,
                         current_step: firstNodeId,
-                        data: JSON.stringify({
-                            sessionId: workflowExecution.sessionId,
-                            startedAt: workflowExecution.startedAt
-                        })
+                        data: JSON.stringify(workflowExecution)
                     }
                 });
 
+                // Update workflow state
                 updateState({
-                    nodes: updatedNodes,
-                    workflowExecution
+                    workflowExecution: {
+                        ...workflowExecution,
+                        currentNodeId: firstNodeId
+                    }
                 });
             },
-
             pauseWorkflow: (): void => {
                 const { workflowExecution, nodes } = get();
                 if (!workflowExecution) return;
-
-                const updatedNodes = nodes.map(node => {
-                    if (isInitialStateNode(node)) {
-                        return node;
-                    }
-                    return {
-                        ...node,
-                        data: {
-                            ...node.data,
-                            state: WorkflowState.Paused
-                        }
-                    };
-                });
 
                 // Update workflow state in database
                 updateWorkflow({
@@ -525,14 +548,12 @@ export const useGraphStore = create<AppState>()(
                 });
 
                 updateState({
-                    nodes: updatedNodes,
                     workflowExecution: {
                         ...workflowExecution,
                         state: WorkflowState.Paused
                     }
                 });
             },
-
             resumeWorkflow: async (): Promise<void> => {
                 const { workflowExecution, nodes } = get();
                 if (!workflowExecution) return;
@@ -540,19 +561,6 @@ export const useGraphStore = create<AppState>()(
                 // Reset any agents that are in error or assistance state
                 const { resetErroredAgents } = useAgentStore.getState();
                 resetErroredAgents();
-
-                const updatedNodes = nodes.map(node => {
-                    if (isInitialStateNode(node)) {
-                        return node;
-                    }
-                    return {
-                        ...node,
-                        data: {
-                            ...node.data,
-                            state: WorkflowState.Running
-                        }
-                    };
-                });
 
                 // Update workflow state in database
                 await updateWorkflow({
@@ -569,14 +577,12 @@ export const useGraphStore = create<AppState>()(
                 });
 
                 updateState({
-                    nodes: updatedNodes,
                     workflowExecution: {
                         ...workflowExecution,
                         state: WorkflowState.Running
                     }
                 });
             },
-
             progressWorkflow: async (nodeId: string, status: AgentStatus): Promise<void> => {
                 const { nodes, edges, workflowExecution } = get();
                 if (!workflowExecution) return;
@@ -587,21 +593,11 @@ export const useGraphStore = create<AppState>()(
 
                     if (!nextNode) {
                         // No more nodes to execute - workflow is complete
-                        const updatedNodes = nodes.map(node => {
-                            if (isInitialStateNode(node)) {
-                                return node;
-                            }
-                            return {
-                                ...node,
-                                data: {
-                                    ...node.data,
-                                    state: WorkflowState.Complete,
-                                    status: node.id === nodeId ? AgentStatus.Complete : node.data.status
-                                }
-                            };
-                        });
-
-                        const completedAt = new Date();
+                        const updatedWorkflowExecution = {
+                            ...workflowExecution,
+                            state: WorkflowState.Complete,
+                            completedAt: new Date()
+                        };
 
                         // Update workflow completion in database
                         await updateWorkflow({
@@ -611,38 +607,32 @@ export const useGraphStore = create<AppState>()(
                             set: {
                                 state: WorkflowState.Complete,
                                 current_step: nodeId,
-                                data: JSON.stringify({
-                                    ...workflowExecution,
-                                    completedAt,
-                                    state: WorkflowState.Complete
-                                })
+                                data: JSON.stringify(updatedWorkflowExecution)
                             }
                         });
 
+                        // Update agent state
+                        const agentStore = useAgentStore.getState();
+                        agentStore.transition(nodeId, AgentStatus.Complete);
+
+                        // Update local state
                         updateState({
-                            nodes: updatedNodes,
-                            workflowExecution: {
-                                ...workflowExecution,
-                                state: WorkflowState.Complete,
-                                completedAt
-                            }
+                            workflowExecution: updatedWorkflowExecution
                         });
                         return;
                     }
 
                     // Update current node to complete and next node to working
-                    const updatedNodes = nodes.map(node => {
-                        if (isInitialStateNode(node)) {
-                            return node;
-                        }
-                        return {
-                            ...node,
-                            data: {
-                                ...node.data,
-                                status: node.id === nodeId ? AgentStatus.Complete : node.id === nextNode.id ? AgentStatus.Working : node.data.status
-                            }
-                        };
-                    });
+                    const updatedWorkflowExecution = {
+                        ...workflowExecution,
+                        currentNodeId: nextNode.id
+                    };
+
+                    // Update agent states
+                    const agentStore = useAgentStore.getState();
+                    agentStore.transition(nodeId, AgentStatus.Complete);
+                    agentStore.transition(nextNode.id, AgentStatus.Activating);
+                    agentStore.transition(nextNode.id, AgentStatus.Working);
 
                     // Update workflow progress in database
                     await updateWorkflow({
@@ -651,39 +641,40 @@ export const useGraphStore = create<AppState>()(
                         },
                         set: {
                             current_step: nextNode.id,
-                            data: JSON.stringify({
-                                ...workflowExecution,
-                                currentNodeId: nextNode.id
-                            })
+                            data: JSON.stringify(updatedWorkflowExecution)
                         }
                     });
 
+                    // Update local state
                     updateState({
-                        nodes: updatedNodes,
-                        workflowExecution: {
-                            ...workflowExecution,
-                            currentNodeId: nextNode.id
-                        }
+                        workflowExecution: updatedWorkflowExecution
                     });
                 }
 
                 // Handle node error
                 if (status === AgentStatus.Error) {
-                    const updatedNodes = nodes.map(node => {
-                        if (isInitialStateNode(node)) {
-                            return node;
-                        }
-                        return {
-                            ...node,
-                            data: {
-                                ...node.data,
-                                state: WorkflowState.Paused,
-                                status: node.id === nodeId ? AgentStatus.Error : node.data.status
-                            }
-                        };
-                    });
-
                     const error = `Error in node: ${nodeId}`;
+                    const updatedWorkflowExecution = {
+                        ...workflowExecution,
+                        state: WorkflowState.Paused,
+                        error
+                    };
+
+                    // Update agent states
+                    const agentStore = useAgentStore.getState();
+
+                    // First transition the errored node
+                    agentStore.transition(nodeId, AgentStatus.Error);
+
+                    // Reset all idle nodes to initial state for editing
+                    nodes.forEach(node => {
+                        if (!isInitialStateNode(node)) {
+                            const nodeState = agentStore.getAgentState(node.id);
+                            if (nodeState?.status === AgentStatus.Idle) {
+                                agentStore.transition(node.id, AgentStatus.Initial);
+                            }
+                        }
+                    });
 
                     // Update workflow error in database
                     await updateWorkflow({
@@ -693,21 +684,13 @@ export const useGraphStore = create<AppState>()(
                         set: {
                             state: WorkflowState.Paused,
                             current_step: nodeId,
-                            data: JSON.stringify({
-                                ...workflowExecution,
-                                error,
-                                state: WorkflowState.Paused
-                            })
+                            data: JSON.stringify(updatedWorkflowExecution)
                         }
                     });
 
+                    // Update local state
                     updateState({
-                        nodes: updatedNodes,
-                        workflowExecution: {
-                            ...workflowExecution,
-                            state: WorkflowState.Paused,
-                            error
-                        }
+                        workflowExecution: updatedWorkflowExecution
                     });
                 }
             }
