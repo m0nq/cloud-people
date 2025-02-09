@@ -108,9 +108,8 @@ export const updateEdges = async (config: any = {}) => {
             from_node_id: config.fromNodeId
         },
         filter: {
-            workflow_id: { eq: config.workflowId },
-            to_node_id: { eq: config.toNodeId },
-            from_node_id: { eq: config.fromNodeId }
+            id: { eq: config.edgeId },
+            workflow_id: { eq: config.workflowId }
         }
     } as QueryConfig;
 
@@ -138,7 +137,8 @@ export const deleteEdges = async (config: QueryConfig = {}) => {
 
     const variables = {
         filter: {
-            id: { eq: config.edgeId }
+            id: { eq: config.edgeId },
+            workflow_id: { eq: config.workflowId }
         }
     } as QueryConfig;
 

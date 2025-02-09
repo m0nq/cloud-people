@@ -168,7 +168,7 @@ export const useGraphStore = create<AppState>()(
                     const updateChanges = changes.filter(change => change.type !== 'remove');
 
                     // Handle deletions first
-                    if (!deleteChanges.length) {
+                    if (deleteChanges.length) {
                         // Delete edges from database
                         await Promise.all(
                             deleteChanges.map(async change => {
@@ -194,7 +194,7 @@ export const useGraphStore = create<AppState>()(
                     updateState({ edges: updatedEdges });
 
                     // Handle updates (source/target changes)
-                    if (!updateChanges.length) {
+                    if (updateChanges.length) {
                         await Promise.all(
                             updatedEdges.map(async (edge) => {
                                 const originalEdge = originalEdges.find(e => e.id === edge.id);
@@ -208,10 +208,10 @@ export const useGraphStore = create<AppState>()(
 
                                     if (workflowId) {
                                         await updateEdges({
+                                            edgeId: edge.id,  // Use this to find the edge
                                             workflowId,
-                                            toNodeId: edge.target,
-                                            fromNodeId: edge.source,
-                                            edgeId: edge.id
+                                            toNodeId: edge.target,  // New target
+                                            fromNodeId: edge.source  // New source
                                         });
                                     }
                                 }
