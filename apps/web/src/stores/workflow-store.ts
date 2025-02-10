@@ -1,43 +1,38 @@
 import { Position } from '@xyflow/react';
+import { addEdge } from '@xyflow/react';
+import { applyEdgeChanges } from '@xyflow/react';
+import { applyNodeChanges } from '@xyflow/react';
 import { type Connection } from '@xyflow/react';
 import { type Edge } from '@xyflow/react';
 import { type EdgeChange } from '@xyflow/react';
 import { type Node } from '@xyflow/react';
 import { type NodeChange } from '@xyflow/react';
-import { applyEdgeChanges } from '@xyflow/react';
-import { applyNodeChanges } from '@xyflow/react';
 import { getConnectedEdges } from '@xyflow/react';
-
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import { memoize } from 'lodash';
 
 import { createEdge } from '@lib/actions/edge-actions';
 import { updateEdges } from '@lib/actions/edge-actions';
-import { deleteEdges } from '@lib/actions/edge-actions';
 import { createNodes } from '@lib/actions/node-actions';
 import { updateNodes } from '@lib/actions/node-actions';
 import { deleteNodes } from '@lib/actions/node-actions';
 import { fetchWorkflowEdges } from '@lib/actions/sandbox-actions';
 import { fetchWorkflowNodes } from '@lib/actions/sandbox-actions';
 import { createWorkflow } from '@lib/actions/workflow-actions';
-import { createExecution } from '@lib/actions/execution-actions';
-
 import { AgentData } from '@lib/definitions';
 import { AppState } from '@lib/definitions';
-import { GraphState } from '@lib/definitions';
 import { NodeData } from '@lib/definitions';
 import { WorkflowState } from '@lib/definitions';
 import { InitialStateNodeData } from '@lib/definitions';
 import { EdgeData } from '@lib/definitions';
 import { AgentStatus } from '@lib/definitions';
-import { WorkflowExecution } from '@lib/definitions';
-
 import { INITIAL_NODE_POSITION } from '@config/layout.const';
 import { NODE_SPACING_X } from '@config/layout.const';
 import { NODE_SPACING_Y } from '@config/layout.const';
+import { ROOT_NODE_SPACING_X } from '@config/layout.const';
 import { ROOT_NODE_POSITION } from '@config/layout.const';
 import { Config } from '@config/constants';
+import { useAgentStore } from '@stores/agent-store';
 
 const { WorkflowNode } = Config;
 
@@ -359,7 +354,8 @@ export const useGraphStore = create<AppState>()(
             },
             addNode: async (agent: AgentData): Promise<void> => {
                 try {
-                    const parentNode = get().nodes.find((n: Node<NodeData>) => n.id === agent.parentNodeId);
+                    const parentNode = get().nodes
+                        .find((n: Node<NodeData>) => n.id === agent.parentNodeId);
 
                     if (!parentNode || !parentNode.data?.workflowId) {
                         console.error('Parent node not found or missing workflowId. Modal state:', parentNode);
@@ -401,7 +397,7 @@ export const useGraphStore = create<AppState>()(
                         get().onNodesChange?.(nodeChanges);
                     }
 
-                    // Position for the new node - for a single child, keep it in line with parent
+                    // Position for the new node
                     const newPosition = {
                         x: parentNode.position.x + (isParentRootNode ? NODE_SPACING_X : NODE_SPACING_X),
                         y: totalSiblings > 1 ? parentNode.position.y + (siblings.length - (totalSiblings - 1) / 2) * NODE_SPACING_Y : parentNode.position.y
@@ -413,14 +409,22 @@ export const useGraphStore = create<AppState>()(
                         throw new Error('Failed to create node');
                     }
 
+                    // Initialize agent state before creating the node
+                    const agentStore = useAgentStore.getState();
+                    agentStore.updateAgent(createdNode.id, { 
+                        status: AgentStatus.Initial,
+                        isEditable: true
+                    });
+
                     // Create new node with agent data and the ID from the created node
                     const newNode = {
-                        id: createdNode.id, // Use the ID from the created node
+                        id: createdNode.id,
                         type: WorkflowNode.AgentNode,
                         data: {
                             ...agent,
                             currentStep: '0',
                             state: WorkflowState.Initial,
+                            status: AgentStatus.Initial,
                             workflowId
                         },
                         position: newPosition,
@@ -433,7 +437,7 @@ export const useGraphStore = create<AppState>()(
                         // Update node state in database
                         await updateNodes({
                             workflowId: workflowId,
-                            nodeId: createdNode.id, // Use the ID from the created node
+                            nodeId: createdNode.id,
                             set: {
                                 state: WorkflowState.Initial,
                                 current_step: '0',
@@ -442,40 +446,40 @@ export const useGraphStore = create<AppState>()(
                         });
                     } catch (updateError) {
                         console.error('Failed to update node state:', updateError);
-                        // Try to clean up the created node
                         throw new Error('Failed to initialize node state');
                     }
 
                     // Update UI with the new node
-                    updateState({ nodes: [...get().nodes, newNode] });
+                    set({ nodes: [...get().nodes, newNode], edges: [...get().edges] });
 
                     // Create edge in database only if we have a valid parent node
                     if (agent.parentNodeId) {
                         const edgeId = await createEdge({
                             workflowId,
-                            toNodeId: createdNode.id, // Use the ID from the created node
+                            toNodeId: createdNode.id,
                             fromNodeId: agent.parentNodeId
                         });
 
                         // Update the store with the edge
-                        const newEdge: Edge<EdgeData> = {
+                        const newEdge = {
                             id: edgeId,
                             source: agent.parentNodeId,
-                            target: createdNode.id, // Use the ID from the created node
+                            target: createdNode.id,
                             type: WorkflowNode.AutomationEdge,
                             animated: true,
                             data: {
-                                workflowId,
-                                type: WorkflowNode.AutomationEdge
+                                workflowId
                             }
-                        };
+                        } as Edge<EdgeData>;
 
-                        const currentEdges = get().edges;
-                        updateState({ edges: [...currentEdges, newEdge] });
+                        set(state => ({
+                            ...state,
+                            edges: [...state.edges, newEdge]
+                        }));
                     }
                 } catch (error) {
-                    console.error('Failed to add node or edge:', error);
-                    // TODO: Show error toast to user
+                    console.error('Failed to add node:', error);
+                    throw error;
                 }
             },
 

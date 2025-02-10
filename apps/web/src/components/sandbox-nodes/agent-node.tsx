@@ -51,7 +51,11 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     const { openModal } = useModalStore();
     const { removeAgent, transition, getAgentState, updateAgent } = useAgentStore();
     const { progressWorkflow, isCurrentNode } = useGraphStore();
-    const agentState = getAgentState(id);
+    const agentState = getAgentState(id) || {
+        status: AgentStatus.Initial,
+        isEditable: true,
+        isLoading: true
+    };
     const isCurrentWorkflowNode = isCurrentNode(id);
 
     const agentData = useMemo(() => ({
@@ -80,6 +84,23 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         }
     }, [isCurrentWorkflowNode, agentState?.status, executeAction]);
 
+    const handleInitialize = useCallback(() => {
+        // Only initialize if not already initialized
+        if (!getAgentState(id)) {
+            updateAgent(id, { 
+                status: data.status || AgentStatus.Initial,
+                isEditable: true
+            });
+        }
+    }, [id, data.status, getAgentState, updateAgent]);
+
+    useEffect(() => {
+        handleInitialize();
+        return () => {
+            removeAgent(id);
+        };
+    }, [id, handleInitialize, removeAgent]);
+
     const handleAgentDetails = useCallback(() => {
         if (agentState?.isEditable) {
             openModal({ type: 'agent-details', parentNodeId: id });
@@ -107,21 +128,13 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         });
     }, [id, transition]);
 
-    useEffect(() => {
-        return () => {
-            removeAgent(id);
-        };
-    }, [id, removeAgent]);
-
-    // Don't render until agent state is initialized
-    if (!agentState) return null;
-
     return (
         <NodeComponent.Root className="agent-node">
-            <NodeComponent.Content className="agent-node-container">
+            <NodeComponent.Content className={`agent-node-container ${agentState.isLoading ? 'opacity-50' : ''}`}>
                 <div className={`w-full h-full ${agentState.isEditable ? 'cursor-pointer' : 'cursor-default'}`}
                     onClick={handleAgentDetails}>
-                    <AgentCard data={agentData}
+                    <AgentCard
+                        data={data}
                         state={agentState}
                         status={agentState.status}
                         onEdit={agentState.isEditable ? handleAgentDetails : undefined}
@@ -133,16 +146,15 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                 onClick={handleOpenAgentSelection}
                 type={HandleType.SOURCE}
                 position={sPosition}
-                id={`${id}-a`}
-                // isConnectable={isConnectable && (agentState.status === AgentStatus.Initial || agentState.status ===
-                // AgentStatus.Idle)}
+                id="source"
+                data-handleid="source"
                 isConnectable={isConnectable}
                 className={agentState.status === AgentStatus.Initial || agentState.status === AgentStatus.Idle ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'} />
             <NodeComponent.Handle
                 type={HandleType.TARGET}
                 position={tPosition}
-                id={`${id}-b`}
-                // isConnectable={isConnectable && agentState.status !== AgentStatus.Complete}
+                id="target"
+                data-handleid="target"
                 isConnectable={isConnectable}
                 className={agentState.status !== AgentStatus.Complete ? undefined : 'opacity-50'} />
         </NodeComponent.Root>
