@@ -22,7 +22,9 @@
     "@ai-sdk/openai": "^1.1.9",
     "@supabase/ssr": "0.5.2",
     "@supabase/supabase-js": "^2.48.1",
+    "@types/lodash": "^4.17.15",
     "ai": "^4.1.25",
+    "lodash": "^4.17.21",
     "supabase": "^2.9.6"
   },
   "devDependencies": {

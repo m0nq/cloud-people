@@ -1,5 +1,8 @@
 import { type Edge } from '@xyflow/react';
+import { type EdgeChange } from '@xyflow/react';
 import { type Node } from '@xyflow/react';
+import { type NodeChange } from '@xyflow/react';
+import { type Connection } from '@xyflow/react';
 import { type OnConnect } from '@xyflow/react';
 import { type OnEdgesChange } from '@xyflow/react';
 import { type OnNodesChange } from '@xyflow/react';
@@ -51,15 +54,21 @@ export type WorkflowExecution = {
     startedAt: Date;
     completedAt?: Date;
     error?: string;
+    needsAssistance?: boolean;
 } | null;
 
-export type AppState = {
+// State types
+export type GraphState = {
     nodes: (Node<NodeData> | Node<InitialStateNodeData>)[];
     edges: Edge[];
-    workflowExecution: WorkflowExecution;
-    onNodesChange?: OnNodesChange;
-    onEdgesChange?: OnEdgesChange;
-    onBeforeDelete?: OnBeforeDelete;
+    workflowExecution: WorkflowExecution | null;
+};
+
+// Action types
+export interface GraphActions {
+    onNodesChange: (changes: NodeChange<Node>[]) => Promise<void>;
+    onEdgesChange: (changes: EdgeChange<Edge>[]) => Promise<void>;
+    onBeforeDelete: OnBeforeDelete;
     onNodesDelete?: OnNodesDelete;
     onConnect?: OnConnect;
     setNodes?: (nodes: (Node<NodeData> | Node<InitialStateNodeData>)[]) => void;
@@ -74,7 +83,14 @@ export type AppState = {
     resumeWorkflow: () => Promise<void>;
     progressWorkflow: (nodeId: string, status: AgentStatus) => Promise<void>;
     isCurrentNode: (nodeId: string) => boolean;
-};
+    findRootNode: (nodes: Node<NodeData | InitialStateNodeData>[]) => Node<NodeData> | undefined;
+    findNextNode: (nodes: Node[], edges: Edge[], currentNodeId: string) => Node | undefined;
+    getConnectedNodes: (node: Node) => Node[];
+    validateConnection: (connection: Connection) => boolean;
+}
+
+// Combined store type
+export type AppState = GraphState & GraphActions;
 
 export type QueryUpdateConfig = {
     state?: WorkflowState;

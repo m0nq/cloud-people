@@ -36,7 +36,10 @@ create table "public"."Executions" (
     "output" jsonb,
     "errors" jsonb,
     "metrics" jsonb,
-    "created_at" timestamp with time zone not null default now()
+    "current_status" text not null,
+    "history" jsonb not null default '[]'::jsonb,
+    "created_at" timestamp with time zone not null default now(),
+    "updated_at" timestamp with time zone not null default now()
 );
 
 
