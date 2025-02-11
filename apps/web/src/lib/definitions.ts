@@ -120,6 +120,7 @@ export type QueryConfig = {
     currentStep?: string;
     toNodeId?: string;
     fromNodeId?: string;
+    nodeType?: 'root' | 'agent';
 };
 
 export enum WorkflowState {

@@ -13,6 +13,7 @@ import { devtools } from 'zustand/middleware';
 
 import { createEdge } from '@lib/actions/edge-actions';
 import { updateEdges } from '@lib/actions/edge-actions';
+import { deleteEdges } from '@lib/actions/edge-actions';
 import { createNodes } from '@lib/actions/node-actions';
 import { updateNodes } from '@lib/actions/node-actions';
 import { deleteNodes } from '@lib/actions/node-actions';
@@ -26,13 +27,15 @@ import { WorkflowState } from '@lib/definitions';
 import { InitialStateNodeData } from '@lib/definitions';
 import { EdgeData } from '@lib/definitions';
 import { AgentStatus } from '@lib/definitions';
+import { GraphState } from '@lib/definitions';
+import { WorkflowExecution } from '@lib/definitions';
 import { INITIAL_NODE_POSITION } from '@config/layout.const';
 import { NODE_SPACING_X } from '@config/layout.const';
 import { NODE_SPACING_Y } from '@config/layout.const';
-import { ROOT_NODE_SPACING_X } from '@config/layout.const';
 import { ROOT_NODE_POSITION } from '@config/layout.const';
 import { Config } from '@config/constants';
 import { useAgentStore } from '@stores/agent-store';
+import { createExecution } from '@lib/actions/execution-actions';
 
 const { WorkflowNode } = Config;
 
@@ -121,16 +124,17 @@ export const useGraphStore = create<AppState>()(
 
         const getConnectedNodes = (node: Node): Node[] => {
             const { nodes, edges } = get();
+            const nodeMap = new Map(nodes.map(n => [n.id, n]));
             const connectedEdges = getConnectedEdges([node], edges);
-            return nodes.filter(n => 
-                connectedEdges.some(e => e.source === n.id || e.target === n.id)
-            );
+            return connectedEdges
+                .map(e => nodeMap.get(e.source) || nodeMap.get(e.target))
+                .filter((n): n is Node => !!n);
         };
 
         // Connection validation
         const validateConnection = (connection: Connection): boolean => {
             const { nodes, edges } = get();
-            
+
             // Basic field validation
             if (!(connection.source && connection.target && connection.sourceHandle && connection.targetHandle)) {
                 return false;
@@ -153,7 +157,7 @@ export const useGraphStore = create<AppState>()(
             const wouldCreateCycle = (source: string, target: string, visited = new Set<string>()): boolean => {
                 if (source === target) return true;
                 if (visited.has(target)) return false;
-                
+
                 visited.add(target);
                 const outgoingEdges = edges.filter(e => e.source === target);
                 return outgoingEdges.some(e => wouldCreateCycle(source, e.target, visited));
@@ -193,7 +197,7 @@ export const useGraphStore = create<AppState>()(
                         default:
                             workflowState = WorkflowState.Initial;
                     }
-                    
+
                     return {
                         ...node,
                         data: {
@@ -254,7 +258,10 @@ export const useGraphStore = create<AppState>()(
 
                 try {
                     // Group changes by type for atomic operations
-                    const deleteChanges = changes.filter((change): change is { type: 'remove'; id: string } => change.type === 'remove' && 'id' in change);
+                    const deleteChanges = changes.filter((change): change is {
+                        type: 'remove';
+                        id: string
+                    } => change.type === 'remove' && 'id' in change);
                     const updateChanges = changes.filter(change => change.type !== 'remove');
 
                     // Handle deletions first
@@ -308,28 +315,25 @@ export const useGraphStore = create<AppState>()(
 
             onConnect: async (connection: Connection) => {
                 if (!validateConnection(connection)) {
-                    throw new Error('Invalid connection parameters');
+                    return;
                 }
-
-                // Keep track of original edges for rollback
-                const originalEdges = [...get().edges];
 
                 try {
                     // Get workflow ID from source node
                     const sourceNode = get().nodes.find(n => n.id === connection.source);
-                    const workflowId = sourceNode?.data?.workflowId;
+                    const workflowId = sourceNode?.data?.workflowId || '';
                     if (!workflowId) {
                         throw new Error('No workflow ID found for source node');
                     }
 
-                    // First create the edge in the database
+                    // Create edge in database
                     const edgeId = await createEdge({
                         workflowId,
                         toNodeId: connection.target,
                         fromNodeId: connection.source
                     });
 
-                    // Create the edge object for UI
+                    // Create edge in UI
                     const newEdge: Edge<EdgeData> = {
                         id: edgeId,
                         source: connection.source,
@@ -342,14 +346,12 @@ export const useGraphStore = create<AppState>()(
                         }
                     };
 
-                    // Update UI state
-                    const updatedEdges = [...originalEdges, newEdge];
-                    updateState({ edges: updatedEdges });
+                    // Use addEdge to update the edges in state
+                    const updatedEdges = addEdge(newEdge, get().edges);
+                    set({ edges: updatedEdges });
                 } catch (error) {
                     console.error('Failed to create edge:', error);
-                    // Rollback UI state on error
-                    updateState({ edges: originalEdges });
-                    throw new Error('Failed to create edge. Changes have been reverted.');
+                    throw error;
                 }
             },
             addNode: async (agent: AgentData): Promise<void> => {
@@ -359,13 +361,10 @@ export const useGraphStore = create<AppState>()(
 
                     if (!parentNode || !parentNode.data?.workflowId) {
                         console.error('Parent node not found or missing workflowId. Modal state:', parentNode);
-                        throw new Error('Parent node not found or missing workflowId');
+                        return;
                     }
 
-                    const workflowId = (parentNode.data as NodeData).workflowId ?? '';
-                    if (!workflowId) {
-                        throw new Error('No workflow ID found in node data');
-                    }
+                    const workflowId = parentNode.data.workflowId;
 
                     // Get all existing siblings (nodes that share the same parent)
                     const siblings: string[] = getConnectedEdges([parentNode], get().edges)
@@ -404,14 +403,17 @@ export const useGraphStore = create<AppState>()(
                     };
 
                     // Create node in database first
-                    const createdNode = await createNodes({ workflowId });
+                    const createdNode = await createNodes({
+                        workflowId,
+                        nodeType: 'agent'
+                    });
                     if (!createdNode || !createdNode.id) {
                         throw new Error('Failed to create node');
                     }
 
                     // Initialize agent state before creating the node
                     const agentStore = useAgentStore.getState();
-                    agentStore.updateAgent(createdNode.id, { 
+                    agentStore.updateAgent(createdNode.id, {
                         status: AgentStatus.Initial,
                         isEditable: true
                     });
@@ -468,7 +470,8 @@ export const useGraphStore = create<AppState>()(
                             type: WorkflowNode.AutomationEdge,
                             animated: true,
                             data: {
-                                workflowId
+                                workflowId,
+                                type: WorkflowNode.AutomationEdge
                             }
                         } as Edge<EdgeData>;
 
@@ -485,12 +488,17 @@ export const useGraphStore = create<AppState>()(
 
             createNewWorkflow: async () => {
                 try {
+                    // Create workflow first
                     const workflowId = await createWorkflow();
                     if (!workflowId) {
                         throw new Error('Failed to create workflow');
                     }
 
-                    const newNode: Node = await createNodes({ workflowId });
+                    // Create root node
+                    const newNode: Node = await createNodes({
+                        workflowId,
+                        nodeType: 'root'
+                    });
                     if (!newNode || !newNode.id) {
                         throw new Error('Failed to create node');
                     }
@@ -579,7 +587,7 @@ export const useGraphStore = create<AppState>()(
 
                 try {
                     const sessionId = crypto.randomUUID();
-                    
+
                     // Find the first node connected to root
                     const firstNode = findNextNode(nodes, edges, rootNode.id);
                     if (!firstNode || !isValidWorkflowNode(firstNode)) {
@@ -719,9 +727,9 @@ export const useGraphStore = create<AppState>()(
                                 await setDownstreamToIdle(nextNode.id);
                             }
                         };
-                        
+
                         await setDownstreamToIdle(nodeId);
-                        
+
                         // Update workflow execution state
                         if (workflowExecution) {
                             updateState({
