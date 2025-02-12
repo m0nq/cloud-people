@@ -341,7 +341,7 @@ export const useGraphStore = create<AppState>()(
                     // Create edge in database
                     const edgeId = await createEdge({
                         data: {
-                            workflowId,
+                            workflowId: sourceNode?.data?.workflowId,
                             toNodeId: connection.target,
                             fromNodeId: connection.source
                         }
@@ -355,7 +355,7 @@ export const useGraphStore = create<AppState>()(
                         type: WorkflowNode.AutomationEdge,
                         animated: true,
                         data: {
-                            workflowId,
+                            workflowId: sourceNode?.data?.workflowId,
                             type: WorkflowNode.AutomationEdge
                         }
                     };
@@ -372,7 +372,7 @@ export const useGraphStore = create<AppState>()(
                 try {
                     const parentNode = get().nodes.find((n: Node<NodeData>) => n.id === agent.parentNodeId);
 
-                    if (!parentNode || !parentNode.data?.workflowId) {
+                    if (!parentNode || !parentNode.data || !parentNode.data.workflowId) {
                         console.error('Parent node not found or missing workflowId. Modal state:', parentNode);
                         return;
                     }
@@ -497,7 +497,7 @@ export const useGraphStore = create<AppState>()(
                         if (agent.parentNodeId) {
                             const edgeId = await createEdge({
                                 data: {
-                                    workflowId: node.data.workflowId,
+                                    workflowId: parentNode.data?.workflowId,
                                     toNodeId: node.id,
                                     fromNodeId: parentNode.id
                                 }
@@ -515,7 +515,7 @@ export const useGraphStore = create<AppState>()(
                                 type: WorkflowNode.AutomationEdge,
                                 animated: true,
                                 data: {
-                                    workflowId: node.data.workflowId,
+                                    workflowId: parentNode?.data?.workflowId,
                                     type: WorkflowNode.AutomationEdge
                                 }
                             } as Edge<EdgeData>;

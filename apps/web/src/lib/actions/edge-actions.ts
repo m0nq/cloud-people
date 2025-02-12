@@ -61,11 +61,10 @@ export const fetchEdges = async (config: any = {}): Promise<EdgeType[]> => {
             ) {
                 records: edges {
                     edge: node {
-                        id
-                        workflow_id
-                        to_node_id
-                        from_node_id
-                    }
+                    id
+                    workflow_id
+                    to_node_id
+                    from_node_id
                 }
             }
         }
@@ -82,11 +81,11 @@ export const fetchEdges = async (config: any = {}): Promise<EdgeType[]> => {
     } as QueryConfig;
 
     const edges = await connectToDB(fetchEdgesQuery, variables);
-    return edges.map((node: any) => ({
-        ...node.node,
-        workflowId: node.workflow_id,
-        toNodeId: node.to_node_id,
-        fromNodeId: node.from_node_id
+    return edges.map((edge: any) => ({
+        ...edge,
+        workflowId: edge.workflow_id,
+        toNodeId: edge.to_node_id,
+        fromNodeId: edge.from_node_id
     })) as EdgeType[];
 };
 
