@@ -28,6 +28,7 @@
     "supabase": "^2.9.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.41.1",
     "@testing-library/dom": "^10.4.0",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.1.0",

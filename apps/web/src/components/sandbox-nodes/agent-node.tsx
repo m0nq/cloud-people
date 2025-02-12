@@ -1,4 +1,3 @@
-import { ReactNode } from 'react';
 import { useCallback } from 'react';
 import { useEffect } from 'react';
 import { useMemo } from 'react';
@@ -45,12 +44,12 @@ const getPosition = (position?: string): Position => {
     return (position && positionMap[position]) || Position.Top;
 };
 
-const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: AgentNodeProps): ReactNode => {
+const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: AgentNodeProps) => {
     const sPosition = getPosition(sourcePosition);
     const tPosition = getPosition(targetPosition);
     const { openModal } = useModalStore();
     const { removeAgent, transition, getAgentState, updateAgent } = useAgentStore();
-    const { progressWorkflow, isCurrentNode } = useGraphStore();
+    const { progressWorkflow, isCurrentNode, pauseWorkflow } = useGraphStore();
     const agentState = getAgentState(id) || {
         status: AgentStatus.Initial,
         isEditable: true,
@@ -73,8 +72,10 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     const { executeAction, isProcessing, messages } = useAgent(id, status => {
         transition(id, status);
         // Only update workflow progress for terminal states
-        if (status === AgentStatus.Complete || status === AgentStatus.Error) {
+        if (status === AgentStatus.Complete) {
             progressWorkflow(id, status);
+        } else if (status === AgentStatus.Error || status === AgentStatus.Assistance) {
+            pauseWorkflow();
         }
     });
 
@@ -87,7 +88,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     const handleInitialize = useCallback(() => {
         // Only initialize if not already initialized
         if (!getAgentState(id)) {
-            updateAgent(id, { 
+            updateAgent(id, {
                 status: data.status || AgentStatus.Initial,
                 isEditable: true
             });
@@ -133,8 +134,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
             <NodeComponent.Content className={`agent-node-container ${agentState.isLoading ? 'opacity-50' : ''}`}>
                 <div className={`w-full h-full ${agentState.isEditable ? 'cursor-pointer' : 'cursor-default'}`}
                     onClick={handleAgentDetails}>
-                    <AgentCard
-                        data={data}
+                    <AgentCard data={agentData}
                         state={agentState}
                         status={agentState.status}
                         onEdit={agentState.isEditable ? handleAgentDetails : undefined}

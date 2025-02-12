@@ -105,7 +105,10 @@ export type QueryFilterConfig = {
     };
 };
 
-export type QueryConfig = {
+export interface QueryConfig {
+    name?: string;
+    description?: string;
+    config?: any;
     nodeId?: string;
     edgeId?: string;
     filter?: QueryFilterConfig;
@@ -113,14 +116,15 @@ export type QueryConfig = {
     first?: number;
     last?: number;
     offset?: number;
-    data?: string;
+    data?: { [key: string]: any };
     userId?: string;
     set?: QueryUpdateConfig;
     atMost?: number;
     currentStep?: string;
     toNodeId?: string;
     fromNodeId?: string;
-    nodeType?: 'root' | 'agent';
+    nodeType?: string;
+    objects?: any[];  // For batch inserts
 };
 
 export enum WorkflowState {
@@ -163,31 +167,37 @@ export type QueryResults = {
     };
 };
 
-export type AgentAction = {
+export interface AgentAction {
     type: 'browser';
-    action: 'open' | 'navigate_to_google';
+    command: 'navigate' | 'close';
+    url?: string;
     params?: Record<string, string>;
-};
-
-export type AgentConfig = {
-    actions: AgentAction[];
-    aiEnabled: boolean;
-    metadata?: Record<string, unknown>;
-};
+}
 
 export interface AgentCapability {
     id: string;
     name: string;
     description: string;
     action: string;
-    parameters?: Record<string, any>;
+    parameters?: {
+        url?: string;
+        [key: string]: any;
+    };
+}
+
+export interface AgentConfig {
+    actions: AgentAction[];
+    aiEnabled: boolean;
+    metadata?: Record<string, unknown>;
 }
 
 export interface AgentData {
     id: string;
     name: string;
+    description?: string;
     role: string;
     image?: string;
+    tools?: any[];
     config: AgentConfig;
     capability: AgentCapability;
     parentNodeId?: string;
@@ -206,6 +216,7 @@ export enum AgentStatus {
 export type AgentState = {
     status: AgentStatus;
     isEditable: boolean;
+    isLoading?: boolean;
     completedAt?: string;
     progress?: number;
     error?: string;

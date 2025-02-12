@@ -7,17 +7,21 @@ import { Button } from '@components/utils/button/button';
 import { ChatIcon } from '@components/icons/chat-icon';
 import { TaskStatusIcon } from '@components/icons/task-status-icon';
 import { WatchIcon } from '@components/icons/watch-icon';
+import { BrowserStatus } from '@components/agents/browser-status';
 
 export const WorkingAgentLayout = ({ 
     data, 
+    state,
     isLoading, 
     isProcessing, 
     onExecute 
 }: BaseAgentLayoutProps) => {
+    const isBrowserAgent = data.capability?.action === 'navigate_to_google';
+    const browserUrl = data.capability?.parameters?.url as string;
+
     return (
         <div className="working-agent-card">
             <div className="working-agent-wrapper">
-
                 {/* Content */}
                 <div className="agent-info-section">
                     <Image src={data.image || cloudHeadImage}
@@ -38,7 +42,11 @@ export const WorkingAgentLayout = ({
                         <span>Current Task:</span>
                     </div>
                     <div className="agent-tasks-container">
-                        <p>{isProcessing ? 'Processing...' : isLoading ? 'Loading...' : 'Ready'}</p>
+                        {isBrowserAgent && state ? (
+                            <BrowserStatus state={state} url={browserUrl} />
+                        ) : (
+                            <p>{isProcessing ? 'Processing...' : isLoading ? 'Loading...' : 'Ready'}</p>
+                        )}
                     </div>
                 </div>
                 <div className="buttons-container">

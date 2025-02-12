@@ -26,7 +26,20 @@ export const createEdge = async (config: QueryConfig): Promise<string> => {
         }
     `;
 
-    const [edge] = await connectToDB(insertEdgeMutation, config);
+    if (!config.data?.workflowId || !config.data?.toNodeId) {
+        throw new Error('workflowId and toNodeId are required to create an edge');
+    }
+
+    const variables = {
+        workflowId: config.data.workflowId,
+        toNodeId: config.data.toNodeId,
+        fromNodeId: config.data.fromNodeId
+    };
+
+    const [edge] = await connectToDB(insertEdgeMutation, variables);
+    if (!edge?.id) {
+        throw new Error('Failed to create edge');
+    }
     return edge.id;
 };
 

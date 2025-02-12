@@ -10,7 +10,7 @@ import { connectToDB } from '@lib/utils';
 export const createNodes = async (config: QueryConfig = {}): Promise<Node> => {
     await authCheck();
 
-    if (!config.workflowId) {
+    if (!config.data?.workflowId) {
         throw new Error('Workflow ID is required to create a node');
     }
 
@@ -30,8 +30,8 @@ export const createNodes = async (config: QueryConfig = {}): Promise<Node> => {
 
     try {
         const [node] = await connectToDB(insertNodeMutation, { 
-            workflowId: config.workflowId,
-            nodeType: config.nodeType || 'agent'
+            workflowId: config.data?.workflowId,
+            nodeType: config.data?.nodeType || 'agent'
         });
         if (!node?.id) {
             throw new Error('No ID returned');
@@ -117,18 +117,18 @@ export const updateNodes = async (config: QueryConfig = {}) => {
         }
     `;
 
-    if (!config.workflowId || !config.nodeId) {
+    if (!config.data?.workflowId || !config.data?.nodeId) {
         throw new Error('Both workflowId and nodeId are required for updating a node');
     }
 
     const variables = {
         set: {
-            state: config.set?.state || WorkflowState.Initial,
-            current_step: config.set?.current_step || '0',
+            state: config.data?.set?.state || WorkflowState.Initial,
+            current_step: config.data?.set?.current_step || '0',
             updated_at: new Date()
         },
-        workflowId: config.workflowId,
-        nodeId: config.nodeId,
+        workflowId: config.data?.workflowId,
+        nodeId: config.data?.nodeId,
         atMost: 1
     };
 
@@ -136,7 +136,7 @@ export const updateNodes = async (config: QueryConfig = {}) => {
         const [node] = await connectToDB(updateNodeMutation, variables);
 
         if (!node) {
-            throw new Error(`No node found with id ${config.nodeId}`);
+            throw new Error(`No node found with id ${config.data?.nodeId}`);
         }
 
         return {

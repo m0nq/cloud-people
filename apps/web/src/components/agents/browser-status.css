@@ -1,0 +1,19 @@
+.browser-status {
+    @apply flex flex-col gap-2;
+}
+
+.browser-status .status-message {
+    @apply flex items-center gap-2 text-sm font-medium;
+}
+
+.browser-status .progress {
+    @apply text-xs text-gray-400;
+}
+
+.browser-status .target-url {
+    @apply text-xs text-gray-400 truncate max-w-[200px];
+}
+
+.browser-status .error-message {
+    @apply text-xs text-red-500 mt-1;
+}

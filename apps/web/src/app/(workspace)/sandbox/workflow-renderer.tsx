@@ -49,11 +49,11 @@ type WorkflowRendererProps = {
 };
 
 const nodeTypes = {
-    initialStateNode: InitialStateNode,
-    rootNode: RootNode,
-    agentNode: AgentNode,
-    approvalNode: ApprovalNode,
-    deliveryNode: DeliveryNode
+    [WorkflowNode.InitialStateNode]: InitialStateNode,
+    [WorkflowNode.RootNode]: RootNode,
+    [WorkflowNode.AgentNode]: AgentNode,
+    [WorkflowNode.ApprovalNode]: ApprovalNode,
+    [WorkflowNode.DeliveryNode]: DeliveryNode
 } as NodeTypes;
 
 const edgeTypes = {

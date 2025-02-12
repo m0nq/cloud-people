@@ -55,7 +55,6 @@
         "@types/react": "^19.0.4",
         "@types/react-dom": "^19.0.2",
         "autoprefixer": "^10.0.1",
-        "cypress": "^13.17.0",
         "dompurify": "^3.2.3",
         "eslint-config-next": "15.1.4",
         "eslint-config-prettier": "^9.1.0",

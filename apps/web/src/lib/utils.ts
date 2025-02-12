@@ -9,6 +9,8 @@ export const connectToDB = async (queryString: string, config: QueryConfig): Pro
 
         const { data, errors } = await queryDB(queryString, config);
 
+        console.log('Raw response data:', JSON.stringify(data, null, 2));
+
         if (errors?.length) {
             console.error('GraphQL Errors:', JSON.stringify(errors, null, 2));
             throw new Error(errors[0].message || 'Database operation failed');

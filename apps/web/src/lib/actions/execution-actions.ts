@@ -4,13 +4,13 @@ import { authCheck } from '@lib/actions/authentication-actions';
 import { type QueryConfig } from '@lib/definitions';
 import { connectToDB } from '@lib/utils';
 
-export type ExecutionHistoryEntry = {
+export interface ExecutionHistoryEntry {
     status: string;
     timestamp: string;
     metadata?: Record<string, unknown>;
-};
+}
 
-export type ExecutionRecord = {
+export interface ExecutionRecord {
     id: string;
     agent_id: string;
     session_id: string;
@@ -22,23 +22,23 @@ export type ExecutionRecord = {
     history: ExecutionHistoryEntry[];
     created_at: string;
     updated_at: string;
-};
+}
 
-export type ExecutionInput = {
-    sessionId: string;
+export interface ExecutionInput {
     agentId: string;
+    sessionId: string;
     input: Record<string, unknown>;
-    status: string;
-    metadata?: Record<string, unknown>;
-    output?: Record<string, unknown>;
-    errors?: Record<string, unknown>;
-    metrics?: Record<string, unknown>;
-};
+    current_status: string;
+    history?: ExecutionHistoryEntry[];
+    output?: { [key: string]: any } | null;
+    errors?: { [key: string]: any } | null;
+    metrics?: { [key: string]: any } | null;
+}
 
-export type ExecutionFilter = {
+export interface ExecutionFilter {
     sessionId?: string;
     agentId?: string;
-};
+}
 
 export const createExecution = async (input: ExecutionInput): Promise<ExecutionRecord> => {
     await authCheck();
@@ -48,14 +48,32 @@ export const createExecution = async (input: ExecutionInput): Promise<ExecutionR
     }
 
     const historyEntry: ExecutionHistoryEntry = {
-        status: input.status,
+        status: input.current_status,
         timestamp: new Date().toISOString(),
-        metadata: input.metadata
+        metadata: undefined
     };
 
     const createExecutionMutation = `
-        mutation CreateExecutionMutation($object: ExecutionsInsertInput!) {
-            collection: insertIntoExecutionsCollection(objects: [$object]) {
+        mutation CreateExecutionMutation(
+            $session_id: UUID!,
+            $agent_id: UUID!,
+            $input: JSON!,
+            $current_status: String!,
+            $history: JSON!,
+            $output: JSON,
+            $errors: JSON,
+            $metrics: JSON
+        ) {
+            collection: insertIntoExecutionsCollection(objects: [{
+                session_id: $session_id,
+                agent_id: $agent_id,
+                input: $input,
+                current_status: $current_status,
+                history: $history,
+                output: $output,
+                errors: $errors,
+                metrics: $metrics
+            }]) {
                 records {
                     id
                     agent_id
@@ -75,17 +93,16 @@ export const createExecution = async (input: ExecutionInput): Promise<ExecutionR
 
     try {
         const queryConfig: QueryConfig = {
-            filter: {},
-            data: JSON.stringify({
-                object: {
-                    session_id: input.sessionId,
-                    agent_id: input.agentId,
-                    input: input.input,
-                    current_status: input.status,
-                    history: [historyEntry],
-                    metrics: input.metrics
-                }
-            })
+            data: {
+                session_id: input.sessionId,
+                agent_id: input.agentId,
+                input: input.input,
+                current_status: input.current_status,
+                history: [historyEntry],
+                ...(input.metrics && { metrics: input.metrics }),
+                ...(input.output && { output: input.output }),
+                ...(input.errors && { errors: input.errors })
+            }
         };
 
         const [execution] = await connectToDB(createExecutionMutation, queryConfig);
@@ -96,11 +113,11 @@ export const createExecution = async (input: ExecutionInput): Promise<ExecutionR
 
         return {
             ...execution,
-            input: JSON.parse(execution.input),
-            output: execution.output ? JSON.parse(execution.output) : undefined,
-            errors: execution.errors ? JSON.parse(execution.errors) : undefined,
-            metrics: execution.metrics ? JSON.parse(execution.metrics) : undefined,
-            history: JSON.parse(execution.history)
+            input: execution.input,
+            output: execution.output,
+            errors: execution.errors,
+            metrics: execution.metrics,
+            history: execution.history
         };
     } catch (error) {
         console.error('Failed to create execution record:', error);
@@ -116,16 +133,37 @@ export const updateExecution = async (input: ExecutionInput): Promise<ExecutionR
     }
 
     const historyEntry: ExecutionHistoryEntry = {
-        status: input.status,
+        status: input.current_status,
         timestamp: new Date().toISOString(),
-        metadata: input.metadata
+        metadata: undefined
     };
 
     const updateExecutionMutation = `
-        mutation UpdateExecutionMutation($filter: ExecutionsFilter!, $set: ExecutionsUpdateInput!) {
+        mutation UpdateExecutionMutation(
+            $session_id: UUID!,
+            $agent_id: UUID!,
+            $input: JSON!,
+            $current_status: String!,
+            $history: JSON!,
+            $output: JSON,
+            $errors: JSON,
+            $metrics: JSON,
+            $updated_at: Datetime!
+        ) {
             collection: updateExecutionsCollection(
-                set: $set,
-                filter: $filter
+                filter: {
+                    session_id: { eq: $session_id },
+                    agent_id: { eq: $agent_id }
+                },
+                set: {
+                    input: $input,
+                    current_status: $current_status,
+                    history: $history,
+                    output: $output,
+                    errors: $errors,
+                    metrics: $metrics,
+                    updated_at: $updated_at
+                }
             ) {
                 records {
                     id
@@ -150,20 +188,17 @@ export const updateExecution = async (input: ExecutionInput): Promise<ExecutionR
         const existingHistory = currentExecution[0]?.history || [];
 
         const queryConfig: QueryConfig = {
-            filter: {
-                session_id: { eq: input.sessionId },
-                agent_id: { eq: input.agentId }
-            },
-            data: JSON.stringify({
-                set: {
-                    current_status: input.status,
-                    history: [...existingHistory, historyEntry],
-                    output: input.output,
-                    errors: input.errors,
-                    metrics: input.metrics,
-                    updated_at: new Date().toISOString()
-                }
-            })
+            data: {
+                session_id: input.sessionId,
+                agent_id: input.agentId,
+                input: input.input,
+                current_status: input.current_status,
+                history: [...existingHistory, historyEntry],
+                ...(input.output && { output: input.output }),
+                ...(input.errors && { errors: input.errors }),
+                ...(input.metrics && { metrics: input.metrics }),
+                updated_at: new Date().toISOString()
+            }
         };
 
         const [execution] = await connectToDB(updateExecutionMutation, queryConfig);
@@ -218,8 +253,9 @@ export const fetchExecutions = async (filter: ExecutionFilter): Promise<Executio
     }
 
     const queryConfig: QueryConfig = {
-        filter: queryFilter,
-        data: null
+        data: {
+            filter: queryFilter
+        }
     };
 
     const executions = await connectToDB(fetchExecutionsQuery, queryConfig);
