@@ -4,9 +4,8 @@ import { tool } from 'ai';
 import { type NextRequest } from 'next/server';
 import { z } from 'zod';
 
-// This line sets the runtime environment for the API route to 'edge'
-// Edge runtime is required for AI SDK tools
-export const runtime = 'edge';
+// Set runtime to nodejs since we need Node.js features for browser automation
+export const runtime = 'nodejs';
 
 const anthropic = createAnthropic({
     apiKey: process.env.ANTHROPIC_API_KEY

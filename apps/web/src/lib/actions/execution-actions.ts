@@ -34,6 +34,10 @@ export interface ExecutionFilter {
 export const createExecution = async (query: ExecutionQuery): Promise<WorkflowExecution> => {
     const user = await authCheck();
 
+    if (!query.workflowId) {
+        throw new Error('A workflow ID is required to create an execution record');
+    }
+
     try {
         const createExecutionMutation = `
             mutation CreateExecutionMutation($data: ExecutionsInsertInput!) {
@@ -56,6 +60,7 @@ export const createExecution = async (query: ExecutionQuery): Promise<WorkflowEx
             const [execution]: ExecutionRecord[] = await connectToDB(createExecutionMutation, {
                 data: {
                     node_id: query.nodeId,
+                    workflow_id: query.workflowId,
                     current_status: query.currentStatus,
                     metrics: query.metrics || {},
                     errors: query.errors,

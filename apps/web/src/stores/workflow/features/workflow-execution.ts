@@ -86,7 +86,9 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
             throw new Error('No root node found');
         }
 
-        if (!rootNode.data.workflowId) {
+        // Get workflow ID from root node
+        const workflowId = rootNode.data?.workflowId;
+        if (!workflowId) {
             throw new Error('Root node has no workflow ID');
         }
 
@@ -103,10 +105,10 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
             // Start with first node
             transitionNode(set, nodes, firstNode.id, AgentStatus.Activating);
 
-            // Create execution record in database
+            // Create execution record in database with workflow ID from root node
             const workflowExecution = await createExecution({
                 nodeId: firstNode.id,
-                workflowId: rootNode.data.workflowId,
+                workflowId,
                 currentStatus: WorkflowState.Running
             });
 

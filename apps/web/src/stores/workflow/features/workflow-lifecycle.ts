@@ -22,24 +22,27 @@ export function createWorkflowLifecycle(set: Function, get: Function) {
                     throw new Error('Failed to create workflow');
                 }
 
-                // Create root node
-                const newNode: Node<NodeData> = await createNodes({
+                // Create root node in database
+                const dbNode = await createNodes({
                     data: {
                         workflowId,
                         nodeType: 'root'
                     }
                 });
-                if (!newNode || !newNode?.id) {
+                if (!dbNode || !dbNode?.id) {
                     throw new Error('Failed to create node');
                 }
 
+                // Map database node to UI node, ensuring workflowId is set
                 const node = {
-                    id: newNode.id,
+                    id: dbNode.id,
                     type: NodeType.Root,
                     data: {
-                        id: newNode.id,
+                        id: dbNode.id,
                         type: NodeType.Root,
-                        workflowId
+                        workflowId,  // Explicitly set workflowId
+                        state: WorkflowState.Initial,
+                        nodeType: 'root'
                     },
                     position: ROOT_NODE_POSITION
                 } as Node<NodeData>;
