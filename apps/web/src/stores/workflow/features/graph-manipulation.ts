@@ -29,7 +29,6 @@ import { AgentStatus } from '@app-types/agent';
 import { createAgent } from '@lib/actions/agent-actions';
 import { NODE_SPACING_X } from '@config/layout.const';
 import { NODE_SPACING_Y } from '@config/layout.const';
-import type { QueryConfig } from '@app-types/api';
 import { useAgentStore } from '@stores/agent-store';
 import { NodeType } from '@app-types/workflow/node-types';
 import { EdgeType } from '@app-types/workflow/node-types';
@@ -177,7 +176,7 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
                 id: edgeId,
                 source: connection.source,
                 target: connection.target,
-                type: EdgeType.Smoothstep,
+                type: EdgeType.Automation,
                 animated: true,
                 data: {
                     id: edgeId,
@@ -300,7 +299,8 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
                 id: `${parentNode.id}-${node.id}`,
                 source: parentNode.id,
                 target: node.id,
-                type: EdgeType.Smoothstep,
+                type: EdgeType.Automation,
+                animated: true,
                 data: {
                     id: `${parentNode.id}-${node.id}`,
                     workflowId: parentNode.data.workflowId,

@@ -7,6 +7,5 @@ export enum NodeType {
 }
 
 export enum EdgeType {
-    Automation = 'automation-edge',
-    Smoothstep = 'smoothstep'
+    Automation = 'automation-edge'
 }
