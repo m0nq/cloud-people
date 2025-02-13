@@ -126,55 +126,42 @@ export type Database = {
       }
       Executions: {
         Row: {
-          agent_id: string
+          completed_at: string | null
           created_at: string
           created_by: string
           current_status: string
           errors: Json | null
-          history: Json
           id: string
-          input: Json
           metrics: Json | null
-          output: Json | null
-          session_id: string
+          node_id: string
           updated_at: string
+          workflow_id: string
         }
         Insert: {
-          agent_id: string
+          completed_at?: string | null
           created_at?: string
           created_by: string
           current_status?: string
           errors?: Json | null
-          history?: Json
           id?: string
-          input: Json
           metrics?: Json | null
-          output?: Json | null
-          session_id: string
+          node_id: string
           updated_at?: string
+          workflow_id: string
         }
         Update: {
-          agent_id?: string
+          completed_at?: string | null
           created_at?: string
           created_by?: string
           current_status?: string
           errors?: Json | null
-          history?: Json
           id?: string
-          input?: Json
           metrics?: Json | null
-          output?: Json | null
-          session_id?: string
+          node_id?: string
           updated_at?: string
+          workflow_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "Executions_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "Agents"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "Executions_created_by_fkey"
             columns: ["created_by"]
@@ -182,10 +169,25 @@ export type Database = {
             referencedRelation: "Profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "Executions_node_id_fkey"
+            columns: ["node_id"]
+            isOneToOne: false
+            referencedRelation: "Nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "Executions_workflow_id_fkey"
+            columns: ["workflow_id"]
+            isOneToOne: false
+            referencedRelation: "Workflows"
+            referencedColumns: ["id"]
+          },
         ]
       }
       Nodes: {
         Row: {
+          agent_id: string | null
           created_at: string
           current_step: string | null
           id: string
@@ -195,6 +197,7 @@ export type Database = {
           workflow_id: string
         }
         Insert: {
+          agent_id?: string | null
           created_at?: string
           current_step?: string | null
           id?: string
@@ -204,6 +207,7 @@ export type Database = {
           workflow_id: string
         }
         Update: {
+          agent_id?: string | null
           created_at?: string
           current_step?: string | null
           id?: string
@@ -213,6 +217,13 @@ export type Database = {
           workflow_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "Nodes_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "Agents"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "nodes_workflow_id_fkey"
             columns: ["workflow_id"]

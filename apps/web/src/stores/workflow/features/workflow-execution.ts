@@ -140,8 +140,10 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
 
             // Update workflow execution state
             await updateExecution({
-                ...workflowExecution,
-                current_status: WorkflowState.Paused
+                id: workflowExecution.id,
+                nodeId: workflowExecution.currentNodeId,
+                workflowId: workflowExecution.workflowId,
+                currentStatus: WorkflowState.Paused
             });
 
             updateState(set, {

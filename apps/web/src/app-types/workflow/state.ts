@@ -6,10 +6,10 @@ import { type InitialStateNodeData } from './nodes';
 import { type EdgeData } from './edges';
 
 export enum WorkflowState {
-    Initial = 'initial',
-    Running = 'running',
-    Paused = 'paused',
-    Completed = 'completed'
+    Initial = 'INITIAL',
+    Running = 'RUNNING',
+    Paused = 'PAUSED',
+    Completed = 'COMPLETED'
 }
 
 export type WorkflowExecution = {

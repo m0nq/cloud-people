@@ -17,6 +17,7 @@ export type QueryFilterConfig = {
 };
 
 export type QueryConfig = {
+    variables?: any;
     id?: string;
     name?: string;
     description?: string;
