@@ -13,7 +13,7 @@ export type Database = {
         Row: {
           config: Json
           created_at: string
-          created_by: string
+          created_by: string | null
           description: string | null
           id: string
           name: string
@@ -22,7 +22,7 @@ export type Database = {
         Insert: {
           config: Json
           created_at?: string
-          created_by: string
+          created_by?: string | null
           description?: string | null
           id?: string
           name: string
@@ -31,7 +31,7 @@ export type Database = {
         Update: {
           config?: Json
           created_at?: string
-          created_by?: string
+          created_by?: string | null
           description?: string | null
           id?: string
           name?: string
@@ -173,6 +173,13 @@ export type Database = {
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "Agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "Executions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "Profiles"
             referencedColumns: ["id"]
           },
         ]
