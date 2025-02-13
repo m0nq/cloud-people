@@ -17,6 +17,7 @@ export type QueryFilterConfig = {
 };
 
 export type QueryConfig = {
+    id?: string;
     name?: string;
     description?: string;
     config?: any;
@@ -31,7 +32,9 @@ export type QueryConfig = {
     userId?: string;
     set?: QueryUpdateConfig;
     atMost?: number;
-    currentStep?: string;
+    currentStatus?: WorkflowState;
+    metrics?: any;
+    errors?: any;
     toNodeId?: string;
     fromNodeId?: string;
     nodeType?: string;

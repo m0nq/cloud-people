@@ -9,8 +9,7 @@ export enum WorkflowState {
     Initial = 'initial',
     Running = 'running',
     Paused = 'paused',
-    Completed = 'completed',
-    Failed = 'failed'
+    Completed = 'completed'
 }
 
 export type WorkflowExecution = {
@@ -20,7 +19,8 @@ export type WorkflowExecution = {
     currentNodeId?: string;
     startedAt: Date;
     completedAt?: string;
-    error?: string;
+    errors?: any;
+    metrics?: any;
 };
 
 export type GraphState = {

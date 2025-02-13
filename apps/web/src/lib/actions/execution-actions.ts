@@ -3,30 +3,27 @@
 import { authCheck } from '@lib/actions/authentication-actions';
 import type { QueryConfig } from '@app-types/api';
 import { connectToDB } from '@lib/utils';
-
-export interface ExecutionHistoryEntry {
-    status: string;
-    timestamp: string;
-    metadata?: { [key: string]: any };
-    errors: { [key: string]: any } | null;
-}
+import { WorkflowState } from '@app-types/workflow';
+import type { WorkflowExecution } from '@app-types/workflow';
 
 export interface ExecutionRecord {
     id: string;
-    errors: { [key: string]: any } | null;
-    metrics: { [key: string]: any } | null;
-    current_status: string;
+    node_id: string;
+    workflow_id: string;
+    errors: string;
+    metrics: string;
+    current_status: WorkflowState;
     created_at: string;
     updated_at: string;
 }
 
-export interface ExecutionInput {
+export interface ExecutionQuery {
+    currentStatus: WorkflowState;
+    errors?: { [key: string]: any } | null;
     id?: string;
+    metrics?: { [key: string]: any } | null;
     nodeId: string;
     workflowId?: string;
-    current_status: string;
-    metrics?: { [key: string]: any } | null;
-    errors?: { [key: string]: any } | null;
 }
 
 export interface ExecutionFilter {
@@ -34,7 +31,7 @@ export interface ExecutionFilter {
     agentId?: string;
 }
 
-export const createExecution = async (input: ExecutionInput): Promise<ExecutionRecord> => {
+export const createExecution = async (query: ExecutionQuery): Promise<WorkflowExecution> => {
     const user = await authCheck();
 
     try {
@@ -44,6 +41,7 @@ export const createExecution = async (input: ExecutionInput): Promise<ExecutionR
                     records {
                         id
                         node_id
+                        workflow_id
                         errors
                         metrics
                         current_status
@@ -55,17 +53,23 @@ export const createExecution = async (input: ExecutionInput): Promise<ExecutionR
         `;
 
         try {
-            const [execution] = await connectToDB(createExecutionMutation, {
+            const [execution]: ExecutionRecord[] = await connectToDB(createExecutionMutation, {
                 data: {
-                    node_id: input.nodeId,
-                    current_status: input.current_status,
-                    metrics: input.metrics || {},
-                    errors: input.errors,
+                    node_id: query.nodeId,
+                    current_status: query.currentStatus,
+                    metrics: query.metrics || {},
+                    errors: query.errors,
                     created_by: user.id
                 }
             });
 
-            return execution;
+            return {
+                id: execution.id,
+                workflowId: execution.workflow_id,
+                state: execution.current_status,
+                currentNodeId: execution.node_id,
+                startedAt: new Date(execution.created_at)
+            };
         } catch (error) {
             console.error('Failed to create execution:', error);
             throw error;
@@ -76,31 +80,31 @@ export const createExecution = async (input: ExecutionInput): Promise<ExecutionR
     }
 };
 
-export const updateExecution = async (input: ExecutionInput): Promise<ExecutionRecord> => {
+export const updateExecution = async (query: ExecutionQuery): Promise<WorkflowExecution> => {
     await authCheck();
 
-    if (!input.id) {
+    if (!query.id) {
         throw new Error('An execution id is required to update an execution record');
     }
 
     try {
         // Build the set object with only defined values
         const setData: {
-            current_status: string;
+            current_status: WorkflowState;
             updated_at: string;
             errors?: string;
             metrics?: string;
         } = {
-            current_status: input.current_status,
+            current_status: query.currentStatus,
             updated_at: new Date().toISOString()
         };
 
-        if (!input.errors) {
-            setData.errors = JSON.stringify(input.errors);
+        if (!query.errors) {
+            setData.errors = JSON.stringify(query.errors);
         }
 
-        if (!input.metrics) {
-            setData.metrics = JSON.stringify(input.metrics);
+        if (!query.metrics) {
+            setData.metrics = JSON.stringify(query.metrics);
         }
 
         const updateExecutionMutation = `
@@ -117,6 +121,7 @@ export const updateExecution = async (input: ExecutionInput): Promise<ExecutionR
                     records {
                         id
                         node_id
+                        workflow_id
                         errors
                         metrics
                         current_status
@@ -129,14 +134,18 @@ export const updateExecution = async (input: ExecutionInput): Promise<ExecutionR
 
         const queryConfig: QueryConfig = {
             data: {
-                id: input.id,
+                id: query.id,
                 set: setData
             }
         };
 
-        const [execution] = await connectToDB(updateExecutionMutation, queryConfig);
+        const [execution]: ExecutionRecord[] = await connectToDB(updateExecutionMutation, queryConfig);
         return {
-            ...execution,
+            id: execution.id,
+            workflowId: execution.workflow_id,
+            state: execution.current_status,
+            currentNodeId: execution.node_id,
+            startedAt: new Date(execution.created_at),
             errors: execution.errors ? JSON.parse(execution.errors) : null,
             metrics: execution.metrics ? JSON.parse(execution.metrics) : null
         };
@@ -146,7 +155,7 @@ export const updateExecution = async (input: ExecutionInput): Promise<ExecutionR
     }
 };
 
-export const fetchExecutions = async (filter: ExecutionFilter): Promise<ExecutionRecord[]> => {
+export const fetchExecutions = async (filter: ExecutionFilter): Promise<WorkflowExecution[]> => {
     await authCheck();
 
     const fetchExecutionsQuery = `
@@ -158,6 +167,7 @@ export const fetchExecutions = async (filter: ExecutionFilter): Promise<Executio
                     node {
                         id
                         node_id
+                        workflow_id
                         errors
                         metrics
                         current_status
@@ -169,32 +179,20 @@ export const fetchExecutions = async (filter: ExecutionFilter): Promise<Executio
         }
     `;
 
-    const queryFilter: Record<string, { eq: string }> = {};
-    if (filter.sessionId) {
-        queryFilter.session_id = { eq: filter.sessionId };
-    }
-
     const queryConfig: QueryConfig = {
         data: {
-            filter: queryFilter
+            filter
         }
     };
 
-    const executions = await connectToDB(fetchExecutionsQuery, queryConfig);
-    return executions.map((execution: any) => ({
-        ...execution,
-        errors: execution.node.errors ? JSON.parse(execution.node.errors) : null,
-        metrics: execution.node.metrics ? JSON.parse(execution.node.metrics) : null
-    })) as ExecutionRecord[];
-};
-
-export const fetchLatestExecution = async (sessionId: string): Promise<ExecutionRecord | null> => {
-    await authCheck();
-
-    if (!sessionId) {
-        throw new Error('Session ID is required to fetch latest execution');
-    }
-
-    const executions = await fetchExecutions({ sessionId });
-    return executions[0] || null;
+    const executions: ExecutionRecord[] = await connectToDB(fetchExecutionsQuery, queryConfig);
+    return executions.map((execution: ExecutionRecord) => ({
+        id: execution.id,
+        workflowId: execution.workflow_id,
+        state: execution.current_status,
+        currentNodeId: execution.node_id,
+        startedAt: new Date(execution.created_at),
+        errors: execution.errors ? JSON.parse(execution.errors) : null,
+        metrics: execution.metrics ? JSON.parse(execution.metrics) : null
+    })) as WorkflowExecution[];
 };

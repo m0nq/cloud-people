@@ -28,7 +28,7 @@ const RootNode = ({ id, isConnectable, sourcePosition, targetPosition }: RootNod
         if (!workflowExecution) {
             await startWorkflow();
         } else if (workflowExecution.state === WorkflowState.Running) {
-            pauseWorkflow();
+            await pauseWorkflow();
         } else if (workflowExecution.state === WorkflowState.Paused) {
             await resumeWorkflow();
         } else if (workflowExecution.state === WorkflowState.Initial) {
