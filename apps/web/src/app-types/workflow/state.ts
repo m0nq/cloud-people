@@ -14,15 +14,13 @@ export enum WorkflowState {
 }
 
 export type WorkflowExecution = {
-    workflowId?: string;
-    sessionId?: string;
+    id: string;
+    workflowId: string;
     state: WorkflowState;
     currentNodeId?: string;
-    // agentStates: Record<string, AgentState>;
-    startedAt?: Date;
-    completedAt?: Date;
+    startedAt: Date;
+    completedAt?: string;
     error?: string;
-    needsAssistance?: boolean;
 };
 
 export type GraphState = {

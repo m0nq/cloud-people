@@ -2,14 +2,16 @@ import { WorkflowState } from '@app-types/workflow/state';
 import { AgentCapability } from '@app-types/agent';
 import { AgentConfig } from '@app-types/agent';
 import { AgentStatus } from '@app-types/agent';
-import type { AgentData } from '@app-types/agent';
 import { NodeType } from './node-types';
 
 export type NodeData = {
     id: string;
-    type: NodeType;  
+    type: NodeType;
     workflowId?: string;
-    agent?: AgentData;
+    agentRef?: {
+        agentId: string;
+        config?: AgentConfig;
+    };
     state?: WorkflowState;
     capabilities?: AgentCapability[];
     config?: AgentConfig;
@@ -21,6 +23,7 @@ export type NodeData = {
 export type InitialStateNodeData = NodeData & {
     id: string;
     label: string;
-    type: NodeType.Initial;  
-    state?: WorkflowState;
+    type: NodeType.Initial;
+    background: string;
+    color: string;
 };

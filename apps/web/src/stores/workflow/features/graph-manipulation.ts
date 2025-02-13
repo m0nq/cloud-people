@@ -281,7 +281,7 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
                     type: NodeType.Agent,
                     workflowId: parentNode.data.workflowId,
                     agentId: agentRecord.id,
-                    agent: { ...agent },
+                    agentRef: { agentId: agent.id },
                     status: AgentStatus.Initial,
                     state: WorkflowState.Initial
                 },

@@ -1,16 +1,14 @@
 import { type Connection } from '@xyflow/react';
 import { Edge } from '@xyflow/react';
 import { type Node } from '@xyflow/react';
-import { Config } from '@config/constants';
 import type { NodeData } from '@app-types/workflow';
 import type { InitialStateNodeData } from '@app-types/workflow';
 import type { EdgeData } from '@app-types/workflow';
 import { findRootNode } from '@stores/workflow';
-
-const { WorkflowNode } = Config;
+import { NodeType } from '@app-types/workflow/node-types';
 
 export const isInitialStateNode = (node: Node<NodeData | InitialStateNodeData>): node is Node<InitialStateNodeData> => {
-    return node.type?.includes(WorkflowNode.InitialStateNode) ?? false;
+    return node.type?.includes(NodeType.Initial) ?? false;
 };
 
 export const isWorkflowNode = (node: Node<NodeData | InitialStateNodeData>): node is Node<NodeData> => {
@@ -53,7 +51,7 @@ export const validateConnection = (get: Function, connection: Connection): boole
 
         visited.add(target);
         const outgoingEdges = edges.filter((e: Edge<EdgeData>) => e.source === target);
-        return outgoingEdges.some(e => wouldCreateCycle(source, e.target, visited));
+        return outgoingEdges.some((e: Edge<EdgeData>) => wouldCreateCycle(source, e.target, visited));
     };
 
     return !wouldCreateCycle(connection.source, connection.target);

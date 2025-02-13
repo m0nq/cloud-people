@@ -9,10 +9,8 @@ import { AgentStatus } from '@app-types/agent';
 import { useAgentStore } from '@stores/agent-store';
 import type { NodeData } from '@app-types/workflow';
 import { useWorkflowStore } from '@stores/workflow';
-import { Config } from '@config/constants';
 import { navigateToUrl } from '@lib/agents/browser/navigation';
-
-const { WorkflowNode } = Config;
+import { NodeType } from '@app-types/workflow/node-types';
 
 interface AgentResponse {
     messages: any[];
@@ -26,7 +24,7 @@ interface AgentResponse {
 }
 
 const isAgentNode = (node: Node): node is Node<NodeData> => {
-    return node.type === WorkflowNode.AgentNode;
+    return node.type === NodeType.Agent;
 };
 
 export const useAgent = (agentId: string, onStatusChange?: (status: AgentStatus) => void): AgentResponse => {

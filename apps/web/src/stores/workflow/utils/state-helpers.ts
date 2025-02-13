@@ -7,19 +7,17 @@ import type { NodeData } from '@app-types/workflow';
 import type { InitialStateNodeData } from '@app-types/workflow';
 import type { EdgeData } from '@app-types/workflow';
 import { isInitialStateNode } from '@stores/workflow';
-import { Config } from '@config/constants';
-
-const { WorkflowNode } = Config;
+import { NodeType } from '@app-types/workflow/node-types';
 
 export const updateState = (set: Function, newState: Partial<GraphState>) => {
-    set((currentState: any) => ({
-        ...currentState,
+    set((prevState: any) => ({
+        ...prevState,
         ...newState
     }));
 };
 
 export const findRootNode = (nodes: Node<NodeData | InitialStateNodeData>[]): Node<NodeData> | undefined => {
-    return nodes.find((node): node is Node<NodeData> => !isInitialStateNode(node) && node.type === WorkflowNode.RootNode);
+    return nodes.find((node): node is Node<NodeData> => !isInitialStateNode(node) && node.type === NodeType.Root);
 };
 
 export const findNextNode = (nodes: Node<NodeData>[], edges: Edge<EdgeData>[], currentNodeId: string): Node<NodeData> | undefined => {

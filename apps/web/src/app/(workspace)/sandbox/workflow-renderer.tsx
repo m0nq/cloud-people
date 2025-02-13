@@ -15,9 +15,7 @@ import { useEffect } from 'react';
 
 import { type InitialStateNodeData } from '@app-types/workflow';
 import { type NodeData } from '@app-types/workflow';
-import { WorkflowState } from '@app-types/workflow';
 import { type WorkflowStore } from '@stores/workflow/types';
-import { Config } from '@config/constants';
 import { useWorkflowStore } from '@stores/workflow';
 import { useModalStore } from '@stores/modal-store';
 import { useShallow } from 'zustand/react/shallow';
@@ -28,8 +26,7 @@ import InitialStateNode from '@components/sandbox-nodes/initial-state-node';
 import RootNode from '@components/sandbox-nodes/root-node';
 import AgentNode from '@components/sandbox-nodes/agent-node';
 import { layoutElements } from '@lib/dagre/dagre';
-
-const { WorkflowNode } = Config;
+import { NodeType } from '@app-types/workflow/node-types';
 
 const Modal = dynamic(() => import('@components/modals/modal'), { ssr: false });
 const ApprovalNode = dynamic(() => import('@components/sandbox-nodes/approval-node'), { ssr: false });
@@ -52,11 +49,11 @@ type WorkflowRendererProps = {
 };
 
 const nodeTypes = {
-    [WorkflowNode.InitialStateNode]: InitialStateNode,
-    [WorkflowNode.RootNode]: RootNode,
-    [WorkflowNode.AgentNode]: AgentNode,
-    [WorkflowNode.ApprovalNode]: ApprovalNode,
-    [WorkflowNode.DeliveryNode]: DeliveryNode
+    [NodeType.Initial]: InitialStateNode,
+    [NodeType.Root]: RootNode,
+    [NodeType.Agent]: AgentNode,
+    [NodeType.Approval]: ApprovalNode,
+    [NodeType.Delivery]: DeliveryNode
 } as NodeTypes;
 
 const edgeTypes = {
@@ -147,7 +144,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
     // Modify nodes to inject the modal open handler into root node data
     const nodesWithModals = useMemo(() => {
         return nodes?.map((node) => {
-            if (node.data.type !== WorkflowNode.InitialStateNode) {
+            if (node.data.type !== NodeType.Initial) {
                 return {
                     ...node,
                     data: {

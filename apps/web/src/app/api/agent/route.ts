@@ -4,8 +4,6 @@ import { tool } from 'ai';
 import { type NextRequest } from 'next/server';
 import { z } from 'zod';
 
-import { type AgentAction } from '@lib/definitions';
-
 // This line sets the runtime environment for the API route to 'edge'
 // Edge runtime is required for AI SDK tools
 export const runtime = 'edge';
@@ -103,7 +101,7 @@ export async function POST(req: NextRequest) {
         console.log('AI response:', { text, toolCalls });
 
         // Handle tool calls if any
-        let toolResponse = null;
+        let toolResponse;
         if (toolCalls && toolCalls.length > 0) {
             console.log('Processing tool calls:', toolCalls);
             const toolCall = toolCalls[0]; // Handle first tool call
@@ -115,7 +113,7 @@ export async function POST(req: NextRequest) {
                     abortSignal: req.signal
                 });
                 const validatedResponse = browserActionResponseSchema.parse(response);
-                
+
                 if (!validatedResponse.success) {
                     console.error('Tool execution failed:', validatedResponse);
                     return Response.json({
@@ -124,7 +122,7 @@ export async function POST(req: NextRequest) {
                         error: validatedResponse.error || validatedResponse.message
                     }, { status: 500 });
                 }
-                
+
                 toolResponse = validatedResponse;
                 console.log('Tool response:', toolResponse);
             }
