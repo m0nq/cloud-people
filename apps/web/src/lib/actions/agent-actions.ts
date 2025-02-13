@@ -1,22 +1,24 @@
 'use server';
 
 import { authCheck } from '@lib/actions/authentication-actions';
-import { type QueryConfig } from '@lib/definitions';
+import type { QueryConfig } from '@app-types/api';
 import { connectToDB } from '@lib/utils';
 
 export const createAgent = async (config: QueryConfig = {}): Promise<any> => {
-    await authCheck();
+    const user = await authCheck();
 
     const createAgentMutation = `
         mutation CreateAgentMutation(
             $name: String!,
             $description: String,
-            $config: JSON!
+            $config: JSON!,
+            $createdBy: UUID!
         ) {
             collection: insertIntoAgentsCollection(objects: [{
                 name: $name,
                 description: $description,
-                config: $config
+                config: $config,
+                created_by: $createdBy
             }]) {
                 records {
                     id
@@ -25,6 +27,7 @@ export const createAgent = async (config: QueryConfig = {}): Promise<any> => {
                     config
                     created_at
                     updated_at
+                    created_by
                 }
             }
         }
@@ -34,7 +37,8 @@ export const createAgent = async (config: QueryConfig = {}): Promise<any> => {
         const [agent] = await connectToDB(createAgentMutation, {
             name: config.data?.config?.name,
             description: config.data?.config?.description,
-            config: config.data?.config || {}
+            config: config.data?.config || {},
+            createdBy: user.id
         });
 
         if (!agent?.id) {

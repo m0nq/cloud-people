@@ -13,7 +13,7 @@ export type Database = {
         Row: {
           config: Json
           created_at: string
-          created_by: string | null
+          created_by: string
           description: string | null
           id: string
           name: string
@@ -22,7 +22,7 @@ export type Database = {
         Insert: {
           config: Json
           created_at?: string
-          created_by?: string | null
+          created_by: string
           description?: string | null
           id?: string
           name: string
@@ -31,7 +31,7 @@ export type Database = {
         Update: {
           config?: Json
           created_at?: string
-          created_by?: string | null
+          created_by?: string
           description?: string | null
           id?: string
           name?: string
@@ -128,6 +128,7 @@ export type Database = {
         Row: {
           agent_id: string
           created_at: string
+          created_by: string
           current_status: string
           errors: Json | null
           history: Json
@@ -141,6 +142,7 @@ export type Database = {
         Insert: {
           agent_id: string
           created_at?: string
+          created_by: string
           current_status?: string
           errors?: Json | null
           history?: Json
@@ -154,6 +156,7 @@ export type Database = {
         Update: {
           agent_id?: string
           created_at?: string
+          created_by?: string
           current_status?: string
           errors?: Json | null
           history?: Json

@@ -1,6 +1,6 @@
 'use server';
-import { QueryConfig } from '@lib/definitions';
-import { WorkflowType } from '@lib/definitions';
+import { type QueryConfig } from '@app-types/api';
+import { type WorkflowType } from '@app-types/workflow';
 import { authCheck } from './authentication-actions';
 import { connectToDB } from '@lib/utils';
 

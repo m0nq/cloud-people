@@ -2,7 +2,10 @@
 import { Position } from '@xyflow/react';
 import { type Node } from '@xyflow/react';
 import { type Edge } from '@xyflow/react';
+
 import { Config } from '@config/constants';
+import type { NodeData } from '@app-types/workflow';
+import type { EdgeData } from '@app-types/workflow';
 
 const { WorkflowNode } = Config;
 
@@ -13,15 +16,21 @@ const agentNodes = [
         id: 'horizontal-1',
         sourcePosition: Position.Right,
         type: WorkflowNode.AgentNode,
-        data: { label: 'Node 1' },
-        position
+        position,
+        data: {
+            id: 'horizontal-1',
+            type: WorkflowNode.AgentNode,
+        }
     },
     {
         id: 'horizontal-2',
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
         type: WorkflowNode.AgentNode,
-        data: { label: 'Node 2' },
+        data: {
+            id: 'horizontal-1',
+            type: WorkflowNode.AgentNode,
+        },
         position
     },
     {
@@ -29,7 +38,10 @@ const agentNodes = [
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
         type: WorkflowNode.AgentNode,
-        data: { label: 'Node 3' },
+        data: {
+            id: 'horizontal-1',
+            type: WorkflowNode.AgentNode,
+        },
         position
     },
     {
@@ -37,7 +49,10 @@ const agentNodes = [
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
         type: WorkflowNode.AgentNode,
-        data: { label: 'Node 4' },
+        data: {
+            id: 'horizontal-1',
+            type: WorkflowNode.AgentNode,
+        },
         position
     },
     {
@@ -45,7 +60,10 @@ const agentNodes = [
         sourcePosition: Position.Top,
         targetPosition: Position.Bottom,
         type: WorkflowNode.AgentNode,
-        data: { label: 'Node 5' },
+        data: {
+            id: 'horizontal-1',
+            type: WorkflowNode.AgentNode,
+        },
         position
     },
     {
@@ -53,7 +71,10 @@ const agentNodes = [
         sourcePosition: Position.Bottom,
         targetPosition: Position.Top,
         type: WorkflowNode.AgentNode,
-        data: { label: 'Node 6' },
+        data: {
+            id: 'horizontal-1',
+            type: WorkflowNode.AgentNode,
+        },
         position
     },
     {
@@ -61,7 +82,10 @@ const agentNodes = [
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
         type: WorkflowNode.AgentNode,
-        data: { label: 'Node 7' },
+        data: {
+            id: 'horizontal-1',
+            type: WorkflowNode.AgentNode,
+        },
         position
     },
     {
@@ -69,10 +93,13 @@ const agentNodes = [
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
         type: WorkflowNode.AgentNode,
-        data: { label: 'Node 8' },
+        data: {
+            id: 'horizontal-1',
+            type: WorkflowNode.AgentNode,
+        },
         position
     }
-] as Node[];
+] as Node<NodeData>[];
 
 // these are hardcoded edges to be replaced with nodes from the db
 const automationEdges = [
@@ -125,17 +152,17 @@ const automationEdges = [
         type: WorkflowNode.AutomationEdge,
         animated: false
     }
-] as Edge[];
+] as Edge<EdgeData>[];
 
 // These will in turn use the supabase actions
-export const fetchWorkflowNodes = (): Node[] => {
+export const fetchWorkflowNodes = (): Node<NodeData>[] => {
     // Get user id of signed in user
     // Get list of workflows by user id
     // Return all nodes for a selected workflow
     return agentNodes;
 };
 
-export const fetchWorkflowEdges = (): Edge[] => {
+export const fetchWorkflowEdges = (): Edge<EdgeData>[] => {
     // Get user id of signed in user
     // Get list of workflows by user id
     // Return all edges for a selected workflow

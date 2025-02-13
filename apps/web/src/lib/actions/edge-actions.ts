@@ -1,7 +1,7 @@
 'use server';
 
-import { QueryConfig } from '@lib/definitions';
-import { EdgeType } from '@lib/definitions';
+import type { QueryConfig } from '@app-types/api';
+import type { EdgeData } from '@app-types/workflow';
 import { authCheck } from '@lib/actions/authentication-actions';
 import { connectToDB } from '@lib/utils';
 
@@ -43,7 +43,7 @@ export const createEdge = async (config: QueryConfig): Promise<string> => {
     return edge.id;
 };
 
-export const fetchEdges = async (config: any = {}): Promise<EdgeType[]> => {
+export const fetchEdges = async (config: any = {}): Promise<EdgeData[]> => {
     await authCheck();
 
     const fetchEdgesQuery = `
@@ -86,7 +86,7 @@ export const fetchEdges = async (config: any = {}): Promise<EdgeType[]> => {
         workflowId: edge.workflow_id,
         toNodeId: edge.to_node_id,
         fromNodeId: edge.from_node_id
-    })) as EdgeType[];
+    })) as EdgeData[];
 };
 
 export const updateEdges = async (config: any = {}) => {
@@ -131,7 +131,7 @@ export const updateEdges = async (config: any = {}) => {
         workflowId: config.workflowId,
         toNodeId: edge.to_node_id,
         fromNodeId: edge.from_node_id
-    } as EdgeType;
+    } as EdgeData;
 };
 
 export const deleteEdges = async (config: QueryConfig = {}) => {

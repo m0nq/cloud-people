@@ -1,6 +1,6 @@
-import { AgentData } from '@lib/definitions';
-import { AgentCapability } from '@lib/definitions';
-import { AgentConfig } from '@lib/definitions';
+import type { AgentData } from '@app-types/agent';
+import type { AgentCapability } from '@app-types/agent';
+import type { AgentConfig } from '@app-types/agent';
 
 export const browserNavigateCapability: AgentCapability = {
     id: 'browser_navigate',

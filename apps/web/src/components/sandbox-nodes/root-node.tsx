@@ -7,8 +7,8 @@ import { FaPause } from 'react-icons/fa';
 import { NodeComponent } from '@components/utils/node-component/node-component';
 import { HandleType } from './types.enum';
 import { useModalStore } from '@stores/modal-store';
-import { useGraphStore } from '@stores/workflow-store';
-import { WorkflowState } from '@lib/definitions';
+import { useWorkflowStore } from '@stores/workflow';
+import { WorkflowState } from '@app-types/workflow';
 
 import './node.styles.css';
 
@@ -22,7 +22,7 @@ type RootNodeProps = {
 
 const RootNode = ({ id, isConnectable, sourcePosition, targetPosition }: RootNodeProps): ReactNode => {
     const { openModal } = useModalStore();
-    const { startWorkflow, pauseWorkflow, resumeWorkflow, workflowExecution } = useGraphStore();
+    const { startWorkflow, pauseWorkflow, resumeWorkflow, workflowExecution } = useWorkflowStore();
 
     const handlePlayPause = useCallback(async () => {
         if (!workflowExecution) {

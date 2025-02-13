@@ -3,12 +3,12 @@ import { useEffect } from 'react';
 
 import './modal.styles.css';
 import { useModalStore } from '@stores/modal-store';
-import { useGraphStore } from '@stores/workflow-store';
+import { useWorkflowStore } from '@stores/workflow';
 import { ModalComponents } from './modal-component.type';
 
 const Modal = () => {
     const { isOpen, modalType, closeModal, parentNodeId } = useModalStore();
-    const { addNode } = useGraphStore();
+    const { addNode } = useWorkflowStore();
 
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {

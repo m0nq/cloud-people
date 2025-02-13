@@ -1,52 +1,114 @@
 'use server';
 import { createClient } from './server';
 
-import { QueryConfig } from '@lib/definitions';
+import type { QueryConfig } from '@app-types/api';
 import { Config } from '@config/constants';
 
-const {
-    API: { EndPoints }
-} = Config;
+const { API: { EndPoints } } = Config;
 
 const SUPABASE_URL: string = process.env.SUPABASE_URL!;
 const SUPABASE_ANON_KEY: string = process.env.SUPABASE_ANON_KEY!;
 
-export const queryDB = async (query: string, variables: QueryConfig = {}) => {
-    const supabase = await createClient();
-    const {
-        data: { session }
-    } = await supabase!.auth.getSession();
+// Fields that should be stringified before sending to the database
+const JSON_FIELDS = [
+    'config',      // Agent configuration
+    'input',       // Execution input
+    'output',      // Execution output
+    'history',     // Execution history
+    'metrics',     // Execution metrics
+    'errors'      // Execution errors
+] as const;
 
-    // Pre-process variables to handle JSON fields
-    const processedVariables = Object.entries(variables).reduce(
-        (acc, [key, value]) => {
-            // If the value is an object and the key is 'config', stringify it
-            console.log('Value:', value, 'Key:', key);
-            if (value && typeof value === 'object' && key === 'config') {
-                acc[key] = JSON.stringify(value);
-            } else {
-                acc[key] = value;
-            }
-            return acc;
-        },
-        {} as Record<string, any>
-    );
+type JsonField = typeof JSON_FIELDS[number];
 
-    const res = await fetch(`${SUPABASE_URL}${EndPoints.GraphQL}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            apikey: SUPABASE_ANON_KEY,
-            Authorization: `Bearer ${session?.access_token ?? SUPABASE_ANON_KEY}`
-        },
-        body: JSON.stringify({ query, variables: processedVariables })
-    });
+interface JsonValue {
+    [key: string]: any;
+}
 
-    if (!res.ok) {
-        // This will activate the closest `error.js` Error Boundary
-        console.error('GraphQL request failed:', await res.text());
-        throw new Error('Failed to fetch data');
+/**
+ * Safely stringify a JSON value, handling null/undefined
+ */
+const safeStringifyJson = (value: JsonValue | null | undefined): string | null => {
+    if (value === null || value === undefined) {
+        return null;
+    }
+    try {
+        return JSON.stringify(value);
+    } catch (error) {
+        console.error('Failed to stringify JSON:', error);
+        throw new Error('Failed to process JSON data');
+    }
+};
+
+/**
+ * Process variables before sending to the database
+ * Handles JSON fields by stringifying them appropriately
+ */
+const processQueryVariables = (variables: QueryConfig): Record<string, any> => {
+    // Handle null/undefined
+    if (!variables) {
+        return {};
     }
 
-    return await res.json();
+    return Object
+        .entries(variables)
+        .reduce((processed, [key, value]) => {
+            // If this is a nested object (like the 'data' field in mutations)
+            if (value && typeof value === 'object') {
+                // If it's a field that needs to be stringified
+                if (JSON_FIELDS.includes(key as JsonField)) {
+                    processed[key] = safeStringifyJson(value);
+                }
+                // Otherwise process its fields recursively
+                else {
+                    processed[key] = processQueryVariables(value);
+                }
+            } else {
+                processed[key] = value;
+            }
+            return processed;
+        }, {} as Record<string, any>);
+};
+
+/**
+ * Execute a GraphQL query against the Supabase database
+ */
+export const queryDB = async (query: string, variables: QueryConfig = {}) => {
+    const supabase = await createClient();
+    const { data: { session } } = await supabase!.auth.getSession();
+
+    const processedVariables = processQueryVariables(variables);
+
+    try {
+        const res = await fetch(`${SUPABASE_URL}${EndPoints.GraphQL}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                apikey: SUPABASE_ANON_KEY,
+                Authorization: `Bearer ${session?.access_token ?? SUPABASE_ANON_KEY}`
+            },
+            body: JSON.stringify({ query, variables: processedVariables })
+        });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            console.error('GraphQL request failed:', errorText);
+            throw new Error(`GraphQL request failed: ${res.status} ${res.statusText}`);
+        }
+
+        const data = await res.json();
+
+        // Check for GraphQL errors
+        if (data.errors) {
+            console.error('GraphQL errors:', data.errors);
+            throw new Error(data.errors[0]?.message || 'GraphQL query failed');
+        }
+
+        return data;
+    } catch (error) {
+        console.error('Failed to execute GraphQL query:', error);
+        throw error instanceof Error
+            ? error
+            : new Error('Failed to execute GraphQL query');
+    }
 };

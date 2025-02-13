@@ -1,8 +1,8 @@
-import { CSSProperties } from 'react';
+import { type CSSProperties } from 'react';
 
-import { AgentData } from '@lib/definitions';
-import { AgentState } from '@lib/definitions';
-import { AgentStatus } from '@lib/definitions';
+import { type AgentData } from '@app-types/agent';
+import { type AgentState } from '@app-types/agent';
+import { AgentStatus } from '@app-types/agent';
 import { useAgent } from '@hooks/use-agent';
 import { IdleAgentLayout } from './layouts';
 import { WorkingAgentLayout } from './layouts';

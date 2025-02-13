@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 
-import { AgentState } from '@lib/definitions';
-import { AgentStatus } from '@lib/definitions';
+import { AgentState } from '@app-types/agent';
+import { AgentStatus } from '@app-types/agent';
 
 interface BrowserStatusProps {
     state: AgentState;
@@ -33,7 +33,7 @@ const getStatusMessage = (status: AgentStatus, progress?: number): ReactNode => 
 
 export const BrowserStatus = ({ state, url }: BrowserStatusProps): ReactNode => {
     const message = getStatusMessage(state.status, state.progress);
-    
+
     return (
         <div className="browser-status">
             <div className="status-message">

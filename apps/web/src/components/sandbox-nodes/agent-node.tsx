@@ -8,10 +8,10 @@ import { AgentCard } from '@components/agents/agent-card';
 import { NodeComponent } from '@components/utils/node-component/node-component';
 import { useModalStore } from '@stores/modal-store';
 import { useAgentStore } from '@stores/agent-store';
-import { useGraphStore } from '@stores/workflow-store';
-import { AgentStatus } from '@lib/definitions';
-import { AgentCapability } from '@lib/definitions';
-import { AgentConfig } from '@lib/definitions';
+import { useWorkflowStore } from '@stores/workflow';
+import { AgentStatus } from '@app-types/agent';
+import { AgentCapability } from '@app-types/agent';
+import { AgentConfig } from '@app-types/agent';
 
 import { useAgent } from '@hooks/use-agent';
 import { HandleType } from './types.enum';
@@ -49,7 +49,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     const tPosition = getPosition(targetPosition);
     const { openModal } = useModalStore();
     const { removeAgent, transition, getAgentState, updateAgent } = useAgentStore();
-    const { progressWorkflow, isCurrentNode, pauseWorkflow } = useGraphStore();
+    const { progressWorkflow, isCurrentNode, pauseWorkflow } = useWorkflowStore();
     const agentState = getAgentState(id) || {
         status: AgentStatus.Initial,
         isEditable: true,

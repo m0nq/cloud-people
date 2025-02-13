@@ -1,8 +1,8 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { AgentState } from '@lib/definitions';
-import { AgentStatus } from '@lib/definitions';
+import type { AgentState } from '@app-types/agent';
+import { AgentStatus } from '@app-types/agent';
 
 type StateTransitionError = {
     message: string;

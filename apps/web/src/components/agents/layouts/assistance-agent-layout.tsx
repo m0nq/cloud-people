@@ -7,7 +7,7 @@ import { ChatIcon } from '@components/icons/chat-icon';
 import { HandIcon } from '@components/icons/hand-icon';
 import { NotificationBellIcon } from '@components/icons/notification-bell-icon';
 import { WatchIcon } from '@components/icons/watch-icon';
-import { AgentStatus } from '@lib/definitions';
+import { AgentStatus } from '@app-types/agent';
 
 export const AssistanceAgentLayout = ({ data, state, onAssistanceRequest }: BaseAgentLayoutProps) => {
     return (

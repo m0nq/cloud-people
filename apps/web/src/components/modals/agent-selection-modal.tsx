@@ -5,9 +5,10 @@ import { ReactNode } from 'react';
 
 import './agent-selection-modal.styles.css';
 import { AgentCard } from '@components/agents/agent-card';
-import { AgentData } from '@lib/definitions';
-import { AgentStatus } from '@lib/definitions';
+import { AgentData } from '@app-types/agent';
+import { AgentStatus } from '@app-types/agent';
 import { useModalStore } from '@stores/modal-store';
+import { createAgent } from '@lib/actions/agent-actions';
 
 // Define available agent capabilities
 const AGENT_CAPABILITIES = {
@@ -31,7 +32,7 @@ const AVAILABLE_AGENTS: AgentData[] = [
             actions: [
                 {
                     type: 'browser',
-                    action: 'navigate_to_google'
+                    command: 'navigate'
                 }
             ],
             aiEnabled: true
@@ -46,7 +47,7 @@ const AVAILABLE_AGENTS: AgentData[] = [
             actions: [
                 {
                     type: 'browser',
-                    action: 'navigate_to_google'
+                    command: 'navigate'
                 }
             ],
             aiEnabled: true
@@ -69,6 +70,8 @@ export const AgentSelectionModal = ({
     children
 }: AgentSelectionModalProps) => {
     const [activeTab, setActiveTab] = useState('agents');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const { openModal } = useModalStore();
 
     /* TODO: fetch agents from db to collect and display them. */
@@ -86,6 +89,43 @@ export const AgentSelectionModal = ({
         isEditable: true,
         progress: 0
     }), []);
+
+    const handleAgentSelect = useCallback(async (agentData: AgentData) => {
+            try {
+                setLoading(true);
+                setError(null);
+
+                // Create the agent in the database with all necessary data
+                const dbAgent = await createAgent({
+                    data: {
+                        config: {
+                            name: agentData.name,
+                            description: agentData.role,
+                            workflowId: parentNodeId,
+                            ...agentData.config
+                        },
+                        tools: agentData.tools || []
+                    }
+                });
+
+                // Update the agent data with the database ID and parent node ID
+                const updatedAgentData = {
+                    ...agentData,
+                    id: dbAgent.id,
+                    parentNodeId
+                };
+
+                onSelect(updatedAgentData);
+                onClose();
+            } catch (err) {
+                console.error('Failed to create agent:', err);
+                setError('Failed to create agent. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        },
+        [onClose, onSelect, parentNodeId]
+    );
 
     return (
         <div className="agent-selector-container">
@@ -115,16 +155,16 @@ export const AgentSelectionModal = ({
 
                 {/* Agent Cards Grid */}
                 <div className="agents-grid">
+                    {/* {loading ? (
+                     <div>Creating agent...</div>
+                     ) : ( */}
                     {AVAILABLE_AGENTS.map(agent => (
-                        <div key={agent.name}
-                            className="agent-card-container"
-                            onClick={() => {
-                                onSelect({ ...agent, parentNodeId });
-                                onClose();
-                            }}>
+                        <div key={agent.name} className="agent-card-container" onClick={() => handleAgentSelect(agent)}>
                             <AgentCard data={agent} state={initialAgentState} />
                         </div>
                     ))}
+                    {/* } */}
+                    {error && <div className="error-message">{error}</div>}
                 </div>
             </div>
         </div>

@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { Viewport } from 'next';
 import { Metadata } from 'next';
 import { MantineProvider } from '@mantine/core';
@@ -8,8 +9,12 @@ import './globals.css';
 import { dmSans } from '@lib/fonts';
 import { lexend } from '@lib/fonts';
 import { inter } from '@lib/fonts';
-import { LayoutProps } from '@lib/definitions';
 import { validateEnv } from '@lib/env';
+
+export type LayoutProps = {
+    params?: any;
+    children?: ReactNode;
+};
 
 export const metadata: Metadata = {
     title: 'Cloud People',

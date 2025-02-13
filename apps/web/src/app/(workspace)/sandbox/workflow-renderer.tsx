@@ -8,34 +8,37 @@ import { OnNodesDelete } from '@xyflow/react';
 import { OnBeforeDelete } from '@xyflow/react';
 import { OnConnect } from '@xyflow/react';
 import { NodeMouseHandler } from '@xyflow/react';
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useState } from 'react';
 import { useEffect } from 'react';
-import dynamic from 'next/dynamic';
+
+import { type InitialStateNodeData } from '@app-types/workflow';
+import { type NodeData } from '@app-types/workflow';
+import { WorkflowState } from '@app-types/workflow';
+import { type WorkflowStore } from '@stores/workflow/types';
+import { Config } from '@config/constants';
+import { useWorkflowStore } from '@stores/workflow';
+import { useModalStore } from '@stores/modal-store';
 import { useShallow } from 'zustand/react/shallow';
 
-import { useModalStore } from '@stores/modal-store';
+import dynamic from 'next/dynamic';
+
+import InitialStateNode from '@components/sandbox-nodes/initial-state-node';
+import RootNode from '@components/sandbox-nodes/root-node';
+import AgentNode from '@components/sandbox-nodes/agent-node';
 import { layoutElements } from '@lib/dagre/dagre';
-import { AppState } from '@lib/definitions';
-import { InitialStateNodeData } from '@lib/definitions';
-import { NodeData } from '@lib/definitions';
-import { useGraphStore } from '@stores/workflow-store';
-import { Config } from '@config/constants';
 
 const { WorkflowNode } = Config;
 
 const Modal = dynamic(() => import('@components/modals/modal'), { ssr: false });
-const RootNode = dynamic(() => import('@components/sandbox-nodes/root-node'), { ssr: false });
-const InitialStateNode = dynamic(() => import('@components/sandbox-nodes/initial-state-node'), { ssr: false });
-const AgentNode = dynamic(() => import('@components/sandbox-nodes/agent-node'), { ssr: false });
 const ApprovalNode = dynamic(() => import('@components/sandbox-nodes/approval-node'), { ssr: false });
 const DeliveryNode = dynamic(() => import('@components/sandbox-nodes/delivery-node'), { ssr: false });
 const AutomationEdge = dynamic(() => import('@components/sandbox-nodes/automation-edge'), { ssr: false });
 
 type WorkflowRendererProps = {
     children: (props: {
-        nodes?: Node<NodeData>[];
+        nodes?: Node<NodeData | InitialStateNodeData>[];
         edges?: Edge[];
         edgeTypes?: EdgeTypes;
         nodeTypes?: NodeTypes;
@@ -70,8 +73,8 @@ const edgeTypes = {
  * - onEdgesChange: A callback to call when the edges change.
  * - onConnect: A callback to call when two nodes are connected.
  */
-const nodeStateSelector = (state: AppState) => ({
-    nodes: state.nodes as (Node<NodeData> | Node<InitialStateNodeData>)[],
+const nodeStateSelector = (state: WorkflowStore) => ({
+    nodes: state.nodes,
     edges: state.edges,
     onNodesChange: state.onNodesChange,
     onEdgesChange: state.onEdgesChange,
@@ -137,30 +140,30 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         onConnect,
         onBeforeDelete,
         onNodesDelete
-    } = useGraphStore(useShallow(nodeStateSelector));
+    } = useWorkflowStore(useShallow(nodeStateSelector));
 
     const { openModal } = useModalStore();
 
     // Modify nodes to inject the modal open handler into root node data
-    const nodesWithHandlers = useMemo(() => {
-        return nodes.map((node: Node<NodeData>): Node<NodeData> => {
-            if (node.type !== WorkflowNode.InitialStateNode) {
+    const nodesWithModals = useMemo(() => {
+        return nodes?.map((node) => {
+            if (node.data.type !== WorkflowNode.InitialStateNode) {
                 return {
                     ...node,
                     data: {
                         ...node.data,
-                        onOpenModal: modalType => {
+                        onOpenModal: (modalType: string) => {
                             openModal({ parentNodeId: node.id, type: modalType });
                         }
                     }
-                };
+                } as Node<NodeData>;
             }
             return node;
         });
     }, [nodes, openModal]);
 
-    const [layout, setLayout] = useState<{ nodes: Node<NodeData>[]; edges: Edge[] }>({
-        nodes: nodesWithHandlers,
+    const [layout, setLayout] = useState<{ nodes: Node<NodeData | InitialStateNodeData>[]; edges: Edge[] }>({
+        nodes: nodesWithModals,
         edges
     });
 
@@ -169,7 +172,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         let isSubscribed = true;
 
         const calculateLayout = () => {
-            const { laidOutNodes, laidOutEdges } = layoutElements(nodesWithHandlers, edges);
+            const { laidOutNodes, laidOutEdges } = layoutElements(nodesWithModals, edges);
             if (isSubscribed) {
                 setLayout({ nodes: laidOutNodes, edges: laidOutEdges });
             }
@@ -181,19 +184,19 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         return () => {
             isSubscribed = false;
         };
-    }, [nodesWithHandlers, edges]);
+    }, [nodesWithModals, edges]);
 
     // Cleanup memoized handlers when component unmounts
     useEffect(() => {
         return () => {
             // Clean up any stored node handlers
-            nodesWithHandlers.forEach((node: Node<NodeData>) => {
+            nodesWithModals?.forEach((node: Node<NodeData>) => {
                 if (node.data?.onOpenModal) {
                     node.data.onOpenModal = undefined;
                 }
             });
         };
-    }, [nodesWithHandlers]);
+    }, [nodesWithModals]);
 
     return (
         <>

@@ -2,12 +2,12 @@
 import { type Node } from '@xyflow/react';
 
 import { authCheck } from '@lib/actions/authentication-actions';
-import { type QueryConfig } from '@lib/definitions';
-import { WorkflowState } from '@lib/definitions';
-import { type NodeData } from '@lib/definitions';
+import type { QueryConfig } from '@app-types/api';
+import { WorkflowState } from '@app-types/workflow';
+import type { NodeData } from '@app-types/workflow';
 import { connectToDB } from '@lib/utils';
 
-export const createNodes = async (config: QueryConfig = {}): Promise<Node> => {
+export const createNodes = async (config: QueryConfig = {}): Promise<Node<NodeData>> => {
     await authCheck();
 
     if (!config.data?.workflowId) {
@@ -29,7 +29,7 @@ export const createNodes = async (config: QueryConfig = {}): Promise<Node> => {
    `;
 
     try {
-        const [node] = await connectToDB(insertNodeMutation, { 
+        const [node] = await connectToDB(insertNodeMutation, {
             workflowId: config.data?.workflowId,
             nodeType: config.data?.nodeType || 'agent'
         });
@@ -125,7 +125,7 @@ export const updateNodes = async (config: QueryConfig = {}) => {
         set: {
             state: config.data?.set?.state || WorkflowState.Initial,
             current_step: config.data?.set?.current_step || '0',
-            updated_at: new Date()
+            updated_at: new Date().toISOString()  // Convert to ISO string format
         },
         workflowId: config.data?.workflowId,
         nodeId: config.data?.nodeId,

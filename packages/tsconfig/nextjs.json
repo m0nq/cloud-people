@@ -1,29 +1,30 @@
 {
-	"$schema": "https://json.schemastore.org/tsconfig",
-	"extends": "./base.json",
-	"compilerOptions": {
-		"target": "es5",
-		"lib": ["dom", "dom.iterable", "esnext"],
-		"allowJs": true,
-		"skipLibCheck": true,
-		"strict": true,
-		"forceConsistentCasingInFileNames": true,
-		"noEmit": true,
-		"incremental": true,
-		"esModuleInterop": true,
-		"module": "esnext",
-		"moduleResolution": "node",
-		"resolveJsonModule": true,
-		"isolatedModules": true,
-		"jsx": "preserve",
-		"noUnusedLocals": false,
-		"noUnusedParameters": false,
-		"plugins": [
-			{
-				"name": "next"
-			}
-		]
-	},
-	"include": ["src", "next-env.d.ts"],
-	"exclude": ["node_modules"]
+    "$schema": "https://json.schemastore.org/tsconfig",
+    "extends": "./base.json",
+    "compilerOptions": {
+        "target": "es5",
+        "lib": ["dom", "dom.iterable", "esnext"],
+        "allowJs": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "forceConsistentCasingInFileNames": true,
+        "noEmit": true,
+        "incremental": true,
+        "esModuleInterop": true,
+        "module": "esnext",
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "jsx": "preserve",
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "noImplicitAny": false,
+        "plugins": [
+            {
+                "name": "next"
+            }
+        ]
+    },
+    "include": ["src", "next-env.d.ts"],
+    "exclude": ["node_modules"]
 }

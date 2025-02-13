@@ -1,5 +1,5 @@
-import { AgentConfig } from '@lib/definitions';
-import { AgentCapability } from '@lib/definitions';
+import type { AgentCapability } from '@app-types/agent';
+import type { AgentConfig } from '@app-types/agent';
 
 export const defaultBrowserCapability: AgentCapability = {
     id: 'browser_navigation',

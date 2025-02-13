@@ -2,16 +2,15 @@ import { ChangeEvent } from 'react';
 import { useCallback } from 'react';
 import { FormEvent } from 'react';
 import { useState } from 'react';
-
+import { Node } from '@xyflow/react';
 import { useChat } from 'ai/react';
 
-import { AgentStatus } from '@lib/definitions';
+import { AgentStatus } from '@app-types/agent';
 import { useAgentStore } from '@stores/agent-store';
-import { useGraphStore } from '@stores/workflow-store';
-import { NodeData } from '@lib/definitions';
-import { Node } from '@xyflow/react';
+import type { NodeData } from '@app-types/workflow';
+import { useWorkflowStore } from '@stores/workflow';
 import { Config } from '@config/constants';
-import { navigateToUrl } from '@lib/browser/navigation';
+import { navigateToUrl } from '@lib/agents/browser/navigation';
 
 const { WorkflowNode } = Config;
 
@@ -33,12 +32,12 @@ const isAgentNode = (node: Node): node is Node<NodeData> => {
 export const useAgent = (agentId: string, onStatusChange?: (status: AgentStatus) => void): AgentResponse => {
     const [isProcessing, setIsProcessing] = useState(false);
     const { getAgentState, updateAgent } = useAgentStore();
-    const { nodes } = useGraphStore();
+    const { nodes } = useWorkflowStore();
     const agentState = getAgentState(agentId);
 
     const node = nodes.find(node => node.id === agentId);
     const agentNode = node && isAgentNode(node) ? node : undefined;
-    const agentCapability = agentNode?.data.capability;
+    const agentCapability = agentNode?.data?.capabilities?.[0];
 
     // Only allow execution if agent is in Idle state
     const canExecute = agentState?.status === AgentStatus.Idle;
@@ -91,7 +90,7 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentStatus)
         },
         onResponse: async (response) => {
             console.log('Agent onResponse:', response, 'Current state:', agentState);
-            
+
             try {
                 const data = await response.json();
                 console.log('Agent response data:', data);
