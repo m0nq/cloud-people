@@ -3,10 +3,11 @@ import { AgentCapability } from '@app-types/agent';
 import { AgentConfig } from '@app-types/agent';
 import { AgentStatus } from '@app-types/agent';
 import type { AgentData } from '@app-types/agent';
+import { NodeType } from './node-types';
 
 export type NodeData = {
     id: string;
-    type: 'agent-node';
+    type: NodeType;  
     workflowId?: string;
     agent?: AgentData;
     state?: WorkflowState;
@@ -20,6 +21,6 @@ export type NodeData = {
 export type InitialStateNodeData = NodeData & {
     id: string;
     label: string;
-    type: WorkflowState.Initial;
+    type: NodeType.Initial;  
     state?: WorkflowState;
 };

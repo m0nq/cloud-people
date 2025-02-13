@@ -45,10 +45,14 @@ entity Nodes {
   * id : uuid <<PK>>
   --
   * workflow_id : uuid <<FK>>
+  * node_type : enum
+  agent_id : uuid <<FK>> <<nullable>>
   * state : enum
   * current_step : string
   * created_at : timestamp
   * updated_at : timestamp
+  --
+  note: agent_id must be non-null for agent nodes
 }
 
 entity Edges {
@@ -226,14 +230,24 @@ entity Security_Access_Controls {
   * updated_at : timestamp
 }
 
+entity Agents {
+  * id : uuid <<PK>>
+  --
+  * user_id : uuid <<FK>>
+  * config : json
+  * tools : json[]
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
 ' Relationships
 ' Core relationships
-Users ||--o{ Workflows : has
+Users ||--o{ Workflows : owns
 Subscription_Plans ||--o{ Users : subscribes
 
 ' Workflow relationships
-Workflows ||--o{ Nodes : has
-Workflows ||--o{ Edges : has
+Workflows ||--o{ Nodes : contains
+Nodes }|--|| Agents : uses
 
 ' AI relationships
 Users ||--o{ AI_Models : creates

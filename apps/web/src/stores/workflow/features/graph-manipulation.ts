@@ -31,6 +31,8 @@ import { NODE_SPACING_X } from '@config/layout.const';
 import { NODE_SPACING_Y } from '@config/layout.const';
 import type { QueryConfig } from '@app-types/api';
 import { useAgentStore } from '@stores/agent-store';
+import { NodeType } from '@app-types/workflow/node-types';
+import { EdgeType } from '@app-types/workflow/node-types';
 
 const { WorkflowNode } = Config;
 
@@ -175,7 +177,7 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
                 id: edgeId,
                 source: connection.source,
                 target: connection.target,
-                type: WorkflowNode.AutomationEdge,
+                type: EdgeType.Smoothstep,
                 animated: true,
                 data: {
                     id: edgeId,
@@ -194,16 +196,14 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
         }
     },
 
-    addNode: async (agent: AgentData): Promise<void> => {
+    addNode: async (agent: AgentData) => {
         try {
-            const parentNode = get().nodes.find((n: Node<NodeData>) => n.id === agent.parentNodeId);
+            const { nodes, edges } = get();
+            const parentNode = nodes.find(node => node.id === agent.parentNodeId);
 
-            if (!parentNode || !parentNode.data || !parentNode.data.workflowId) {
-                console.error('Parent node not found or missing workflowId. Modal state:', parentNode);
-                return;
+            if (!parentNode?.data?.workflowId) {
+                throw new Error('Parent node not found or missing workflowId');
             }
-
-            const workflowId = parentNode.data.workflowId;
 
             // Create the agent first
             const agentRecord = await createAgent({
@@ -211,7 +211,7 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
                     config: {
                         name: agent.name,
                         description: agent.description,
-                        workflowId: workflowId
+                        workflowId: parentNode.data.workflowId
                     },
                     tools: agent.tools || []
                 }
@@ -221,144 +221,100 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
                 throw new Error('Failed to create agent record');
             }
 
-            // Get all existing siblings (nodes that share the same parent)
-            const siblings: string[] = getConnectedEdges([parentNode], get().edges)
-                .map((e: Edge) => e.target)
-                .filter((nodeId: string) => {
-                    // Find edges where this node is the target (i.e. incoming edges)
-                    const incomingEdges = get().edges.filter(e => e.target === nodeId);
-                    // Only include nodes that have the same parent as our new node
-                    return incomingEdges.some(e => e.source === parentNode.id);
-                });
+            // Calculate position for the new node
+            const siblings = getConnectedEdges([parentNode], edges)
+                .map(e => e.target)
+                .filter(nodeId => edges.some(e => e.source === parentNode.id && e.target === nodeId));
 
-            // Only rebalance if there will be multiple siblings at this level
             const totalSiblings = siblings.length + 1;
-            const isParentRootNode = parentNode.type === WorkflowNode.RootNode;
+            const isRootNode = parentNode.type === NodeType.Root;
+            const xOffset = isRootNode ? NODE_SPACING_X : NODE_SPACING_X;
+            const yOffset = totalSiblings > 1
+                ? (siblings.length - (totalSiblings - 1) / 2) * NODE_SPACING_Y
+                : 0;
 
-            // Create position changes for existing siblings only if there are multiple siblings
-            let nodeChanges: NodeChange[] = [];
+            // Update positions of existing siblings if needed
             if (totalSiblings > 1) {
-                nodeChanges = siblings.map((siblingId: string, index: number) => ({
+                const nodeChanges = siblings.map((siblingId, index) => ({
                     type: 'position' as const,
                     id: siblingId,
                     position: {
-                        x: parentNode.position.x + (isParentRootNode ? NODE_SPACING_X : NODE_SPACING_X),
+                        x: parentNode.position.x + xOffset,
                         y: parentNode.position.y + (index - (totalSiblings - 1) / 2) * NODE_SPACING_Y
                     }
                 }));
-
-                // Apply position changes to existing siblings only
                 get().onNodesChange?.(nodeChanges);
             }
 
-            // Position for the new node
-            const newPosition = {
-                x: parentNode.position.x + (isParentRootNode ? NODE_SPACING_X : NODE_SPACING_X),
-                y: totalSiblings > 1 ? parentNode.position.y + (siblings.length - (totalSiblings - 1) / 2) * NODE_SPACING_Y : parentNode.position.y
-            };
-
-            // Create node with agent ID
-            const nodeConfig: QueryConfig = {
+            // Create the new node
+            const node = await createNodes({
                 data: {
-                    workflowId,
-                    nodeType: WorkflowNode.AgentNode,
+                    workflowId: parentNode.data.workflowId,
+                    nodeType: NodeType.Agent,
+                    agentId: agentRecord.id,
                     data: {
                         agentId: agentRecord.id,
-                        workflowId,
+                        workflowId: parentNode.data.workflowId,
                         name: agent.name,
                         description: agent.description,
                         tools: agent.tools || []
                     }
                 }
-            };
-
-            const node = await createNodes(nodeConfig);
+            });
 
             if (!node?.id) {
                 throw new Error('Failed to create node');
             }
 
-            // Initialize agent state before creating the node
+            // Initialize agent state in the UI
             const agentStore = useAgentStore.getState();
             agentStore.updateAgent(node.id, {
                 status: AgentStatus.Initial,
                 isEditable: true
             });
 
-            // Create new node with agent data and the ID from the created node
-            const newNode = {
+            // Add node to the graph
+            const newNode: Node<NodeData> = {
                 id: node.id,
-                type: WorkflowNode.AgentNode,
+                type: NodeType.Agent,
                 data: {
-                    // This needs to match our NodeData type
-                    id: node.id, // Add this
-                    type: WorkflowNode.AgentNode, // Add this
-                    workflowId,
+                    id: node.id,
+                    type: NodeType.Agent,
+                    workflowId: parentNode.data.workflowId,
+                    agentId: agentRecord.id,
                     agent: { ...agent },
                     status: AgentStatus.Initial,
                     state: WorkflowState.Initial
                 },
-                position: newPosition,
+                position: {
+                    x: parentNode.position.x + xOffset,
+                    y: parentNode.position.y + yOffset
+                },
                 dragHandle: '.nodrag',
                 sourcePosition: Position.Right,
                 targetPosition: Position.Left
-            } as Node<NodeData>;
+            };
 
-            try {
-                // Update node state in database
-                await updateNodes({
-                    data: {
-                        workflowId: workflowId,
-                        nodeId: node.id,
-                        set: {
-                            state: WorkflowState.Initial,
-                            current_step: '0',
-                            data: newNode.data,
-                            updated_at: new Date()
-                        }
-                    }
-                });
-
-                // Update UI with the new node
-                updateState(set, { nodes: [...get().nodes, newNode] });
-
-                // Create edge if parent node exists
-                if (agent.parentNodeId) {
-                    const edgeId = await createEdge({
-                        data: {
-                            workflowId: parentNode.data?.workflowId,
-                            toNodeId: node.id,
-                            fromNodeId: parentNode.id
-                        }
-                    });
-
-                    if (!edgeId) {
-                        throw new Error('Failed to create edge');
-                    }
-
-                    // Update the store with the edge
-                    const newEdge = {
-                        id: edgeId,
-                        source: parentNode.id,
-                        target: node.id,
-                        type: WorkflowNode.AutomationEdge,
-                        animated: true,
-                        data: {
-                            id: edgeId,
-                            workflowId,
-                            toNodeId: node.id,
-                            fromNodeId: parentNode.id
-                        }
-                    } as Edge<EdgeData>;
-
-                    updateState(set, {
-                        edges: [...get().edges, newEdge]
-                    });
+            // Add edge from parent to new node
+            const newEdge: Edge<EdgeData> = {
+                id: `${parentNode.id}-${node.id}`,
+                source: parentNode.id,
+                target: node.id,
+                type: EdgeType.Smoothstep,
+                data: {
+                    id: `${parentNode.id}-${node.id}`,
+                    workflowId: parentNode.data.workflowId,
+                    fromNodeId: parentNode.id,
+                    toNodeId: node.id
                 }
-            } catch (error) {
-                console.error('Failed to update node or create edge:', error);
-                throw error;
-            }
+            };
+
+            updateState(set, {
+                nodes: [...nodes, newNode],
+                edges: [...edges, newEdge]
+            });
+
+            return newNode;
         } catch (error) {
             console.error('Failed to add node:', error);
             throw error;

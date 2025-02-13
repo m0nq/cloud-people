@@ -15,14 +15,16 @@ export const createNodes = async (config: QueryConfig = {}): Promise<Node<NodeDa
     }
 
     const insertNodeMutation = `
-        mutation CreateNewNode($workflowId: UUID!, $nodeType: String!) {
+        mutation CreateNewNode($workflowId: UUID!, $nodeType: String!, $agentId: UUID) {
             collection: insertIntoNodesCollection(objects: [{
                 workflow_id: $workflowId,
                 current_step: "0",
-                node_type: $nodeType
+                node_type: $nodeType,
+                agent_id: $agentId
             }]) {
                 records {
                     id
+                    agent_id
                 }
             }
         } 
@@ -31,7 +33,8 @@ export const createNodes = async (config: QueryConfig = {}): Promise<Node<NodeDa
     try {
         const [node] = await connectToDB(insertNodeMutation, {
             workflowId: config.data?.workflowId,
-            nodeType: config.data?.nodeType || 'agent'
+            nodeType: config.data?.nodeType || 'agent',
+            agentId: config.data?.agentId
         });
         if (!node?.id) {
             throw new Error('No ID returned');

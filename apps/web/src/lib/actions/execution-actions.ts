@@ -29,7 +29,7 @@ export interface ExecutionRecord {
 }
 
 export interface ExecutionInput {
-    agentId: string;
+    agentId?: string;
     sessionId: string;
     input: { [key: string]: any } | null;
     current_status: string;

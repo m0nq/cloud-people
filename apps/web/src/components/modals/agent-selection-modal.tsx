@@ -8,7 +8,6 @@ import { AgentCard } from '@components/agents/agent-card';
 import { AgentData } from '@app-types/agent';
 import { AgentStatus } from '@app-types/agent';
 import { useModalStore } from '@stores/modal-store';
-import { createAgent } from '@lib/actions/agent-actions';
 
 // Define available agent capabilities
 const AGENT_CAPABILITIES = {
@@ -95,31 +94,12 @@ export const AgentSelectionModal = ({
                 setLoading(true);
                 setError(null);
 
-                // Create the agent in the database with all necessary data
-                const dbAgent = await createAgent({
-                    data: {
-                        config: {
-                            name: agentData.name,
-                            description: agentData.role,
-                            workflowId: parentNodeId,
-                            ...agentData.config
-                        },
-                        tools: agentData.tools || []
-                    }
-                });
-
-                // Update the agent data with the database ID and parent node ID
-                const updatedAgentData = {
-                    ...agentData,
-                    id: dbAgent.id,
-                    parentNodeId
-                };
-
-                onSelect(updatedAgentData);
+                // Just pass the agent data to onSelect, which will trigger addNode in graph-manipulation
+                onSelect({ ...agentData, parentNodeId });
                 onClose();
             } catch (err) {
-                console.error('Failed to create agent:', err);
-                setError('Failed to create agent. Please try again.');
+                console.error('Failed to select agent:', err);
+                setError('Failed to select agent. Please try again.');
             } finally {
                 setLoading(false);
             }

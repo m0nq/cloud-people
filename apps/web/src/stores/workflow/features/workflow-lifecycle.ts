@@ -134,7 +134,7 @@ export function createWorkflowLifecycle(set: Function, get: Function) {
                 // Create execution record in database
                 const dbExecution = await createExecution({
                     sessionId,
-                    agentId: firstNode.id,
+                    agentId: firstNode.data.agentId, // Use the agent_id from node data
                     input: {
                         nodeId: firstNode.id,
                         nodeType: firstNode.type,
