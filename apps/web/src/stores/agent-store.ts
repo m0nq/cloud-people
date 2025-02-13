@@ -42,10 +42,10 @@ const isValidTransition = (currentStatus: AgentStatus, newStatus: AgentStatus): 
         [AgentStatus.Initial]: [AgentStatus.Idle],
         [AgentStatus.Idle]: [AgentStatus.Activating, AgentStatus.Initial],
         [AgentStatus.Activating]: [AgentStatus.Working],
-        [AgentStatus.Working]: [AgentStatus.Complete, AgentStatus.Error, AgentStatus.Assistance],
-        [AgentStatus.Error]: [AgentStatus.Working, AgentStatus.Initial], // Allow Error -> Initial transition
-        [AgentStatus.Assistance]: [AgentStatus.Working, AgentStatus.Initial], // Allow Assistance -> Initial transition
-        [AgentStatus.Complete]: [AgentStatus.Initial] // Allow Complete -> Initial transition
+        [AgentStatus.Working]: [AgentStatus.Complete, AgentStatus.Error, AgentStatus.Assistance, AgentStatus.Initial],
+        [AgentStatus.Error]: [AgentStatus.Working, AgentStatus.Initial],
+        [AgentStatus.Assistance]: [AgentStatus.Working, AgentStatus.Initial],
+        [AgentStatus.Complete]: [AgentStatus.Initial]
     };
 
     return transitions[currentStatus]?.includes(newStatus) ?? false;

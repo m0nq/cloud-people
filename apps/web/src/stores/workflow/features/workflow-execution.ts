@@ -133,8 +133,13 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                     ![AgentStatus.Complete, AgentStatus.Error, AgentStatus.Assistance].includes(useAgentStore.getState().getAgentState(node.id)?.status || AgentStatus.Initial)
             );
 
-            // Set all active agents to initial so they're editable
+            // Set all active agents to initial state
             agentNodes.forEach(node => {
+                const agentState = useAgentStore.getState().getAgentState(node.id);
+                if (agentState?.status === AgentStatus.Working || agentState?.status === AgentStatus.Activating) {
+                    // Explicitly transition working agents to initial state
+                    useAgentStore.getState().transition(node.id, AgentStatus.Initial);
+                }
                 transitionNode(set, nodes, node.id, AgentStatus.Initial);
             });
 
