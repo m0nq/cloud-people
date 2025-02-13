@@ -12,8 +12,6 @@ import { useWorkflowStore } from '@stores/workflow';
 import { AgentStatus } from '@app-types/agent';
 import { AgentCapability } from '@app-types/agent';
 import { AgentConfig } from '@app-types/agent';
-
-import { useAgent } from '@hooks/use-agent';
 import { HandleType } from './types.enum';
 import './node.styles.css';
 
@@ -69,21 +67,14 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         [data, id]
     );
 
-    const { executeAction, isProcessing, messages } = useAgent(id, status => {
-        transition(id, status);
-        // Only update workflow progress for terminal states
-        if (status === AgentStatus.Complete) {
-            progressWorkflow(id, status);
-        } else if (status === AgentStatus.Error || status === AgentStatus.Assistance) {
+    // Handle workflow state changes
+    useEffect(() => {
+        if (agentState?.status === AgentStatus.Complete) {
+            progressWorkflow(id, agentState.status);
+        } else if (agentState?.status === AgentStatus.Error || agentState?.status === AgentStatus.Assistance) {
             pauseWorkflow();
         }
-    });
-
-    useEffect(() => {
-        if (isCurrentWorkflowNode && agentState?.status === AgentStatus.Working) {
-            executeAction();
-        }
-    }, [isCurrentWorkflowNode, agentState?.status, executeAction]);
+    }, [agentState?.status, id, progressWorkflow, pauseWorkflow]);
 
     const handleInitialize = useCallback(() => {
         // Only initialize if not already initialized
@@ -100,7 +91,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         return () => {
             removeAgent(id);
         };
-    }, [id, handleInitialize, removeAgent]);
+    }, [handleInitialize, id, removeAgent]);
 
     const handleAgentDetails = useCallback(() => {
         if (agentState?.isEditable) {
@@ -114,13 +105,10 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         }
     }, [id, openModal, agentState?.status]);
 
-    // this could make sense after user is notified an agent needs help and clicks on the agent for a modal
     const handleAssistanceRequest = useCallback(() => {
         transition(id, AgentStatus.Assistance, {
             assistanceMessage: 'Agent needs assistance to proceed with the task'
         });
-        // openModal({ type: 'agent-assistance', parentNodeId: id });
-        // }, [id, openModal, transition]);
     }, [id, transition]);
 
     const handleRestart = useCallback(() => {
@@ -147,7 +135,6 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                 type={HandleType.SOURCE}
                 position={sPosition}
                 id="source"
-                data-handleid="source"
                 isConnectable={isConnectable}
                 className={agentState.status === AgentStatus.Initial || agentState.status === AgentStatus.Idle ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'} />
             <NodeComponent.Handle

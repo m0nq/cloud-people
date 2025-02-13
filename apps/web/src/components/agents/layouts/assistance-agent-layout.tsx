@@ -11,7 +11,7 @@ import { AgentStatus } from '@app-types/agent';
 
 export const AssistanceAgentLayout = ({ data, state, onAssistanceRequest }: BaseAgentLayoutProps) => {
     return (
-        <div className="assistance-card">
+        <div className="assistance-card" onClick={onAssistanceRequest}>
             {state?.status === AgentStatus.Assistance && (
                 <div className="hand-icon-container absolute right-2 top-1/2 -translate-y-1/2">
                     <HandIcon

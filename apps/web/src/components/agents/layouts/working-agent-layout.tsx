@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import Image from 'next/image';
 
 import './agent-card.styles.css';
@@ -8,16 +9,22 @@ import { ChatIcon } from '@components/icons/chat-icon';
 import { TaskStatusIcon } from '@components/icons/task-status-icon';
 import { WatchIcon } from '@components/icons/watch-icon';
 import { BrowserStatus } from '@components/agents/browser-status';
+import { useAgent } from '@hooks/use-agent';
+import { useAgentStore } from '@stores/agent-store';
 
-export const WorkingAgentLayout = ({ 
-    data, 
-    state,
-    isLoading, 
-    isProcessing, 
-    onExecute 
-}: BaseAgentLayoutProps) => {
+export const WorkingAgentLayout = ({ data, state }: BaseAgentLayoutProps) => {
+    const { transition } = useAgentStore();
+    const { executeAction, isProcessing, isLoading } = useAgent(data.id, status => {
+        transition(data.id, status);
+    });
+
     const isBrowserAgent = data.capability?.action === 'navigate_to_google';
     const browserUrl = data.capability?.parameters?.url as string;
+
+    // Start execution when component mounts
+    useEffect(() => {
+        executeAction();
+    }, [executeAction]);
 
     return (
         <div className="working-agent-card">
@@ -56,7 +63,7 @@ export const WorkingAgentLayout = ({
                         radius="lg"
                         fullWidth
                         disabled={isLoading || isProcessing}
-                        onClick={onExecute}
+                        // onClick={onExecute}
                         icon={<WatchIcon />}>
                         Watch
                     </Button>
