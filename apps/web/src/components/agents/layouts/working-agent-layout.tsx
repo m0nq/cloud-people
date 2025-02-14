@@ -12,7 +12,7 @@ import { BrowserStatus } from '@components/agents/browser-status';
 import { useAgent } from '@hooks/use-agent';
 import { useAgentStore } from '@stores/agent-store';
 
-export const WorkingAgentLayout = ({ data, state }: BaseAgentLayoutProps) => {
+export const WorkingAgentLayout = ({ data, agent }: BaseAgentLayoutProps) => {
     const { transition } = useAgentStore();
     const { executeAction, isProcessing, isLoading } = useAgent(data.id, status => {
         transition(data.id, status);
@@ -23,8 +23,9 @@ export const WorkingAgentLayout = ({ data, state }: BaseAgentLayoutProps) => {
 
     // Start execution when component mounts
     useEffect(() => {
+        console.log('🚀 Working agent mounted, executing action...');
         executeAction();
-    }, [executeAction]);
+    }, []);
 
     return (
         <div className="working-agent-card">
@@ -49,8 +50,8 @@ export const WorkingAgentLayout = ({ data, state }: BaseAgentLayoutProps) => {
                         <span>Current Task:</span>
                     </div>
                     <div className="agent-tasks-container">
-                        {isBrowserAgent && state ? (
-                            <BrowserStatus state={state} url={browserUrl} />
+                        {isBrowserAgent && agent ? (
+                            <BrowserStatus agent={agent} url={browserUrl} />
                         ) : (
                             <p>{isProcessing ? 'Processing...' : isLoading ? 'Loading...' : 'Ready'}</p>
                         )}
