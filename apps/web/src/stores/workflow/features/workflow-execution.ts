@@ -44,7 +44,6 @@ export const transitionNode = (set: Function, nodes: Node<NodeData>[], nodeId: s
 
             // ADDED LOGGING HERE
             const updatedAgent = useAgentStore.getState().getAgent(nodeId);
-            console.log(`[transitionNode] Node ${nodeId} transitioned from ${currentState} to ${newState}. New state: ${updatedAgent?.state}`);
 
             // Update node data with the new agent state
             const updatedNodes = nodes.map(n => {
@@ -93,7 +92,6 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
             // Initialize all non-root nodes to Idle state
             nodes.filter(node => node.id !== rootNode.id)
                 .forEach(node => {
-                    console.log(`[startWorkflow] Transitioning node ${node.id} to Idle`); // ADDED LOGGING
                     transitionNode(set, nodes, node.id, AgentState.Idle);
                 });
 
@@ -129,7 +127,6 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
 
             // Set all active agents to initial state
             agentNodes.forEach(node => {
-                console.log(`Attempting to transition node ${node.id} from state ${useAgentStore.getState().getAgent(node.id)?.state} to AgentState.Initial`);
                 try {
                     transitionNode(set, nodes, node.id, AgentState.Initial);
                 } catch (error) {
@@ -164,28 +161,17 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
         try {
             // Find current node
             const currentNode = nodes.find(n => n.id === workflowExecution.currentNodeId);
-            console.log('currentNode', currentNode);
-            console.log('workflowExecution', workflowExecution);
             if (!currentNode || !isWorkflowNode(currentNode)) return;
 
             // Set current node to Activating to resume workflow
-            console.log('currentNode before transition', currentNode);
             transitionNode(set, nodes, currentNode.id, AgentState.Activating);
-            console.log('currentNode after', currentNode);
 
             // Find all agent nodes that are not root and not current node
-            nodes
-                .filter(
-                    (node: Node<NodeData>) =>
-                        node.type !== NodeType.Root &&
-                        isWorkflowNode(node) &&
-                        node.id !== currentNode.id // Skip current node
-                )
-                .forEach(node => {
-                    console.log('Trying to transition node back to idle');
-                    console.log('node before', node);
-                    transitionNode(set, nodes, node.id, AgentState.Idle);
-                });
+            nodes.filter((node: Node<NodeData>) =>
+                node.type !== NodeType.Root &&
+                isWorkflowNode(node) &&
+                node.id !== currentNode.id // Skip current node
+            ).forEach(node => transitionNode(set, nodes, node.id, AgentState.Idle));
 
             // Update workflow execution state
             await updateExecution({

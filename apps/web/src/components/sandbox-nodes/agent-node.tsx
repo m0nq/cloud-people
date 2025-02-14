@@ -14,6 +14,7 @@ import { AgentCapability } from '@app-types/agent';
 import { AgentConfig } from '@app-types/agent';
 import { HandleType } from './types.enum';
 import './node.styles.css';
+import { WorkflowState } from '@app-types/workflow';
 
 type AgentNodeProps = {
     id: string;
@@ -47,13 +48,12 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     const tPosition = getPosition(targetPosition);
     const { openModal } = useModalStore();
     const { removeAgent, transition, getAgent, updateAgent } = useAgentStore();
-    const { progressWorkflow, isCurrentNode, pauseWorkflow } = useWorkflowStore();
+    const { progressWorkflow, pauseWorkflow, workflowExecution } = useWorkflowStore();
     const agentState = getAgent(id) || {
         state: AgentState.Initial,
         isEditable: true,
         isLoading: true
     };
-    const isCurrentWorkflowNode = isCurrentNode(id);
 
     const agentData = useMemo(() => ({
             ...data,
@@ -135,15 +135,15 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                 type={HandleType.SOURCE}
                 position={sPosition}
                 id="source"
-                isConnectable={isConnectable}
-                className={agentState.state === AgentState.Initial || agentState.state === AgentState.Idle ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'} />
+                isConnectable={isConnectable && (workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused)}
+                className={workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} />
             <NodeComponent.Handle
                 type={HandleType.TARGET}
                 position={tPosition}
                 id="target"
                 data-handleid="target"
-                isConnectable={isConnectable}
-                className={agentState.state !== AgentState.Complete ? undefined : 'opacity-50'} />
+                isConnectable={isConnectable && (workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused)}
+                className={workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} />
         </NodeComponent.Root>
     );
 };
