@@ -1,20 +1,20 @@
 import { ReactNode } from 'react';
 
+import { Agent } from '@app-types/agent';
 import { AgentState } from '@app-types/agent';
-import { AgentStatus } from '@app-types/agent';
 
 interface BrowserStatusProps {
-    state: AgentState;
+    state: Agent;
     url?: string;
 }
 
-const getStatusMessage = (status: AgentStatus, progress?: number): ReactNode => {
+const getStatusMessage = (state: AgentState, progress?: number): ReactNode => {
     switch (status) {
-        case AgentStatus.Initial:
+        case AgentState.Initial:
             return 'Ready to navigate';
-        case AgentStatus.Activating:
+        case AgentState.Activating:
             return 'Launching browser...';
-        case AgentStatus.Working:
+        case AgentState.Working:
             if (progress) {
                 if (progress < 30) return 'Launching browser...';
                 if (progress < 50) return 'Creating browser context...';
@@ -22,9 +22,9 @@ const getStatusMessage = (status: AgentStatus, progress?: number): ReactNode => 
                 return 'Navigating to page...';
             }
             return 'Working...';
-        case AgentStatus.Complete:
+        case AgentState.Complete:
             return 'Navigation complete';
-        case AgentStatus.Error:
+        case AgentState.Error:
             return 'Navigation failed';
         default:
             return 'Ready';
@@ -32,13 +32,13 @@ const getStatusMessage = (status: AgentStatus, progress?: number): ReactNode => 
 };
 
 export const BrowserStatus = ({ state, url }: BrowserStatusProps): ReactNode => {
-    const message = getStatusMessage(state.status, state.progress);
+    const message = getStatusMessage(state.state, state.progress);
 
     return (
         <div className="browser-status">
             <div className="status-message">
                 {message}
-                {state.progress && state.status === AgentStatus.Working && (
+                {state.progress && state.state === AgentState.Working && (
                     <span className="progress">({state.progress}%)</span>
                 )}
             </div>

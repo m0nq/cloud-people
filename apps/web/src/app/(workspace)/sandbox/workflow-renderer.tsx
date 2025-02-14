@@ -27,6 +27,7 @@ import RootNode from '@components/sandbox-nodes/root-node';
 import AgentNode from '@components/sandbox-nodes/agent-node';
 import { layoutElements } from '@lib/dagre/dagre';
 import { NodeType } from '@app-types/workflow/node-types';
+import { EdgeType } from '@app-types/workflow/node-types';
 
 const Modal = dynamic(() => import('@components/modals/modal'), { ssr: false });
 const ApprovalNode = dynamic(() => import('@components/sandbox-nodes/approval-node'), { ssr: false });
@@ -57,7 +58,7 @@ const nodeTypes = {
 } as NodeTypes;
 
 const edgeTypes = {
-    automationEdge: AutomationEdge
+    [EdgeType.Automation]: AutomationEdge
 } as EdgeTypes;
 
 /**

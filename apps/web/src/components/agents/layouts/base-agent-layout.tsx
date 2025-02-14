@@ -9,11 +9,11 @@ import { RefreshIcon } from '@components/icons/refresh-icon';
 import { TargetIcon } from '@components/icons/target-icon';
 import { DocumentIcon } from '@components/icons/document-icon';
 import { AgentData } from '@app-types/agent';
-import { AgentState } from '@app-types/agent';
+import { Agent } from '@app-types/agent';
 
 export type BaseAgentLayoutProps = {
     data: AgentData;
-    state?: AgentState;
+    agent?: Agent;
     className?: string;
     style?: CSSProperties;
     onEdit?: () => void;

@@ -1,7 +1,7 @@
 import { WorkflowState } from '@app-types/workflow/state';
 import { AgentCapability } from '@app-types/agent';
 import { AgentConfig } from '@app-types/agent';
-import { AgentStatus } from '@app-types/agent';
+import { AgentState } from '@app-types/agent';
 import { NodeType } from './node-types';
 
 export type NodeData = {
@@ -12,11 +12,9 @@ export type NodeData = {
         agentId: string;
         config?: AgentConfig;
     };
-    state?: WorkflowState;
     capabilities?: AgentCapability[];
     config?: AgentConfig;
-    agentId?: string;
-    status?: AgentStatus;
+    state?: AgentState;
     onOpenModal?: (modalType: string) => void;
 };
 

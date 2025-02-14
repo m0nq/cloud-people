@@ -9,7 +9,7 @@ import { NodeComponent } from '@components/utils/node-component/node-component';
 import { useModalStore } from '@stores/modal-store';
 import { useAgentStore } from '@stores/agent-store';
 import { useWorkflowStore } from '@stores/workflow';
-import { AgentStatus } from '@app-types/agent';
+import { AgentState } from '@app-types/agent';
 import { AgentCapability } from '@app-types/agent';
 import { AgentConfig } from '@app-types/agent';
 import { HandleType } from './types.enum';
@@ -46,10 +46,10 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     const sPosition = getPosition(sourcePosition);
     const tPosition = getPosition(targetPosition);
     const { openModal } = useModalStore();
-    const { removeAgent, transition, getAgentState, updateAgent } = useAgentStore();
+    const { removeAgent, transition, getAgent, updateAgent } = useAgentStore();
     const { progressWorkflow, isCurrentNode, pauseWorkflow } = useWorkflowStore();
-    const agentState = getAgentState(id) || {
-        status: AgentStatus.Initial,
+    const agentState = getAgent(id) || {
+        state: AgentState.Initial,
         isEditable: true,
         isLoading: true
     };
@@ -69,22 +69,22 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
 
     // Handle workflow state changes
     useEffect(() => {
-        if (agentState?.status === AgentStatus.Complete) {
-            progressWorkflow(id, agentState.status);
-        } else if (agentState?.status === AgentStatus.Error || agentState?.status === AgentStatus.Assistance) {
+        if (agentState?.state === AgentState.Complete) {
+            progressWorkflow(id, agentState.state);
+        } else if (agentState?.state === AgentState.Error || agentState?.state === AgentState.Assistance) {
             pauseWorkflow();
         }
-    }, [agentState?.status, id, progressWorkflow, pauseWorkflow]);
+    }, [agentState?.state, id, progressWorkflow, pauseWorkflow]);
 
     const handleInitialize = useCallback(() => {
         // Only initialize if not already initialized
-        if (!getAgentState(id)) {
+        if (!getAgent(id)) {
             updateAgent(id, {
-                status: data.status || AgentStatus.Initial,
+                state: data.state || AgentState.Initial,
                 isEditable: true
             });
         }
-    }, [id, data.status, getAgentState, updateAgent]);
+    }, [id, data.status, getAgent, updateAgent]);
 
     useEffect(() => {
         handleInitialize();
@@ -100,19 +100,19 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     }, [id, openModal, agentState?.isEditable]);
 
     const handleOpenAgentSelection = useCallback(() => {
-        if (agentState?.status === AgentStatus.Initial || agentState?.status === AgentStatus.Idle) {
+        if (agentState?.state === AgentState.Initial || agentState?.state === AgentState.Idle) {
             openModal({ type: 'agent-selection', parentNodeId: id });
         }
-    }, [id, openModal, agentState?.status]);
+    }, [id, openModal, agentState?.state]);
 
     const handleAssistanceRequest = useCallback(() => {
-        transition(id, AgentStatus.Assistance, {
+        transition(id, AgentState.Assistance, {
             assistanceMessage: 'Agent needs assistance to proceed with the task'
         });
     }, [id, transition]);
 
     const handleRestart = useCallback(() => {
-        transition(id, AgentStatus.Working, {
+        transition(id, AgentState.Working, {
             progress: 0
         });
     }, [id, transition]);
@@ -123,8 +123,8 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                 <div className={`w-full h-full ${agentState.isEditable ? 'cursor-pointer' : 'cursor-default'}`}
                     onClick={handleAgentDetails}>
                     <AgentCard data={agentData}
-                        state={agentState}
-                        status={agentState.status}
+                        agent={agentState}
+                        state={agentState.state}
                         onEdit={agentState.isEditable ? handleAgentDetails : undefined}
                         onAssistanceRequest={handleAssistanceRequest}
                         onRestart={handleRestart} />
@@ -136,14 +136,14 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                 position={sPosition}
                 id="source"
                 isConnectable={isConnectable}
-                className={agentState.status === AgentStatus.Initial || agentState.status === AgentStatus.Idle ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'} />
+                className={agentState.state === AgentState.Initial || agentState.state === AgentState.Idle ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'} />
             <NodeComponent.Handle
                 type={HandleType.TARGET}
                 position={tPosition}
                 id="target"
                 data-handleid="target"
                 isConnectable={isConnectable}
-                className={agentState.status !== AgentStatus.Complete ? undefined : 'opacity-50'} />
+                className={agentState.state !== AgentState.Complete ? undefined : 'opacity-50'} />
         </NodeComponent.Root>
     );
 };

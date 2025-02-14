@@ -7,12 +7,12 @@ import { ChatIcon } from '@components/icons/chat-icon';
 import { HandIcon } from '@components/icons/hand-icon';
 import { NotificationBellIcon } from '@components/icons/notification-bell-icon';
 import { WatchIcon } from '@components/icons/watch-icon';
-import { AgentStatus } from '@app-types/agent';
+import { AgentState } from '@app-types/agent';
 
-export const AssistanceAgentLayout = ({ data, state, onAssistanceRequest }: BaseAgentLayoutProps) => {
+export const AssistanceAgentLayout = ({ data, agent, onAssistanceRequest }: BaseAgentLayoutProps) => {
     return (
         <div className="assistance-card" onClick={onAssistanceRequest}>
-            {state?.status === AgentStatus.Assistance && (
+            {agent?.state === AgentState.Assistance && (
                 <div className="hand-icon-container absolute right-2 top-1/2 -translate-y-1/2">
                     <HandIcon
                         width={44} // ~2.76863rem

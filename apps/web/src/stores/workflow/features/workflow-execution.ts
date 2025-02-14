@@ -3,7 +3,7 @@ import { type Node } from '@xyflow/react';
 
 import { type NodeData } from '@app-types/workflow/nodes';
 import { type EdgeData } from '@app-types/workflow/edges';
-import { AgentStatus } from '@app-types/agent/state';
+import { AgentState } from '@app-types/agent/state';
 import { updateExecution } from '@lib/actions/execution-actions';
 import { createExecution } from '@lib/actions/execution-actions';
 import { WorkflowState } from '@app-types/workflow';
@@ -24,56 +24,47 @@ const findNextNode = (nodes: Node<NodeData>[], edges: Edge<EdgeData>[], currentN
     return nodes.find(node => node.id === nextNodeId);
 };
 
-export const transitionNode = (set: Function, nodes: Node<NodeData>[], nodeId: string, status: AgentStatus) => {
+export const transitionNode = (set: Function, nodes: Node<NodeData>[], nodeId: string, newState: AgentState) => {
     const node = nodes.find(n => n.id === nodeId);
     if (!node || !isWorkflowNode(node)) return;
-
-    // Map AgentStatus to WorkflowState
-    let workflowState: WorkflowState;
-    switch (status) {
-        case AgentStatus.Initial:
-            workflowState = WorkflowState.Initial;
-            break;
-        case AgentStatus.Working:
-        case AgentStatus.Activating:
-            workflowState = WorkflowState.Running;
-            break;
-        case AgentStatus.Idle:
-        case AgentStatus.Error:
-            workflowState = WorkflowState.Paused;
-            break;
-        case AgentStatus.Complete:
-            workflowState = WorkflowState.Completed;
-            break;
-        case AgentStatus.Assistance:
-            // When agent needs assistance, we keep the workflow running
-            workflowState = WorkflowState.Running;
-            break;
-        default:
-            workflowState = WorkflowState.Initial;
-    }
-
-    // Update workflow node state
-    const updatedNodes = nodes.map(n => {
-        if (n.id === nodeId && isWorkflowNode(n)) {
-            return {
-                ...n,
-                data: {
-                    ...n.data,
-                    state: workflowState
-                }
-            };
-        }
-        return n;
-    });
-
-    // Update workflow store
-    updateState(set, { nodes: updatedNodes });
 
     // If this is an agent node, update agent state
     if (node.type === NodeType.Agent) {
         const agentStore = useAgentStore.getState();
-        agentStore.transition(nodeId, status);
+        const currentAgent = agentStore.getAgent(nodeId);
+
+        if (!currentAgent) {
+            console.error(`Agent ${nodeId} not found`);
+            return;
+        }
+
+        const currentState = currentAgent.state;
+        if (agentStore.isTransitionAllowed(nodeId, newState)) {
+            agentStore.transition(nodeId, newState);
+
+            // ADDED LOGGING HERE
+            const updatedAgent = useAgentStore.getState().getAgent(nodeId);
+            console.log(`[transitionNode] Node ${nodeId} transitioned from ${currentState} to ${newState}. New state: ${updatedAgent?.state}`);
+
+            // Update node data with the new agent state
+            const updatedNodes = nodes.map(n => {
+                if (n.id === nodeId && isWorkflowNode(n)) {
+                    return {
+                        ...n,
+                        data: {
+                            ...n.data,
+                            state: newState // Update with AgentState directly
+                        }
+                    };
+                }
+                return n;
+            });
+
+            // Update workflow store
+            updateState(set, { nodes: updatedNodes });
+        } else {
+            console.error(`Invalid transition from ${currentAgent.state} to ${newState}`);
+        }
     }
 };
 
@@ -100,10 +91,14 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
             }
 
             // Initialize all non-root nodes to Idle state
-            nodes.filter(node => node.id !== rootNode.id).forEach(node => transitionNode(set, nodes, node.id, AgentStatus.Idle));
+            nodes.filter(node => node.id !== rootNode.id)
+                .forEach(node => {
+                    console.log(`[startWorkflow] Transitioning node ${node.id} to Idle`); // ADDED LOGGING
+                    transitionNode(set, nodes, node.id, AgentState.Idle);
+                });
 
             // Start with first node
-            transitionNode(set, nodes, firstNode.id, AgentStatus.Activating);
+            transitionNode(set, nodes, firstNode.id, AgentState.Activating);
 
             // Create execution record in database with workflow ID from root node
             const workflowExecution = await createExecution({
@@ -126,21 +121,20 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
 
         try {
             // Find all agent nodes that are not in a terminal state
-            const agentNodes = nodes.filter(
-                node =>
-                    node.type === NodeType.Agent &&
-                    isWorkflowNode(node) &&
-                    ![AgentStatus.Complete, AgentStatus.Error, AgentStatus.Assistance].includes(useAgentStore.getState().getAgentState(node.id)?.status || AgentStatus.Initial)
+            const agentNodes = nodes.filter(node =>
+                node.type === NodeType.Agent &&
+                isWorkflowNode(node) &&
+                ![AgentState.Complete, AgentState.Error, AgentState.Assistance, AgentState.Initial].includes(useAgentStore.getState().getAgent(node.id)?.state || AgentState.Initial)
             );
 
             // Set all active agents to initial state
             agentNodes.forEach(node => {
-                const agentState = useAgentStore.getState().getAgentState(node.id);
-                if (agentState?.status === AgentStatus.Working || agentState?.status === AgentStatus.Activating) {
-                    // Explicitly transition working agents to initial state
-                    useAgentStore.getState().transition(node.id, AgentStatus.Initial);
+                console.log(`Attempting to transition node ${node.id} from state ${useAgentStore.getState().getAgent(node.id)?.state} to AgentState.Initial`);
+                try {
+                    transitionNode(set, nodes, node.id, AgentState.Initial);
+                } catch (error) {
+                    console.error(`Failed to transition node ${node.id} to AgentState.Initial:`, error);
                 }
-                transitionNode(set, nodes, node.id, AgentStatus.Initial);
             });
 
             // Update workflow execution state
@@ -168,31 +162,37 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
         if (!workflowExecution) return;
 
         try {
-            // Find current node and transition it back to Activating
+            // Find current node
             const currentNode = nodes.find(n => n.id === workflowExecution.currentNodeId);
+            console.log('currentNode', currentNode);
+            console.log('workflowExecution', workflowExecution);
             if (!currentNode || !isWorkflowNode(currentNode)) return;
 
             // Set current node to Activating to resume workflow
-            transitionNode(set, nodes, currentNode.id, AgentStatus.Activating);
+            console.log('currentNode before transition', currentNode);
+            transitionNode(set, nodes, currentNode.id, AgentState.Activating);
+            console.log('currentNode after', currentNode);
 
-            // Find all agent nodes in Initial state
-            const initialAgents = nodes.filter(
-                node =>
-                    node.type === NodeType.Agent &&
-                    isWorkflowNode(node) &&
-                    node.id !== currentNode.id && // Skip current node
-                    useAgentStore.getState().getAgentState(node.id)?.status === AgentStatus.Initial
-            );
-
-            // Set all agents in initial state to idle
-            initialAgents.forEach(node => {
-                transitionNode(set, nodes, node.id, AgentStatus.Idle);
-            });
+            // Find all agent nodes that are not root and not current node
+            nodes
+                .filter(
+                    (node: Node<NodeData>) =>
+                        node.type !== NodeType.Root &&
+                        isWorkflowNode(node) &&
+                        node.id !== currentNode.id // Skip current node
+                )
+                .forEach(node => {
+                    console.log('Trying to transition node back to idle');
+                    console.log('node before', node);
+                    transitionNode(set, nodes, node.id, AgentState.Idle);
+                });
 
             // Update workflow execution state
             await updateExecution({
-                ...workflowExecution,
-                current_status: WorkflowState.Running
+                id: workflowExecution.id,
+                nodeId: workflowExecution.currentNodeId,
+                workflowId: workflowExecution.workflowId,
+                currentStatus: WorkflowState.Running
             });
 
             updateState(set, {
@@ -207,7 +207,7 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
         }
     };
 
-    const progressWorkflow = async (nodeId: string, status: AgentStatus) => {
+    const progressWorkflow = async (nodeId: string, status: AgentState) => {
         const { nodes, edges, workflowExecution } = get();
         const node = nodes.find(n => n.id === nodeId);
         if (!node || !isWorkflowNode(node)) return;
@@ -220,16 +220,19 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
             if (!workflowExecution) return;
 
             // If node is complete, check for next node
-            if (status === AgentStatus.Complete) {
+            if (status === AgentState.Complete) {
                 const nextNode = findNextNode(nodes, edges, nodeId);
                 if (nextNode && isWorkflowNode(nextNode)) {
                     // Start next node
-                    transitionNode(set, nodes, nextNode.id, AgentStatus.Activating);
+                    useAgentStore.getState().transition(nextNode.id, AgentState.Activating);
+                    transitionNode(set, nodes, nextNode.id, AgentState.Activating);
 
                     // Update execution record with next node
                     await updateExecution({
-                        ...workflowExecution,
-                        nodeId: nextNode.id
+                        id: workflowExecution.id,
+                        nodeId: nextNode.id,
+                        workflowId: workflowExecution.workflowId,
+                        currentStatus: WorkflowState.Running
                     });
 
                     updateState(set, {
@@ -239,17 +242,18 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                         }
                     });
                 } else {
-                    // No next node means workflow is complete
+                    // No next node, workflow is complete
                     await updateExecution({
-                        ...workflowExecution,
+                        id: workflowExecution.id,
+                        nodeId: nodeId,
+                        workflowId: workflowExecution.workflowId,
                         currentStatus: WorkflowState.Completed
                     });
 
                     updateState(set, {
                         workflowExecution: {
                             ...workflowExecution,
-                            state: WorkflowState.Completed,
-                            completedAt: new Date()
+                            state: WorkflowState.Completed
                         }
                     });
                 }
@@ -258,7 +262,7 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
             console.error('Error in progressWorkflow:', error);
 
             // Transition node to initial state
-            transitionNode(set, nodes, nodeId, AgentStatus.Initial);
+            transitionNode(set, nodes, nodeId, AgentState.Initial);
 
             if (workflowExecution) {
                 // Update execution record with error

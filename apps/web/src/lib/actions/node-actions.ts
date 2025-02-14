@@ -78,8 +78,8 @@ export const fetchNodes = async (config: QueryConfig = {}): Promise<Node[]> => {
         ...config,
         filter: {
             ...config.filter,
-            workflow_id: { eq: config.workflowId },
-            current_step: { eq: config.currentStep }
+            workflow_id: { eq: config.workflowId }
+            // current_step: { eq: config.currentStep }
         }
     } as QueryConfig;
 

@@ -18,22 +18,18 @@ import { updateEdges } from '@lib/actions/edge-actions';
 import type { EdgeData } from '@app-types/workflow';
 import type { NodeData } from '@app-types/workflow';
 import type { InitialStateNodeData } from '@app-types/workflow';
-import { WorkflowState } from '@app-types/workflow';
 import type { WorkflowStore } from '@stores/workflow';
 import { isValidWorkflowNode } from '@stores/workflow';
 import { updateState } from '@stores/workflow';
 import { validateConnection } from '@stores/workflow';
-import { Config } from '@config/constants';
 import type { AgentData } from '@app-types/agent';
-import { AgentStatus } from '@app-types/agent';
+import { AgentState } from '@app-types/agent';
 import { createAgent } from '@lib/actions/agent-actions';
 import { NODE_SPACING_X } from '@config/layout.const';
 import { NODE_SPACING_Y } from '@config/layout.const';
 import { useAgentStore } from '@stores/agent-store';
 import { NodeType } from '@app-types/workflow/node-types';
 import { EdgeType } from '@app-types/workflow/node-types';
-
-const { WorkflowNode } = Config;
 
 type PositionNodeChange = NodeChange & {
     type: 'position';
@@ -268,7 +264,7 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
             // Initialize agent state in the UI
             const agentStore = useAgentStore.getState();
             agentStore.updateAgent(node.id, {
-                status: AgentStatus.Initial,
+                state: AgentState.Initial,
                 isEditable: true
             });
 
@@ -280,10 +276,8 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
                     id: node.id,
                     type: NodeType.Agent,
                     workflowId: parentNode.data.workflowId,
-                    agentId: agentRecord.id,
                     agentRef: { agentId: agent.id },
-                    status: AgentStatus.Initial,
-                    state: WorkflowState.Initial
+                    state: AgentState.Initial
                 },
                 position: {
                     x: parentNode.position.x + xOffset,

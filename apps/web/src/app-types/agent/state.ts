@@ -1,15 +1,15 @@
-export enum AgentStatus {
-    Initial = 'initial',
-    Idle = 'idle',
-    Activating = 'activating',
-    Working = 'working',
-    Complete = 'complete',
-    Error = 'error',
-    Assistance = 'assistance'
+export enum AgentState {
+    Initial = 'INITIAL',
+    Idle = 'IDLE',
+    Activating = 'ACTIVATING',
+    Working = 'WORKING',
+    Complete = 'COMPLETE',
+    Error = 'ERROR',
+    Assistance = 'ASSISTANCE'
 }
 
-export type AgentState = {
-    status: AgentStatus;
+export type Agent = {
+    state: AgentState;
     isEditable: boolean;
     isLoading?: boolean;
     completedAt?: string;

@@ -6,7 +6,7 @@ import { ReactNode } from 'react';
 import './agent-selection-modal.styles.css';
 import { AgentCard } from '@components/agents/agent-card';
 import { AgentData } from '@app-types/agent';
-import { AgentStatus } from '@app-types/agent';
+import { DEFAULT_AGENT_STATE } from '@stores/agent-store';
 import { useModalStore } from '@stores/modal-store';
 
 // Define available agent capabilities
@@ -84,9 +84,7 @@ export const AgentSelectionModal = ({
     }, [parentNodeId, openModal]);
 
     const initialAgentState = useMemo(() => ({
-        status: AgentStatus.Initial,
-        isEditable: true,
-        progress: 0
+        ...DEFAULT_AGENT_STATE
     }), []);
 
     const handleAgentSelect = useCallback(async (agentData: AgentData) => {
@@ -140,7 +138,7 @@ export const AgentSelectionModal = ({
                      ) : ( */}
                     {AVAILABLE_AGENTS.map(agent => (
                         <div key={agent.name} className="agent-card-container" onClick={() => handleAgentSelect(agent)}>
-                            <AgentCard data={agent} state={initialAgentState} />
+                            <AgentCard data={agent} agent={initialAgentState} />
                         </div>
                     ))}
                     {/* } */}

@@ -7,7 +7,7 @@ import { type Edge } from '@xyflow/react';
 import { type Node } from '@xyflow/react';
 
 import { type AgentData } from '@app-types/agent';
-import { type AgentStatus } from '@app-types/agent';
+import { type AgentState } from '@app-types/agent';
 import { type EdgeData } from '@app-types/workflow';
 import { type InitialStateNodeData } from '@app-types/workflow';
 import { type NodeData } from '@app-types/workflow';
@@ -39,7 +39,7 @@ export interface WorkflowActions {
     startWorkflow: () => Promise<void>;
     pauseWorkflow: () => Promise<void>;
     resumeWorkflow: () => Promise<void>;
-    progressWorkflow: (nodeId: string, status: AgentStatus) => Promise<void>;
+    progressWorkflow: (nodeId: string, status: AgentState) => Promise<void>;
 
     // Node helpers
     findRootNode: (nodes: Node<NodeData | InitialStateNodeData>[]) => Node<NodeData> | undefined;

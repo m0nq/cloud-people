@@ -6,7 +6,7 @@ import { Node } from '@xyflow/react';
 import { useChat } from 'ai/react';
 import { nanoid } from 'nanoid';
 
-import { AgentStatus } from '@app-types/agent';
+import { AgentState } from '@app-types/agent';
 import { useAgentStore } from '@stores/agent-store';
 import type { NodeData } from '@app-types/workflow';
 import { useWorkflowStore } from '@stores/workflow';
@@ -27,24 +27,24 @@ const isAgentNode = (node: Node): node is Node<NodeData> => {
     return node.type === NodeType.Agent;
 };
 
-export const useAgent = (agentId: string, onStatusChange?: (status: AgentStatus) => void): AgentResponse => {
+export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) => void): AgentResponse => {
     const [isProcessing, setIsProcessing] = useState(false);
-    const { getAgentState, updateAgent } = useAgentStore();
+    const { getAgent, updateAgent } = useAgentStore();
     const { nodes } = useWorkflowStore();
-    const agentState = getAgentState(agentId);
+    const agent = getAgent(agentId);
 
     const node = nodes.find(node => node.id === agentId);
     const agentNode = node && isAgentNode(node) ? node : undefined;
     const agentCapability = agentNode?.data?.capabilities?.[0];
 
     // Only allow execution if agent is in Idle state
-    const canExecute = agentState?.status === AgentStatus.Idle;
+    const canExecute = agent?.state === AgentState.Idle;
 
     const handleProgress = useCallback(
         (progress: number) => {
             updateAgent(agentId, {
                 progress,
-                status: progress === 100 ? AgentStatus.Complete : AgentStatus.Working
+                state: progress === 100 ? AgentState.Complete : AgentState.Working
             });
         },
         [agentId, updateAgent]
@@ -66,14 +66,14 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentStatus)
             agentId,
             action: agentCapability?.action || 'navigate_to_google',
             parameters: agentCapability?.parameters,
-            currentProgress: agentState?.progress,
-            assistanceMessage: agentState?.assistanceMessage,
-            error: agentState?.error
+            currentProgress: agent?.progress,
+            assistanceMessage: agent?.assistanceMessage,
+            error: agent?.error
         },
         async onToolCall({ toolCall }) {
             console.log('Tool call received:', toolCall);
             setIsProcessing(true);
-            onStatusChange?.(AgentStatus.Working);
+            onStatusChange?.(AgentState.Working);
 
             console.log('Tool call received:', toolCall);
             try {
@@ -88,7 +88,7 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentStatus)
             } catch (error) {
                 console.error('Tool execution error:', error);
                 updateAgent(agentId, {
-                    status: AgentStatus.Error,
+                    state: AgentState.Error,
                     error: error instanceof Error ? error.message : 'Unknown error'
                 });
                 throw error;
@@ -98,20 +98,20 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentStatus)
             console.log('Agent onResponse:', response);
         },
         onFinish: message => {
-            console.log('Agent onFinish:', message, 'Current state:', agentState);
+            console.log('Agent onFinish:', message, 'Current state:', agent);
             setIsProcessing(false);
-            if (agentState?.status !== AgentStatus.Error) {
-                onStatusChange?.(AgentStatus.Complete);
+            if (agent?.state !== AgentState.Error) {
+                onStatusChange?.(AgentState.Complete);
             }
         },
         onError: error => {
-            console.error('Agent onError:', error, 'Current state:', agentState);
+            console.error('Agent onError:', error, 'Current state:', agent);
             setIsProcessing(false);
             updateAgent(agentId, {
-                status: AgentStatus.Error,
+                state: AgentState.Error,
                 error: error instanceof Error ? error.message : 'Unknown error'
             });
-            onStatusChange?.(AgentStatus.Error);
+            onStatusChange?.(AgentState.Error);
         }
     });
 

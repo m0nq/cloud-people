@@ -192,7 +192,7 @@ export type Database = {
           current_step: string | null
           id: string
           node_type: string
-          state: string | null
+          agent: string | null
           updated_at: string | null
           workflow_id: string
         }
@@ -202,7 +202,7 @@ export type Database = {
           current_step?: string | null
           id?: string
           node_type?: string
-          state?: string | null
+          agent?: string | null
           updated_at?: string | null
           workflow_id: string
         }
@@ -212,7 +212,7 @@ export type Database = {
           current_step?: string | null
           id?: string
           node_type?: string
-          state?: string | null
+          agent?: string | null
           updated_at?: string | null
           workflow_id?: string
         }
@@ -343,7 +343,7 @@ export type Database = {
           current_step: string | null
           data: Json | null
           id: string
-          state: Database["public"]["Enums"]["WorkflowState"]
+          agent: Database["public"]["Enums"]["WorkflowState"]
           updated_at: string | null
           user_id: string
         }
@@ -352,7 +352,7 @@ export type Database = {
           current_step?: string | null
           data?: Json | null
           id?: string
-          state?: Database["public"]["Enums"]["WorkflowState"]
+          agent?: Database["public"]["Enums"]["WorkflowState"]
           updated_at?: string | null
           user_id: string
         }
@@ -361,7 +361,7 @@ export type Database = {
           current_step?: string | null
           data?: Json | null
           id?: string
-          state?: Database["public"]["Enums"]["WorkflowState"]
+          agent?: Database["public"]["Enums"]["WorkflowState"]
           updated_at?: string | null
           user_id?: string
         }
