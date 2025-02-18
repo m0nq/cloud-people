@@ -54,7 +54,7 @@ const RootNode = ({ id, isConnectable, sourcePosition, targetPosition }: RootNod
                 type={HandleType.SOURCE}
                 position={Position.Right}
                 id={`${id}-root`}
-                isConnectable={(workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused) && isConnectable} />
+                isConnectable={isConnectable && (!workflowExecution || (workflowExecution?.state !== WorkflowState.Running && workflowExecution?.state === WorkflowState.Paused))} />
         </NodeComponent.Root>
     );
 };

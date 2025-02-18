@@ -41,7 +41,6 @@ export function createWorkflowLifecycle(set: Function, get: Function) {
                         id: dbNode.id,
                         type: NodeType.Root,
                         workflowId,  // Explicitly set workflowId
-                        state: WorkflowState.Initial,
                         nodeType: 'root'
                     },
                     position: ROOT_NODE_POSITION

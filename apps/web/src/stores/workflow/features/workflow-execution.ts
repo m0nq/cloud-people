@@ -167,11 +167,8 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
             transitionNode(set, nodes, currentNode.id, AgentState.Activating);
 
             // Find all agent nodes that are not root and not current node
-            nodes.filter((node: Node<NodeData>) =>
-                node.type !== NodeType.Root &&
-                isWorkflowNode(node) &&
-                node.id !== currentNode.id // Skip current node
-            ).forEach(node => transitionNode(set, nodes, node.id, AgentState.Idle));
+            nodes.filter((node: Node<NodeData>) => node.type !== NodeType.Root && isWorkflowNode(node) && node.id !== currentNode.id /* Skip current node */)
+                .forEach(node => transitionNode(set, nodes, node.id, AgentState.Idle));
 
             // Update workflow execution state
             await updateExecution({
@@ -199,10 +196,6 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
         if (!node || !isWorkflowNode(node)) return;
 
         try {
-            // Update node state
-            transitionNode(set, nodes, nodeId, status);
-
-            // Get current workflow execution
             if (!workflowExecution) return;
 
             // If node is complete, check for next node

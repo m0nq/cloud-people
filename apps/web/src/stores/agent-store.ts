@@ -76,6 +76,11 @@ export const useAgentStore = create<AgentStore>()(
                     return;
                 }
 
+                // Skip transition if states are the same
+                if (currentAgent.state === newState) {
+                    return;
+                }
+
                 if (!isValidTransition(currentAgent.state, newState)) {
                     set(state => ({
                         errors: {

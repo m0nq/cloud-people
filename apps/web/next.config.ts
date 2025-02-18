@@ -16,6 +16,24 @@ const config: NextConfig = {
             }
         }
     },
+    // Configure route segment config
+    serverRuntimeConfig: {
+        runtime: 'nodejs'
+    },
+    // Set runtime for specific routes
+    async headers() {
+        return [
+            {
+                source: '/api/agent/:path*',
+                headers: [
+                    {
+                        key: 'x-custom-runtime',
+                        value: 'nodejs'
+                    }
+                ]
+            }
+        ];
+    },
     webpack: (config: any) => {
         // Only apply these optimizations in development
         if (process.env.NODE_ENV === 'development') {

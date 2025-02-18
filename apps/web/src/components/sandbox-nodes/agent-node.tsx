@@ -84,7 +84,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                 isEditable: true
             });
         }
-    }, [id, data.status, getAgent, updateAgent]);
+    }, [id, data.state, getAgent, updateAgent]);
 
     useEffect(() => {
         handleInitialize();

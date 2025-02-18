@@ -1,72 +1,115 @@
-import { createAnthropic } from '@ai-sdk/anthropic';
-import { streamText } from 'ai';
-import { type NextRequest } from 'next/server';
 import { z } from 'zod';
+import { ChatAnthropic } from '@langchain/anthropic';
+import { BaseMessage } from '@langchain/core/messages';
+import { AIMessage } from '@langchain/core/messages';
+import { ChatMessage } from '@langchain/core/messages';
+import { HumanMessage } from '@langchain/core/messages';
+import { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import { Message } from 'ai';
+import { chromium } from 'playwright';
 
-// Set runtime to nodejs since we need Node.js features for browser automation
+// Configure runtime
 export const runtime = 'nodejs';
 
-const anthropic = createAnthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY
+const model = new ChatAnthropic({
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
+    modelName: 'claude-3-opus-20240229'
 });
 
 // Schema for validating request body
 const requestSchema = z.object({
-    messages: z.array(z.any()),
-    action: z.string(),
-    parameters: z.record(z.string(), z.any()).optional(),
-    agentId: z.string(),
-    currentProgress: z.number().optional(),
-    assistanceMessage: z.string().optional(),
-    error: z.string().optional()
+    message: z.object({
+        id: z.string(),
+        role: z.enum(['system', 'user', 'assistant', 'data']),
+        content: z.string()
+    })
 });
 
-export async function POST(req: NextRequest) {
-    try {
-        // Parse and validate request body
-        const body = await req.json();
-        console.log('Received request body:', body);
-        const validatedBody = requestSchema.parse(body);
-        const { messages, action, parameters, agentId } = validatedBody;
+const convertVercelMessageToLangChainMessage = (message: Message) => {
+    if (message.role === 'user') {
+        return new HumanMessage(message.content);
+    } else if (message.role === 'assistant') {
+        return new AIMessage(message.content);
+    } else {
+        return new ChatMessage(message.content, message.role);
+    }
+};
 
-        console.log('Generating AI response...');
-        console.log('Action...', action);
-        console.log('Messages...', messages);
-        console.log('parameters...', parameters);
-        console.log('agentId...', agentId);
-        // Generate AI response
-        const result = streamText({
-            model: anthropic('claude-3-opus-20240229'),
-            messages: [
-                {
-                    role: 'system',
-                    content: `You are an AI agent that helps users navigate to websites. 
-                    When asked to navigate to a website, use the navigateToUrl tool to open it in a new tab.
-                    If no specific URL is provided, use your best judgment to determine the most relevant URL.
-                    For example, if asked to "go to Google", use "https://www.google.com".`
-                },
-                ...messages
-            ],
-            tools: {
-                navigateToUrl: {
-                    description: 'Navigate to a specified URL in a new browser tab',
-                    parameters: z.object({
-                        url: z.string().describe('The URL to navigate to')
-                    })
-                }
-            }
+const convertLangChainMessageToVercelMessage = (message: BaseMessage) => {
+    if (message._getType() === 'human') {
+        return { content: message.content, role: 'user' };
+    } else if (message._getType() === 'ai') {
+        return {
+            content: message.content,
+            role: 'assistant',
+            tool_calls: (message as AIMessage).tool_calls
+        };
+    } else {
+        return { content: message.content, role: message._getType() };
+    }
+};
+
+export const POST = async (req: NextRequest): Promise<NextResponse> => {
+    const body = await req.json();
+    const validatedBody = requestSchema.parse(body);
+    const { message } = validatedBody;
+    const convertedMessage = convertVercelMessageToLangChainMessage({ ...message });
+    console.log('Converted message ->', convertedMessage);
+
+    let browser;
+    try {
+        // Launch browser
+        browser = await chromium.launch({
+            headless: false // Set to true in production
         });
 
-        console.log('AI response:', result);
+        // Create a new browser context
+        const context = await browser.newContext({
+            viewport: { width: 1280, height: 720 },
+            userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        });
 
-        // Let the client handle tool execution
-        return result.toDataStreamResponse();
+        // Create a new page
+        const page = await context.newPage();
 
-    } catch (error) {
+        // Example navigation (replace with your actual task logic)
+        await page.goto('https://google.com');
+        const title = await page.title();
+
+        // Get page content for AI analysis
+        const content = await page.content();
+
+        // Use LangChain to analyze and decide next steps
+        const result = await model.invoke([
+            new HumanMessage({
+                content: `Task: ${message.content}\nCurrent page title: ${title}\nAnalyze the current state and suggest next steps.`
+            })
+        ]);
+
+        // Clean up
+        await context.close();
+        await browser.close();
+
+        return NextResponse.json({ result: result.content }, { status: 200 });
+    } catch (error: any) {
         console.error('Agent API error:', error);
-        return Response.json({
-            status: 'error',
-            error: error instanceof Error ? error.message : 'Unknown error'
-        }, { status: 500 });
+
+        // Add specific error handling
+        if (error.name === 'TimeoutError') {
+            return NextResponse.json({ error: 'Task timed out' }, { status: 408 });
+        }
+
+        return NextResponse.json(
+            {
+                error: error instanceof Error ? error.message : 'An unknown error occurred',
+                agentId: message.id
+            },
+            { status: 500 }
+        );
+    } finally {
+        if (browser) {
+            await browser.close();
+        }
     }
-}
+};

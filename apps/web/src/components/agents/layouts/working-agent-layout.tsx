@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { useEffect } from 'react';
+import { useRef } from 'react';
 import Image from 'next/image';
 
 import './agent-card.styles.css';
@@ -13,18 +15,25 @@ import { useAgent } from '@hooks/use-agent';
 import { useAgentStore } from '@stores/agent-store';
 
 export const WorkingAgentLayout = ({ data, agent }: BaseAgentLayoutProps) => {
+    const [result, setResult] = useState('');
+    const hasExecuted = useRef(false);
     const { transition } = useAgentStore();
-    const { executeAction, isProcessing, isLoading } = useAgent(data.id, status => {
+    const { executeAction, isProcessing } = useAgent(data.id, status => {
         transition(data.id, status);
     });
 
     const isBrowserAgent = data.capability?.action === 'navigate_to_google';
     const browserUrl = data.capability?.parameters?.url as string;
 
-    // Start execution when component mounts
+    // Start execution when component mounts, but only once
     useEffect(() => {
-        console.log('🚀 Working agent mounted, executing action...');
-        executeAction();
+        if (hasExecuted.current) return;
+        
+        (async () => {
+            console.log('🚀 Working agent mounted, executing action...');
+            hasExecuted.current = true;
+            setResult(await executeAction());
+        })();
     }, []);
 
     return (
@@ -53,7 +62,7 @@ export const WorkingAgentLayout = ({ data, agent }: BaseAgentLayoutProps) => {
                         {isBrowserAgent && agent ? (
                             <BrowserStatus agent={agent} url={browserUrl} />
                         ) : (
-                            <p>{isProcessing ? 'Processing...' : isLoading ? 'Loading...' : 'Ready'}</p>
+                            <p>{isProcessing ? 'Processing...' : result || 'Ready'}</p>
                         )}
                     </div>
                 </div>
@@ -63,7 +72,7 @@ export const WorkingAgentLayout = ({ data, agent }: BaseAgentLayoutProps) => {
                         size="sm"
                         radius="lg"
                         fullWidth
-                        disabled={isLoading || isProcessing}
+                        disabled={isProcessing}
                         // onClick={onExecute}
                         icon={<WatchIcon />}>
                         Watch
