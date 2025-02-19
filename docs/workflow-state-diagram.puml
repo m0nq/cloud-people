@@ -1,41 +1,41 @@
-@startuml
+@startuml Workflow State Machine
 
-[*] --> InitialState : "Page Load"
+' Styling
+skinparam StateBackgroundColor #FEFEFE
+skinparam StateBorderColor #666666
+skinparam ArrowColor #666666
+skinparam StateStartColor #445566
+skinparam StateEndColor #445566
 
-state InitialState {
-    [*] --> StartFromScratch : "Start from Scratch"
-    [*] --> StartFromTemplate : "Start from Template"
-    [*] --> StartFromAI : "Start from AI Prompt"
-}
+' Title
+title Workflow State Machine
 
-state BuildState {
-    [*] --> BuildFromScratch : "Build from Scratch"
-    [*] --> BuildFromTemplate : "Build from Template"
-    [*] --> BuildFromAI : "Build from AI"
-}
+' States
+[*] --> Initial : Create Workflow
 
-state RunningState {
-    [*] --> NodeState
-}
+Initial --> Running : Start Workflow
+Running --> Paused : Error Occurred
+Running --> Complete : All Nodes Complete
+Paused --> Running : Resume Workflow
 
-BuildFromScratch --> RunningState : "Test/Run Workflow"
-BuildFromTemplate --> RunningState : "Test/Run Workflow"
-BuildFromAI --> RunningState : "Test/Run Workflow"
+note right of Initial
+  Initial state when workflow
+  is first created or reset
+end note
 
-RunningState --> ErrorState : "Error Occurred"
-RunningState --> CompletionState : "Workflow Completed"
-RunningState --> BuildState : "Cancel Workflow"
+note right of Running
+  Workflow is actively executing
+  agents in sequence
+end note
 
-ErrorState --> BuildState : "Acknowledge Error"
+note right of Paused
+  Workflow paused due to error
+  Allows editing of idle nodes
+end note
 
-CompletionState --> BuildState : "Build New / Edit Workflow"
-
-InitialState --> BuildState : "Choose Option"
-
-note right of ErrorState
-  Notify User:
-  - For approval for next steps
-  - If errors happen
+note right of Complete
+  All agents have completed
+  their tasks successfully
 end note
 
 @enduml

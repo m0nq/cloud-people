@@ -11,13 +11,13 @@ entity Users {
   * email : string <<unique>>
   * password : string
   * name : string
-  subscription_plan : int <<FK>>
+  subscription_plan : uuid <<FK>>
   * created_at : timestamp
   * updated_at : timestamp
 }
 
 entity Subscription_Plans {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
   * name : string
   * description : text
@@ -31,7 +31,7 @@ entity Subscription_Plans {
 
 ' Primary Business Entities (Workflow System)
 entity Workflows {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
   * user_id : uuid <<FK>>
   * state : enum
@@ -42,28 +42,32 @@ entity Workflows {
 }
 
 entity Nodes {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
-  * workflow_id : int <<FK>>
+  * workflow_id : uuid <<FK>>
+  * node_type : enum
+  agent_id : uuid <<FK>> <<nullable>>
   * state : enum
   * current_step : string
   * created_at : timestamp
   * updated_at : timestamp
+  --
+  note: agent_id must be non-null for agent nodes
 }
 
 entity Edges {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
-  * workflow_id : int <<FK>>
-  * to_node_id : int <<FK>>
-  * from_node_id : int <<FK>>
+  * workflow_id : uuid <<FK>>
+  * to_node_id : uuid <<FK>>
+  * from_node_id : uuid <<FK>>
   * created_at : timestamp
   * updated_at : timestamp
 }
 
 ' AI-Related Entities
 entity AI_Models {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
   * name : string
   * description : text
@@ -75,21 +79,63 @@ entity AI_Models {
 }
 
 entity AI_Agent_Definitions {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
   * name : string
   * description : text
   * owner : uuid <<FK>>
-  * model : int <<FK>>
+  * model : uuid <<FK>>
   * configuration : json
   * created_at : timestamp
   * updated_at : timestamp
 }
 
-entity AI_Model_Training_Data {
-  * id : int <<PK>>
+entity Tools {
+  * id : uuid <<PK>>
   --
-  * model : int <<FK>>
+  * name : string <<unique>>
+  * description : text
+  * category : enum
+  * parameters : json
+  * version : string
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
+entity AgentTools {
+  * agent_id : uuid <<PK, FK>>
+  * tool_id : uuid <<PK, FK>>
+  --
+  configuration : json
+  * created_at : timestamp
+}
+
+entity Executions {
+  * id : uuid <<PK>>
+  --
+  * agent_id : uuid <<FK>>
+  * session_id : uuid
+  * input : json
+  output : json
+  errors : json
+  metrics : json
+  * created_at : timestamp
+}
+
+entity VectorMemories {
+  * id : uuid <<PK>>
+  --
+  * agent_id : uuid <<FK>>
+  * content : text
+  * embedding : vector(1536)
+  * metadata : json
+  * created_at : timestamp
+}
+
+entity AI_Model_Training_Data {
+  * id : uuid <<PK>>
+  --
+  * model : uuid <<FK>>
   * owner : uuid <<FK>>
   * data_type : string
   * data_size : int
@@ -99,7 +145,7 @@ entity AI_Model_Training_Data {
 
 ' Business-Related Entities
 entity Businesses {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
   * name : string
   * owner : uuid <<FK>>
@@ -110,17 +156,17 @@ entity Businesses {
 }
 
 entity Business_Sandbox_Data {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
-  * business : int <<FK>>
+  * business : uuid <<FK>>
   * data : json
   * created_at : timestamp
 }
 
 entity Business_Performance_Metrics {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
-  * business : int <<FK>>
+  * business : uuid <<FK>>
   * metric_type : string
   * value : float
   * timestamp : timestamp
@@ -128,9 +174,9 @@ entity Business_Performance_Metrics {
 
 ' Marketplace Entities
 entity Marketplace_Listings {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
-  * agent : int <<FK>>
+  * agent : uuid <<FK>>
   * owner : uuid <<FK>>
   * price : decimal
   * description : text
@@ -140,11 +186,11 @@ entity Marketplace_Listings {
 }
 
 entity Transactions {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
   * buyer : uuid <<FK>>
   * seller : uuid <<FK>>
-  * listing : int <<FK>>
+  * listing : uuid <<FK>>
   * amount : decimal
   * payment_method : string
   * transaction_status : string
@@ -154,7 +200,7 @@ entity Transactions {
 
 ' Community Entities
 entity Community_Forum_Posts {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
   * author : uuid <<FK>>
   * topic : string
@@ -165,9 +211,9 @@ entity Community_Forum_Posts {
 }
 
 entity Community_Forum_Comments {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
-  * post : int <<FK>>
+  * post : uuid <<FK>>
   * author : uuid <<FK>>
   * content : text
   * created_at : timestamp
@@ -176,7 +222,7 @@ entity Community_Forum_Comments {
 
 ' Security/Access Control
 entity Security_Access_Controls {
-  * id : int <<PK>>
+  * id : uuid <<PK>>
   --
   * role : string
   * permission : string
@@ -184,14 +230,24 @@ entity Security_Access_Controls {
   * updated_at : timestamp
 }
 
+entity Agents {
+  * id : uuid <<PK>>
+  --
+  * user_id : uuid <<FK>>
+  * config : json
+  * tools : json[]
+  * created_at : timestamp
+  * updated_at : timestamp
+}
+
 ' Relationships
 ' Core relationships
-Users ||--o{ Workflows : has
+Users ||--o{ Workflows : owns
 Subscription_Plans ||--o{ Users : subscribes
 
 ' Workflow relationships
-Workflows ||--o{ Nodes : has
-Workflows ||--o{ Edges : has
+Workflows ||--o{ Nodes : contains
+Nodes }|--|| Agents : uses
 
 ' AI relationships
 Users ||--o{ AI_Models : creates
@@ -200,20 +256,25 @@ AI_Models ||--o{ AI_Agent_Definitions : uses
 AI_Models ||--o{ AI_Model_Training_Data : trains_on
 Users ||--o{ AI_Model_Training_Data : uploads
 
+' Agent relationships
+AI_Agent_Definitions ||--o{ AgentTools : has
+Tools ||--o{ AgentTools : used_by
+AI_Agent_Definitions ||--o{ Executions : runs
+AI_Agent_Definitions ||--o{ VectorMemories : remembers
+
 ' Business relationships
 Users ||--o{ Businesses : owns
 Businesses ||--o{ Business_Sandbox_Data : has
-Businesses ||--o{ Business_Performance_Metrics : has
+Businesses ||--o{ Business_Performance_Metrics : tracks
 
 ' Marketplace relationships
-Users ||--o{ Marketplace_Listings : owns
-AI_Agent_Definitions ||--o{ Marketplace_Listings : lists
-Users ||--o{ Transactions : buys
-Users ||--o{ Transactions : sells
-Marketplace_Listings ||--o{ Transactions : involves
+Users ||--o{ Marketplace_Listings : lists
+Users ||--o{ Transactions : participates
+Marketplace_Listings ||--o{ Transactions : generates
 
 ' Community relationships
 Users ||--o{ Community_Forum_Posts : authors
-Users ||--o{ Community_Forum_Comments : authors
+Users ||--o{ Community_Forum_Comments : writes
 Community_Forum_Posts ||--o{ Community_Forum_Comments : has
+
 @enduml

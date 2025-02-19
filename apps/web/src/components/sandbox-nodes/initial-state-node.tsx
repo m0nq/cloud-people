@@ -1,8 +1,8 @@
 import { ReactNode } from 'react';
 
 import './node.styles.css';
-import { useGraphStore } from '@stores/workflow-store';
-import { AppState } from '@lib/definitions';
+import { useWorkflowStore } from '@stores/workflow';
+import { WorkflowActions } from '@stores/workflow';
 
 type InitialStateNodeProps = {
     data: {
@@ -20,8 +20,8 @@ const InitialStateNode = ({ data }: InitialStateNodeProps): ReactNode => {
     // - SfS updates nodes with root automation node
     // - template opens a modal which leads to copy a workflow template (nodes & edges) into the list
     // - AI opens a modal
-    const fetchGraph = useGraphStore((state: AppState) => state.fetchGraph)!;
-    const createNewWorkflow = useGraphStore((state: AppState) => state.createNewWorkflow)!;
+    const fetchGraph = useWorkflowStore((state: WorkflowActions) => state.fetchGraph)!;
+    const createNewWorkflow = useWorkflowStore((state: WorkflowActions) => state.createNewWorkflow)!;
 
     const handleClick = () => {
         // if data.label is SFS, then transition to empty node building state
@@ -39,7 +39,9 @@ const InitialStateNode = ({ data }: InitialStateNodeProps): ReactNode => {
     };
 
     return (
-        <button className="init-node nodrag" style={{ background: data?.background, color: data?.color }} onClick={handleClick}>
+        <button className="init-node nodrag"
+            style={{ background: data?.background, color: data?.color }}
+            onClick={handleClick}>
             <div className="init-node-label">{data.label}</div>
         </button>
     );

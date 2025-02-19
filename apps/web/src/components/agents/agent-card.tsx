@@ -1,8 +1,8 @@
-import { CSSProperties } from 'react';
+import { type CSSProperties } from 'react';
 
-import { AgentData } from '@lib/definitions';
-import { AgentState } from '@lib/definitions';
-import { AgentStatus } from '@lib/definitions';
+import { type AgentData } from '@app-types/agent';
+import { type Agent } from '@app-types/agent';
+import { AgentState } from '@app-types/agent';
 import { IdleAgentLayout } from './layouts';
 import { WorkingAgentLayout } from './layouts';
 import { AssistanceAgentLayout } from './layouts';
@@ -12,7 +12,7 @@ import { ActivatingAgentLayout } from './layouts';
 
 type AgentCardProps = {
     data: AgentData;
-    status?: AgentStatus;
+    agent?: Agent;
     state?: AgentState;
     className?: string;
     style?: CSSProperties;
@@ -22,18 +22,19 @@ type AgentCardProps = {
 };
 
 const AGENT_LAYOUTS = {
-    [AgentStatus.Initial]: BaseAgentLayout,
-    [AgentStatus.Idle]: IdleAgentLayout,
-    [AgentStatus.Activating]: ActivatingAgentLayout,
-    [AgentStatus.Working]: WorkingAgentLayout,
-    [AgentStatus.Error]: AssistanceAgentLayout,
-    [AgentStatus.Assistance]: AssistanceAgentLayout,
-    [AgentStatus.Complete]: CompleteAgentLayout
+    [AgentState.Initial]: BaseAgentLayout,
+    [AgentState.Idle]: IdleAgentLayout,
+    [AgentState.Activating]: ActivatingAgentLayout,
+    [AgentState.Working]: WorkingAgentLayout,
+    [AgentState.Error]: AssistanceAgentLayout,
+    [AgentState.Assistance]: AssistanceAgentLayout,
+    [AgentState.Complete]: CompleteAgentLayout
 };
 
 export const AgentCard = (props: AgentCardProps) => {
-    const { status } = props;
-    const LayoutComponent = status ? AGENT_LAYOUTS[status] : BaseAgentLayout;
+    const { state } = props;
+
+    const LayoutComponent = state ? AGENT_LAYOUTS[state] : BaseAgentLayout;
 
     return <LayoutComponent {...props} />;
 };

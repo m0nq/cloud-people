@@ -10,7 +10,7 @@
 
 /* Main panel container */
 .agent-config-panel {
-  @apply h-[90vh] w-[34rem] bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] text-white
+  @apply h-fit w-[34rem] bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] text-white
   overflow-y-auto font-inter;
 
   .agent-config-content {
@@ -22,14 +22,27 @@
       @apply flex items-center justify-between;
 
       .config-header-container {
-        @apply flex items-center gap-2;
+        @apply flex flex-col gap-2;
 
-        .config-header-avatar {
-          @apply w-16 h-16 rounded-full bg-color-dark-gray;
+        .config-header-top {
+          @apply flex items-center gap-2;
+
+          .config-header-avatar {
+            @apply w-fit h-fit rounded-full bg-color-dark-gray;
+          }
+
+          .config-agent-title {
+            @apply flex items-center justify-center;
+
+            h2 {
+              @apply text-white font-bold;
+            }
+          }
         }
 
-        h2 {
-          @apply text-white font-bold;
+        .name-input {
+          @apply px-3 py-2 bg-transparent text-lg font-semibold text-white border-b border-gray-700
+          focus:border-emerald-500 focus:outline-none;
         }
       }
 
@@ -46,8 +59,12 @@
       .agent-description-container {
         @apply flex flex-col w-full h-full gap-2;
 
-        .agent-description {
-          @apply text-gray-400 text-sm;
+        .description-input {
+          @apply h-16 resize-none overflow-auto;
+
+          &::placeholder {
+            @apply overflow-ellipsis;
+          }
         }
       }
     }

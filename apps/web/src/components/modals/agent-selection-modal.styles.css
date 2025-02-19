@@ -1,5 +1,5 @@
 .agent-selector-container {
-  @apply p-6 w-full max-h-[90vh] flex flex-col;
+  @apply p-6 w-[38.8125rem] h-fit max-h-[90vh] flex flex-col;
 
   .agent-selector-header {
     @apply flex justify-between items-center w-full flex-shrink-0;
@@ -42,4 +42,16 @@
   .agent-card-container {
     @apply w-72 h-64 cursor-pointer rounded-lg;
   }
+}
+
+.error-message {
+  @apply w-full h-fit text-center p-8 text-white bg-red-500 rounded-lg my-4 mx-auto;
+}
+
+.loading {
+  @apply w-full h-fit flex items-center justify-center p-8 text-white;
+}
+
+.no-agents-message {
+  @apply w-full h-fit text-center p-8 text-white my-4 mx-auto max-w-2xl;
 }

@@ -1,10 +1,25 @@
+import { useEffect } from 'react';
 import Image from 'next/image';
 
+import { AgentState } from '@app-types/agent';
+import { useAgentStore } from '@stores/agent-store';
 import './agent-card.styles.css';
 import cloudHeadImage from '@public/pink-cloud-head.png';
 import { BaseAgentLayoutProps } from './base-agent-layout';
 
 export const ActivatingAgentLayout = ({ data }: BaseAgentLayoutProps) => {
+    const { transition } = useAgentStore();
+
+    useEffect(() => {
+        // Will do further set up here as needed
+        // Transition to Working state after 3 seconds
+        const timer = setTimeout(() => {
+            transition(data.id, AgentState.Working);
+        }, 3000);
+
+        return () => clearTimeout(timer);
+    }, [data.id, transition]);
+
     return (
         <div className="activating-agent-card">
             <Image src={data.image || cloudHeadImage}

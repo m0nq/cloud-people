@@ -10,7 +10,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["run", "dev"],
+            "runtimeArgs": ["dev"],
             "console": "integratedTerminal"
         },
         {
@@ -19,7 +19,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["run", "build", "&&", "pnpm", "run", "start"],
+            "runtimeArgs": ["build", "&&", "pnpm", "start"],
             "console": "integratedTerminal"
         },
         {
@@ -28,7 +28,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["run", "build"],
+            "runtimeArgs": ["build"],
             "console": "integratedTerminal"
         },
         {
@@ -37,7 +37,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["run", "analyze"],
+            "runtimeArgs": ["analyze"],
             "console": "integratedTerminal",
             "env": {
                 "ANALYZE": "true"
@@ -49,7 +49,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["run", "serve"],
+            "runtimeArgs": ["serve"],
             "console": "integratedTerminal"
         },
         {
@@ -58,7 +58,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["run", "lint"],
+            "runtimeArgs": ["lint"],
             "console": "integratedTerminal"
         },
         {
@@ -67,7 +67,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["run", "pretty"],
+            "runtimeArgs": ["pretty"],
             "console": "integratedTerminal"
         },
         {
@@ -76,7 +76,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["run", "pretty:check"],
+            "runtimeArgs": ["pretty:check"],
             "console": "integratedTerminal"
         },
         {
@@ -85,7 +85,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["run", "test"],
+            "runtimeArgs": ["test"],
             "console": "integratedTerminal"
         },
         {
@@ -94,7 +94,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["run", "test:coverage"],
+            "runtimeArgs": ["test:coverage"],
             "console": "integratedTerminal"
         },
         {
@@ -103,7 +103,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["run", "test:watch"],
+            "runtimeArgs": ["test:watch"],
             "console": "integratedTerminal"
         },
         {
@@ -112,7 +112,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["run", "e2e:cypress"],
+            "runtimeArgs": ["e2e:cypress"],
             "console": "integratedTerminal"
         },
         {
@@ -121,7 +121,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["run", "start:supabase"],
+            "runtimeArgs": ["start:supabase"],
             "console": "integratedTerminal"
         },
         {
@@ -130,7 +130,7 @@
             "request": "launch",
             "cwd": "${workspaceFolder}",
             "runtimeExecutable": "pnpm",
-            "runtimeArgs": ["run", "stop:supabase"],
+            "runtimeArgs": ["stop:supabase"],
             "console": "integratedTerminal"
         }
     ]

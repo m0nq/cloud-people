@@ -1,29 +1,31 @@
 import Image from 'next/image';
+import { ReactNode } from 'react';
 import { CSSProperties } from 'react';
 
 import './agent-card.styles.css';
 import cloudHeadImage from '@public/pink-cloud-head.png';
-import { AgentData } from '@lib/definitions';
-import { AgentState } from '@lib/definitions';
-import { AgentStatus } from '@lib/definitions';
 import { InfoIcon } from '@components/icons/info-icon';
 import { RefreshIcon } from '@components/icons/refresh-icon';
 import { TargetIcon } from '@components/icons/target-icon';
 import { DocumentIcon } from '@components/icons/document-icon';
+import { AgentData } from '@app-types/agent';
+import { Agent } from '@app-types/agent';
 
-export interface BaseAgentLayoutProps {
+export type BaseAgentLayoutProps = {
     data: AgentData;
-    state?: AgentState;
-    status?: AgentStatus;
+    agent?: Agent;
     className?: string;
     style?: CSSProperties;
-    tools?: { id: string; name: string }[];
     onEdit?: () => void;
     onAssistanceRequest?: () => void;
     onRestart?: () => void;
-}
+    isLoading?: boolean;
+    isProcessing?: boolean;
+    onExecute?: () => void;
+    tools?: { id: string; name: string }[];
+};
 
-export const BaseAgentLayout = ({ data, className = '', style, tools = [] }: BaseAgentLayoutProps) => {
+export const BaseAgentLayout = ({ data, className = '', style, tools = [] }: BaseAgentLayoutProps): ReactNode => {
     return (
         <div className={`agent-card-base ${className}`} style={style}>
             <div className="agent-title-section">

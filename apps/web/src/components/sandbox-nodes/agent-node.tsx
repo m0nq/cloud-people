@@ -1,15 +1,20 @@
-import { Position } from '@xyflow/react';
-import { ReactNode } from 'react';
 import { useCallback } from 'react';
 import { useEffect } from 'react';
+import { useMemo } from 'react';
 
-import './node.styles.css';
+import { Position } from '@xyflow/react';
+
 import { AgentCard } from '@components/agents/agent-card';
 import { NodeComponent } from '@components/utils/node-component/node-component';
-import { HandleType } from './types.enum';
 import { useModalStore } from '@stores/modal-store';
 import { useAgentStore } from '@stores/agent-store';
-import { AgentStatus } from '@lib/definitions';
+import { useWorkflowStore } from '@stores/workflow';
+import { AgentState } from '@app-types/agent';
+import { AgentCapability } from '@app-types/agent';
+import { AgentConfig } from '@app-types/agent';
+import { HandleType } from './types.enum';
+import './node.styles.css';
+import { WorkflowState } from '@app-types/workflow';
 
 type AgentNodeProps = {
     id: string;
@@ -17,6 +22,8 @@ type AgentNodeProps = {
         name: string;
         role: string;
         image?: string;
+        capability: AgentCapability;
+        config: AgentConfig;
         [key: string]: any;
     };
     targetPosition?: string;
@@ -36,25 +43,55 @@ const getPosition = (position?: string): Position => {
     return (position && positionMap[position]) || Position.Top;
 };
 
-const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: AgentNodeProps): ReactNode => {
+const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: AgentNodeProps) => {
     const sPosition = getPosition(sourcePosition);
     const tPosition = getPosition(targetPosition);
     const { openModal } = useModalStore();
-    const { removeAgent, transition, getAgentState, updateAgent } = useAgentStore();
-    const agentState = getAgentState(id);
+    const { removeAgent, transition, getAgent, updateAgent } = useAgentStore();
+    const { progressWorkflow, pauseWorkflow, workflowExecution } = useWorkflowStore();
+    const agentState = getAgent(id) || {
+        state: AgentState.Initial,
+        isEditable: true,
+        isLoading: true
+    };
 
-    // Initialize agent when component mounts
+    const agentData = useMemo(() => ({
+            ...data,
+            id,
+            capability: data.capability || {
+                action: 'navigate_to_google',
+                parameters: {},
+                description: 'Navigate to Google search'
+            }
+        }),
+        [data, id]
+    );
+
+    // Handle workflow state changes
+    useEffect(() => {
+        if (agentState?.state === AgentState.Complete) {
+            progressWorkflow(id, agentState.state);
+        } else if (agentState?.state === AgentState.Error || agentState?.state === AgentState.Assistance) {
+            pauseWorkflow();
+        }
+    }, [agentState?.state, id, progressWorkflow, pauseWorkflow]);
+
     const handleInitialize = useCallback(() => {
-        // Initialize agent with default state and provided status
-        updateAgent(id, { status: data.status });
-    }, [id, data.status, updateAgent]);
+        // Only initialize if not already initialized
+        if (!getAgent(id)) {
+            updateAgent(id, {
+                state: data.state || AgentState.Initial,
+                isEditable: true
+            });
+        }
+    }, [id, data.state, getAgent, updateAgent]);
 
     useEffect(() => {
         handleInitialize();
         return () => {
             removeAgent(id);
         };
-    }, [id, handleInitialize, removeAgent]);
+    }, [handleInitialize, id, removeAgent]);
 
     const handleAgentDetails = useCallback(() => {
         if (agentState?.isEditable) {
@@ -62,61 +99,51 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         }
     }, [id, openModal, agentState?.isEditable]);
 
-    const handleAgentSelector = useCallback(() => {
-        if (agentState?.status === AgentStatus.Initial || agentState?.status === AgentStatus.Idle) {
+    const handleOpenAgentSelection = useCallback(() => {
+        if (agentState?.state === AgentState.Initial || agentState?.state === AgentState.Idle) {
             openModal({ type: 'agent-selection', parentNodeId: id });
         }
-    }, [id, openModal, agentState?.status]);
+    }, [id, openModal, agentState?.state]);
 
-    // this could make sense after user is notified an agent needs help and clicks on the agent for a modal
     const handleAssistanceRequest = useCallback(() => {
-        transition(id, AgentStatus.Assistance, {
+        transition(id, AgentState.Assistance, {
             assistanceMessage: 'Agent needs assistance to proceed with the task'
         });
-        // openModal({ type: 'agent-assistance', parentNodeId: id });
-        // }, [id, openModal, transition]);
     }, [id, transition]);
 
-    // this is new...
     const handleRestart = useCallback(() => {
-        transition(id, AgentStatus.Working, {
+        transition(id, AgentState.Working, {
             progress: 0
         });
     }, [id, transition]);
 
-    // Don't render until agent state is initialized
-    if (!agentState) return null;
-
     return (
         <NodeComponent.Root className="agent-node">
-            <NodeComponent.Content className="agent-node-container">
+            <NodeComponent.Content className={`agent-node-container ${agentState.isLoading ? 'opacity-50' : ''}`}>
                 <div className={`w-full h-full ${agentState.isEditable ? 'cursor-pointer' : 'cursor-default'}`}
                     onClick={handleAgentDetails}>
-                    <AgentCard
-                        data={data}
-                        state={agentState}
-                        status={agentState.status}
+                    <AgentCard data={agentData}
+                        agent={agentState}
+                        state={agentState.state}
                         onEdit={agentState.isEditable ? handleAgentDetails : undefined}
                         onAssistanceRequest={handleAssistanceRequest}
                         onRestart={handleRestart} />
                 </div>
             </NodeComponent.Content>
             <NodeComponent.Handle
-                onClick={handleAgentSelector}
+                onClick={handleOpenAgentSelection}
                 type={HandleType.SOURCE}
                 position={sPosition}
-                id={`${id}-a`}
-                // isConnectable={isConnectable && (agentState.status === AgentStatus.Initial || agentState.status ===
-                // AgentStatus.Idle)}
-                isConnectable={isConnectable}
-                className={agentState.status === AgentStatus.Initial || agentState.status === AgentStatus.Idle ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'} />
+                id="source"
+                isConnectable={isConnectable || (workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused)}
+                className={workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} />
             <NodeComponent.Handle
                 type={HandleType.TARGET}
                 position={tPosition}
-                id={`${id}-b`}
-                // isConnectable={isConnectable && agentState.status !== AgentStatus.Complete}
-                isConnectable={isConnectable}
-                className={agentState.status !== AgentStatus.Complete ? undefined : 'opacity-50'} />
+                id="target"
+                data-handleid="target"
+                isConnectable={isConnectable || (workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused)}
+                className={workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} />
         </NodeComponent.Root>
     );
 };

@@ -18,81 +18,53 @@ title Workflow Node States (UI Perspective)
 [*] --> Initial : Create Node
 
 state Initial {
-    [*] --> ConfiguringCapabilities
-    ConfiguringCapabilities --> ValidatingConfig : Save Config
-    ValidatingConfig --> ConfiguringCapabilities : Invalid Config
-    ValidatingConfig --> ReadyToConnect : Valid Config
+    [*] --> Idle : Workflow Start
+    Idle --> Initial : Reset for Edit
+    Idle --> Activating : Node's Turn
+    Activating --> Working : Ready
+    Working --> Complete : Task Success
+    Working --> Error : Task Failed
+    Working --> Assistance : Need Help
+    Error --> Working : Resume
+    Error --> Initial : Reset
+    Assistance --> Working : Help Received
+    Complete --> Initial : Reset
 }
-
-Initial --> Idle : Node Connected
-
-state Idle {
-    [*] --> AwaitingExecution
-    AwaitingExecution --> ValidatingConnections : Workflow Start
-    ValidatingConnections --> ReadyForActivation : Valid
-    ValidatingConnections --> RequiresEditing : Invalid
-    RequiresEditing --> AwaitingExecution : Fixed
-}
-
-Idle --> Activating : Workflow Running
-
-state Activating {
-    [*] --> LoadingCapabilities
-    LoadingCapabilities --> WaitingForDependencies
-    WaitingForDependencies --> ReadyToWork
-}
-
-Activating --> Working : Dependencies Met
-
-state Working {
-    [*] --> ProcessingTask
-    ProcessingTask --> NeedsAssistance : User Input Required
-    NeedsAssistance --> ProcessingTask : Input Received
-    ProcessingTask --> TaskError : Error Occurred
-    TaskError --> ProcessingTask : Auto Recovery
-}
-
-Working --> Error : Unrecoverable Error
-Working --> Complete : Task Finished
-Error --> Working : Manual Fix Applied
-
-state Error {
-    [*] --> AnalyzingIssue
-    AnalyzingIssue --> WaitingForFix
-    WaitingForFix --> ApplyingFix
-    ApplyingFix --> AnalyzingIssue : Fix Failed
-}
-
-Complete --> [*]
 
 ' Notes
 note right of Initial
-  Node is being configured with:
-  - Required capabilities
-  - Tool access
-  - Operating parameters
+  Default state
+  Node can be edited
 end note
 
 note right of Idle
-  Node is connected but not active:
-  - Configuration locked
-  - Connections validated
-  - Ready for execution
+  Waiting for turn
+  in workflow
+end note
+
+note right of Activating
+  Preparing to execute
+  task
 end note
 
 note right of Working
-  Node is actively executing:
-  - Processing inputs
-  - Using tools
-  - Generating outputs
-  - Can request assistance
+  Actively executing
+  assigned task
 end note
 
 note right of Error
-  Node requires attention:
-  - Error analysis
-  - Manual intervention
-  - Configuration adjustments
+  Task failed
+  Pauses workflow
+end note
+
+note right of Assistance
+  Needs human input
+  to continue
+end note
+
+note right of Complete
+  Task completed
+  successfully
 end note
 
 @enduml

@@ -14,11 +14,16 @@
         {
             "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
             "options": {
-                "printWidth": 120
+                "printWidth": 120,
+                "breakChains": true,
+                "chainBreakTest": "always",
+                "arrowFunctionParentheses": "avoid",
+                "arrowBodyStyle": "as-needed",
+                "singleLineFunctions": false
             }
         },
         {
-            "files": ["*.json", "*.yml", "*.yaml"],
+            "files": ["*.json", "*.md"],
             "options": {
                 "tabWidth": 2
             }

@@ -11,76 +11,61 @@ skinparam StateEndColor #445566
 title Workflow State Transitions
 
 ' States
-[*] --> Draft : Create Workflow
+[*] --> Initial : Create New
 
-state Draft {
-    [*] --> Editing : Open Editor
-    Editing --> Saving : Auto-save
-    Saving --> Editing : Continue Editing
-    Editing --> Validating : Request Validation
-    Validating --> Editing : Validation Failed
-    Validating --> ReadyToDeploy : Validation Passed
-    ReadyToDeploy --> Editing : Make Changes
+state Initial {
+    [*] --> Setup : Add First Node
+    Setup --> Configuring : Add More Nodes
+    Configuring --> Validating : Check Connections
+    Validating --> Ready : All Valid
+    Validating --> Configuring : Fix Issues
 }
 
-Draft --> Deploying : Deploy
-Deploying --> Running : Initialization Success
-Deploying --> Failed : Initialization Error
+Initial --> Running : Start Workflow
 
 state Running {
-    [*] --> Initializing
-    
-    Initializing --> Active : Agents Ready
-    Initializing --> Error : Agent Init Failed
-    
-    Active --> Paused : Pause Request
-    Paused --> Active : Resume Request
-    
-    Active --> Error : Runtime Error
-    Error --> Active : Auto Recovery
-    Error --> Paused : Manual Intervention
-    
-    Active --> Completing : All Tasks Done
-    Completing --> [*] : Cleanup Success
+    [*] --> NodeExecution
+    NodeExecution --> NextNode : Node Complete
+    NextNode --> NodeExecution : Has Next
+    NextNode --> [*] : No More Nodes
+    NodeExecution --> ErrorHandling : Node Error
+    ErrorHandling --> NodeExecution : Auto Recover
+    ErrorHandling --> [*] : Need Pause
 }
 
-Running --> Completed : Successful Execution
-Running --> Failed : Unrecoverable Error
+Running --> Complete : All Success
+Running --> Paused : Error
 
-state Failed {
-    [*] --> AnalyzingError
-    AnalyzingError --> AttemptingRecovery : Recovery Possible
-    AnalyzingError --> UnrecoverableState : Recovery Impossible
-    AttemptingRecovery --> UnrecoverableState : Recovery Failed
-    AttemptingRecovery --> Running : Recovery Success
+state Paused {
+    [*] --> ErrorAnalysis
+    ErrorAnalysis --> NodeEditing : Reset Idle Nodes
+    NodeEditing --> ReadyToResume : Fixes Applied
 }
 
-Completed --> [*]
-Failed --> [*]
+Paused --> Running : Resume
 
 ' Notes
-note right of Draft
-  - Workflow being created/edited
-  - Continuous validation
-  - Auto-saving enabled
+note right of Initial
+  - Create workflow
+  - Add and configure nodes
+  - Validate connections
 end note
 
 note right of Running
-  - Active workflow execution
-  - Real-time monitoring
-  - Auto-recovery enabled
+  - Execute nodes in sequence
+  - Handle node completion
+  - Detect and handle errors
 end note
 
-note right of Failed
-  - Error analysis
-  - Recovery attempts
-  - Failure documentation
+note right of Paused
+  - Analyze error cause
+  - Allow node editing
+  - Prepare for resume
 end note
 
-note right of Completed
-  - Execution history saved
-  - Metrics collected
-  - Resources cleaned up
+note right of Complete
+  - All nodes finished
+  - Workflow succeeded
 end note
 
 @enduml

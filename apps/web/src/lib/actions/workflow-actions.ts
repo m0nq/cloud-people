@@ -1,6 +1,6 @@
 'use server';
-import { QueryConfig } from '@lib/definitions';
-import { WorkflowType } from '@lib/definitions';
+import { type QueryConfig } from '@app-types/api';
+import { type WorkflowType } from '@app-types/workflow';
 import { authCheck } from './authentication-actions';
 import { connectToDB } from '@lib/utils';
 
@@ -94,6 +94,11 @@ export const fetchWorkflows = async (config: QueryConfig = {}): Promise<Workflow
 export const updateWorkflow = async (config: QueryConfig = {}): Promise<WorkflowType> => {
     const user = await authCheck();
 
+    // Ensure we have a workflowId
+    if (!config.workflowId) {
+        throw new Error('No workflow ID provided for update');
+    }
+
     const updateWorkflowsMutation = `
         mutation UpdateWorkflowMutation(
             $set: WorkflowsUpdateInput!,
@@ -124,7 +129,7 @@ export const updateWorkflow = async (config: QueryConfig = {}): Promise<Workflow
         },
         filter: {
             ...config.filter,
-            id: { eq: config.workflowId },
+            id: { eq: config.filter?.id?.eq || config.workflowId },
             user_id: { eq: user.id }
         }
     } as QueryConfig;

@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import { useEffect } from 'react';
+import { useRef } from 'react';
 import Image from 'next/image';
 
 import './agent-card.styles.css';
@@ -7,12 +10,35 @@ import { Button } from '@components/utils/button/button';
 import { ChatIcon } from '@components/icons/chat-icon';
 import { TaskStatusIcon } from '@components/icons/task-status-icon';
 import { WatchIcon } from '@components/icons/watch-icon';
+import { BrowserStatus } from '@components/agents/browser-status';
+import { useAgent } from '@hooks/use-agent';
+import { useAgentStore } from '@stores/agent-store';
 
-export const WorkingAgentLayout = ({ data }: BaseAgentLayoutProps) => {
+export const WorkingAgentLayout = ({ data, agent }: BaseAgentLayoutProps) => {
+    const [result, setResult] = useState('');
+    const hasExecuted = useRef(false);
+    const { transition } = useAgentStore();
+    const { executeAction, isProcessing } = useAgent(data.id, status => {
+        transition(data.id, status);
+    });
+
+    const isBrowserAgent = data.capability?.action === 'navigate_to_google';
+    const browserUrl = data.capability?.parameters?.url as string;
+
+    // Start execution when component mounts, but only once
+    useEffect(() => {
+        if (hasExecuted.current) return;
+        
+        (async () => {
+            console.log('🚀 Working agent mounted, executing action...');
+            hasExecuted.current = true;
+            setResult(await executeAction());
+        })();
+    }, []);
+
     return (
         <div className="working-agent-card">
             <div className="working-agent-wrapper">
-
                 {/* Content */}
                 <div className="agent-info-section">
                     <Image src={data.image || cloudHeadImage}
@@ -33,7 +59,11 @@ export const WorkingAgentLayout = ({ data }: BaseAgentLayoutProps) => {
                         <span>Current Task:</span>
                     </div>
                     <div className="agent-tasks-container">
-                        <p>Name of task</p>
+                        {isBrowserAgent && agent ? (
+                            <BrowserStatus agent={agent} url={browserUrl} />
+                        ) : (
+                            <p>{isProcessing ? 'Processing...' : result || 'Ready'}</p>
+                        )}
                     </div>
                 </div>
                 <div className="buttons-container">
@@ -42,6 +72,8 @@ export const WorkingAgentLayout = ({ data }: BaseAgentLayoutProps) => {
                         size="sm"
                         radius="lg"
                         fullWidth
+                        disabled={isProcessing}
+                        // onClick={onExecute}
                         icon={<WatchIcon />}>
                         Watch
                     </Button>

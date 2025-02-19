@@ -152,13 +152,13 @@
   rounded-lg p-0.5 overflow-hidden;
 
   &::before {
-    background: conic-gradient(transparent 280deg, #ffffff 300deg, #e1e1e1 360deg);
-    @apply absolute h-[150%] w-[150%] -left-1/4 -top-1/4 rounded-lg animate-border-spin content-[''];
+    background: conic-gradient(transparent 240deg, #ffffff 280deg, #e1e1e1 360deg);
+    @apply absolute h-[200%] w-[200%] -left-1/2 -top-1/2 rounded-lg animate-border-spin content-[''];
   }
 
   .working-agent-wrapper {
     @apply w-full h-fit py-4 px-6 relative flex flex-col gap-2.5 items-start justify-between rounded-lg
-    bg-gradient-to-r from-[#333C44] to-[#2D2F32] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)] font-inter text-white;
+    bg-gradient-to-r from-[#333C44] to-[#2D2F32] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)] font-inter text-white overflow-hidden;
 
     .agent-info-section {
       .agent-name {

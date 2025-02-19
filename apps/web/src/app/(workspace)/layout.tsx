@@ -1,7 +1,7 @@
 import { Viewport } from 'next';
 
 import './workspace-layout.styles.css';
-import { LayoutProps } from '@lib/definitions';
+import { LayoutProps } from '@app/layout';
 import { NavBar } from '@components/nav-bar/nav-bar';
 import { isLoggedIn } from '@lib/actions/authentication-actions';
 

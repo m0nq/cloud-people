@@ -1,36 +1,42 @@
 {
-  "extends": "../../packages/tsconfig/nextjs.json",
-  "include": [
-    "next-env.d.ts",
-    "src",
-    ".next/types/**/*.ts"
-  ],
-  "compilerOptions": {
-    "baseUrl": ".",
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "paths": {
-      "@*": [
-        "./src/*"
-      ],
-      "@components/*": [
-        "./src/components/*"
-      ],
-      "@app/*": [
-        "./src/app/*"
-      ],
-      "@lib/*": [
-        "./src/lib/*"
-      ],
-      "@public/*": [
-        "./public/*"
-      ],
-      "@stores/*": [
-        "./src/stores/*"
-      ],
-      "@config/*": [
-        "./src/config/*"
-      ]
+    "extends": "../../packages/tsconfig/nextjs.json",
+    "include": [
+        "next-env.d.ts",
+        "src",
+        ".next/types/**/*.ts"
+    ],
+    "compilerOptions": {
+        "baseUrl": ".",
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "paths": {
+            "@*": [
+                "./src/*"
+            ],
+            "@components/*": [
+                "./src/components/*"
+            ],
+            "@app/*": [
+                "./src/app/*"
+            ],
+            "@lib/*": [
+                "./src/lib/*"
+            ],
+            "@public/*": [
+                "./public/*"
+            ],
+            "@stores/*": [
+                "./src/stores/*"
+            ],
+            "@utils/*": [
+                "./src/utils/*"
+            ],
+            "@config/*": [
+                "./src/config/*"
+            ],
+            "@app-types/*": [
+                "./src/app-types/*"
+            ]
+        }
     }
-  }
 }

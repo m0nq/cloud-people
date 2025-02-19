@@ -1,7 +1,7 @@
 'use server';
 
-import { QueryConfig } from '@lib/definitions';
-import { EdgeType } from '@lib/definitions';
+import type { QueryConfig } from '@app-types/api';
+import type { EdgeData } from '@app-types/workflow';
 import { authCheck } from '@lib/actions/authentication-actions';
 import { connectToDB } from '@lib/utils';
 
@@ -26,11 +26,24 @@ export const createEdge = async (config: QueryConfig): Promise<string> => {
         }
     `;
 
-    const [edge] = await connectToDB(insertEdgeMutation, config);
+    if (!config.data?.workflowId || !config.data?.toNodeId) {
+        throw new Error('workflowId and toNodeId are required to create an edge');
+    }
+
+    const variables = {
+        workflowId: config.data.workflowId,
+        toNodeId: config.data.toNodeId,
+        fromNodeId: config.data.fromNodeId
+    };
+
+    const [edge] = await connectToDB(insertEdgeMutation, variables);
+    if (!edge?.id) {
+        throw new Error('Failed to create edge');
+    }
     return edge.id;
 };
 
-export const fetchEdges = async (config: any = {}): Promise<EdgeType[]> => {
+export const fetchEdges = async (config: any = {}): Promise<EdgeData[]> => {
     await authCheck();
 
     const fetchEdgesQuery = `
@@ -48,11 +61,10 @@ export const fetchEdges = async (config: any = {}): Promise<EdgeType[]> => {
             ) {
                 records: edges {
                     edge: node {
-                        id
-                        workflow_id
-                        to_node_id
-                        from_node_id
-                    }
+                    id
+                    workflow_id
+                    to_node_id
+                    from_node_id
                 }
             }
         }
@@ -69,12 +81,12 @@ export const fetchEdges = async (config: any = {}): Promise<EdgeType[]> => {
     } as QueryConfig;
 
     const edges = await connectToDB(fetchEdgesQuery, variables);
-    return edges.map((node: any) => ({
-        ...node.node,
-        workflowId: node.workflow_id,
-        toNodeId: node.to_node_id,
-        fromNodeId: node.from_node_id
-    })) as EdgeType[];
+    return edges.map((edge: any) => ({
+        ...edge,
+        workflowId: edge.workflow_id,
+        toNodeId: edge.to_node_id,
+        fromNodeId: edge.from_node_id
+    })) as EdgeData[];
 };
 
 export const updateEdges = async (config: any = {}) => {
@@ -108,9 +120,8 @@ export const updateEdges = async (config: any = {}) => {
             from_node_id: config.fromNodeId
         },
         filter: {
-            workflow_id: { eq: config.workflowId },
-            to_node_id: { eq: config.toNodeId },
-            from_node_id: { eq: config.fromNodeId }
+            id: { eq: config.edgeId },
+            workflow_id: { eq: config.workflowId }
         }
     } as QueryConfig;
 
@@ -120,7 +131,7 @@ export const updateEdges = async (config: any = {}) => {
         workflowId: config.workflowId,
         toNodeId: edge.to_node_id,
         fromNodeId: edge.from_node_id
-    } as EdgeType;
+    } as EdgeData;
 };
 
 export const deleteEdges = async (config: QueryConfig = {}) => {
@@ -138,7 +149,8 @@ export const deleteEdges = async (config: QueryConfig = {}) => {
 
     const variables = {
         filter: {
-            id: { eq: config.edgeId }
+            id: { eq: config.edgeId },
+            workflow_id: { eq: config.workflowId }
         }
     } as QueryConfig;
 

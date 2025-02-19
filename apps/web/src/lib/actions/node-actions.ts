@@ -2,33 +2,41 @@
 import { type Node } from '@xyflow/react';
 
 import { authCheck } from '@lib/actions/authentication-actions';
-import { type QueryConfig } from '@lib/definitions';
-import { WorkflowState } from '@lib/definitions';
-import { type NodeData } from '@lib/definitions';
+import type { QueryConfig } from '@app-types/api';
+import { WorkflowState } from '@app-types/workflow';
+import type { NodeData } from '@app-types/workflow';
 import { connectToDB } from '@lib/utils';
 
-export const createNodes = async (config: QueryConfig = {}): Promise<Node> => {
+export const createNodes = async (config: QueryConfig = {}): Promise<Node<NodeData>> => {
     await authCheck();
 
-    if (!config.workflowId) {
+    if (!config.data?.workflowId) {
         throw new Error('Workflow ID is required to create a node');
     }
 
     const insertNodeMutation = `
-        mutation CreateNewNode($workflowId: UUID!) {
+        mutation CreateNewNode($workflowId: UUID!, $nodeType: String!, $agentId: UUID) {
             collection: insertIntoNodesCollection(objects: [{
                 workflow_id: $workflowId,
-                current_step: "0"
+                current_step: "0",
+                node_type: $nodeType,
+                agent_id: $agentId
             }]) {
                 records {
                     id
+                    agent_id
                 }
             }
         } 
    `;
 
     try {
-        const [node] = await connectToDB(insertNodeMutation, { workflowId: config.workflowId });
+        const [node] = await connectToDB(insertNodeMutation, {
+            ...config.data,
+            workflowId: config.data?.workflowId,
+            nodeType: config.data?.nodeType || 'agent',
+            agentId: config.data?.agentId
+        });
         if (!node?.id) {
             throw new Error('No ID returned');
         }
@@ -71,8 +79,8 @@ export const fetchNodes = async (config: QueryConfig = {}): Promise<Node[]> => {
         ...config,
         filter: {
             ...config.filter,
-            workflow_id: { eq: config.workflowId },
-            current_step: { eq: config.currentStep }
+            workflow_id: { eq: config.workflowId }
+            // current_step: { eq: config.currentStep }
         }
     } as QueryConfig;
 
@@ -113,18 +121,18 @@ export const updateNodes = async (config: QueryConfig = {}) => {
         }
     `;
 
-    if (!config.workflowId || !config.nodeId) {
+    if (!config.data?.workflowId || !config.data?.nodeId) {
         throw new Error('Both workflowId and nodeId are required for updating a node');
     }
 
     const variables = {
         set: {
-            state: config.set?.state || WorkflowState.Initial,
-            current_step: config.set?.current_step || '0',
-            updated_at: new Date()
+            state: config.data?.set?.state || WorkflowState.Initial,
+            current_step: config.data?.set?.current_step || '0',
+            updated_at: new Date().toISOString()  // Convert to ISO string format
         },
-        workflowId: config.workflowId,
-        nodeId: config.nodeId,
+        workflowId: config.data?.workflowId,
+        nodeId: config.data?.nodeId,
         atMost: 1
     };
 
@@ -132,7 +140,7 @@ export const updateNodes = async (config: QueryConfig = {}) => {
         const [node] = await connectToDB(updateNodeMutation, variables);
 
         if (!node) {
-            throw new Error(`No node found with id ${config.nodeId}`);
+            throw new Error(`No node found with id ${config.data?.nodeId}`);
         }
 
         return {
