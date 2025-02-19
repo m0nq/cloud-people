@@ -7,6 +7,7 @@ import Image from 'next/image';
 
 import './agent-config-modal.styles.css';
 import { useModalStore } from '@stores/modal-store';
+import { useAgentCacheStore } from '@stores/agent-cache-store';
 import { MinimizeIcon } from '@components/icons/minimize-icon';
 import { CheckMarkIcon } from '@components/icons/check-mark-icon';
 import { Button } from '@components/utils/button/button';
@@ -43,6 +44,7 @@ type AgentConfigFormData = z.infer<typeof agentConfigSchema>;
 
 export const AgentConfigModal = () => {
     const { openModal, parentNodeId, isFromModal, closeModal } = useModalStore();
+    const { invalidateCache } = useAgentCacheStore();
     const [error, setError] = useState<string | null>(null);
 
     const formik = useFormik<AgentConfigFormData>({
@@ -117,11 +119,12 @@ export const AgentConfigModal = () => {
                 // Close config modal and reopen selection modal
                 closeModal();
                 if (isFromModal) {
-                openModal({
-                    type: 'agent-selection',
+                    invalidateCache(); // Invalidate the cache when agent is created
+                    openModal({
+                        type: 'agent-selection',
                         parentNodeId,
                         isFromModal: true
-                });
+                    });
                 }
             } catch (err) {
                 console.error('Error creating agent:', err);
