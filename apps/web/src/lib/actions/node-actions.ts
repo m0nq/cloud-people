@@ -32,6 +32,7 @@ export const createNodes = async (config: QueryConfig = {}): Promise<Node<NodeDa
 
     try {
         const [node] = await connectToDB(insertNodeMutation, {
+            ...config.data,
             workflowId: config.data?.workflowId,
             nodeType: config.data?.nodeType || 'agent',
             agentId: config.data?.agentId

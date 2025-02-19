@@ -22,14 +22,23 @@
       @apply flex items-center justify-between;
 
       .config-header-container {
-        @apply flex items-center gap-2;
+        @apply flex flex-col gap-2;
 
-        .config-header-avatar {
-          @apply w-16 h-16 rounded-full bg-color-dark-gray;
+        .config-header-top {
+          @apply flex items-center gap-2;
+
+          .config-header-avatar {
+            @apply w-fit h-fit rounded-full bg-color-dark-gray;
+          }
+
+          h2 {
+            @apply text-white font-bold;
+          }
         }
 
-        h2 {
-          @apply text-white font-bold;
+        .name-input {
+          @apply px-3 py-2 bg-transparent text-lg font-semibold text-white border-b border-gray-700
+          focus:border-emerald-500 focus:outline-none;
         }
       }
 

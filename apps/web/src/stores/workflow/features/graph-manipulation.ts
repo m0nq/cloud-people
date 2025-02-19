@@ -24,7 +24,6 @@ import { updateState } from '@stores/workflow';
 import { validateConnection } from '@stores/workflow';
 import type { AgentData } from '@app-types/agent';
 import { AgentState } from '@app-types/agent';
-import { createAgent } from '@lib/actions/agent-actions';
 import { NODE_SPACING_X } from '@config/layout.const';
 import { NODE_SPACING_Y } from '@config/layout.const';
 import { useAgentStore } from '@stores/agent-store';
@@ -200,21 +199,10 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
                 throw new Error('Parent node not found or missing workflowId');
             }
 
-            // Create the agent first
-            const agentRecord = await createAgent({
-                data: {
-                    config: {
-                        name: agent.name,
-                        description: agent.description,
-                        workflowId: parentNode.data.workflowId
-                    },
-                    tools: agent.tools || []
-                }
-            });
-
-            if (!agentRecord?.id) {
-                throw new Error('Failed to create agent record');
-            }
+            // TODO: ensure that an agent and it's tools are associated with this node
+            // if (!agentRecord?.id) {
+            //     throw new Error('Failed to create agent record');
+            // }
 
             // Calculate position for the new node
             const siblings = getConnectedEdges([parentNode], edges)
@@ -242,18 +230,14 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
             }
 
             // Create the new node
+            // TODO: add agent id to node
             const node = await createNodes({
                 data: {
+                    agentId: '',
                     workflowId: parentNode.data.workflowId,
-                    nodeType: NodeType.Agent,
-                    agentId: agentRecord.id,
-                    data: {
-                        agentId: agentRecord.id,
-                        workflowId: parentNode.data.workflowId,
-                        name: agent.name,
-                        description: agent.description,
-                        tools: agent.tools || []
-                    }
+                    name: agent.name,
+                    description: agent.description,
+                    tools: agent.tools || []
                 }
             });
 
