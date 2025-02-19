@@ -29,6 +29,7 @@ import { NODE_SPACING_Y } from '@config/layout.const';
 import { useAgentStore } from '@stores/agent-store';
 import { NodeType } from '@app-types/workflow/node-types';
 import { EdgeType } from '@app-types/workflow/node-types';
+import { fetchAgent } from '@lib/actions/agent-actions';
 
 type PositionNodeChange = NodeChange & {
     type: 'position';
@@ -200,9 +201,10 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
             }
 
             // TODO: ensure that an agent and it's tools are associated with this node
-            // if (!agentRecord?.id) {
-            //     throw new Error('Failed to create agent record');
-            // }
+            const agentRecord = await fetchAgent({ agentId: agent.id });
+            if (!agentRecord?.id) {
+                throw new Error('Failed to fetch agent record');
+            }
 
             // Calculate position for the new node
             const siblings = getConnectedEdges([parentNode], edges)
@@ -230,14 +232,13 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
             }
 
             // Create the new node
-            // TODO: add agent id to node
             const node = await createNodes({
                 data: {
-                    agentId: '',
+                    agentId: agentRecord.id,
                     workflowId: parentNode.data.workflowId,
-                    name: agent.name,
-                    description: agent.description,
-                    tools: agent.tools || []
+                    name: agentRecord.name,
+                    description: agentRecord.description,
+                    tools: agentRecord.config?.tools || []
                 }
             });
 

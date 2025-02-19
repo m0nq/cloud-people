@@ -31,8 +31,12 @@
             @apply w-fit h-fit rounded-full bg-color-dark-gray;
           }
 
-          h2 {
-            @apply text-white font-bold;
+          .config-agent-title {
+            @apply flex items-center justify-center;
+
+            h2 {
+              @apply text-white font-bold;
+            }
           }
         }
 

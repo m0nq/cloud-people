@@ -77,17 +77,18 @@ export const createAgent = async (config: QueryConfig = {}): Promise<any> => {
 };
 
 export const fetchAgent = async (config: QueryConfig = {}): Promise<any> => {
-    await authCheck();
+    const user = await authCheck();
 
     const fetchAgentQuery = `
-        query AgentQuery($id: UUID!) {
-            collection: agentsCollection(filter: { id: { eq: $id } }) {
-                edges {
-                    node {
+        query AgentQuery($agentId: UUID!, $userId: UUID!) {
+            collection: agentsCollection(filter: { id: { eq: $agentId }, created_by: { eq: $userId } }) {
+                records: edges {
+                    agent: node {
                         id
+                        name
+                        description
                         config
-                        created_at
-                        updated_at
+                        created_by
                     }
                 }
             }
@@ -95,15 +96,49 @@ export const fetchAgent = async (config: QueryConfig = {}): Promise<any> => {
     `;
 
     try {
-        const [agent] = await connectToDB(fetchAgentQuery, {
-            data: {
-                id: config.data?.id
-            }
+        const [record] = await connectToDB(fetchAgentQuery, {
+            id: config.agentId,
+            userId: user.id
         });
 
-        return agent;
+        if (!record) {
+            throw new Error('Agent not found');
+        }
+
+        return record.agent;
     } catch (error) {
-        console.error('Failed to fetch agent:', error);
+        console.error('Error fetching agent:', error);
+        throw error;
+    }
+};
+
+export const fetchAgents = async (): Promise<any> => {
+    const user = await authCheck();
+
+    const fetchAgentsQuery = `
+        query FetchAgentsQuery($userId: UUID!) {
+            collection: agentsCollection(filter: { created_by: { eq: $userId } }) {
+                records: edges {
+                    agent: node {
+                        id
+                        name
+                        description
+                        config
+                        created_by
+                    }
+                }
+            }
+        }
+    `;
+
+    try {
+        const records = await connectToDB(fetchAgentsQuery, {
+            userId: user.id
+        });
+
+        return records.map((record: any) => record.agent);
+    } catch (error) {
+        console.error('Error fetching agents:', error);
         throw error;
     }
 };

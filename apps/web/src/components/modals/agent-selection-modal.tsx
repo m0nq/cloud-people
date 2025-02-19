@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useCallback } from 'react';
+import { useEffect } from 'react';
 import { useMemo } from 'react';
 import { ReactNode } from 'react';
 
@@ -8,70 +9,50 @@ import { AgentCard } from '@components/agents/agent-card';
 import { AgentData } from '@app-types/agent';
 import { DEFAULT_AGENT_STATE } from '@stores/agent-store';
 import { useModalStore } from '@stores/modal-store';
+import { fetchAgents } from '@lib/actions/agent-actions';
 
-// Define available agent capabilities
-const AGENT_CAPABILITIES = {
-    BROWSER_NAVIGATION: {
-        id: 'browser_navigation',
-        name: 'Browser Navigation',
-        description: 'Navigate to specified websites',
-        action: 'navigate_to_google'
-    }
-    // Add more capabilities as needed
-} as const;
-
-// Define available agents with their capabilities
-const AVAILABLE_AGENTS: AgentData[] = [
-    {
-        id: 'rico-browser-agent',
-        name: 'Rico',
-        role: 'Browser Navigator',
-        capability: AGENT_CAPABILITIES.BROWSER_NAVIGATION,
-        config: {
-            actions: [
-                {
-                    type: 'browser',
-                    command: 'navigate'
-                }
-            ],
-            aiEnabled: true
-        }
-    },
-    {
-        id: 'becca-browser-agent',
-        name: 'Becca',
-        role: 'Browser Navigator',
-        capability: AGENT_CAPABILITIES.BROWSER_NAVIGATION,
-        config: {
-            actions: [
-                {
-                    type: 'browser',
-                    command: 'navigate'
-                }
-            ],
-            aiEnabled: true
-        }
-    }
-    // Add more agents as needed
-];
-
-interface AgentSelectionModalProps {
+export interface AgentSelectionModalProps {
     parentNodeId: string;
     onClose: () => void;
     onSelect: (agentData: AgentData) => void;
     children?: ReactNode;
 }
 
-export const AgentSelectionModal = ({
-    onClose,
-    onSelect,
-    parentNodeId,
-    children
-}: AgentSelectionModalProps) => {
+export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children }: AgentSelectionModalProps) => {
+    const [userAgents, setUserAgents] = useState<AgentData[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState('agents');
     const { openModal } = useModalStore();
 
-    /* TODO: fetch agents from db to collect and display them. */
+    useEffect(() => {
+        let isMounted = true;
+
+        const loadAgents = async () => {
+            try {
+                setLoading(true);
+                const agents = await fetchAgents();
+                if (isMounted) {
+                    setUserAgents(agents);
+                }
+            } catch (err) {
+                if (isMounted) {
+                    setError('Failed to load agents');
+                    console.error('Error loading agents:', err);
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        loadAgents();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     const handleBuildAgentClick = useCallback(() => {
         openModal({
@@ -81,15 +62,20 @@ export const AgentSelectionModal = ({
         });
     }, [parentNodeId, openModal]);
 
-    const initialAgentState = useMemo(() => ({
-        ...DEFAULT_AGENT_STATE
-    }), []);
+    const initialAgentState = useMemo(
+        () => ({
+            ...DEFAULT_AGENT_STATE
+        }),
+        []
+    );
 
-    const handleAgentSelect = useCallback((agentData: AgentData) => {
-        // Simply pass the agent data to parent component
-        onSelect({ ...agentData, parentNodeId });
-        onClose();
-    }, [onClose, onSelect, parentNodeId]);
+    const handleAgentSelect = useCallback(
+        (agent: AgentData) => {
+            onSelect({ ...agent, parentNodeId });
+            onClose();
+        },
+        [onSelect, onClose, parentNodeId]
+    );
 
     return (
         <div className="agent-selector-container">
@@ -118,13 +104,29 @@ export const AgentSelectionModal = ({
                 </div>
 
                 {/* Agent Cards Grid */}
-                <div className="agents-grid">
-                    {AVAILABLE_AGENTS.map(agent => (
-                        <div key={agent.name} className="agent-card-container" onClick={() => handleAgentSelect(agent)}>
-                            <AgentCard data={agent} agent={initialAgentState} />
-                        </div>
-                    ))}
-                </div>
+                {error ? (
+                    <div className="error-message">Failed to load agents. Please try again or contact support if the
+                        issue persists.</div>
+                ) : loading ? (
+                    <div className="loading">Loading agents...</div>
+                ) : (
+                    <>
+                        {!userAgents.length ? (
+                            <div className="no-agents-message">You currently have no agents. Build some in the Agent
+                                Builder or buy one in our Store.</div>
+                        ) : (
+                            <div className="agents-grid">
+                                {userAgents.map(agent => (
+                                    <div key={agent.id}
+                                        className="agent-card-container"
+                                        onClick={() => handleAgentSelect(agent)}>
+                                        <AgentCard data={agent} agent={initialAgentState} />
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </>
+                )}
             </div>
         </div>
     );

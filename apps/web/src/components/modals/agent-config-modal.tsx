@@ -81,10 +81,10 @@ export const AgentConfigModal = () => {
             try {
                 setError(null);
 
-                // Sanitize inputs
+                // Sanitize the input values
                 const sanitizedValues = {
                     name: DOMPurify.sanitize(values.name),
-                    description: DOMPurify.sanitize(values.description || ''),
+                    description: DOMPurify.sanitize(values.description),
                     config: {
                         speed: values.config.speed,
                         contextWindow: values.config.contextWindow ? DOMPurify.sanitize(values.config.contextWindow) : '',
@@ -117,11 +117,11 @@ export const AgentConfigModal = () => {
                 // Close config modal and reopen selection modal
                 closeModal();
                 if (isFromModal) {
-                    openModal({
-                        type: 'agent-selection',
+                openModal({
+                    type: 'agent-selection',
                         parentNodeId,
                         isFromModal: true
-                    });
+                });
                 }
             } catch (err) {
                 console.error('Error creating agent:', err);
@@ -156,7 +156,7 @@ export const AgentConfigModal = () => {
                                 <div className="config-header-avatar">
                                     <Image src={cloudHeadImage} alt="Cloud head avatar" width={48} height={48} />
                                 </div>
-                                <div>
+                                <div className="config-agent-title">
                                     <h2>Configure Agent</h2>
                                 </div>
                             </div>
