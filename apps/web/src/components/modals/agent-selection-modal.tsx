@@ -9,6 +9,7 @@ import { AgentCard } from '@components/agents/agent-card';
 import { AgentData } from '@app-types/agent';
 import { DEFAULT_AGENT_STATE } from '@stores/agent-store';
 import { useModalStore } from '@stores/modal-store';
+import { useAgentCacheStore } from '@stores/agent-cache-store';
 import { fetchAgents } from '@lib/actions/agent-actions';
 
 export interface AgentSelectionModalProps {
@@ -23,6 +24,8 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState('agents');
+    const { lastFetchTime } = useAgentCacheStore();
+    const CACHE_DURATION = 30000; // 30 seconds cache
     const { openModal } = useModalStore();
 
     useEffect(() => {
@@ -30,6 +33,13 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
 
         const loadAgents = async () => {
             try {
+                // Check if cache is still valid
+                const now = Date.now();
+                if (userAgents.length > 0 && now - lastFetchTime < CACHE_DURATION) {
+                    setLoading(false);
+                    return;
+                }
+
                 setLoading(true);
                 const agents = await fetchAgents();
                 if (isMounted) {
@@ -52,7 +62,7 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
         return () => {
             isMounted = false;
         };
-    }, []);
+    }, [userAgents.length, lastFetchTime]);
 
     const handleBuildAgentClick = useCallback(() => {
         openModal({
@@ -76,6 +86,9 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
         },
         [onSelect, onClose, parentNodeId]
     );
+
+    // Memoize agents to prevent unnecessary re-renders
+    const memoizedAgents = useMemo(() => userAgents, [userAgents]);
 
     return (
         <div className="agent-selector-container">
@@ -111,12 +124,12 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
                     <div className="loading">Loading agents...</div>
                 ) : (
                     <>
-                        {!userAgents.length ? (
+                        {!memoizedAgents.length ? (
                             <div className="no-agents-message">You currently have no agents. Build some in the Agent
                                 Builder or buy one in our Store.</div>
                         ) : (
                             <div className="agents-grid">
-                                {userAgents.map(agent => (
+                                {memoizedAgents.map(agent => (
                                     <div key={agent.id}
                                         className="agent-card-container"
                                         onClick={() => handleAgentSelect(agent)}>

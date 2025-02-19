@@ -4,7 +4,7 @@ import { Agent } from '@app-types/agent';
 import { AgentState } from '@app-types/agent';
 
 interface BrowserStatusProps {
-    state: Agent;
+    agent: Agent;
     url?: string;
 }
 
@@ -31,15 +31,15 @@ const getStatusMessage = (state: AgentState, progress?: number): ReactNode => {
     }
 };
 
-export const BrowserStatus = ({ state, url }: BrowserStatusProps): ReactNode => {
-    const message = getStatusMessage(state.state, state.progress);
+export const BrowserStatus = ({ agent, url }: BrowserStatusProps): ReactNode => {
+    const message = getStatusMessage(agent.state, agent.progress);
 
     return (
         <div className="browser-status">
             <div className="status-message">
                 {message}
-                {state.progress && state.state === AgentState.Working && (
-                    <span className="progress">({state.progress}%)</span>
+                {agent.progress && agent.state === AgentState.Working && (
+                    <span className="progress">({agent.progress}%)</span>
                 )}
             </div>
             {url && (
@@ -47,9 +47,9 @@ export const BrowserStatus = ({ state, url }: BrowserStatusProps): ReactNode => 
                     {url}
                 </div>
             )}
-            {state.error && (
+            {agent.error && (
                 <div className="error-message">
-                    {state.error}
+                    {agent.error}
                 </div>
             )}
         </div>
