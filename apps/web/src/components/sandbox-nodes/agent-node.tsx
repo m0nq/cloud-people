@@ -135,14 +135,14 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                 type={HandleType.SOURCE}
                 position={sPosition}
                 id="source"
-                isConnectable={isConnectable && (workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused)}
+                isConnectable={isConnectable || (workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused)}
                 className={workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} />
             <NodeComponent.Handle
                 type={HandleType.TARGET}
                 position={tPosition}
                 id="target"
                 data-handleid="target"
-                isConnectable={isConnectable && (workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused)}
+                isConnectable={isConnectable || (workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused)}
                 className={workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} />
         </NodeComponent.Root>
     );

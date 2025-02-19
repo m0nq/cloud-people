@@ -69,8 +69,6 @@ export const AgentSelectionModal = ({
     children
 }: AgentSelectionModalProps) => {
     const [activeTab, setActiveTab] = useState('agents');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const { openModal } = useModalStore();
 
     /* TODO: fetch agents from db to collect and display them. */
@@ -87,23 +85,11 @@ export const AgentSelectionModal = ({
         ...DEFAULT_AGENT_STATE
     }), []);
 
-    const handleAgentSelect = useCallback(async (agentData: AgentData) => {
-            try {
-                setLoading(true);
-                setError(null);
-
-                // Just pass the agent data to onSelect, which will trigger addNode in graph-manipulation
-                onSelect({ ...agentData, parentNodeId });
-                onClose();
-            } catch (err) {
-                console.error('Failed to select agent:', err);
-                setError('Failed to select agent. Please try again.');
-            } finally {
-                setLoading(false);
-            }
-        },
-        [onClose, onSelect, parentNodeId]
-    );
+    const handleAgentSelect = useCallback((agentData: AgentData) => {
+        // Simply pass the agent data to parent component
+        onSelect({ ...agentData, parentNodeId });
+        onClose();
+    }, [onClose, onSelect, parentNodeId]);
 
     return (
         <div className="agent-selector-container">
@@ -133,16 +119,11 @@ export const AgentSelectionModal = ({
 
                 {/* Agent Cards Grid */}
                 <div className="agents-grid">
-                    {/* {loading ? (
-                     <div>Creating agent...</div>
-                     ) : ( */}
                     {AVAILABLE_AGENTS.map(agent => (
                         <div key={agent.name} className="agent-card-container" onClick={() => handleAgentSelect(agent)}>
                             <AgentCard data={agent} agent={initialAgentState} />
                         </div>
                     ))}
-                    {/* } */}
-                    {error && <div className="error-message">{error}</div>}
                 </div>
             </div>
         </div>
