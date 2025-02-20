@@ -17,9 +17,22 @@ export type AgentCapability = {
     url?: string;
 };
 
+export enum AgentSpeed {
+    Instant = 'Instant',
+    Fast = 'Fast',
+    Slow = 'Slow'
+}
+
+export enum MemoryLimit {
+    Small = '8g',
+    Medium = '16g',
+    Large = '32g'
+}
+
 export type AgentConfig = {
     actions: AgentAction[];
     aiEnabled: boolean;
+    agentSpeed: AgentSpeed;
     metadata?: Record<string, unknown>;
 };
 
