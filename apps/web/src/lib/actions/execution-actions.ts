@@ -5,6 +5,7 @@ import type { QueryConfig } from '@app-types/api';
 import { connectToDB } from '@lib/utils';
 import { WorkflowState } from '@app-types/workflow';
 import type { WorkflowExecution } from '@app-types/workflow';
+import { updateWorkflow } from './workflow-actions';
 
 export interface ExecutionRecord {
     id: string;
@@ -97,7 +98,6 @@ export const updateExecution = async (query: ExecutionQuery): Promise<WorkflowEx
     }
 
     try {
-        // First update the execution
         const updateExecutionMutation = `
             mutation UpdateExecutionMutation(
                 $id: UUID!,
@@ -133,32 +133,6 @@ export const updateExecution = async (query: ExecutionQuery): Promise<WorkflowEx
             }
         `;
 
-        // Then update the workflow state
-        const updateWorkflowMutation = `
-            mutation UpdateWorkflowMutation(
-                $workflowId: UUID!,
-                $state: WorkflowState!,
-                $currentStep: UUID,
-                $updatedAt: Timestamp!
-            ) {
-                collection: updateWorkflowsCollection(
-                    set: {
-                        state: $state,
-                        current_step: $currentStep,
-                        updated_at: $updatedAt
-                    },
-                    filter: { id: { eq: $workflowId } }
-                ) {
-                    records {
-                        id
-                        state
-                        current_step
-                        updated_at
-                    }
-                }
-            }
-        `;
-
         const now = new Date().toISOString();
 
         try {
@@ -174,15 +148,15 @@ export const updateExecution = async (query: ExecutionQuery): Promise<WorkflowEx
 
             const [execution]: ExecutionRecord[] = await connectToDB(updateExecutionMutation, executionVariables);
 
-            // Update workflow
-            const workflowVariables = {
+            // Update workflow using the existing function
+            await updateWorkflow({
                 workflowId: query.workflowId,
-                state: query.currentStatus,
-                currentStep: query.nodeId,
-                updatedAt: now
-            };
-
-            await connectToDB(updateWorkflowMutation, workflowVariables);
+                set: {
+                    state: query.currentStatus,
+                    current_step: query.nodeId,
+                    updated_at: now
+                }
+            });
 
             return {
                 id: execution.id,

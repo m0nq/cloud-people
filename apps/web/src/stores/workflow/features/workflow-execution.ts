@@ -26,7 +26,6 @@ const findNextNode = (nodes: Node<NodeData>[], edges: Edge<EdgeData>[], currentN
 };
 
 export const transitionNode = (set: Function, nodes: Node<NodeData>[], nodeId: string, newState: AgentState) => {
-    debugger;
     const node = nodes.find(n => n.id === nodeId);
     if (!node || !isWorkflowNode(node)) return;
 
