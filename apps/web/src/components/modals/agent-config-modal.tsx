@@ -25,19 +25,18 @@ const agentConfigSchema = z.object({
     speed: z.nativeEnum(AgentSpeed).default(AgentSpeed.Instant),
     contextWindow: z.string().optional().default(''),
     memoryLimit: z.nativeEnum(MemoryLimit).default(MemoryLimit.Small),
-    budget: z.string()
-        .default('0.00')
-        .transform((val) => {
-            // Remove currency formatting for validation
-            const numStr = val.replace(/[$,]/g, '');
-            const num = parseFloat(numStr);
+    budget: z
+        .string()
+        .regex(/^\d*\.?\d{0,2}$/, 'Please enter a valid amount')
+        .transform(val => {
+            const num = parseFloat(val);
             return isNaN(num) ? 0 : num;
-        }),
+        })
+        .refine(val => val >= 0, 'Amount must be positive'),
     models: z.string().optional().default(''),
     tools: z.string().optional().default('')
 });
 
-// Define a separate type for the form data that uses string for budget
 type AgentConfigFormData = Omit<z.infer<typeof agentConfigSchema>, 'budget'> & {
     budget: string;
 };
@@ -47,19 +46,24 @@ export const AgentConfigModal = () => {
     const { invalidateCache } = useAgentCacheStore();
     const [error, setError] = useState<string | null>(null);
 
-    const formatCurrency = (value: string) => {
-        // Remove non-numeric characters except decimal point
-        const numStr = value.replace(/[^0-9.]/g, '');
-        const num = parseFloat(numStr);
-        
-        if (isNaN(num)) return '$0.00';
-        
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }).format(num);
+    const formatBudgetDisplay = (value: string): string => {
+        // Remove any non-numeric characters except decimal
+        const cleanVal = value.replace(/[^0-9.]/g, '');
+
+        // Handle decimal places
+        const parts = cleanVal.split('.');
+        const whole = parts[0] || '0';
+        const decimal = parts[1]?.slice(0, 2) || '00';
+
+        // Add commas for thousands
+        const withCommas = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+        return withCommas + (parts.length > 1 ? '.' + decimal : '.00');
+    };
+
+    const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = e.target.value.replace(/[^0-9.]/g, '');
+        formik.setFieldValue('budget', value);
     };
 
     const formik = useFormik<AgentConfigFormData>({
@@ -103,7 +107,7 @@ export const AgentConfigModal = () => {
                     speed: values.speed,
                     contextWindow: values.contextWindow ? DOMPurify.sanitize(values.contextWindow) : '',
                     memoryLimit: values.memoryLimit,
-                    budget: values.budget.replace(/[$,]/g, ''), // Remove currency formatting
+                    budget: values.budget.replace(/[^0-9.]/g, ''), // Remove currency formatting
                     models: values.models || '',
                     tools: values.tools || ''
                 };
@@ -235,9 +239,9 @@ export const AgentConfigModal = () => {
                                     <InfoIcon color="#575D69" width={16} height={16} strokeWidth={2} />
                                 </label>
                                 <select className="config-select" {...formik.getFieldProps('memoryLimit')}>
-                                    <option value={MemoryLimit.Small}>Small</option>
-                                    <option value={MemoryLimit.Medium}>Medium</option>
-                                    <option value={MemoryLimit.Large}>Large</option>
+                                    <option value={MemoryLimit.Small}>{MemoryLimit.Small}</option>
+                                    <option value={MemoryLimit.Medium}>{MemoryLimit.Medium}</option>
+                                    <option value={MemoryLimit.Large}>{MemoryLimit.Large}</option>
                                 </select>
                             </div>
                             <div className="budget-container">
@@ -245,18 +249,21 @@ export const AgentConfigModal = () => {
                                     Assign a budget
                                     <InfoIcon color="#575D69" width={16} height={16} strokeWidth={2} />
                                 </label>
-                                <input
-                                    type="text"
-                                    {...formik.getFieldProps('budget')}
-                                    onChange={(e) => {
-                                        const formatted = formatCurrency(e.target.value);
-                                        formik.setFieldValue('budget', formatted);
-                                    }}
-                                    className="config-input"
-                                />
-                                {formik.touched.budget && formik.errors.budget && (
-                                    <div className="error-message">{formik.errors.budget}</div>
-                                )}
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300">$</span>
+                                    <input
+                                        type="text"
+                                        {...formik.getFieldProps('budget')}
+                                        onChange={handleBudgetChange}
+                                        onBlur={e => {
+                                            const formatted = formatBudgetDisplay(e.target.value);
+                                            formik.setFieldValue('budget', formatted);
+                                            formik.handleBlur(e);
+                                        }}
+                                        className="config-input currency-input"
+                                    />
+                                </div>
+                                {formik.touched.budget && formik.errors.budget && <div className="text-white w-full h-fit">{formik.errors.budget}</div>}
                             </div>
                         </div>
 
