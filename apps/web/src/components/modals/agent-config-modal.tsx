@@ -27,9 +27,17 @@ const agentConfigSchema = z.object({
     memoryLimit: z.nativeEnum(MemoryLimit).default(MemoryLimit.Small),
     budget: z
         .string()
-        .regex(/^\d*\.?\d{0,2}$/, 'Please enter a valid amount')
         .transform(val => {
-            const num = parseFloat(val);
+            // Remove any non-numeric characters
+            const cleanVal = val.replace(/[^0-9.]/g, '');
+
+            // Handle multiple decimal points by keeping only the first one
+            const parts = cleanVal.split('.');
+            const whole = parts[0] || '0';
+            const decimal = parts[1] || '00';
+
+            // Combine and parse as float, limiting to 2 decimal places
+            const num = parseFloat(whole + '.' + decimal.slice(0, 2));
             return isNaN(num) ? 0 : num;
         })
         .refine(val => val >= 0, 'Amount must be positive'),
@@ -50,7 +58,7 @@ export const AgentConfigModal = () => {
         // Remove any non-numeric characters except decimal
         const cleanVal = value.replace(/[^0-9.]/g, '');
 
-        // Handle decimal places
+        // Handle decimal places and multiple decimal points
         const parts = cleanVal.split('.');
         const whole = parts[0] || '0';
         const decimal = parts[1]?.slice(0, 2) || '00';
@@ -58,11 +66,19 @@ export const AgentConfigModal = () => {
         // Add commas for thousands
         const withCommas = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
-        return withCommas + (parts.length > 1 ? '.' + decimal : '.00');
+        return withCommas + '.' + decimal;
     };
 
     const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value.replace(/[^0-9.]/g, '');
+        // Only allow numbers and a single decimal point
+        let value = e.target.value.replace(/[^0-9.]/g, '');
+
+        // Handle multiple decimal points by keeping only the first one
+        const parts = value.split('.');
+        if (parts.length > 2) {
+            value = parts[0] + '.' + parts[1];
+        }
+
         formik.setFieldValue('budget', value);
     };
 
@@ -174,7 +190,7 @@ export const AgentConfigModal = () => {
                                 </div>
                             </div>
                             <input type="text" placeholder="Give your agent a name..." className="name-input" {...formik.getFieldProps('name')} />
-                            {formik.touched.name && formik.errors.name && <div className="error-message">{formik.errors.name}</div>}
+                            {formik.touched.name && formik.errors.name && <div className="w-full h-fit text-white">{formik.errors.name}</div>}
                         </div>
                         <button type="button" className="minimize-button" onClick={handleClick}>
                             <MinimizeIcon color="white" width={24} height={24} />
@@ -194,7 +210,7 @@ export const AgentConfigModal = () => {
                                 className={`config-input description-input ${formik.touched.description && formik.errors.description ? 'error' : ''}`}
                                 placeholder="Does research on historical data and current trends to identify trends and holes in the market for the company to fill."
                             />
-                            {formik.touched.description && formik.errors.description && <div className="error-message">{formik.errors.description}</div>}
+                            {formik.touched.description && formik.errors.description && <div className="w-full h-fit text-white">{formik.errors.description}</div>}
                         </div>
                     </div>
 
