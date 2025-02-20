@@ -11,29 +11,41 @@ export type Database = {
     Tables: {
       Agents: {
         Row: {
-          config: Json
+          agent_speed: Database["public"]["Enums"]["AgentSpeed"]
+          budget: number
+          context_window: string | null
           created_at: string
           created_by: string | null
           description: string | null
           id: string
+          memory_limit: string
+          models: string[] | null
           name: string
           updated_at: string
         }
         Insert: {
-          config: Json
+          agent_speed?: Database["public"]["Enums"]["AgentSpeed"]
+          budget?: number
+          context_window?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           id?: string
+          memory_limit: string
+          models?: string[] | null
           name: string
           updated_at?: string
         }
         Update: {
-          config?: Json
+          agent_speed?: Database["public"]["Enums"]["AgentSpeed"]
+          budget?: number
+          context_window?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
           id?: string
+          memory_limit?: string
+          models?: string[] | null
           name?: string
           updated_at?: string
         }
@@ -192,7 +204,7 @@ export type Database = {
           current_step: string | null
           id: string
           node_type: string
-          agent: string | null
+          state: string | null
           updated_at: string | null
           workflow_id: string
         }
@@ -202,7 +214,7 @@ export type Database = {
           current_step?: string | null
           id?: string
           node_type?: string
-          agent?: string | null
+          state?: string | null
           updated_at?: string | null
           workflow_id: string
         }
@@ -212,7 +224,7 @@ export type Database = {
           current_step?: string | null
           id?: string
           node_type?: string
-          agent?: string | null
+          state?: string | null
           updated_at?: string | null
           workflow_id?: string
         }
@@ -343,7 +355,7 @@ export type Database = {
           current_step: string | null
           data: Json | null
           id: string
-          agent: Database["public"]["Enums"]["WorkflowState"]
+          state: Database["public"]["Enums"]["WorkflowState"]
           updated_at: string | null
           user_id: string
         }
@@ -352,7 +364,7 @@ export type Database = {
           current_step?: string | null
           data?: Json | null
           id?: string
-          agent?: Database["public"]["Enums"]["WorkflowState"]
+          state?: Database["public"]["Enums"]["WorkflowState"]
           updated_at?: string | null
           user_id: string
         }
@@ -361,7 +373,7 @@ export type Database = {
           current_step?: string | null
           data?: Json | null
           id?: string
-          agent?: Database["public"]["Enums"]["WorkflowState"]
+          state?: Database["public"]["Enums"]["WorkflowState"]
           updated_at?: string | null
           user_id?: string
         }
@@ -554,7 +566,8 @@ export type Database = {
       }
     }
     Enums: {
-      WorkflowState: "Initial" | "Build" | "Running" | "Error" | "Complete"
+      AgentSpeed: "Instant" | "Slow" | "Fast"
+      WorkflowState: "INITIAL" | "BUILDING" | "RUNNING" | "PAUSED" | "COMPLETED"
     }
     CompositeTypes: {
       [_ in never]: never
