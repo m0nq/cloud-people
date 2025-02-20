@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 
 import './node.styles.css';
 import { useWorkflowStore } from '@stores/workflow';
-import { WorkflowActions } from '@stores/workflow';
+import type { WorkflowActions } from '@app-types/workflow';
 
 type InitialStateNodeProps = {
     data: {

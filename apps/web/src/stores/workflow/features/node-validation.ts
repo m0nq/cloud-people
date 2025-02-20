@@ -8,11 +8,15 @@ import { findRootNode } from '@stores/workflow';
 import { NodeType } from '@app-types/workflow/node-types';
 
 export const isInitialStateNode = (node: Node<NodeData | InitialStateNodeData>): node is Node<InitialStateNodeData> => {
-    return node.type?.includes(NodeType.Initial) ?? false;
+    return node.data.type?.includes(NodeType.Initial) ?? false;
+};
+
+export const isRootNode = (node: Node<NodeData | InitialStateNodeData>): node is Node<InitialStateNodeData> => {
+    return node.data.type?.includes(NodeType.Root) ?? false;
 };
 
 export const isWorkflowNode = (node: Node<NodeData | InitialStateNodeData>): node is Node<NodeData> => {
-    return !isInitialStateNode(node);
+    return !isInitialStateNode(node) && !isRootNode(node);
 };
 
 export const isValidWorkflowNode = (node: Node<NodeData | InitialStateNodeData>): node is Node<NodeData> => {

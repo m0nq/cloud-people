@@ -1,8 +1,9 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import type { Agent } from '@app-types/agent';
+import { AgentRuntimeState } from '@app-types/agent';
 import { AgentState } from '@app-types/agent';
+import type { AgentData } from '@app-types/agent';
 
 type StateTransitionError = {
     message: string;
@@ -11,29 +12,33 @@ type StateTransitionError = {
 };
 
 type AgentStoreState = {
-    agentState: Record<string, Agent>;
+    agentState: Record<string, AgentRuntimeState>;
+    agentData: Record<string, AgentData>;
     errors: Record<string, StateTransitionError | null>;
 };
 
 type AgentStoreActions = {
     removeAgent: (agentId: string) => void;
-    transition: (agentId: string, newState: AgentState, updates?: Partial<Omit<Agent, 'state'>>) => void;
-    updateAgent: (agentId: string, updates: Partial<Agent>) => void;
+    transition: (agentId: string, newState: AgentState, updates?: Partial<Omit<AgentRuntimeState, 'state'>>) => void;
+    updateAgentState: (agentId: string, updates: Partial<AgentRuntimeState>) => void;
+    setAgentData: (agentId: string, data: AgentData) => void;
     resetAgent: (agentId: string) => void;
     resetErroredAgents: () => void;
 };
 
 type AgentStoreSelectors = {
-    getAgent: (agentId: string) => Agent | undefined;
+    getAgentState: (agentId: string | undefined) => AgentRuntimeState;
+    getAgentData: (agentId: string | undefined) => AgentData | undefined;
     getAgentError: (agentId: string) => StateTransitionError | null;
     isTransitionAllowed: (agentId: string, newStatus: AgentState) => boolean;
 };
 
 type AgentStore = AgentStoreState & AgentStoreActions & AgentStoreSelectors;
 
-export const DEFAULT_AGENT_STATE: Agent = {
+export const DEFAULT_AGENT_STATE: AgentRuntimeState = {
     state: AgentState.Initial,
     isEditable: true,
+    isLoading: true,
     progress: 0
 };
 
@@ -52,42 +57,44 @@ const isValidTransition = (currentStatus: AgentState, newStatus: AgentState): bo
 };
 
 export const useAgentStore = create<AgentStore>()(
-    devtools(
-        (set, get) => ({
+    devtools((set, get) => ({
             // Initial state
-            agentState: { ...DEFAULT_AGENT_STATE },
+            agentState: {},
+            agentData: {},
             errors: {},
             // Actions
             removeAgent: agentId => {
-                set(({ agentState, errors }) => {
-                    const { [agentId]: removed, ...remainingAgentState } = agentState;
+                set(({ agentState, agentData, errors }) => {
+                    const { [agentId]: removedState, ...remainingAgentState } = agentState;
+                    const { [agentId]: removedData, ...remainingAgentData } = agentData;
                     const { [agentId]: removedError, ...remainingErrors } = errors;
                     return {
                         agentState: remainingAgentState,
+                        agentData: remainingAgentData,
                         errors: remainingErrors
                     };
                 });
             },
             transition: (agentId, newState, updates = {}) => {
-                const currentAgent = get().getAgent(agentId);
+                const agentRuntime = get().getAgentState(agentId);
 
-                if (!currentAgent) {
+                if (!agentRuntime) {
                     console.error(`Agent ${agentId} not found`);
                     return;
                 }
 
                 // Skip transition if states are the same
-                if (currentAgent.state === newState) {
+                if (agentRuntime.state === newState) {
                     return;
                 }
 
-                if (!isValidTransition(currentAgent.state, newState)) {
+                if (!isValidTransition(agentRuntime.state, newState)) {
                     set(state => ({
                         errors: {
                             ...state.errors,
                             [agentId]: {
-                                message: `Invalid transition from ${currentAgent.state} to ${newState}`,
-                                currentState: currentAgent.state,
+                                message: `Invalid transition from ${agentRuntime.state} to ${newState}`,
+                                currentState: agentRuntime.state,
                                 attemptedState: newState
                             }
                         }
@@ -95,11 +102,11 @@ export const useAgentStore = create<AgentStore>()(
                     return;
                 }
 
-                set(state => ({
+                set(store => ({
                     agentState: {
-                        ...state.agentState,
+                        ...store.agentState,
                         [agentId]: {
-                            ...currentAgent,
+                            ...agentRuntime,
                             state: newState,
                             isEditable: [AgentState.Initial, AgentState.Error, AgentState.Assistance].includes(newState),
                             ...(newState !== AgentState.Error && { error: undefined }),
@@ -110,12 +117,12 @@ export const useAgentStore = create<AgentStore>()(
                         }
                     },
                     errors: {
-                        ...state.errors,
+                        ...store.errors,
                         [agentId]: null
                     }
                 }));
             },
-            updateAgent: (agentId, updates) => {
+            updateAgentState: (agentId, updates) => {
                 set(store => ({
                     agentState: {
                         ...store.agentState,
@@ -123,6 +130,14 @@ export const useAgentStore = create<AgentStore>()(
                             ...store.agentState[agentId],
                             ...updates
                         }
+                    }
+                }));
+            },
+            setAgentData: (agentId, data) => {
+                set(store => ({
+                    agentData: {
+                        ...store.agentData,
+                        [agentId]: data
                     }
                 }));
             },
@@ -163,7 +178,12 @@ export const useAgentStore = create<AgentStore>()(
                 });
             },
             // Selectors
-            getAgent: agentId => get().agentState[agentId],
+            getAgentState: agentId => {
+                return (agentId && get().agentState[agentId]) || { ...DEFAULT_AGENT_STATE };
+            },
+            getAgentData: agentId => {
+                return agentId ? get().agentData[agentId] : undefined;
+            },
             getAgentError: agentId => get().errors[agentId] || null,
             isTransitionAllowed: (agentId, newState) => {
                 const currentState = get().agentState[agentId];

@@ -8,12 +8,11 @@ import { InfoIcon } from '@components/icons/info-icon';
 import { RefreshIcon } from '@components/icons/refresh-icon';
 import { TargetIcon } from '@components/icons/target-icon';
 import { DocumentIcon } from '@components/icons/document-icon';
-import { AgentData } from '@app-types/agent';
-import { Agent } from '@app-types/agent';
+import { useAgentStore } from '@stores/agent-store';
 
 export type BaseAgentLayoutProps = {
-    data: AgentData;
-    agent?: Agent;
+    agentId: string;
+    agentData?: any;  // Optional direct data prop
     className?: string;
     style?: CSSProperties;
     onEdit?: () => void;
@@ -25,14 +24,25 @@ export type BaseAgentLayoutProps = {
     tools?: { id: string; name: string }[];
 };
 
-export const BaseAgentLayout = ({ data, className = '', style, tools = [] }: BaseAgentLayoutProps): ReactNode => {
+export const BaseAgentLayout = ({
+    agentId,
+    agentData,  // New prop
+    className = '',
+    style,
+    tools = []
+}: BaseAgentLayoutProps): ReactNode => {
+    const { getAgentData } = useAgentStore();
+    // Use provided data or fall back to store data
+    const data = agentData || getAgentData(agentId);
+
     return (
         <div className={`agent-card-base ${className}`} style={style}>
             <div className="agent-title-section">
-                <Image src={data.image || cloudHeadImage} alt={`Profile avatar of ${data.name}`} className="avatar" />
+                <Image src={data?.image || cloudHeadImage}
+                    alt={`Profile avatar of ${data?.name || 'Agent'}`}
+                    className="avatar" />
                 <div className="agent-name">
-                    <h3>{data.role}</h3>
-                    <h3>{data.name}</h3>
+                    <h3>{data?.name}</h3>
                 </div>
                 <div className="info-icon-button">
                     <InfoIcon color="#575D69" strokeWidth={2} />

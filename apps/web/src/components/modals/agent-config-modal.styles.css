@@ -4,6 +4,10 @@
   focus:border-emerald-500 focus:outline-none;
 }
 
+.currency-input {
+  @apply pl-6;
+}
+
 .label-details {
   @apply flex items-center gap-2 text-color-slate;
 }
@@ -132,13 +136,16 @@
       .models-tools-section {
         @apply flex gap-2;
 
-        .models-section, .tools-section {
+        .models-section,
+        .tools-section {
           @apply h-full w-full flex flex-col gap-2;
 
-          .models-container, .tools-container {
+          .models-container,
+          .tools-container {
             @apply flex gap-2;
 
-            .model-icon, .tool-icon {
+            .model-icon,
+            .tool-icon {
               @apply w-8 h-8 rounded-lg;
             }
           }

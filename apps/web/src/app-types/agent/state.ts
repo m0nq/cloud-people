@@ -8,7 +8,7 @@ export enum AgentState {
     Assistance = 'ASSISTANCE'
 }
 
-export type Agent = {
+export type AgentRuntimeState = {
     state: AgentState;
     isEditable: boolean;
     isLoading?: boolean;

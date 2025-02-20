@@ -7,6 +7,7 @@ import { AgentState } from '@app-types/agent/state';
 import { updateExecution } from '@lib/actions/execution-actions';
 import { createExecution } from '@lib/actions/execution-actions';
 import { WorkflowState } from '@app-types/workflow';
+import type { GraphState } from '@app-types/workflow';
 import { updateState } from '@stores/workflow';
 import { isWorkflowNode } from '@stores/workflow';
 import { findRootNode } from '@stores/workflow';
@@ -29,25 +30,23 @@ export const transitionNode = (set: Function, nodes: Node<NodeData>[], nodeId: s
     if (!node || !isWorkflowNode(node)) return;
 
     // If this is an agent node, update agent state
-    if (node.type === NodeType.Agent) {
+    if (node.data.type === NodeType.Agent) {
+        const { agentId } = node.data.agentRef;
         const agentStore = useAgentStore.getState();
-        const currentAgent = agentStore.getAgent(nodeId);
+        const currentAgent = agentStore.getAgentState(agentId);
 
         if (!currentAgent) {
-            console.error(`Agent ${nodeId} not found`);
+            console.error(`Agent ${agentId} not found`);
             return;
         }
 
         const currentState = currentAgent.state;
-        if (agentStore.isTransitionAllowed(nodeId, newState)) {
-            agentStore.transition(nodeId, newState);
-
-            // ADDED LOGGING HERE
-            const updatedAgent = useAgentStore.getState().getAgent(nodeId);
+        if (agentStore.isTransitionAllowed(agentId, newState)) {
+            agentStore.transition(agentId, newState);
 
             // Update node data with the new agent state
             const updatedNodes = nodes.map(n => {
-                if (n.id === nodeId && isWorkflowNode(n)) {
+                if (isWorkflowNode(n) && n.data.agentRef.agentId === agentId) {
                     return {
                         ...n,
                         data: {
@@ -114,15 +113,20 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
     };
 
     const pauseWorkflow = async () => {
-        const { nodes, workflowExecution } = get();
+        const { nodes, workflowExecution }: GraphState = get();
         if (!workflowExecution) return;
 
         try {
+            // Get agent store state directly instead of using hook
+            const agentStore = useAgentStore.getState();
+
             // Find all agent nodes that are not in a terminal state
             const agentNodes = nodes.filter(node =>
-                node.type === NodeType.Agent &&
+                node.data.type === NodeType.Agent &&
                 isWorkflowNode(node) &&
-                ![AgentState.Complete, AgentState.Error, AgentState.Assistance, AgentState.Initial].includes(useAgentStore.getState().getAgent(node.id)?.state || AgentState.Initial)
+                ![AgentState.Complete, AgentState.Error, AgentState.Assistance, AgentState.Initial].includes(
+                    agentStore.getAgentState(node.data.agentRef.agentId)?.state || AgentState.Initial
+                )
             );
 
             // Set all active agents to initial state

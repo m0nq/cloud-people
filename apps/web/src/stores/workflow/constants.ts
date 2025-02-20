@@ -1,7 +1,7 @@
 import { type Node } from '@xyflow/react';
 
 import { INITIAL_NODE_POSITION } from '@config/layout.const';
-import { type GraphState } from './types';
+import type { GraphState } from '@app-types/workflow';
 import { InitialStateNodeData } from '@app-types/workflow';
 import { NodeType } from '@app-types/workflow/node-types';
 

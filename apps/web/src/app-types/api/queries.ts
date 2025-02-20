@@ -1,3 +1,4 @@
+import { AgentSpeed } from '@app-types/agent';
 import { type WorkflowState } from '../workflow';
 
 export type QueryUpdateConfig = {
@@ -18,6 +19,7 @@ export type QueryFilterConfig = {
 
 export type QueryConfig = {
     variables?: any;
+    speed?: AgentSpeed;
     id?: string;
     name?: string;
     description?: string;

@@ -5,6 +5,7 @@ import type { QueryConfig } from '@app-types/api';
 import { connectToDB } from '@lib/utils';
 import { WorkflowState } from '@app-types/workflow';
 import type { WorkflowExecution } from '@app-types/workflow';
+import { updateWorkflow } from './workflow-actions';
 
 export interface ExecutionRecord {
     id: string;
@@ -100,13 +101,21 @@ export const updateExecution = async (query: ExecutionQuery): Promise<WorkflowEx
         const updateExecutionMutation = `
             mutation UpdateExecutionMutation(
                 $id: UUID!,
-                $set: ExecutionsUpdateInput!
+                $nodeId: UUID!,
+                $currentStatus: WorkflowState!,
+                $metrics: Json,
+                $errors: Json,
+                $updatedAt: String!
             ) {
                 collection: updateExecutionsCollection(
-                    filter: {
-                        id: { eq: $id }
+                    set: {
+                        node_id: $nodeId,
+                        current_status: $currentStatus,
+                        metrics: $metrics,
+                        errors: $errors,
+                        updated_at: $updatedAt
                     },
-                    set: $set
+                    filter: { id: { eq: $id } }
                 ) {
                     records {
                         id
@@ -124,48 +133,46 @@ export const updateExecution = async (query: ExecutionQuery): Promise<WorkflowEx
             }
         `;
 
-        // Build the set object with only updatable fields
-        const setData: {
-            current_status: WorkflowState;
-            updated_at: string;
-            created_by: string;
-            node_id: string;
-            workflow_id: string;
-            errors?: string;
-            metrics?: string;
-        } = {
-            current_status: query.currentStatus,
-            updated_at: new Date().toISOString(),
-            created_by: user.id,
-            node_id: query.nodeId,
-            workflow_id: query.workflowId,
-            // Convert errors and metrics to strings if present
-            ...(query.errors && { errors: JSON.stringify(query.errors) }),
-            ...(query.metrics && { metrics: JSON.stringify(query.metrics) })
-        };
+        const now = new Date().toISOString();
 
-        // Validate required fields
-        if (!setData.node_id || !setData.workflow_id) {
-            throw new Error('node_id and workflow_id are required for execution updates');
-        }
-
-        const config: QueryConfig = {
-            variables: {
+        try {
+            // Update execution
+            const executionVariables = {
                 id: query.id,
-                set: setData
-            }
-        };
+                nodeId: query.nodeId,
+                currentStatus: query.currentStatus,
+                metrics: query.metrics || {},
+                errors: query.errors || null,
+                updatedAt: now
+            };
 
-        const [execution]: ExecutionRecord[] = await connectToDB(updateExecutionMutation, config.variables);
-        return {
-            id: execution.id,
-            workflowId: execution.workflow_id,
-            state: execution.current_status,
-            currentNodeId: execution.node_id,
-            startedAt: new Date(execution.created_at),
-            errors: execution.errors ? JSON.parse(execution.errors) : null,
-            metrics: execution.metrics ? JSON.parse(execution.metrics) : null
-        };
+            const [execution]: ExecutionRecord[] = await connectToDB(updateExecutionMutation, executionVariables);
+
+            if (!execution) {
+                throw new Error('No execution found with the provided ID');
+            }
+
+            // Update workflow using the existing function
+            await updateWorkflow({
+                workflowId: query.workflowId,
+                set: {
+                    state: query.currentStatus,
+                    current_step: query.nodeId,
+                    updated_at: now
+                }
+            });
+
+            return {
+                id: execution.id,
+                workflowId: execution.workflow_id,
+                state: execution.current_status,
+                currentNodeId: execution.node_id,
+                startedAt: new Date(execution.created_at)
+            };
+        } catch (error) {
+            console.error('Failed to update execution:', error);
+            throw error;
+        }
     } catch (error) {
         console.error('Failed to update execution:', error);
         throw error;

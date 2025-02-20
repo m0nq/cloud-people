@@ -7,56 +7,89 @@ import Image from 'next/image';
 
 import './agent-config-modal.styles.css';
 import { useModalStore } from '@stores/modal-store';
-import { useAgentCacheStore } from '@stores/agent-cache-store';
 import { MinimizeIcon } from '@components/icons/minimize-icon';
 import { CheckMarkIcon } from '@components/icons/check-mark-icon';
 import { Button } from '@components/utils/button/button';
 import { SaveDocumentIcon } from '@components/icons/save-document-icon';
 import { InfoIcon } from '@components/icons/info-icon';
-import { createAgent } from '@lib/actions/agent-actions';
 import cloudHeadImage from '@public/pink-cloud-head.png';
+import { AgentSpeed } from '@app-types/agent';
+import { MemoryLimit } from '@app-types/agent';
+import { useAgentCacheStore } from '@stores/agent-cache-store';
+import { createAgent } from '@lib/actions/agent-actions';
 
 // Zod schema for agent configuration
 const agentConfigSchema = z.object({
     name: z.string().min(2, 'Name must be at least 2 characters').max(50, 'Name must be less than 50 characters'),
     description: z.string().max(500, 'Description must be less than 500 characters').default(''),
-    config: z.object({
-        speed: z.enum(['instant', 'fast', 'slow']).default('instant'),
-        contextWindow: z.string().optional().default(''),
-        memoryLimit: z.string().default('8g'),
-        budget: z.any().transform(val => {
-            if (val === '' || val === null || val === undefined) return 0;
-            const num = Number(val);
+    speed: z.nativeEnum(AgentSpeed).default(AgentSpeed.Instant),
+    contextWindow: z.string().optional().default(''),
+    memoryLimit: z.nativeEnum(MemoryLimit).default(MemoryLimit.Small),
+    budget: z
+        .string()
+        .transform(val => {
+            // Remove any non-numeric characters
+            const cleanVal = val.replace(/[^0-9.]/g, '');
+
+            // Handle multiple decimal points by keeping only the first one
+            const parts = cleanVal.split('.');
+            const whole = parts[0] || '0';
+            const decimal = parts[1] || '00';
+
+            // Combine and parse as float, limiting to 2 decimal places
+            const num = parseFloat(whole + '.' + decimal.slice(0, 2));
             return isNaN(num) ? 0 : num;
         })
-    })
-        .default({
-            speed: 'instant',
-            contextWindow: '',
-            memoryLimit: '8g',
-            budget: 0
-        }),
+        .refine(val => val >= 0, 'Amount must be positive'),
     models: z.string().optional().default(''),
     tools: z.string().optional().default('')
 });
 
-type AgentConfigFormData = z.infer<typeof agentConfigSchema>;
+type AgentConfigFormData = Omit<z.infer<typeof agentConfigSchema>, 'budget'> & {
+    budget: string;
+};
 
 export const AgentConfigModal = () => {
     const { openModal, parentNodeId, isFromModal, closeModal } = useModalStore();
     const { invalidateCache } = useAgentCacheStore();
     const [error, setError] = useState<string | null>(null);
 
+    const formatBudgetDisplay = (value: string): string => {
+        // Remove any non-numeric characters except decimal
+        const cleanVal = value.replace(/[^0-9.]/g, '');
+
+        // Handle decimal places and multiple decimal points
+        const parts = cleanVal.split('.');
+        const whole = parts[0] || '0';
+        const decimal = parts[1]?.slice(0, 2) || '00';
+
+        // Add commas for thousands
+        const withCommas = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+        return withCommas + '.' + decimal;
+    };
+
+    const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        // Only allow numbers and a single decimal point
+        let value = e.target.value.replace(/[^0-9.]/g, '');
+
+        // Handle multiple decimal points by keeping only the first one
+        const parts = value.split('.');
+        if (parts.length > 2) {
+            value = parts[0] + '.' + parts[1];
+        }
+
+        formik.setFieldValue('budget', value);
+    };
+
     const formik = useFormik<AgentConfigFormData>({
         initialValues: {
             name: '',
             description: '',
-            config: {
-                speed: 'instant',
-                contextWindow: '',
-                memoryLimit: '8g',
-                budget: 0
-            },
+            speed: AgentSpeed.Instant,
+            contextWindow: '',
+            memoryLimit: MemoryLimit.Small,
+            budget: '0.00',
             models: '',
             tools: ''
         },
@@ -87,25 +120,18 @@ export const AgentConfigModal = () => {
                 const sanitizedValues = {
                     name: DOMPurify.sanitize(values.name),
                     description: DOMPurify.sanitize(values.description),
-                    config: {
-                        speed: values.config.speed,
-                        contextWindow: values.config.contextWindow ? DOMPurify.sanitize(values.config.contextWindow) : '',
-                        memoryLimit: values.config.memoryLimit,
-                        budget: Number(DOMPurify.sanitize(values.config.budget.toString())),
-                        models: values.models || '',
-                        tools: values.tools || ''
-                    }
+                    speed: values.speed,
+                    contextWindow: values.contextWindow ? DOMPurify.sanitize(values.contextWindow) : '',
+                    memoryLimit: values.memoryLimit,
+                    budget: values.budget.replace(/[^0-9.]/g, ''), // Remove currency formatting
+                    models: values.models || '',
+                    tools: values.tools || ''
                 };
 
                 // Create the agent
                 const agentRecord = await createAgent({
                     data: {
-                        config: {
-                            ...sanitizedValues,
-                            config: {
-                                ...sanitizedValues.config
-                            }
-                        }
+                        ...sanitizedValues
                     }
                 });
 
@@ -167,7 +193,7 @@ export const AgentConfigModal = () => {
                                 placeholder="Give your agent a name..."
                                 className="name-input" {...formik.getFieldProps('name')} />
                             {formik.touched.name && formik.errors.name &&
-                                <div className="error-message">{formik.errors.name}</div>}
+                                <div className="w-full h-fit text-white">{formik.errors.name}</div>}
                         </div>
                         <button type="button" className="minimize-button" onClick={handleClick}>
                             <MinimizeIcon color="white" width={24} height={24} />
@@ -181,12 +207,14 @@ export const AgentConfigModal = () => {
                                 What would you like this agent to do?
                                 <InfoIcon color="#575D69" width={16} height={16} strokeWidth={2} />
                             </label>
-                            <textarea id="description" {...formik.getFieldProps('description')}
+                            <textarea
+                                id="description"
+                                {...formik.getFieldProps('description')}
                                 className={`config-input description-input ${formik.touched.description && formik.errors.description ? 'error' : ''}`}
-                                placeholder="Does research on historical data and current trends to identify trends and holes in the market for the company to fill." />
-                            {formik.touched.description &&
-                                formik.errors.description &&
-                                <div className="error-message">{formik.errors.description}</div>}
+                                placeholder="Does research on historical data and current trends to identify trends and holes in the market for the company to fill."
+                            />
+                            {formik.touched.description && formik.errors.description &&
+                                <div className="w-full h-fit text-white">{formik.errors.description}</div>}
                         </div>
                     </div>
 
@@ -200,21 +228,21 @@ export const AgentConfigModal = () => {
                             </label>
                             <div className="config-speed-container">
                                 <label className="speed-button">
-                                    <input type="radio" {...formik.getFieldProps('config.speed')}
-                                        value="instant"
-                                        checked={formik.values.config.speed === 'instant'} />
+                                    <input type="radio" {...formik.getFieldProps('speed')}
+                                        value={AgentSpeed.Instant}
+                                        checked={formik.values.speed === AgentSpeed.Instant} />
                                     Instant
                                 </label>
                                 <label className="speed-button">
-                                    <input type="radio" {...formik.getFieldProps('config.speed')}
-                                        value="fast"
-                                        checked={formik.values.config.speed === 'fast'} />
+                                    <input type="radio" {...formik.getFieldProps('speed')}
+                                        value={AgentSpeed.Fast}
+                                        checked={formik.values.speed === AgentSpeed.Fast} />
                                     Fast
                                 </label>
                                 <label className="speed-button">
-                                    <input type="radio" {...formik.getFieldProps('config.speed')}
-                                        value="slow"
-                                        checked={formik.values.config.speed === 'slow'} />
+                                    <input type="radio" {...formik.getFieldProps('speed')}
+                                        value={AgentSpeed.Slow}
+                                        checked={formik.values.speed === AgentSpeed.Slow} />
                                     Slow
                                 </label>
                             </div>
@@ -226,8 +254,7 @@ export const AgentConfigModal = () => {
                                 Context Window
                                 <InfoIcon color="#575D69" width={16} height={16} strokeWidth={2} />
                             </label>
-                            <input type="text" {...formik.getFieldProps('config.contextWindow')}
-                                className="context-input" />
+                            <input type="text" {...formik.getFieldProps('contextWindow')} className="context-input" />
                         </div>
 
                         {/* Memory and Budget Section */}
@@ -237,10 +264,10 @@ export const AgentConfigModal = () => {
                                     Memory limit
                                     <InfoIcon color="#575D69" width={16} height={16} strokeWidth={2} />
                                 </label>
-                                <select className="config-select" {...formik.getFieldProps('config.memoryLimit')}>
-                                    <option value="8g">8g</option>
-                                    <option value="16g">16g</option>
-                                    <option value="32g">32g</option>
+                                <select className="config-select" {...formik.getFieldProps('memoryLimit')}>
+                                    <option value={MemoryLimit.Small}>{MemoryLimit.Small}</option>
+                                    <option value={MemoryLimit.Medium}>{MemoryLimit.Medium}</option>
+                                    <option value={MemoryLimit.Large}>{MemoryLimit.Large}</option>
                                 </select>
                             </div>
                             <div className="budget-container">
@@ -248,8 +275,22 @@ export const AgentConfigModal = () => {
                                     Assign a budget
                                     <InfoIcon color="#575D69" width={16} height={16} strokeWidth={2} />
                                 </label>
-                                <input type="text" {...formik.getFieldProps('config.budget')}
-                                    className="config-input" />
+                                <div className="relative">
+                                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300">$</span>
+                                    <input
+                                        type="text"
+                                        {...formik.getFieldProps('budget')}
+                                        onChange={handleBudgetChange}
+                                        onBlur={e => {
+                                            const formatted = formatBudgetDisplay(e.target.value);
+                                            formik.setFieldValue('budget', formatted);
+                                            formik.handleBlur(e);
+                                        }}
+                                        className="config-input currency-input"
+                                    />
+                                </div>
+                                {formik.touched.budget && formik.errors.budget &&
+                                    <div className="text-white w-full h-fit">{formik.errors.budget}</div>}
                             </div>
                         </div>
 

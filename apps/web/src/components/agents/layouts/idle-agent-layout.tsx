@@ -6,23 +6,26 @@ import { BaseAgentLayoutProps } from './base-agent-layout';
 import { Button } from '@components/utils/button/button';
 import { PenIcon } from '@components/icons/pen-icon';
 import { ChatIcon } from '@components/icons/chat-icon';
+import { useAgentStore } from '@stores/agent-store';
 
-export const IdleAgentLayout = ({ data }: BaseAgentLayoutProps) => {
+export const IdleAgentLayout = ({ agentId}: BaseAgentLayoutProps) => {
+    const { getAgentData } = useAgentStore();
+    const data = getAgentData(agentId);
+
     return (
-        <div className="idle-agent-card">
+        <div className="idle-agentState-card">
             <div className="content-container">
-                <div className="idle-agent-info-section">
-                    <Image src={data.image || cloudHeadImage}
-                        alt={`Profile avatar of ${data.name}`}
+                <div className="idle-agentState-info-section">
+                    <Image src={data?.image || cloudHeadImage}
+                        alt={`Profile avatar of ${data?.name}`}
                         className="rounded-full"
                         width={48}
                         height={48} />
-                    <div className="agent-name">
-                        <p>{data.role}</p>
-                        <p>{data.name}</p>
+                    <div className="agentState-name">
+                        <p>{data?.name}</p>
                     </div>
                 </div>
-                <div className="idle-agent-status-section">
+                <div className="idle-agentState-status-section">
                     <div className="status-label">
                         Status:
                     </div>
@@ -30,7 +33,7 @@ export const IdleAgentLayout = ({ data }: BaseAgentLayoutProps) => {
                         Standing by...
                     </div>
                 </div>
-                <div className="idle-agent-tools-section">
+                <div className="idle-agentState-tools-section">
                     <div className="tools-indicator-container">
                         <div className="indicator" />
                         <div className="indicator" />

@@ -101,40 +101,45 @@ export const updateWorkflow = async (config: QueryConfig = {}): Promise<Workflow
 
     const updateWorkflowsMutation = `
         mutation UpdateWorkflowMutation(
-            $set: WorkflowsUpdateInput!,
-            $filter: WorkflowsFilter,
-            $atMost: Int! = 1
+            $workflowId: UUID!,
+            $userId: UUID!,
+            $set: WorkflowsUpdateInput!
         ) {
             collection: updateWorkflowsCollection(
-                set: $set
-                filter: $filter
-                atMost: $atMost
+                set: $set,
+                filter: { 
+                    id: { eq: $workflowId },
+                    user_id: { eq: $userId }
+                }
             ) {
                 records {
                     id
                     state
                     current_step
                     data
+                    user_id
+                    updated_at
                 }
             }
         }
     `;
 
     const variables = {
-        ...config,
+        workflowId: config.workflowId,
+        userId: user.id,
         set: {
-            ...config.set,
-            current_step: config.set?.current_step || null,
-            updated_at: config.set?.updated_at ?? new Date()
-        },
-        filter: {
-            ...config.filter,
-            id: { eq: config.filter?.id?.eq || config.workflowId },
-            user_id: { eq: user.id }
+            state: config.set?.state,
+            current_step: config.set?.current_step,
+            data: config.set?.data,
+            updated_at: config.set?.updated_at ?? new Date().toISOString()
         }
-    } as QueryConfig;
+    };
 
     const [workflow] = await connectToDB(updateWorkflowsMutation, variables);
+
+    if (!workflow) {
+        throw new Error('No workflow found with the provided ID');
+    }
 
     return {
         ...workflow,

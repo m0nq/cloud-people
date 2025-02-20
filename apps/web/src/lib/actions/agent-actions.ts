@@ -3,30 +3,25 @@
 import { authCheck } from '@lib/actions/authentication-actions';
 import type { QueryConfig } from '@app-types/api';
 import { connectToDB } from '@lib/utils';
+import { AgentData } from '@app-types/agent';
 
-export const createAgent = async (config: QueryConfig = {}): Promise<any> => {
+export const createAgent = async (config: QueryConfig = {}): Promise<AgentData> => {
     const user = await authCheck();
 
     const createAgentMutation = `
-        mutation CreateAgentMutation(
-            $name: String!,
-            $description: String,
-            $config: JSON!,
-            $createdBy: UUID!
-        ) {
-            collection: insertIntoAgentsCollection(objects: [{
-                name: $name,
-                description: $description,
-                config: $config,
-                created_by: $createdBy
-            }]) {
+        mutation CreateAgentMutation($name: String!, $description: String, $speed: AgentSpeed!, $contextWindow: String, $memoryLimit: String, $budget: BigFloat, $models: [String], $createdBy: UUID) {
+            collection: insertIntoAgentsCollection(
+                objects: [{name: $name, description: $description, agent_speed: $speed, context_window: $contextWindow, memory_limit: $memoryLimit, budget: $budget, models: $models, created_by: $createdBy}]
+            ) {
                 records {
                     id
                     name
                     description
-                    config
-                    created_at
-                    updated_at
+                    agent_speed
+                    context_window
+                    memory_limit
+                    budget
+                    models
                     created_by
                 }
             }
@@ -35,9 +30,7 @@ export const createAgent = async (config: QueryConfig = {}): Promise<any> => {
 
     try {
         const [agent] = await connectToDB(createAgentMutation, {
-            name: config.data?.config?.name,
-            description: config.data?.config?.description,
-            config: config.data?.config || {},
+            ...config.data,
             createdBy: user.id
         });
 
@@ -69,14 +62,14 @@ export const createAgent = async (config: QueryConfig = {}): Promise<any> => {
             });
         }
 
-        return agent;
+        return { ...agent, speed: agent.agent_speed };
     } catch (error) {
         console.error('Failed to create agent:', error);
         throw error;
     }
 };
 
-export const fetchAgent = async (config: QueryConfig = {}): Promise<any> => {
+export const fetchAgent = async (config: QueryConfig = {}): Promise<AgentData> => {
     const user = await authCheck();
 
     const fetchAgentQuery = `
@@ -87,8 +80,11 @@ export const fetchAgent = async (config: QueryConfig = {}): Promise<any> => {
                         id
                         name
                         description
-                        config
+                        agent_speed
                         created_by
+                        memory_limit
+                        context_window
+                        budget
                     }
                 }
             }
@@ -105,14 +101,14 @@ export const fetchAgent = async (config: QueryConfig = {}): Promise<any> => {
             throw new Error('Agent not found');
         }
 
-        return record.agent;
+        return { ...record.agent, speed: record.agent_speed };
     } catch (error) {
         console.error('Error fetching agent:', error);
         throw error;
     }
 };
 
-export const fetchAgents = async (): Promise<any> => {
+export const fetchAgents = async (): Promise<AgentData[]> => {
     const user = await authCheck();
 
     const fetchAgentsQuery = `
@@ -122,8 +118,8 @@ export const fetchAgents = async (): Promise<any> => {
                     agent: node {
                         id
                         name
+                        agent_speed
                         description
-                        config
                         created_by
                     }
                 }
@@ -136,7 +132,7 @@ export const fetchAgents = async (): Promise<any> => {
             userId: user.id
         });
 
-        return records.map((record: any) => record.agent);
+        return records.map((record: any) => ({ ...record.agent, speed: record.agent.agent_speed }));
     } catch (error) {
         console.error('Error fetching agents:', error);
         throw error;

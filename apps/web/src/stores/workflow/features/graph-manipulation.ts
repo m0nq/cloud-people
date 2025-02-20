@@ -18,7 +18,7 @@ import { updateEdges } from '@lib/actions/edge-actions';
 import type { EdgeData } from '@app-types/workflow';
 import type { NodeData } from '@app-types/workflow';
 import type { InitialStateNodeData } from '@app-types/workflow';
-import type { WorkflowStore } from '@stores/workflow';
+import type { WorkflowStore } from '@app-types/workflow';
 import { isValidWorkflowNode } from '@stores/workflow';
 import { updateState } from '@stores/workflow';
 import { validateConnection } from '@stores/workflow';
@@ -238,7 +238,7 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
                     workflowId: parentNode.data.workflowId,
                     name: agentRecord.name,
                     description: agentRecord.description,
-                    tools: agentRecord.config?.tools || []
+                    tools: agentRecord.tools?.length && agentRecord.tools || []
                 }
             });
 
@@ -248,9 +248,10 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
 
             // Initialize agent state in the UI
             const agentStore = useAgentStore.getState();
-            agentStore.updateAgent(node.id, {
+            agentStore.updateAgentState(agent.id, {
                 state: AgentState.Initial,
-                isEditable: true
+                isEditable: true,
+                isLoading: false
             });
 
             // Add node to the graph

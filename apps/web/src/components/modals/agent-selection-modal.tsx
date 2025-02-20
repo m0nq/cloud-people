@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useCallback } from 'react';
 import { useEffect } from 'react';
+import { useRef } from 'react';
 import { useMemo } from 'react';
 import { ReactNode } from 'react';
 
@@ -20,30 +21,28 @@ export interface AgentSelectionModalProps {
 }
 
 export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children }: AgentSelectionModalProps) => {
-    const [userAgents, setUserAgents] = useState<AgentData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState('agents');
-    const { lastFetchTime } = useAgentCacheStore();
-    const CACHE_DURATION = 30000; // 30 seconds cache
+    const { agents, lastFetchTime, setAgents } = useAgentCacheStore();
     const { openModal } = useModalStore();
+    const isInitialMount = useRef(true);
 
     useEffect(() => {
         let isMounted = true;
 
         const loadAgents = async () => {
             try {
-                // Check if cache is still valid
-                const now = Date.now();
-                if (userAgents.length > 0 && now - lastFetchTime < CACHE_DURATION) {
+                // Only check cache on initial mount or when lastFetchTime is 0 (cache invalidated)
+                if (!isInitialMount.current && lastFetchTime !== 0) {
                     setLoading(false);
                     return;
                 }
 
-                setLoading(true);
-                const agents = await fetchAgents();
+                // Cache is invalid or it's initial mount, fetch new data
+                const newAgents = await fetchAgents();
                 if (isMounted) {
-                    setUserAgents(agents);
+                    setAgents(newAgents);
                 }
             } catch (err) {
                 if (isMounted) {
@@ -53,6 +52,7 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
             } finally {
                 if (isMounted) {
                     setLoading(false);
+                    isInitialMount.current = false;
                 }
             }
         };
@@ -62,7 +62,7 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
         return () => {
             isMounted = false;
         };
-    }, [userAgents.length, lastFetchTime]);
+    }, [lastFetchTime, setAgents]);
 
     const handleBuildAgentClick = useCallback(() => {
         openModal({
@@ -86,9 +86,6 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
         },
         [onSelect, onClose, parentNodeId]
     );
-
-    // Memoize agents to prevent unnecessary re-renders
-    const memoizedAgents = useMemo(() => userAgents, [userAgents]);
 
     return (
         <div className="agent-selector-container">
@@ -118,22 +115,24 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
 
                 {/* Agent Cards Grid */}
                 {error ? (
-                    <div className="error-message">Failed to load agents. Please try again or contact support if the
-                        issue persists.</div>
+                    <div className="w-full h-fit text-white">Failed to load agents. Please try again or contact support
+                        if the issue persists.</div>
                 ) : loading ? (
                     <div className="loading">Loading agents...</div>
                 ) : (
                     <>
-                        {!memoizedAgents.length ? (
+                        {!agents.length ? (
                             <div className="no-agents-message">You currently have no agents. Build some in the Agent
                                 Builder or buy one in our Store.</div>
                         ) : (
                             <div className="agents-grid">
-                                {memoizedAgents.map(agent => (
+                                {agents.map(agent => (
                                     <div key={agent.id}
-                                        className="agent-card-container"
-                                        onClick={() => handleAgentSelect(agent)}>
-                                        <AgentCard data={agent} agent={initialAgentState} />
+                                        onClick={() => handleAgentSelect(agent)}
+                                        className="agent-card-container">
+                                        <AgentCard agentId={agent.id}
+                                            agentData={agent}
+                                            state={DEFAULT_AGENT_STATE.state} />
                                     </div>
                                 ))}
                             </div>

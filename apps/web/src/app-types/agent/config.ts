@@ -5,32 +5,36 @@ export type AgentAction = {
     params?: Record<string, string>;
 };
 
-export type AgentCapability = {
-    id: string;
-    name: string;
-    description: string;
-    action: string;
-    parameters?: {
-        url?: string;
-        [key: string]: any;
-    };
-    url?: string;
-};
+export enum AgentSpeed {
+    Instant = 'Instant',
+    Fast = 'Fast',
+    Slow = 'Slow'
+}
 
-export type AgentConfig = {
-    actions: AgentAction[];
-    aiEnabled: boolean;
-    metadata?: Record<string, unknown>;
-};
+export enum MemoryLimit {
+    Small = '8g',
+    Medium = '16g',
+    Large = '32g'
+}
 
 export type AgentData = {
     id: string;
     name: string;
     description?: string;
-    role: string;
     image?: string;
-    tools?: any[];
-    config: AgentConfig;
-    capability: AgentCapability;
+    speed: AgentSpeed;
+    memoryLimit: MemoryLimit;
+    contextWindow?: string;
+    budget: string;
+    models: string[];
+    tools?: string[];
+    createdBy: string;
     parentNodeId?: string;
+};
+
+export type AgentConfig = {
+    actions: AgentAction[];
+    aiEnabled: boolean;
+    agentSpeed: AgentSpeed;
+    metadata?: Record<string, unknown>;
 };
