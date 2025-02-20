@@ -102,10 +102,10 @@ export const updateExecution = async (query: ExecutionQuery): Promise<WorkflowEx
             mutation UpdateExecutionMutation(
                 $id: UUID!,
                 $nodeId: UUID!,
-                $currentStatus: String!,
+                $currentStatus: WorkflowState!,
                 $metrics: Json,
                 $errors: Json,
-                $updatedAt: Timestamp!
+                $updatedAt: String!
             ) {
                 collection: updateExecutionsCollection(
                     set: {
@@ -147,6 +147,10 @@ export const updateExecution = async (query: ExecutionQuery): Promise<WorkflowEx
             };
 
             const [execution]: ExecutionRecord[] = await connectToDB(updateExecutionMutation, executionVariables);
+
+            if (!execution) {
+                throw new Error('No execution found with the provided ID');
+            }
 
             // Update workflow using the existing function
             await updateWorkflow({

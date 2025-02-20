@@ -135,9 +135,7 @@ export const updateWorkflow = async (config: QueryConfig = {}): Promise<Workflow
         }
     };
 
-    const records = await connectToDB(updateWorkflowsMutation, variables);
-    debugger;
-    const [workflow] = records;
+    const [workflow] = await connectToDB(updateWorkflowsMutation, variables);
 
     if (!workflow) {
         throw new Error('No workflow found with the provided ID');
