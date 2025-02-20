@@ -4,7 +4,6 @@ import { Node } from '@xyflow/react';
 import { AgentState } from '@app-types/agent';
 import { useAgentStore } from '@stores/agent-store';
 import type { NodeData } from '@app-types/workflow';
-import { useWorkflowStore } from '@stores/workflow';
 import { NodeType } from '@app-types/workflow/node-types';
 
 interface AgentHookResponse {
@@ -23,19 +22,16 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
     const [result, setResult] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    const { getAgent } = useAgentStore();
-    const { nodes } = useWorkflowStore();
-    const agent = getAgent(agentId);
+    const { getAgentState, getAgentData } = useAgentStore();
+    const agentRuntime = getAgentState(agentId);
 
-    const node = nodes.find(node => node.id === agentId);
-    const agentNode = node && isAgentNode(node) ? node : undefined;
-    const agentCapability = agentNode?.data?.capabilities?.[0];
+    const agentNode = getAgentData(agentId);
 
-    const canExecute = !agent?.state || agent.state === AgentState.Working;
+    const canExecute = !agentRuntime?.state || agentRuntime.state === AgentState.Working;
 
     const executeAction = useCallback(async () => {
         if (!canExecute) {
-            console.log('Cannot execute - agent state:', agent?.state);
+            console.log('Cannot execute - agentRuntime state:', agentRuntime?.state);
             return;
         }
 
@@ -50,12 +46,8 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
             setError(null);
             setResult(null);
 
-            // Prepare the task based on agent capabilities
-            const task = agentCapability?.parameters?.url
-                ? `Navigate to ${agentCapability.parameters.url} and analyze the page content`
-                : agentCapability?.parameters?.task
-                    ? agentCapability.parameters.task
-                    : 'Navigate to google.com and analyze the page content';
+            // Prepare the task based on agentRuntime capabilities
+            const task = `Navigate to google.com and perform a web page audit`;
 
             const response = await fetch('/api/agent', {
                 method: 'POST',
@@ -93,7 +85,7 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
         } finally {
             setIsProcessing(false);
         }
-    }, [agent?.state, canExecute, agentCapability, agentId, onStatusChange, isProcessing]);
+    }, [agentId, agentRuntime?.state, canExecute, isProcessing, onStatusChange]);
 
     return {
         isProcessing,

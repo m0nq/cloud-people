@@ -40,8 +40,7 @@ export function createWorkflowLifecycle(set: Function, get: Function) {
                     data: {
                         id: dbNode.id,
                         type: NodeType.Root,
-                        workflowId,  // Explicitly set workflowId
-                        nodeType: 'root'
+                        workflowId  // Explicitly set workflowId
                     },
                     position: ROOT_NODE_POSITION
                 } as Node<NodeData>;

@@ -7,6 +7,7 @@ import { AgentState } from '@app-types/agent/state';
 import { updateExecution } from '@lib/actions/execution-actions';
 import { createExecution } from '@lib/actions/execution-actions';
 import { WorkflowState } from '@app-types/workflow';
+import type { GraphState } from '@app-types/workflow';
 import { updateState } from '@stores/workflow';
 import { isWorkflowNode } from '@stores/workflow';
 import { findRootNode } from '@stores/workflow';
@@ -25,13 +26,14 @@ const findNextNode = (nodes: Node<NodeData>[], edges: Edge<EdgeData>[], currentN
 };
 
 export const transitionNode = (set: Function, nodes: Node<NodeData>[], nodeId: string, newState: AgentState) => {
+    debugger;
     const node = nodes.find(n => n.id === nodeId);
     if (!node || !isWorkflowNode(node)) return;
 
     // If this is an agent node, update agent state
     if (node.type === NodeType.Agent) {
         const agentStore = useAgentStore.getState();
-        const currentAgent = agentStore.getAgent(nodeId);
+        const currentAgent = agentStore.getAgentState(nodeId);
 
         if (!currentAgent) {
             console.error(`Agent ${nodeId} not found`);
@@ -41,9 +43,6 @@ export const transitionNode = (set: Function, nodes: Node<NodeData>[], nodeId: s
         const currentState = currentAgent.state;
         if (agentStore.isTransitionAllowed(nodeId, newState)) {
             agentStore.transition(nodeId, newState);
-
-            // ADDED LOGGING HERE
-            const updatedAgent = useAgentStore.getState().getAgent(nodeId);
 
             // Update node data with the new agent state
             const updatedNodes = nodes.map(n => {
@@ -114,15 +113,15 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
     };
 
     const pauseWorkflow = async () => {
-        const { nodes, workflowExecution } = get();
+        const { nodes, workflowExecution }: GraphState = get();
         if (!workflowExecution) return;
 
         try {
             // Find all agent nodes that are not in a terminal state
             const agentNodes = nodes.filter(node =>
-                node.type === NodeType.Agent &&
+                node.data.type === NodeType.Agent &&
                 isWorkflowNode(node) &&
-                ![AgentState.Complete, AgentState.Error, AgentState.Assistance, AgentState.Initial].includes(useAgentStore.getState().getAgent(node.id)?.state || AgentState.Initial)
+                ![AgentState.Complete, AgentState.Error, AgentState.Assistance, AgentState.Initial].includes(useAgentStore().getAgentState(node.data.agentRef.agentId)?.state || AgentState.Initial)
             );
 
             // Set all active agents to initial state

@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { type WorkflowStore } from './types';
 import { initialState } from './constants';
 import { createGraphManipulation } from './features/graph-manipulation';
 import { createWorkflowExecution } from './features/workflow-execution';
@@ -10,6 +9,7 @@ import { findRootNode } from './utils/state-helpers';
 import { findNextNode } from './utils/state-helpers';
 import { getConnectedNodes } from './utils/state-helpers';
 import { isCurrentNode } from './utils/state-helpers';
+import type { WorkflowStore } from '@app-types/workflow';
 
 export const useWorkflowStore = create<WorkflowStore>()(
     devtools((set, get) => ({

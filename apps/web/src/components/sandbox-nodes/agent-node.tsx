@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
+import { useState } from 'react';
 import { useEffect } from 'react';
 import { useMemo } from 'react';
-
 import { Position } from '@xyflow/react';
 
 import { AgentCard } from '@components/agents/agent-card';
@@ -10,22 +10,15 @@ import { useModalStore } from '@stores/modal-store';
 import { useAgentStore } from '@stores/agent-store';
 import { useWorkflowStore } from '@stores/workflow';
 import { AgentState } from '@app-types/agent';
-import { AgentCapability } from '@app-types/agent';
-import { AgentConfig } from '@app-types/agent';
 import { HandleType } from './types.enum';
 import './node.styles.css';
 import { WorkflowState } from '@app-types/workflow';
+import type { NodeData } from '@app-types/workflow';
+import { fetchAgent } from '@lib/actions/agent-actions';
 
 type AgentNodeProps = {
     id: string;
-    data: {
-        name: string;
-        role: string;
-        image?: string;
-        capability: AgentCapability;
-        config: AgentConfig;
-        [key: string]: any;
-    };
+    data: NodeData;
     targetPosition?: string;
     sourcePosition?: string;
     isConnectable?: boolean;
@@ -44,55 +37,78 @@ const getPosition = (position?: string): Position => {
 };
 
 const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: AgentNodeProps) => {
-    const sPosition = getPosition(sourcePosition);
-    const tPosition = getPosition(targetPosition);
     const { openModal } = useModalStore();
-    const { removeAgent, transition, getAgent, updateAgent } = useAgentStore();
+    const {
+        removeAgent,
+        transition,
+        getAgentState,
+        updateAgentState,
+        getAgentData,
+        setAgentData
+    } = useAgentStore();
     const { progressWorkflow, pauseWorkflow, workflowExecution } = useWorkflowStore();
-    const agentState = getAgent(id) || {
-        state: AgentState.Initial,
-        isEditable: true,
-        isLoading: true
-    };
 
-    const agentData = useMemo(() => ({
-            ...data,
-            id,
-            capability: data.capability || {
-                action: 'navigate_to_google',
-                parameters: {},
-                description: 'Navigate to Google search'
-            }
-        }),
-        [data, id]
-    );
+    // Memoize positions
+    const sPosition = useMemo(() => getPosition(sourcePosition), [sourcePosition]);
+    const tPosition = useMemo(() => getPosition(targetPosition), [targetPosition]);
 
-    // Handle workflow state changes
+    const [isLoadingData, setIsLoadingData] = useState(false);
+    const agentId = data.agentRef?.agentId;
+    const agentState = getAgentState(agentId);
+
+    // Combined effect for agent initialization and data fetching
     useEffect(() => {
-        if (agentState?.state === AgentState.Complete) {
+        if (!agentId) return;
+
+        // Initialize agent state
+        if (data.state) {
+            updateAgentState(agentId, {
+                state: data.state,
+                isEditable: true,
+                isLoading: true
+            });
+        }
+
+        // Only fetch if we don't have the data cached
+        if (!getAgentData(agentId)) {
+            setIsLoadingData(true);
+            fetchAgent({ agentId })
+                .then(agentState => {
+                    if (agentState) {
+                        setAgentData(agentId, agentState);
+                        updateAgentState(agentId, { isLoading: false });
+                    }
+                })
+                .catch(error => {
+                    console.error('Failed to fetch agent data:', error);
+                    updateAgentState(agentId, {
+                        isLoading: false,
+                        state: AgentState.Error,
+                        error: 'Failed to load agent data'
+                    });
+                })
+                .finally(() => {
+                    setIsLoadingData(false);
+                });
+        }
+
+        return () => {
+            removeAgent(agentId);
+        };
+    }, [agentId, data.state, getAgentData, removeAgent, setAgentData, updateAgentState]);
+
+    // Memoize workflow state effect
+    useEffect(() => {
+        if (!agentState?.state) return;
+
+        if (agentState.state === AgentState.Complete) {
             progressWorkflow(id, agentState.state);
-        } else if (agentState?.state === AgentState.Error || agentState?.state === AgentState.Assistance) {
+        } else if (agentState.state === AgentState.Error || agentState.state === AgentState.Assistance) {
             pauseWorkflow();
         }
     }, [agentState?.state, id, progressWorkflow, pauseWorkflow]);
 
-    const handleInitialize = useCallback(() => {
-        // Only initialize if not already initialized
-        if (!getAgent(id)) {
-            updateAgent(id, {
-                state: data.state || AgentState.Initial,
-                isEditable: true
-            });
-        }
-    }, [id, data.state, getAgent, updateAgent]);
-
-    useEffect(() => {
-        handleInitialize();
-        return () => {
-            removeAgent(id);
-        };
-    }, [handleInitialize, id, removeAgent]);
-
+    // Memoize handlers
     const handleAgentDetails = useCallback(() => {
         if (agentState?.isEditable) {
             openModal({ type: 'agent-details', parentNodeId: id });
@@ -112,18 +128,40 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     }, [id, transition]);
 
     const handleRestart = useCallback(() => {
-        transition(id, AgentState.Working, {
-            progress: 0
-        });
+        transition(id, AgentState.Working, { progress: 0 });
     }, [id, transition]);
+
+    // Memoize complex class names
+    const containerClassName = useMemo(() =>
+            `agent-node-container ${agentState.isLoading ? 'opacity-50' : ''}`,
+        [agentState.isLoading]
+    );
+
+    const contentClassName = useMemo(() =>
+            `w-full h-full ${agentState.isEditable ? 'cursor-pointer' : 'cursor-default'}`,
+        [agentState.isEditable]
+    );
+
+    const handleClassName = useMemo(() =>
+            workflowExecution?.state === WorkflowState.Initial ||
+            workflowExecution?.state === WorkflowState.Paused ?
+                'cursor-not-allowed opacity-50' : 'cursor-pointer',
+        [workflowExecution?.state]
+    );
+
+    // Memoize handle connectable state
+    const isHandleConnectable = useMemo(() =>
+            isConnectable ||
+            workflowExecution?.state === WorkflowState.Initial ||
+            workflowExecution?.state === WorkflowState.Paused,
+        [isConnectable, workflowExecution?.state]
+    );
 
     return (
         <NodeComponent.Root className="agent-node">
-            <NodeComponent.Content className={`agent-node-container ${agentState.isLoading ? 'opacity-50' : ''}`}>
-                <div className={`w-full h-full ${agentState.isEditable ? 'cursor-pointer' : 'cursor-default'}`}
-                    onClick={handleAgentDetails}>
-                    <AgentCard data={agentData}
-                        agent={agentState}
+            <NodeComponent.Content className={containerClassName}>
+                <div className={contentClassName} onClick={handleAgentDetails}>
+                    <AgentCard agentId={agentId}
                         state={agentState.state}
                         onEdit={agentState.isEditable ? handleAgentDetails : undefined}
                         onAssistanceRequest={handleAssistanceRequest}
@@ -135,15 +173,15 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                 type={HandleType.SOURCE}
                 position={sPosition}
                 id="source"
-                isConnectable={isConnectable || (workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused)}
-                className={workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} />
+                isConnectable={isHandleConnectable}
+                className={handleClassName} />
             <NodeComponent.Handle
                 type={HandleType.TARGET}
                 position={tPosition}
                 id="target"
                 data-handleid="target"
-                isConnectable={isConnectable || (workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused)}
-                className={workflowExecution?.state === WorkflowState.Initial || workflowExecution?.state === WorkflowState.Paused ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'} />
+                isConnectable={isHandleConnectable}
+                className={handleClassName} />
         </NodeComponent.Root>
     );
 };

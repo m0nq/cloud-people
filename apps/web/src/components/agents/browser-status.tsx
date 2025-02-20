@@ -1,10 +1,9 @@
 import { ReactNode } from 'react';
 
-import { Agent } from '@app-types/agent';
 import { AgentState } from '@app-types/agent';
 
 interface BrowserStatusProps {
-    agent: Agent;
+    agentState: AgentState;
     url?: string;
 }
 
@@ -31,27 +30,28 @@ const getStatusMessage = (state: AgentState, progress?: number): ReactNode => {
     }
 };
 
-export const BrowserStatus = ({ agent, url }: BrowserStatusProps): ReactNode => {
-    const message = getStatusMessage(agent.state, agent.progress);
-
-    return (
-        <div className="browser-status">
-            <div className="status-message">
-                {message}
-                {agent.progress && agent.state === AgentState.Working && (
-                    <span className="progress">({agent.progress}%)</span>
-                )}
-            </div>
-            {url && (
-                <div className="target-url" title={url}>
-                    {url}
-                </div>
-            )}
-            {agent.error && (
-                <div className="error-message">
-                    {agent.error}
-                </div>
-            )}
-        </div>
-    );
+export const BrowserStatus = ({ agentState, url }: BrowserStatusProps): ReactNode => {
+    // const message = getStatusMessage(agentState.state, agentState.progress);
+    //
+    // return (
+    //     <div className="browser-status">
+    //         <div className="status-message">
+    //             {message}
+    //             {agentState.progress && agentState.state === AgentState.Working && (
+    //                 <span className="progress">({agentState.progress}%)</span>
+    //             )}
+    //         </div>
+    //         {url && (
+    //             <div className="target-url" title={url}>
+    //                 {url}
+    //             </div>
+    //         )}
+    //         {agentState.error && (
+    //             <div className="error-message">
+    //                 {agentState.error}
+    //             </div>
+    //         )}
+    //     </div>
+    // );
+    return <></>;
 };

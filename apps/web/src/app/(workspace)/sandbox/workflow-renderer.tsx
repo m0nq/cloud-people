@@ -15,7 +15,7 @@ import { useEffect } from 'react';
 
 import { type InitialStateNodeData } from '@app-types/workflow';
 import { type NodeData } from '@app-types/workflow';
-import { type WorkflowStore } from '@stores/workflow/types';
+import type { WorkflowStore } from '@app-types/workflow';
 import { useWorkflowStore } from '@stores/workflow';
 import { useModalStore } from '@stores/modal-store';
 import { useShallow } from 'zustand/react/shallow';

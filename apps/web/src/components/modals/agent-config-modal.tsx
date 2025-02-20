@@ -7,16 +7,16 @@ import Image from 'next/image';
 
 import './agent-config-modal.styles.css';
 import { useModalStore } from '@stores/modal-store';
-import { useAgentCacheStore } from '@stores/agent-cache-store';
 import { MinimizeIcon } from '@components/icons/minimize-icon';
 import { CheckMarkIcon } from '@components/icons/check-mark-icon';
 import { Button } from '@components/utils/button/button';
 import { SaveDocumentIcon } from '@components/icons/save-document-icon';
 import { InfoIcon } from '@components/icons/info-icon';
-import { createAgent } from '@lib/actions/agent-actions';
+import cloudHeadImage from '@public/pink-cloud-head.png';
 import { AgentSpeed } from '@app-types/agent';
 import { MemoryLimit } from '@app-types/agent';
-import cloudHeadImage from '@public/pink-cloud-head.png';
+import { useAgentCacheStore } from '@stores/agent-cache-store';
+import { createAgent } from '@lib/actions/agent-actions';
 
 // Zod schema for agent configuration
 const agentConfigSchema = z.object({
@@ -189,8 +189,11 @@ export const AgentConfigModal = () => {
                                     <h2>Configure Agent</h2>
                                 </div>
                             </div>
-                            <input type="text" placeholder="Give your agent a name..." className="name-input" {...formik.getFieldProps('name')} />
-                            {formik.touched.name && formik.errors.name && <div className="w-full h-fit text-white">{formik.errors.name}</div>}
+                            <input type="text"
+                                placeholder="Give your agent a name..."
+                                className="name-input" {...formik.getFieldProps('name')} />
+                            {formik.touched.name && formik.errors.name &&
+                                <div className="w-full h-fit text-white">{formik.errors.name}</div>}
                         </div>
                         <button type="button" className="minimize-button" onClick={handleClick}>
                             <MinimizeIcon color="white" width={24} height={24} />
@@ -210,7 +213,8 @@ export const AgentConfigModal = () => {
                                 className={`config-input description-input ${formik.touched.description && formik.errors.description ? 'error' : ''}`}
                                 placeholder="Does research on historical data and current trends to identify trends and holes in the market for the company to fill."
                             />
-                            {formik.touched.description && formik.errors.description && <div className="w-full h-fit text-white">{formik.errors.description}</div>}
+                            {formik.touched.description && formik.errors.description &&
+                                <div className="w-full h-fit text-white">{formik.errors.description}</div>}
                         </div>
                     </div>
 
@@ -224,15 +228,21 @@ export const AgentConfigModal = () => {
                             </label>
                             <div className="config-speed-container">
                                 <label className="speed-button">
-                                    <input type="radio" {...formik.getFieldProps('speed')} value={AgentSpeed.Instant} checked={formik.values.speed === AgentSpeed.Instant} />
+                                    <input type="radio" {...formik.getFieldProps('speed')}
+                                        value={AgentSpeed.Instant}
+                                        checked={formik.values.speed === AgentSpeed.Instant} />
                                     Instant
                                 </label>
                                 <label className="speed-button">
-                                    <input type="radio" {...formik.getFieldProps('speed')} value={AgentSpeed.Fast} checked={formik.values.speed === AgentSpeed.Fast} />
+                                    <input type="radio" {...formik.getFieldProps('speed')}
+                                        value={AgentSpeed.Fast}
+                                        checked={formik.values.speed === AgentSpeed.Fast} />
                                     Fast
                                 </label>
                                 <label className="speed-button">
-                                    <input type="radio" {...formik.getFieldProps('speed')} value={AgentSpeed.Slow} checked={formik.values.speed === AgentSpeed.Slow} />
+                                    <input type="radio" {...formik.getFieldProps('speed')}
+                                        value={AgentSpeed.Slow}
+                                        checked={formik.values.speed === AgentSpeed.Slow} />
                                     Slow
                                 </label>
                             </div>
@@ -279,7 +289,8 @@ export const AgentConfigModal = () => {
                                         className="config-input currency-input"
                                     />
                                 </div>
-                                {formik.touched.budget && formik.errors.budget && <div className="text-white w-full h-fit">{formik.errors.budget}</div>}
+                                {formik.touched.budget && formik.errors.budget &&
+                                    <div className="text-white w-full h-fit">{formik.errors.budget}</div>}
                             </div>
                         </div>
 
@@ -290,7 +301,9 @@ export const AgentConfigModal = () => {
                                     AI models
                                     <InfoIcon color="#575D69" width={16} height={16} strokeWidth={2} />
                                 </label>
-                                <input type="text" placeholder="Search" className="config-input" {...formik.getFieldProps('models')} />
+                                <input type="text"
+                                    placeholder="Search"
+                                    className="config-input" {...formik.getFieldProps('models')} />
                                 <div className="models-container">
                                     <div className="model-icon bg-emerald-500"></div>
                                     <div className="model-icon bg-purple-500"></div>
@@ -301,7 +314,9 @@ export const AgentConfigModal = () => {
                                     Tools
                                     <InfoIcon color="#575D69" width={16} height={16} strokeWidth={2} />
                                 </label>
-                                <input type="text" placeholder="Search" className="config-input" {...formik.getFieldProps('tools')} />
+                                <input type="text"
+                                    placeholder="Search"
+                                    className="config-input" {...formik.getFieldProps('tools')} />
                                 <div className="tools-container">
                                     <div className="tool-icon bg-emerald-500"></div>
                                     <div className="tool-icon bg-blue-500"></div>
@@ -311,10 +326,17 @@ export const AgentConfigModal = () => {
 
                         {/* Action Buttons */}
                         <div className="action-buttons-section">
-                            <Button variant="primary" size="md" fullWidth icon={<CheckMarkIcon width={18} height={18} color="white" />}>
+                            <Button variant="primary"
+                                size="md"
+                                fullWidth
+                                icon={<CheckMarkIcon width={18} height={18} color="white" />}>
                                 Check
                             </Button>
-                            <Button variant="secondary" size="md" fullWidth type="submit" icon={<SaveDocumentIcon width={18} height={18} />}>
+                            <Button variant="secondary"
+                                size="md"
+                                fullWidth
+                                type="submit"
+                                icon={<SaveDocumentIcon width={18} height={18} />}>
                                 Save
                             </Button>
                         </div>

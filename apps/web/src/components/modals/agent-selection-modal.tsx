@@ -103,28 +103,36 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
 
                 {/* Tabs */}
                 <div className="modal-tabs">
-                    <button className={`tab ${activeTab === 'agents' ? 'active-state' : ''}`} onClick={() => setActiveTab('agents')}>
+                    <button className={`tab ${activeTab === 'agents' ? 'active-state' : ''}`}
+                        onClick={() => setActiveTab('agents')}>
                         My Agents
                     </button>
-                    <button className={`tab ${activeTab === 'store' ? 'active-state' : ''}`} onClick={() => setActiveTab('store')}>
+                    <button className={`tab ${activeTab === 'store' ? 'active-state' : ''}`}
+                        onClick={() => setActiveTab('store')}>
                         Agent Store
                     </button>
                 </div>
 
                 {/* Agent Cards Grid */}
                 {error ? (
-                    <div className="w-full h-fit text-white">Failed to load agents. Please try again or contact support if the issue persists.</div>
+                    <div className="w-full h-fit text-white">Failed to load agents. Please try again or contact support
+                        if the issue persists.</div>
                 ) : loading ? (
                     <div className="loading">Loading agents...</div>
                 ) : (
                     <>
                         {!agents.length ? (
-                            <div className="no-agents-message">You currently have no agents. Build some in the Agent Builder or buy one in our Store.</div>
+                            <div className="no-agents-message">You currently have no agents. Build some in the Agent
+                                Builder or buy one in our Store.</div>
                         ) : (
                             <div className="agents-grid">
                                 {agents.map(agent => (
-                                    <div key={agent.id} className="agent-card-container" onClick={() => handleAgentSelect(agent)}>
-                                        <AgentCard data={agent} agent={initialAgentState} />
+                                    <div key={agent.id}
+                                        onClick={() => handleAgentSelect(agent)}
+                                        className="agent-card-container">
+                                        <AgentCard agentId={agent.id}
+                                            agentData={agent}
+                                            state={DEFAULT_AGENT_STATE.state} />
                                     </div>
                                 ))}
                             </div>

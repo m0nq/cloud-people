@@ -10,30 +10,30 @@ import { Button } from '@components/utils/button/button';
 import { ChatIcon } from '@components/icons/chat-icon';
 import { TaskStatusIcon } from '@components/icons/task-status-icon';
 import { WatchIcon } from '@components/icons/watch-icon';
-import { BrowserStatus } from '@components/agents/browser-status';
 import { useAgent } from '@hooks/use-agent';
 import { useAgentStore } from '@stores/agent-store';
 
-export const WorkingAgentLayout = ({ data, agent }: BaseAgentLayoutProps) => {
+export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
+    const { getAgentData } = useAgentStore();
+    const data = getAgentData(agentId);
     const [result, setResult] = useState('');
     const hasExecuted = useRef(false);
     const { transition } = useAgentStore();
-    const { executeAction, isProcessing } = useAgent(data.id, status => {
-        transition(data.id, status);
+    const { executeAction, isProcessing } = useAgent(agentId, status => {
+        transition(agentId, status);
     });
-
-    const isBrowserAgent = data.capability?.action === 'navigate_to_google';
-    const browserUrl = data.capability?.parameters?.url as string;
 
     // Start execution when component mounts, but only once
     useEffect(() => {
         if (hasExecuted.current) return;
-        
+
         (async () => {
             console.log('🚀 Working agent mounted, executing action...');
             hasExecuted.current = true;
             setResult(await executeAction());
         })();
+        // This needs to run only once
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (
@@ -41,14 +41,13 @@ export const WorkingAgentLayout = ({ data, agent }: BaseAgentLayoutProps) => {
             <div className="working-agent-wrapper">
                 {/* Content */}
                 <div className="agent-info-section">
-                    <Image src={data.image || cloudHeadImage}
-                        alt={`Profile avatar of ${data.name}`}
+                    <Image src={data?.image || cloudHeadImage}
+                        alt={`Profile avatar of ${data?.name}`}
                         className="rounded-full"
                         width={48}
                         height={48} />
                     <div className="agent-name">
-                        <span>{data.role}</span>
-                        <span>{data.name}</span>
+                        <span>{data?.name}</span>
                     </div>
                 </div>
 
@@ -59,11 +58,7 @@ export const WorkingAgentLayout = ({ data, agent }: BaseAgentLayoutProps) => {
                         <span>Current Task:</span>
                     </div>
                     <div className="agent-tasks-container">
-                        {isBrowserAgent && agent ? (
-                            <BrowserStatus agent={agent} url={browserUrl} />
-                        ) : (
-                            <p>{isProcessing ? 'Processing...' : result || 'Ready'}</p>
-                        )}
+                        <p>{isProcessing ? 'Processing...' : result || 'Ready'}</p>
                     </div>
                 </div>
                 <div className="buttons-container">

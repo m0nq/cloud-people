@@ -3,8 +3,9 @@
 import { authCheck } from '@lib/actions/authentication-actions';
 import type { QueryConfig } from '@app-types/api';
 import { connectToDB } from '@lib/utils';
+import { AgentData } from '@app-types/agent';
 
-export const createAgent = async (config: QueryConfig = {}): Promise<any> => {
+export const createAgent = async (config: QueryConfig = {}): Promise<AgentData> => {
     const user = await authCheck();
 
     const createAgentMutation = `
@@ -68,7 +69,7 @@ export const createAgent = async (config: QueryConfig = {}): Promise<any> => {
     }
 };
 
-export const fetchAgent = async (config: QueryConfig = {}): Promise<any> => {
+export const fetchAgent = async (config: QueryConfig = {}): Promise<AgentData> => {
     const user = await authCheck();
 
     const fetchAgentQuery = `
@@ -78,9 +79,12 @@ export const fetchAgent = async (config: QueryConfig = {}): Promise<any> => {
                     agent: node {
                         id
                         name
-                        agent_speed
                         description
+                        agent_speed
                         created_by
+                        memory_limit
+                        context_window
+                        budget
                     }
                 }
             }
@@ -97,14 +101,14 @@ export const fetchAgent = async (config: QueryConfig = {}): Promise<any> => {
             throw new Error('Agent not found');
         }
 
-        return { ...record.agent, speed: record.agent.agent_speed };
+        return { ...record.agent, speed: record.agent_speed };
     } catch (error) {
         console.error('Error fetching agent:', error);
         throw error;
     }
 };
 
-export const fetchAgents = async (): Promise<any> => {
+export const fetchAgents = async (): Promise<AgentData[]> => {
     const user = await authCheck();
 
     const fetchAgentsQuery = `

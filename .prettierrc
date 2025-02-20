@@ -9,7 +9,16 @@
     "arrowParens": "avoid",
     "endOfLine": "lf",
     "bracketSameLine": false,
-    "plugins": [],
+    "plugins": ["@trivago/prettier-plugin-sort-imports"],
+    "importOrder": [
+        "^react$",
+        "^@?\\w",
+        "^@/(.*)$",
+        "^[./]"
+    ],
+    "importOrderSeparation": true,
+    "importOrderSortSpecifiers": false,
+    "importOrderParserPlugins": ["typescript", "jsx", "decorators-legacy"],
     "overrides": [
         {
             "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],

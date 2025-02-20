@@ -37,7 +37,7 @@
 }
 
 .agents-grid {
-  @apply grid grid-cols-2 gap-2.5 py-6 overflow-y-auto justify-items-center flex-1;
+  @apply grid grid-cols-2 gap-2 py-6 overflow-y-auto justify-items-center flex-1;
 
   .agent-card-container {
     @apply w-full h-64 cursor-pointer rounded-lg;
