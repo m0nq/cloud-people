@@ -1,5 +1,5 @@
 import { AgentState } from '@app-types/agent';
-import { AgentConfig, AgentConfigSchema, Task, Result, AgentError } from './types';
+import { AgentConfig, AgentConfigSchema, AgentError, Result, Task } from './types';
 import { IModelProvider } from './model-providers/base-model';
 import { IAgentFramework } from './frameworks/base-framework';
 
@@ -8,7 +8,7 @@ export abstract class BaseAgent {
     protected model: IModelProvider | null = null;
     protected framework: IAgentFramework | null = null;
 
-    constructor(protected config: AgentConfig) {
+    protected constructor(protected config: AgentConfig) {
         this.validateConfig();
     }
 
@@ -30,7 +30,7 @@ export abstract class BaseAgent {
 
         try {
             this.state = AgentState.Activating;
-            
+
             // Initialize model provider
             this.model = await this.createModelProvider();
             await this.model.initialize();
@@ -118,5 +118,6 @@ export abstract class BaseAgent {
     }
 
     protected abstract createModelProvider(): Promise<IModelProvider>;
+
     protected abstract createFramework(): Promise<IAgentFramework>;
 }

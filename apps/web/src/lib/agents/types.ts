@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-import { AgentState } from '@app-types/agent';
-
 // Model configuration
 export interface ModelConfig {
     provider: string;
@@ -10,9 +8,16 @@ export interface ModelConfig {
     apiKey?: string;
 }
 
+export enum FrameworkType {
+    langgraph = 'langgraph',
+    browserbase = 'browserbase',
+    stagehand = 'stagehand',
+    custom = 'custom'
+}
+
 // Framework configuration
 export interface FrameworkConfig {
-    type: 'langgraph' | 'browserbase' | 'stagehand' | 'custom';
+    type: FrameworkType;
     options?: Record<string, unknown>;
 }
 
@@ -32,6 +37,27 @@ export interface Result {
     metadata?: Record<string, unknown>;
 }
 
+// Tool interface for agent capabilities
+export interface Tool {
+    initialize(): Promise<void>;
+
+    execute(action: string, params: Record<string, unknown>): Promise<Record<string, unknown>>;
+
+    cleanup(): Promise<void>;
+}
+
+// Tool configuration
+export interface ToolConfig {
+    name: string;
+    description: string;
+    actions: {
+        [key: string]: {
+            description: string;
+            parameters: Record<string, unknown>;
+        }
+    };
+}
+
 // Zod schema for runtime validation
 export const AgentConfigSchema = z.object({
     id: z.string().uuid(),
@@ -48,9 +74,12 @@ export const AgentConfigSchema = z.object({
         options: z.record(z.unknown()).optional()
     }),
     tools: z.array(z.object({
-        id: z.string().uuid(),
         name: z.string(),
-        permissions: z.array(z.string())
+        description: z.string(),
+        actions: z.record(z.object({
+            description: z.string(),
+            parameters: z.record(z.unknown())
+        }))
     }))
 });
 
