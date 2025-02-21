@@ -89,14 +89,19 @@ CREATE TYPE "public"."AgentSpeed" AS ENUM (
 ALTER TYPE "public"."AgentSpeed" OWNER TO "postgres";
 
 
-CREATE TYPE "public"."MemoryLimit" AS ENUM (
-    '8g',
-    '16g',
-    '32g'
+CREATE TYPE "public"."ToolCategory" AS ENUM (
+    'browser',
+    'llm',
+    'data',
+    'utility',
+    'io',
+    'memory',
+    'agent',
+    'system'
 );
 
 
-ALTER TYPE "public"."MemoryLimit" OWNER TO "postgres";
+ALTER TYPE "public"."ToolCategory" OWNER TO "postgres";
 
 
 CREATE TYPE "public"."WorkflowState" AS ENUM (
@@ -141,6 +146,28 @@ $$;
 
 ALTER FUNCTION "public"."update_executions_updated_at"() OWNER TO "postgres";
 
+
+CREATE OR REPLACE FUNCTION "public"."update_tool_usage"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    AS $$
+BEGIN
+    UPDATE "public"."Tools"
+    SET 
+        last_used_at = NOW(),
+        usage_count = usage_count + 1
+    WHERE id = NEW.tool_id;
+    
+    -- Also update the AgentTools usage statistics
+    NEW.last_used_at = NOW();
+    NEW.usage_count = COALESCE(NEW.usage_count, 0) + 1;
+    
+    RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_tool_usage"() OWNER TO "postgres";
+
 SET default_tablespace = '';
 
 SET default_table_access_method = "heap";
@@ -150,7 +177,9 @@ CREATE TABLE IF NOT EXISTS "public"."AgentTools" (
     "agent_id" "uuid" NOT NULL,
     "tool_id" "uuid" NOT NULL,
     "configuration" "jsonb",
-    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "last_used_at" timestamp with time zone,
+    "usage_count" bigint DEFAULT 0
 );
 
 
@@ -166,7 +195,7 @@ CREATE TABLE IF NOT EXISTS "public"."Agents" (
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "agent_speed" "public"."AgentSpeed" DEFAULT 'Instant'::"public"."AgentSpeed" NOT NULL,
     "context_window" "text",
-    "memory_limit" "public"."MemoryLimit" DEFAULT '8g'::"public"."MemoryLimit" NOT NULL,
+    "memory_limit" "text" NOT NULL,
     "budget" numeric DEFAULT 0.00 NOT NULL,
     "models" "text"[] DEFAULT '{}'::"text"[]
 );
@@ -279,14 +308,29 @@ COMMENT ON COLUMN "public"."Profiles"."last_name" IS 'Last of user for user prof
 CREATE TABLE IF NOT EXISTS "public"."Tools" (
     "id" "uuid" DEFAULT "extensions"."uuid_generate_v4"() NOT NULL,
     "name" character varying(255) NOT NULL,
-    "description" "text",
-    "category" character varying(50) NOT NULL,
+    "description" "text" NOT NULL,
+    "category" "public"."ToolCategory" NOT NULL,
     "parameters" "jsonb" NOT NULL,
     "version" character varying(20) DEFAULT '1.0.0'::character varying NOT NULL,
     "created_by" "uuid" DEFAULT "auth"."uid"(),
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    CONSTRAINT "Tools_category_check" CHECK ((("category")::"text" = ANY ((ARRAY['browser'::character varying, 'llm'::character varying, 'data'::character varying, 'utility'::character varying])::"text"[])))
+    "input_schema" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "output_schema" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "implementation" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "runtime_requirements" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "min_agent_version" character varying(20),
+    "deprecated" boolean DEFAULT false NOT NULL,
+    "replacement_tool" "uuid",
+    "permissions_required" "text"[] DEFAULT '{}'::"text"[] NOT NULL,
+    "rate_limit" integer,
+    "tags" "text"[] DEFAULT '{}'::"text"[] NOT NULL,
+    "documentation_url" "text",
+    "last_used_at" timestamp with time zone,
+    "usage_count" bigint DEFAULT 0,
+    CONSTRAINT "valid_input_schema" CHECK (("jsonb_typeof"("input_schema") = 'object'::"text")),
+    CONSTRAINT "valid_output_schema" CHECK (("jsonb_typeof"("output_schema") = 'object'::"text")),
+    CONSTRAINT "valid_version_format" CHECK ((("version")::"text" ~ '^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$'::"text"))
 );
 
 
@@ -339,16 +383,6 @@ ALTER TABLE ONLY "public"."Executions"
 
 
 
-ALTER TABLE ONLY "public"."Tools"
-    ADD CONSTRAINT "Tools_name_key" UNIQUE ("name");
-
-
-
-ALTER TABLE ONLY "public"."Tools"
-    ADD CONSTRAINT "Tools_pkey" PRIMARY KEY ("id");
-
-
-
 ALTER TABLE ONLY "public"."VectorMemories"
     ADD CONSTRAINT "VectorMemories_pkey" PRIMARY KEY ("id");
 
@@ -374,6 +408,16 @@ ALTER TABLE ONLY "public"."Profiles"
 
 
 
+ALTER TABLE ONLY "public"."Tools"
+    ADD CONSTRAINT "tools_name_version_key" UNIQUE ("name", "version");
+
+
+
+ALTER TABLE ONLY "public"."Tools"
+    ADD CONSTRAINT "tools_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."Workflows"
     ADD CONSTRAINT "workflows_pkey" PRIMARY KEY ("id");
 
@@ -383,15 +427,35 @@ CREATE INDEX "IDX_AgentTools_Agent" ON "public"."AgentTools" USING "btree" ("age
 
 
 
-CREATE INDEX "IDX_Tools_Category" ON "public"."Tools" USING "btree" ("category");
-
-
-
 CREATE INDEX "IDX_VectorMemories_Agent" ON "public"."VectorMemories" USING "btree" ("agent_id");
 
 
 
+CREATE INDEX "idx_tools_category" ON "public"."Tools" USING "btree" ("category");
+
+
+
+CREATE INDEX "idx_tools_deprecated" ON "public"."Tools" USING "btree" ("deprecated") WHERE ("deprecated" = false);
+
+
+
+CREATE INDEX "idx_tools_last_used" ON "public"."Tools" USING "btree" ("last_used_at");
+
+
+
+CREATE INDEX "idx_tools_tags" ON "public"."Tools" USING "gin" ("tags");
+
+
+
+CREATE INDEX "idx_tools_usage" ON "public"."Tools" USING "btree" ("usage_count" DESC);
+
+
+
 CREATE INDEX "nodes_agent_id_idx" ON "public"."Nodes" USING "btree" ("agent_id");
+
+
+
+CREATE OR REPLACE TRIGGER "track_tool_usage" BEFORE INSERT OR UPDATE ON "public"."AgentTools" FOR EACH ROW EXECUTE FUNCTION "public"."update_tool_usage"();
 
 
 
@@ -441,6 +505,11 @@ ALTER TABLE ONLY "public"."Nodes"
 
 ALTER TABLE ONLY "public"."Tools"
     ADD CONSTRAINT "Tools_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+
+ALTER TABLE ONLY "public"."Tools"
+    ADD CONSTRAINT "Tools_created_by_fkey1" FOREIGN KEY ("created_by") REFERENCES "public"."Profiles"("id");
 
 
 
@@ -526,10 +595,6 @@ ALTER TABLE "public"."Profiles" ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "public"."Tools" ENABLE ROW LEVEL SECURITY;
 
 
-CREATE POLICY "Tools Restricted Access" ON "public"."Tools" TO "authenticated" USING (true) WITH CHECK (("auth"."uid"() = "created_by"));
-
-
-
 CREATE POLICY "Users can access, edit, and delete their own info" ON "public"."Profiles" TO "authenticated", "anon" USING (("auth"."uid"() = "id"));
 
 
@@ -558,6 +623,14 @@ CREATE POLICY "VectorMemories Owner Access" ON "public"."VectorMemories" TO "aut
 
 
 ALTER TABLE "public"."Workflows" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "tools_modify_policy" ON "public"."Tools" USING (("auth"."uid"() = "created_by")) WITH CHECK (("auth"."uid"() = "created_by"));
+
+
+
+CREATE POLICY "tools_read_policy" ON "public"."Tools" FOR SELECT TO "authenticated" USING (true);
+
 
 
 
@@ -1400,6 +1473,12 @@ GRANT ALL ON FUNCTION "public"."subvector"("public"."vector", integer, integer) 
 GRANT ALL ON FUNCTION "public"."update_executions_updated_at"() TO "anon";
 GRANT ALL ON FUNCTION "public"."update_executions_updated_at"() TO "authenticated";
 GRANT ALL ON FUNCTION "public"."update_executions_updated_at"() TO "service_role";
+
+
+
+GRANT ALL ON FUNCTION "public"."update_tool_usage"() TO "anon";
+GRANT ALL ON FUNCTION "public"."update_tool_usage"() TO "authenticated";
+GRANT ALL ON FUNCTION "public"."update_tool_usage"() TO "service_role";
 
 
 
