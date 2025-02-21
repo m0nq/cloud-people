@@ -56,19 +56,25 @@ export type Database = {
           agent_id: string
           configuration: Json | null
           created_at: string
+          last_used_at: string | null
           tool_id: string
+          usage_count: number | null
         }
         Insert: {
           agent_id: string
           configuration?: Json | null
           created_at?: string
+          last_used_at?: string | null
           tool_id: string
+          usage_count?: number | null
         }
         Update: {
           agent_id?: string
           configuration?: Json | null
           created_at?: string
+          last_used_at?: string | null
           tool_id?: string
+          usage_count?: number | null
         }
         Relationships: [
           {
@@ -280,39 +286,86 @@ export type Database = {
       }
       Tools: {
         Row: {
-          category: string
+          category: Database["public"]["Enums"]["ToolCategory"]
           created_at: string
           created_by: string | null
-          description: string | null
+          deprecated: boolean
+          description: string
+          documentation_url: string | null
           id: string
+          implementation: Json
+          input_schema: Json
+          last_used_at: string | null
+          min_agent_version: string | null
           name: string
+          output_schema: Json
           parameters: Json
+          permissions_required: string[]
+          rate_limit: number | null
+          replacement_tool: string | null
+          runtime_requirements: Json
+          tags: string[]
           updated_at: string
+          usage_count: number | null
           version: string
         }
         Insert: {
-          category: string
+          category: Database["public"]["Enums"]["ToolCategory"]
           created_at?: string
           created_by?: string | null
-          description?: string | null
+          deprecated?: boolean
+          description: string
+          documentation_url?: string | null
           id?: string
+          implementation?: Json
+          input_schema?: Json
+          last_used_at?: string | null
+          min_agent_version?: string | null
           name: string
+          output_schema?: Json
           parameters: Json
+          permissions_required?: string[]
+          rate_limit?: number | null
+          replacement_tool?: string | null
+          runtime_requirements?: Json
+          tags?: string[]
           updated_at?: string
+          usage_count?: number | null
           version?: string
         }
         Update: {
-          category?: string
+          category?: Database["public"]["Enums"]["ToolCategory"]
           created_at?: string
           created_by?: string | null
-          description?: string | null
+          deprecated?: boolean
+          description?: string
+          documentation_url?: string | null
           id?: string
+          implementation?: Json
+          input_schema?: Json
+          last_used_at?: string | null
+          min_agent_version?: string | null
           name?: string
+          output_schema?: Json
           parameters?: Json
+          permissions_required?: string[]
+          rate_limit?: number | null
+          replacement_tool?: string | null
+          runtime_requirements?: Json
+          tags?: string[]
           updated_at?: string
+          usage_count?: number | null
           version?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "Tools_created_by_fkey1"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "Profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       VectorMemories: {
         Row: {
@@ -567,6 +620,15 @@ export type Database = {
     }
     Enums: {
       AgentSpeed: "Instant" | "Slow" | "Fast"
+      ToolCategory:
+        | "browser"
+        | "llm"
+        | "data"
+        | "utility"
+        | "io"
+        | "memory"
+        | "agent"
+        | "system"
       WorkflowState: "INITIAL" | "BUILDING" | "RUNNING" | "PAUSED" | "COMPLETED"
     }
     CompositeTypes: {
