@@ -9,10 +9,11 @@ import { RefreshIcon } from '@components/icons/refresh-icon';
 import { TargetIcon } from '@components/icons/target-icon';
 import { DocumentIcon } from '@components/icons/document-icon';
 import { useAgentStore } from '@stores/agent-store';
+import type { AgentData } from '@app-types/agent';
 
 export type BaseAgentLayoutProps = {
     agentId: string;
-    agentData?: any;  // Optional direct data prop
+    agentData?: AgentData;  // Optional direct data prop
     className?: string;
     style?: CSSProperties;
     onEdit?: () => void;

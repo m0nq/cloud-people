@@ -24,12 +24,11 @@ import { updateState } from '@stores/workflow';
 import { validateConnection } from '@stores/workflow';
 import type { AgentData } from '@app-types/agent';
 import { AgentState } from '@app-types/agent';
-import { NODE_SPACING_X } from '@config/layout.const';
-import { NODE_SPACING_Y } from '@config/layout.const';
-import { useAgentStore } from '@stores/agent-store';
 import { NodeType } from '@app-types/workflow/node-types';
 import { EdgeType } from '@app-types/workflow/node-types';
 import { fetchAgent } from '@lib/actions/agent-actions';
+import { calculateNodePositions } from '@lib/layout/node-layout';
+import { getSiblings } from '@lib/layout/node-layout';
 
 type PositionNodeChange = NodeChange & {
     type: 'position';
@@ -207,30 +206,24 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
                 throw new Error('Failed to fetch agent record');
             }
 
-            // Calculate position for the new node
-            const siblings = getConnectedEdges([parentNode], edges)
-                .map(e => e.target)
-                .filter(nodeId => edges.some(e => e.source === parentNode.id && e.target === nodeId));
+            // Get siblings and calculate positions
+            const siblings = getSiblings(parentNode, edges);
+            const allNodePositions = calculateNodePositions(parentNode, siblings, edges);
 
-            const totalSiblings = siblings.length + 1;
-            const isRootNode = parentNode.type === NodeType.Root;
-            const xOffset = isRootNode ? NODE_SPACING_X : NODE_SPACING_X;
-            const yOffset = totalSiblings > 1
-                ? (siblings.length - (totalSiblings - 1) / 2) * NODE_SPACING_Y
-                : 0;
-
-            // Update positions of existing siblings if needed
-            if (totalSiblings > 1) {
-                const nodeChanges = siblings.map((siblingId, index) => ({
-                    type: 'position' as const,
-                    id: siblingId,
-                    position: {
-                        x: parentNode.position.x + xOffset,
-                        y: parentNode.position.y + (index - (totalSiblings - 1) / 2) * NODE_SPACING_Y
-                    }
-                }));
+            // Update positions of existing siblings
+            if (siblings.length > 0) {
+                const nodeChanges = allNodePositions
+                    .filter(pos => pos.id !== 'new-node')
+                    .map(pos => ({
+                        type: 'position' as const,
+                        id: pos.id,
+                        position: pos.position
+                    }));
                 get().onNodesChange?.(nodeChanges);
             }
+
+            // Get position for new node
+            const newNodePosition = allNodePositions.find(pos => pos.id === 'new-node')?.position;
 
             // Create the new node
             const node = await createNodes({
@@ -243,53 +236,48 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
                 }
             });
 
-            if (!node?.id) {
-                throw new Error('Failed to create node');
-            }
-
-            // Initialize agent state in the UI
-            const agentStore = useAgentStore.getState();
-            agentStore.updateAgentState(agent.id, {
-                state: AgentState.Initial,
-                isEditable: true,
-                isLoading: false
-            });
-
-            // Add node to the graph
+            // Create the new node with calculated position
             const newNode: Node<NodeData> = {
                 id: node.id,
                 type: NodeType.Agent,
+                position: newNodePosition || { x: 0, y: 0 },
+                sourcePosition: Position.Right,
+                targetPosition: Position.Left,
+                dragHandle: '.nodrag',
                 data: {
                     id: node.id,
                     type: NodeType.Agent,
                     workflowId: parentNode.data.workflowId,
                     agentRef: { agentId: agent.id },
-                    state: AgentState.Initial
-                },
-                position: {
-                    x: parentNode.position.x + xOffset,
-                    y: parentNode.position.y + yOffset
-                },
-                dragHandle: '.nodrag',
-                sourcePosition: Position.Right,
-                targetPosition: Position.Left
-            };
-
-            // Add edge from parent to new node
-            const newEdge: Edge<EdgeData> = {
-                id: `${parentNode.id}-${node.id}`,
-                source: parentNode.id,
-                target: node.id,
-                type: EdgeType.Automation,
-                animated: true,
-                data: {
-                    id: `${parentNode.id}-${node.id}`,
-                    workflowId: parentNode.data.workflowId,
-                    fromNodeId: parentNode.id,
-                    toNodeId: node.id
+                    state: AgentState.Idle
                 }
             };
 
+            // Create edge connecting to parent
+            const edgeId = await createEdge({
+                data: {
+                    workflowId: parentNode.data.workflowId,
+                    toNodeId: newNode.id,
+                    fromNodeId: parentNode.id
+                }
+            });
+
+            // Create edge with unique ID and proper data
+            const newEdge: Edge<EdgeData> = {
+                id: edgeId,
+                source: parentNode.id,
+                target: newNode.id,
+                type: EdgeType.Automation,
+                animated: true,
+                data: {
+                    id: edgeId,
+                    workflowId: parentNode.data.workflowId,
+                    toNodeId: newNode.id,
+                    fromNodeId: parentNode.id
+                }
+            };
+
+            // Update store with both new node and edge atomically
             updateState(set, {
                 nodes: [...nodes, newNode],
                 edges: [...edges, newEdge]

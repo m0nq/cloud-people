@@ -13,13 +13,13 @@ import { WatchIcon } from '@components/icons/watch-icon';
 import { useAgent } from '@hooks/use-agent';
 import { useAgentStore } from '@stores/agent-store';
 
-export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
+export const WorkingAgentLayout = ({ agentId, agentData }: BaseAgentLayoutProps) => {
     const { getAgentData } = useAgentStore();
-    const data = getAgentData(agentId);
+    const data = agentData || getAgentData(agentId);
     const [result, setResult] = useState('');
     const hasExecuted = useRef(false);
     const { transition } = useAgentStore();
-    const { executeAction, isProcessing } = useAgent(agentId, status => {
+    const { executeAction, isProcessing } = useAgent(data, status => {
         transition(agentId, status);
     });
 

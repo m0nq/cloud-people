@@ -8,9 +8,9 @@ import { PenIcon } from '@components/icons/pen-icon';
 import { ChatIcon } from '@components/icons/chat-icon';
 import { useAgentStore } from '@stores/agent-store';
 
-export const IdleAgentLayout = ({ agentId}: BaseAgentLayoutProps) => {
+export const IdleAgentLayout = ({ agentId, agentData }: BaseAgentLayoutProps) => {
     const { getAgentData } = useAgentStore();
-    const data = getAgentData(agentId);
+    const data = agentData || getAgentData(agentId);
 
     return (
         <div className="idle-agentState-card">
@@ -52,7 +52,7 @@ export const IdleAgentLayout = ({ agentId}: BaseAgentLayoutProps) => {
                     <Button variant="secondary"
                         size="sm"
                         radius="lg"
-                        customStyles={{ textColor: '#2F3338', backgroundColor: '#56e8cd' }}
+                        customStyles={{ textColor: '#2f3338', backgroundColor: '#56e8cd' }}
                         fullWidth
                         icon={<ChatIcon />}>
                         Meeting

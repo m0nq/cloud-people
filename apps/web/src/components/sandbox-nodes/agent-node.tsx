@@ -54,7 +54,8 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
 
     const [isLoadingData, setIsLoadingData] = useState(false);
     const agentId = data.agentRef?.agentId;
-    const agentState = getAgentState(agentId);
+    const agentRuntime = getAgentState(agentId);
+    const agentData = getAgentData(agentId);
 
     // Combined effect for agent initialization and data fetching
     useEffect(() => {
@@ -70,7 +71,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         }
 
         // Only fetch if we don't have the data cached
-        if (!getAgentData(agentId)) {
+        if (!agentData) {
             setIsLoadingData(true);
             fetchAgent({ agentId })
                 .then(agentState => {
@@ -99,27 +100,27 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
 
     // Memoize workflow state effect
     useEffect(() => {
-        if (!agentState?.state) return;
+        if (!agentRuntime?.state) return;
 
-        if (agentState.state === AgentState.Complete) {
-            progressWorkflow(id, agentState.state);
-        } else if (agentState.state === AgentState.Error || agentState.state === AgentState.Assistance) {
+        if (agentRuntime.state === AgentState.Complete) {
+            progressWorkflow(id, agentRuntime.state);
+        } else if (agentRuntime.state === AgentState.Error || agentRuntime.state === AgentState.Assistance) {
             pauseWorkflow();
         }
-    }, [agentState?.state, id, progressWorkflow, pauseWorkflow]);
+    }, [agentRuntime?.state, id, progressWorkflow, pauseWorkflow]);
 
     // Memoize handlers
     const handleAgentDetails = useCallback(() => {
-        if (agentState?.isEditable) {
+        if (agentRuntime?.isEditable) {
             openModal({ type: 'agent-details', parentNodeId: id });
         }
-    }, [id, openModal, agentState?.isEditable]);
+    }, [id, openModal, agentRuntime?.isEditable]);
 
     const handleOpenAgentSelection = useCallback(() => {
-        if (agentState?.state === AgentState.Initial || agentState?.state === AgentState.Idle) {
+        if (agentRuntime?.state === AgentState.Initial || agentRuntime?.state === AgentState.Idle) {
             openModal({ type: 'agent-selection', parentNodeId: id });
         }
-    }, [id, openModal, agentState?.state]);
+    }, [id, openModal, agentRuntime?.state]);
 
     const handleAssistanceRequest = useCallback(() => {
         transition(id, AgentState.Assistance, {
@@ -133,13 +134,13 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
 
     // Memoize complex class names
     const containerClassName = useMemo(() =>
-            `agent-node-container ${agentState.isLoading ? 'opacity-50' : ''}`,
-        [agentState.isLoading]
+            `agent-node-container`,
+        [agentRuntime.isLoading]
     );
 
     const contentClassName = useMemo(() =>
-            `w-full h-full ${agentState.isEditable ? 'cursor-pointer' : 'cursor-default'}`,
-        [agentState.isEditable]
+            `w-full h-full ${agentRuntime.isEditable ? 'cursor-pointer' : 'cursor-default'}`,
+        [agentRuntime.isEditable]
     );
 
     const handleClassName = useMemo(() =>
@@ -162,8 +163,9 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
             <NodeComponent.Content className={containerClassName}>
                 <div className={contentClassName} onClick={handleAgentDetails}>
                     <AgentCard agentId={agentId}
-                        state={agentState.state}
-                        onEdit={agentState.isEditable ? handleAgentDetails : undefined}
+                        agentData={agentData}
+                        state={agentRuntime.state}
+                        onEdit={agentRuntime.isEditable ? handleAgentDetails : undefined}
                         onAssistanceRequest={handleAssistanceRequest}
                         onRestart={handleRestart} />
                 </div>

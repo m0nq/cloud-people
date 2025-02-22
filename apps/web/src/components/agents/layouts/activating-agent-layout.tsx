@@ -7,10 +7,10 @@ import './agent-card.styles.css';
 import cloudHeadImage from '@public/pink-cloud-head.png';
 import { BaseAgentLayoutProps } from './base-agent-layout';
 
-export const ActivatingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
+export const ActivatingAgentLayout = ({ agentId, agentData }: BaseAgentLayoutProps) => {
     const { transition } = useAgentStore();
     const { getAgentData } = useAgentStore();
-    const data = getAgentData(agentId);
+    const data = agentData || getAgentData(agentId);
 
     useEffect(() => {
         // Will do further set up here as needed
@@ -33,7 +33,7 @@ export const ActivatingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
                 <div className="status-content activating">
                     <span className="status-label">Activating</span>
                 </div>
-                <div className="agentState-name">
+                <div className="agent-name">
                     <p>{data?.name}</p>
                 </div>
             </div>

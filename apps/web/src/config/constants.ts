@@ -14,6 +14,8 @@ export const Config = {
             Sandbox: '/sandbox',
             Store: '/store',
             Community: '/community',
+            Task: '/api/agent/task',
+            Chat: '/api/agent/chat',
             Message: '#',
             Forum: '#',
             Info: '#'

@@ -5,9 +5,9 @@ import { BaseAgentLayoutProps } from './base-agent-layout';
 import { PlayIcon } from '@components/icons/play-icon';
 import { useAgentStore } from '@stores/agent-store';
 
-export const CompleteAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
+export const CompleteAgentLayout = ({ agentId, agentData }: BaseAgentLayoutProps) => {
     const { getAgentData } = useAgentStore();
-    const data = getAgentData(agentId);
+    const data = agentData || getAgentData(agentId);
 
     return (
         <div className="complete-agent-card">
