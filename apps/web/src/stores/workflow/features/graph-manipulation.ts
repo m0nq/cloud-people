@@ -55,18 +55,19 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
 
             // Update database for each changed node
             await Promise.all(
-                updatedNodes.filter(isValidWorkflowNode).map(async node => {
-                    await updateNodes({
-                        data: {
-                            workflowId: node.data.workflowId,
-                            nodeId: node.id,
-                            set: {
-                                state: node.data.state,
-                                updated_at: new Date()
+                updatedNodes.filter(isValidWorkflowNode)
+                    .map(async node => {
+                        await updateNodes({
+                            data: {
+                                workflowId: node.data.workflowId,
+                                nodeId: node.id,
+                                set: {
+                                    state: node.data.state,
+                                    updated_at: new Date()
+                                }
                             }
-                        }
-                    });
-                })
+                        });
+                    })
             );
         } catch (error) {
             console.error('Failed to update nodes:', error);

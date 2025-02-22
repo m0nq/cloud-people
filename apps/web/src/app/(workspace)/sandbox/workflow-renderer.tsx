@@ -1,5 +1,7 @@
 import { type Node } from '@xyflow/react';
 import { type Edge } from '@xyflow/react';
+import { type NodeChange } from '@xyflow/react';
+import { type Position } from '@xyflow/react';
 import { EdgeTypes } from '@xyflow/react';
 import { NodeTypes } from '@xyflow/react';
 import { OnNodesChange } from '@xyflow/react';
@@ -12,6 +14,10 @@ import { type ReactNode } from 'react';
 import { useMemo } from 'react';
 import { useState } from 'react';
 import { useEffect } from 'react';
+import { useRef } from 'react';
+import { useTransition } from 'react';
+import { useCallback } from 'react';
+import dynamic from 'next/dynamic';
 
 import { type InitialStateNodeData } from '@app-types/workflow';
 import { type NodeData } from '@app-types/workflow';
@@ -19,8 +25,6 @@ import type { WorkflowStore } from '@app-types/workflow';
 import { useWorkflowStore } from '@stores/workflow';
 import { useModalStore } from '@stores/modal-store';
 import { useShallow } from 'zustand/react/shallow';
-
-import dynamic from 'next/dynamic';
 
 import InitialStateNode from '@components/sandbox-nodes/initial-state-node';
 import RootNode from '@components/sandbox-nodes/root-node';
@@ -165,24 +169,66 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         edges
     });
 
+    // Track nodes that are currently being positioned
+    const positioningNodesRef = useRef(new Set<string>());
+
+    // Batch updates using transition
+    const [isPending, startTransition] = useTransition();
+
+    // Type for position changes
+    type PositionChange = NodeChange & {
+        type: 'position';
+        position?: Position;
+        dragging?: boolean;
+    };
+
+    // Type guard for position changes
+    const isPositionChange = (change: NodeChange): change is PositionChange =>
+        change.type === 'position';
+
     // Calculate layout on client-side only
     useEffect(() => {
         let isSubscribed = true;
 
-        const calculateLayout = () => {
-            const { laidOutNodes, laidOutEdges } = layoutElements(nodesWithModals, edges);
-            if (isSubscribed) {
-                setLayout({ nodes: laidOutNodes, edges: laidOutEdges });
-            }
+        const updateLayout = (newNodes: Node<NodeData | InitialStateNodeData>[], newEdges: Edge[]) => {
+            if (!isSubscribed) return;
+            setLayout({ nodes: newNodes, edges: newEdges });
         };
 
-        calculateLayout();
+        // Always recalculate layout for new nodes
+        const hasNewNodes = nodesWithModals.some(node => !node.position);
+        const hasInitialNodes = nodesWithModals.some(node => node.type === NodeType.Initial);
 
-        // Cleanup function
+        if (hasNewNodes || hasInitialNodes) {
+            const { laidOutNodes, laidOutEdges } = layoutElements(nodesWithModals, edges);
+            updateLayout(laidOutNodes, laidOutEdges);
+        } else {
+            updateLayout(nodesWithModals, edges);
+        }
+
         return () => {
             isSubscribed = false;
         };
     }, [nodesWithModals, edges]);
+
+    // Wrap node changes to track positioning
+    const wrappedOnNodesChange = useCallback(
+        (changes: NodeChange[]) => {
+            // Track which nodes are being positioned
+            changes.forEach(change => {
+                if (isPositionChange(change)) {
+                    if (change.dragging) {
+                        positioningNodesRef.current.add(change.id);
+                    } else {
+                        positioningNodesRef.current.delete(change.id);
+                    }
+                }
+            });
+
+            onNodesChange?.(changes);
+        },
+        [onNodesChange]
+    );
 
     // Cleanup memoized handlers when component unmounts
     useEffect(() => {
@@ -203,7 +249,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
                 edges: layout.edges,
                 edgeTypes,
                 nodeTypes,
-                onNodesChange,
+                onNodesChange: wrappedOnNodesChange,
                 onEdgesChange,
                 onBeforeDelete,
                 onNodesDelete,
