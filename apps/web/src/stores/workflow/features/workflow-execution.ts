@@ -25,6 +25,63 @@ const findNextNode = (nodes: Node<NodeData>[], edges: Edge<EdgeData>[], currentN
     return nodes.find(node => node.id === nextNodeId);
 };
 
+const findNonTerminalNodes = (nodes: Node<NodeData>[]): Node<NodeData>[] => {
+    const agentStore = useAgentStore.getState();
+    return nodes.filter(node =>
+        node.data.type === NodeType.Agent &&
+        isWorkflowNode(node) &&
+        ![AgentState.Complete, AgentState.Error, AgentState.Assistance, AgentState.Initial].includes(
+            agentStore.getAgentState(node.data.agentRef.agentId)?.state || AgentState.Initial
+        )
+    );
+};
+
+const resetNodesToInitial = (set: Function, nodes: Node<NodeData>[], targetNodes: Node<NodeData>[]) => {
+    targetNodes.forEach(node => {
+        try {
+            transitionNode(set, nodes, node.id, AgentState.Initial);
+        } catch (error) {
+            console.error(`Failed to transition node ${node.id} to AgentState.Initial:`, error);
+        }
+    });
+};
+
+const updateWorkflowState = async (
+    set: Function,
+    workflowExecution: GraphState['workflowExecution'],
+    status: WorkflowState,
+    nodeId?: string,
+    errorMessage?: string
+) => {
+    if (!workflowExecution) return;
+
+    // Update execution record
+    await updateExecution({
+        id: workflowExecution.id,
+        nodeId: nodeId || workflowExecution.currentNodeId,
+        workflowId: workflowExecution.workflowId,
+        currentStatus: status,
+        metrics: {},
+        errors: errorMessage ? {
+            message: errorMessage,
+            timestamp: new Date().toISOString()
+        } : undefined
+    });
+
+    // Update workflow state
+    updateState(set, {
+        workflowExecution: {
+            ...workflowExecution,
+            state: status,
+            currentNodeId: nodeId || workflowExecution.currentNodeId,
+            errors: errorMessage ? {
+                message: errorMessage,
+                timestamp: new Date().toISOString()
+            } : undefined
+        }
+    });
+};
+
 export const transitionNode = (set: Function, nodes: Node<NodeData>[], nodeId: string, newState: AgentState) => {
     const node = nodes.find(n => n.id === nodeId);
     if (!node || !isWorkflowNode(node)) return;
@@ -117,41 +174,12 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
         if (!workflowExecution) return;
 
         try {
-            // Get agent store state directly instead of using hook
-            const agentStore = useAgentStore.getState();
+            // Find and reset non-terminal nodes
+            const nonTerminalNodes = findNonTerminalNodes(nodes);
+            resetNodesToInitial(set, nodes, nonTerminalNodes);
 
-            // Find all agent nodes that are not in a terminal state
-            const agentNodes = nodes.filter(node =>
-                node.data.type === NodeType.Agent &&
-                isWorkflowNode(node) &&
-                ![AgentState.Complete, AgentState.Error, AgentState.Assistance, AgentState.Initial].includes(
-                    agentStore.getAgentState(node.data.agentRef.agentId)?.state || AgentState.Initial
-                )
-            );
-
-            // Set all active agents to initial state
-            agentNodes.forEach(node => {
-                try {
-                    transitionNode(set, nodes, node.id, AgentState.Initial);
-                } catch (error) {
-                    console.error(`Failed to transition node ${node.id} to AgentState.Initial:`, error);
-                }
-            });
-
-            // Update workflow execution state
-            await updateExecution({
-                id: workflowExecution.id,
-                nodeId: workflowExecution.currentNodeId,
-                workflowId: workflowExecution.workflowId,
-                currentStatus: WorkflowState.Paused
-            });
-
-            updateState(set, {
-                workflowExecution: {
-                    ...workflowExecution,
-                    state: WorkflowState.Paused
-                }
-            });
+            // Update workflow state
+            await updateWorkflowState(set, workflowExecution, WorkflowState.Paused);
         } catch (error) {
             console.error('Failed to pause workflow:', error);
             throw error;
@@ -202,7 +230,6 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
         try {
             if (!workflowExecution) return;
 
-            // If node is complete, check for next node
             if (status === AgentState.Complete) {
                 const nextNode = findNextNode(nodes, edges, nodeId);
                 if (nextNode && isWorkflowNode(nextNode)) {
@@ -210,63 +237,47 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                     useAgentStore.getState().transition(nextNode.id, AgentState.Activating);
                     transitionNode(set, nodes, nextNode.id, AgentState.Activating);
 
-                    // Update execution record with next node
-                    await updateExecution({
-                        id: workflowExecution.id,
-                        nodeId: nextNode.id,
-                        workflowId: workflowExecution.workflowId,
-                        currentStatus: WorkflowState.Running
-                    });
-
-                    updateState(set, {
-                        workflowExecution: {
-                            ...workflowExecution,
-                            currentNodeId: nextNode.id
-                        }
-                    });
+                    // Update workflow state with next node
+                    await updateWorkflowState(
+                        set,
+                        workflowExecution,
+                        WorkflowState.Running,
+                        nextNode.id
+                    );
                 } else {
                     // No next node, workflow is complete
-                    await updateExecution({
-                        id: workflowExecution.id,
-                        nodeId: nodeId,
-                        workflowId: workflowExecution.workflowId,
-                        currentStatus: WorkflowState.Completed
-                    });
-
-                    updateState(set, {
-                        workflowExecution: {
-                            ...workflowExecution,
-                            state: WorkflowState.Completed
-                        }
-                    });
+                    await updateWorkflowState(
+                        set,
+                        workflowExecution,
+                        WorkflowState.Completed,
+                        nodeId
+                    );
                 }
+            } else if (status === AgentState.Error || status === AgentState.Assistance) {
+                // Reset all non-terminal nodes
+                const nonTerminalNodes = findNonTerminalNodes(nodes);
+                resetNodesToInitial(set, nodes, nonTerminalNodes);
+
+                // Update workflow state
+                const errorMessage = status === AgentState.Error ? 'Agent encountered an error' : undefined;
+                await updateWorkflowState(set, workflowExecution, WorkflowState.Paused, nodeId, errorMessage);
             }
         } catch (error) {
             console.error('Error in progressWorkflow:', error);
 
-            // Transition node to initial state
-            transitionNode(set, nodes, nodeId, AgentState.Initial);
+            // Reset all non-terminal nodes
+            const nonTerminalNodes = findNonTerminalNodes(nodes);
+            resetNodesToInitial(set, nodes, nonTerminalNodes);
 
-            if (workflowExecution) {
-                // Update execution record with error
-                await updateExecution({
-                    ...workflowExecution,
-                    currentStatus: WorkflowState.Paused,
-                    metrics: {},
-                    errors: {
-                        message: error instanceof Error ? error.message : 'Unknown error occurred',
-                        timestamp: new Date().toISOString()
-                    }
-                });
-
-                updateState(set, {
-                    workflowExecution: {
-                        ...workflowExecution,
-                        state: WorkflowState.Paused,
-                        error: error instanceof Error ? error.message : 'Unknown error occurred'
-                    }
-                });
-            }
+            // Update workflow state with error
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+            await updateWorkflowState(
+                set,
+                workflowExecution,
+                WorkflowState.Paused,
+                nodeId,
+                errorMessage
+            );
         }
     };
 

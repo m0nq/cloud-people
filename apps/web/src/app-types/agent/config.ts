@@ -20,7 +20,7 @@ export enum MemoryLimit {
 export type AgentData = {
     id: string;
     name: string;
-    description?: string;
+    description: string;
     image?: string;
     speed: AgentSpeed;
     memoryLimit: MemoryLimit;

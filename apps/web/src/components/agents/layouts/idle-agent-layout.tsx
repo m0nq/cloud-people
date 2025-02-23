@@ -13,7 +13,7 @@ export const IdleAgentLayout = ({ agentId, agentData }: BaseAgentLayoutProps) =>
     const data = agentData || getAgentData(agentId);
 
     return (
-        <div className="idle-agentState-card">
+        <div className="idle-agent-card">
             <div className="content-container">
                 <div className="idle-agentState-info-section">
                     <Image src={data?.image || cloudHeadImage}

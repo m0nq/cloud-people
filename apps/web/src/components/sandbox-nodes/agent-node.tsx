@@ -46,7 +46,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         getAgentData,
         setAgentData
     } = useAgentStore();
-    const { progressWorkflow, pauseWorkflow, workflowExecution } = useWorkflowStore();
+    const { progressWorkflow, pauseWorkflow, workflowExecution, edges } = useWorkflowStore();
 
     // Memoize positions
     const sPosition = useMemo(() => getPosition(sourcePosition), [sourcePosition]);
@@ -116,11 +116,20 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         }
     }, [id, openModal, agentRuntime?.isEditable]);
 
-    const handleOpenAgentSelection = useCallback(() => {
-        if (agentRuntime?.state === AgentState.Initial || agentRuntime?.state === AgentState.Idle) {
-            openModal({ type: 'agent-selection', parentNodeId: id });
+    const handleClick = useCallback(() => {
+        // Check if this node already has a child
+        const existingChildren = edges.filter(edge => edge.source === id);
+
+        // TODO: Parallel node execution will be implemented in a future update.
+        // For now, we restrict each node to having at most one child to maintain
+        // a simple linear workflow structure.
+        if (existingChildren.length >= 1) {
+            alert('Node already has a child. Parallel execution is not yet supported.');
+            return;
         }
-    }, [id, openModal, agentRuntime?.state]);
+
+        openModal({ type: 'agent-selection', parentNodeId: id });
+    }, [id, openModal, edges]);
 
     const handleAssistanceRequest = useCallback(() => {
         transition(id, AgentState.Assistance, {
@@ -171,7 +180,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                 </div>
             </NodeComponent.Content>
             <NodeComponent.Handle
-                onClick={handleOpenAgentSelection}
+                onClick={handleClick}
                 type={HandleType.SOURCE}
                 position={sPosition}
                 id="source"

@@ -200,6 +200,17 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
                 throw new Error('Parent node not found or missing workflowId');
             }
 
+            // Get existing children of the parent node
+            const existingChildren = getSiblings(parentNode, edges);
+            
+            // TODO: Parallel node execution will be implemented in a future update.
+            // For now, we restrict each node to having at most one child to maintain
+            // a simple linear workflow structure.
+            if (existingChildren.length >= 1) {
+                alert('Node already has a child. Parallel execution is not yet supported.');
+                return;
+            }
+
             // TODO: ensure that an agent and it's tools are associated with this node
             const agentRecord = await fetchAgent({ agentId: agent.id });
             if (!agentRecord?.id) {
@@ -249,7 +260,7 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
                     type: NodeType.Agent,
                     workflowId: parentNode.data.workflowId,
                     agentRef: { agentId: agent.id },
-                    state: AgentState.Idle
+                    state: AgentState.Initial
                 }
             };
 
