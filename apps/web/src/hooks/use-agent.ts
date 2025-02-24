@@ -46,9 +46,6 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
             setError(null);
             setResult(null);
 
-            // Prepare the task based on agentRuntime capabilities
-            const task = `Navigate to google.com and perform a web page audit`;
-
             const response = await fetch('/api/agent', {
                 method: 'POST',
                 headers: {
@@ -57,7 +54,7 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
                 body: JSON.stringify({
                     message: {
                         id: agentId,
-                        content: task,
+                        content: agentNode?.description || 'Perform the assigned task',
                         role: 'user'
                     }
                 })
@@ -67,17 +64,21 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            console.log('Response ->', response);
             const data = await response.json();
 
             if (data.error) {
                 throw new Error(data.error);
             }
 
-            console.log('Data ->', data);
-
             setResult(data.result);
-            onStatusChange?.(AgentState.Complete);
+            
+            // Update agent state based on metadata
+            if (data.metadata?.state) {
+                onStatusChange?.(data.metadata.state as AgentState);
+            } else {
+                onStatusChange?.(AgentState.Complete);
+            }
+
         } catch (error) {
             console.error('❌ Error executing action:', error);
             setError(error instanceof Error ? error.message : 'An unknown error occurred');
@@ -85,7 +86,7 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
         } finally {
             setIsProcessing(false);
         }
-    }, [agentId, agentRuntime?.state, canExecute, isProcessing, onStatusChange]);
+    }, [agentId, agentNode?.description, agentRuntime?.state, canExecute, isProcessing, onStatusChange]);
 
     return {
         isProcessing,

@@ -105,7 +105,7 @@ export const layoutElements = (nodes: Node<NodeData>[], edges: Edge[]) => {
             // Calculate new position based on parent's position
             const newPosition = {
                 x: parentPosition.x + NODE_SPACING_X,
-                y: parentPosition.y + (siblingIndex - (totalSiblings - 1) / 2) * NODE_SPACING_Y
+                y: parentPosition.y + (siblingIndex === 0 ? 0  /* First child aligns with parent */ : (siblingIndex - Math.ceil(totalSiblings / 2)) * NODE_SPACING_Y /* Distribute other siblings around first child */)
             };
 
             nodePositions.set(nodeId, newPosition);

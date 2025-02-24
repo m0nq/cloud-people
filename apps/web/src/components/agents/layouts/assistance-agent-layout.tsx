@@ -10,11 +10,10 @@ import { WatchIcon } from '@components/icons/watch-icon';
 import { AgentState } from '@app-types/agent';
 import { useAgentStore } from '@stores/agent-store';
 
-export const AssistanceAgentLayout = ({ agentId, onAssistanceRequest }: BaseAgentLayoutProps) => {
+export const AssistanceAgentLayout = ({ agentId, agentData, onAssistanceRequest }: BaseAgentLayoutProps) => {
     const { getAgentData, getAgentState } = useAgentStore();
-    const data = getAgentData(agentId);
+    const data = agentData || getAgentData(agentId);
     const agentState = getAgentState(agentId);
-    console.log('data ->', data);
 
     return (
         <div className="assistance-card" onClick={onAssistanceRequest}>

@@ -28,7 +28,7 @@ type AgentStoreActions = {
 
 type AgentStoreSelectors = {
     getAgentState: (agentId: string | undefined) => AgentRuntimeState;
-    getAgentData: (agentId: string | undefined) => AgentData | undefined;
+    getAgentData: (agentId: string | undefined) => AgentData;
     getAgentError: (agentId: string) => StateTransitionError | null;
     isTransitionAllowed: (agentId: string, newStatus: AgentState) => boolean;
 };

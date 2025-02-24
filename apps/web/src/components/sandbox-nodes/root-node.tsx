@@ -22,7 +22,7 @@ type RootNodeProps = {
 
 const RootNode = ({ id, isConnectable, sourcePosition, targetPosition }: RootNodeProps): ReactNode => {
     const { openModal } = useModalStore();
-    const { startWorkflow, pauseWorkflow, resumeWorkflow, workflowExecution } = useWorkflowStore();
+    const { startWorkflow, pauseWorkflow, resumeWorkflow, workflowExecution, edges } = useWorkflowStore();
 
     const handlePlayPause = useCallback(async () => {
         if (!workflowExecution) {
@@ -37,8 +37,19 @@ const RootNode = ({ id, isConnectable, sourcePosition, targetPosition }: RootNod
     }, [workflowExecution, startWorkflow, pauseWorkflow, resumeWorkflow]);
 
     const handleClick = useCallback(() => {
+        // Check if this node already has a child
+        const existingChildren = edges.filter(edge => edge.source === id);
+
+        // TODO: Parallel node execution will be implemented in a future update.
+        // For now, we restrict each node to having at most one child to maintain
+        // a simple linear workflow structure.
+        if (existingChildren.length >= 1) {
+            alert('Node already has a child. Parallel execution is not yet supported.');
+            return;
+        }
+
         openModal({ type: 'agent-selection', parentNodeId: id });
-    }, [id, openModal]);
+    }, [id, openModal, edges]);
 
     return (
         <NodeComponent.Root className="root-node">
