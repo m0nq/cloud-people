@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+  browser-use:
+    build:
+      context: ./services/browser-use
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DISPLAY=:99
+      - PYTHONUNBUFFERED=1
+      - GEMINI_API_KEY=${GOOGLE_API_KEY}
+    ipc: host  # Required for Chrome to avoid memory issues
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - BROWSER_USE_API_URL=http://browser-use:8000
+    depends_on:
+      browser-use:
+        condition: service_healthy
+
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    ports:
+      - "4000:4000"
+    environment:
+      - BROWSER_USE_API_URL=http://browser-use:8000
+    depends_on:
+      browser-use:
+        condition: service_healthy
