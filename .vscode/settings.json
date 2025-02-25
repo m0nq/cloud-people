@@ -34,5 +34,7 @@
     },
     "[jsonc]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
-    }
+    },
+    "editor.fontSize": 14,
+    "editor.fontFamily": "'Fira Code', Hasklig, Menlo, Monaco, 'Courier New', monospace"
 }
