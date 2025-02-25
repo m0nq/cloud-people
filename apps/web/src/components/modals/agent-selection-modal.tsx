@@ -79,8 +79,7 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
         []
     );
 
-    const handleAgentSelect = useCallback(
-        (agent: AgentData) => {
+    const handleAgentSelect = useCallback((agent: AgentData) => {
             onSelect({ ...agent, parentNodeId });
             onClose();
         },

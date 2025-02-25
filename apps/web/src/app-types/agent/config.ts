@@ -30,6 +30,17 @@ export type AgentData = {
     tools?: string[];
     createdBy: string;
     parentNodeId?: string;
+    // Browser-use specific fields
+    url?: string;
+    browserOptions?: {
+        waitForSelector?: string;
+        timeout?: number;
+        screenshot?: boolean;
+        viewport?: {
+            width: number;
+            height: number;
+        };
+    };
 };
 
 export type AgentConfig = {

@@ -6,7 +6,7 @@ import { FaPause } from 'react-icons/fa';
 
 import { NodeComponent } from '@components/utils/node-component/node-component';
 import { HandleType } from './types.enum';
-import { useModalStore } from '@stores/modal-store';
+import { useNodeActions } from '@hooks/use-node-actions';
 import { useWorkflowStore } from '@stores/workflow';
 import { WorkflowState } from '@app-types/workflow';
 
@@ -21,35 +21,21 @@ type RootNodeProps = {
 };
 
 const RootNode = ({ id, isConnectable, sourcePosition, targetPosition }: RootNodeProps): ReactNode => {
-    const { openModal } = useModalStore();
-    const { startWorkflow, pauseWorkflow, resumeWorkflow, workflowExecution, edges } = useWorkflowStore();
+    const { startWorkflow, pauseWorkflow, resumeWorkflow, workflowExecution } = useWorkflowStore();
+    const { openAgentSelectionModal } = useNodeActions(id);
 
     const handlePlayPause = useCallback(async () => {
+
         if (!workflowExecution) {
             await startWorkflow();
-        } else if (workflowExecution.state === WorkflowState.Running) {
+        } else if (workflowExecution?.state === WorkflowState.Running) {
             await pauseWorkflow();
-        } else if (workflowExecution.state === WorkflowState.Paused) {
+        } else if (workflowExecution?.state === WorkflowState.Paused) {
             await resumeWorkflow();
-        } else if (workflowExecution.state === WorkflowState.Initial) {
+        } else if (workflowExecution?.state === WorkflowState.Initial) {
             await startWorkflow();
         }
     }, [workflowExecution, startWorkflow, pauseWorkflow, resumeWorkflow]);
-
-    const handleClick = useCallback(() => {
-        // Check if this node already has a child
-        const existingChildren = edges.filter(edge => edge.source === id);
-
-        // TODO: Parallel node execution will be implemented in a future update.
-        // For now, we restrict each node to having at most one child to maintain
-        // a simple linear workflow structure.
-        if (existingChildren.length >= 1) {
-            alert('Node already has a child. Parallel execution is not yet supported.');
-            return;
-        }
-
-        openModal({ type: 'agent-selection', parentNodeId: id });
-    }, [id, openModal, edges]);
 
     return (
         <NodeComponent.Root className="root-node">
@@ -61,7 +47,7 @@ const RootNode = ({ id, isConnectable, sourcePosition, targetPosition }: RootNod
                 )}
             </button>
             <NodeComponent.Handle
-                onClick={handleClick}
+                onClick={openAgentSelectionModal}
                 type={HandleType.SOURCE}
                 position={Position.Right}
                 id={`${id}-root`}

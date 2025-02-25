@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, HttpUrl, SecretStr
+from pydantic import BaseModel, SecretStr
 from typing import Optional, Dict, Any
 from browser_use import Agent
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -7,7 +7,6 @@ import os
 from dotenv import load_dotenv
 import logging
 import asyncio
-from urllib.parse import urlparse
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -26,26 +25,14 @@ DEFAULT_OPERATION_TIMEOUT = 60  # seconds
 app = FastAPI()
 
 class TaskRequest(BaseModel):
-    url: HttpUrl
     task: str
     options: Optional[Dict[str, Any]] = None
     operation_timeout: Optional[int] = DEFAULT_OPERATION_TIMEOUT
 
-def is_valid_url(url: str) -> bool:
-    try:
-        result = urlparse(url)
-        return all([result.scheme, result.netloc])
-    except:
-        return False
-
 @app.post("/execute")
 async def execute_task(request: TaskRequest):
     try:
-        # Validate URL
-        if not is_valid_url(str(request.url)):
-            raise HTTPException(status_code=400, detail="Invalid URL format")
-            
-        logger.info(f"Starting task execution with URL: {request.url}")
+        logger.info(f"Starting task execution: {request.task}")
         
         # Initialize Gemini using langchain with API key from environment
         llm = ChatGoogleGenerativeAI(
@@ -55,10 +42,9 @@ async def execute_task(request: TaskRequest):
         )
         logger.info("LLM initialized successfully")
         
-        # Initialize agent with task that includes the URL
-        full_task = f"Go to {request.url} and then {request.task}"
+        # Initialize agent with task
         agent = Agent(
-            task=full_task,
+            task=request.task,
             llm=llm
         )
         logger.info("Agent initialized successfully")
@@ -101,5 +87,5 @@ async def execute_task(request: TaskRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/health")
-async def health_check():
+def health_check():
     return {"status": "healthy"}

@@ -23,7 +23,6 @@ import { type InitialStateNodeData } from '@app-types/workflow';
 import { type NodeData } from '@app-types/workflow';
 import type { WorkflowStore } from '@app-types/workflow';
 import { useWorkflowStore } from '@stores/workflow';
-import { useModalStore } from '@stores/modal-store';
 import { useShallow } from 'zustand/react/shallow';
 
 import InitialStateNode from '@components/sandbox-nodes/initial-state-node';
@@ -144,25 +143,10 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         onNodesDelete
     } = useWorkflowStore(useShallow(nodeStateSelector));
 
-    const { openModal } = useModalStore();
-
-    // Modify nodes to inject the modal open handler into root node data
+    // Modify nodes to include any additional data needed for rendering
     const nodesWithModals = useMemo(() => {
-        return nodes?.map((node) => {
-            if (node.data.type !== NodeType.Initial) {
-                return {
-                    ...node,
-                    data: {
-                        ...node.data,
-                        onOpenModal: (modalType: string) => {
-                            openModal({ parentNodeId: node.id, type: modalType });
-                        }
-                    }
-                } as Node<NodeData>;
-            }
-            return node;
-        });
-    }, [nodes, openModal]);
+        return nodes?.map((node) => node);
+    }, [nodes]);
 
     const [layout, setLayout] = useState<{ nodes: Node<NodeData | InitialStateNodeData>[]; edges: Edge[] }>({
         nodes: nodesWithModals,

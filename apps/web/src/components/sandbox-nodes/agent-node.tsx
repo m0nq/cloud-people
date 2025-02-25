@@ -6,7 +6,7 @@ import { Position } from '@xyflow/react';
 
 import { AgentCard } from '@components/agents/agent-card';
 import { NodeComponent } from '@components/utils/node-component/node-component';
-import { useModalStore } from '@stores/modal-store';
+import { useNodeActions } from '@hooks/use-node-actions';
 import { useAgentStore } from '@stores/agent-store';
 import { useWorkflowStore } from '@stores/workflow';
 import { AgentState } from '@app-types/agent';
@@ -37,7 +37,7 @@ const getPosition = (position?: string): Position => {
 };
 
 const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: AgentNodeProps) => {
-    const { openModal } = useModalStore();
+    const { openAgentSelectionModal, openAgentDetailsModal } = useNodeActions(id);
     const {
         removeAgent,
         transition,
@@ -46,7 +46,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         getAgentData,
         setAgentData
     } = useAgentStore();
-    const { progressWorkflow, pauseWorkflow, workflowExecution, edges } = useWorkflowStore();
+    const { progressWorkflow, pauseWorkflow, workflowExecution } = useWorkflowStore();
 
     // Memoize positions
     const sPosition = useMemo(() => getPosition(sourcePosition), [sourcePosition]);
@@ -96,7 +96,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         return () => {
             removeAgent(agentId);
         };
-    }, [agentId, data.state, getAgentData, removeAgent, setAgentData, updateAgentState]);
+    }, [agentData, agentId, data.state, getAgentData, removeAgent, setAgentData, updateAgentState]);
 
     // Memoize workflow state effect
     useEffect(() => {
@@ -112,24 +112,9 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     // Memoize handlers
     const handleAgentDetails = useCallback(() => {
         if (agentRuntime?.isEditable) {
-            openModal({ type: 'agent-details', parentNodeId: id });
+            openAgentDetailsModal();
         }
-    }, [id, openModal, agentRuntime?.isEditable]);
-
-    const handleClick = useCallback(() => {
-        // Check if this node already has a child
-        const existingChildren = edges.filter(edge => edge.source === id);
-
-        // TODO: Parallel node execution will be implemented in a future update.
-        // For now, we restrict each node to having at most one child to maintain
-        // a simple linear workflow structure.
-        if (existingChildren.length >= 1) {
-            alert('Node already has a child. Parallel execution is not yet supported.');
-            return;
-        }
-
-        openModal({ type: 'agent-selection', parentNodeId: id });
-    }, [id, openModal, edges]);
+    }, [agentRuntime?.isEditable, openAgentDetailsModal]);
 
     const handleAssistanceRequest = useCallback(() => {
         transition(id, AgentState.Assistance, {
@@ -144,7 +129,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     // Memoize complex class names
     const containerClassName = useMemo(() =>
             `agent-node-container`,
-        [agentRuntime.isLoading]
+        []
     );
 
     const contentClassName = useMemo(() =>
@@ -180,7 +165,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                 </div>
             </NodeComponent.Content>
             <NodeComponent.Handle
-                onClick={handleClick}
+                onClick={openAgentSelectionModal}
                 type={HandleType.SOURCE}
                 position={sPosition}
                 id="source"
