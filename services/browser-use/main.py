@@ -7,6 +7,7 @@ import os
 from dotenv import load_dotenv
 import logging
 import asyncio
+from fastapi.middleware.cors import CORSMiddleware
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,6 +24,19 @@ if not os.getenv("GOOGLE_API_KEY"):
 DEFAULT_OPERATION_TIMEOUT = 60  # seconds
 
 app = FastAPI()
+
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",     # Local development
+        "http://web:3000",           # Docker internal network
+        "http://127.0.0.1:3000",     # Alternative local development
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class TaskRequest(BaseModel):
     task: str

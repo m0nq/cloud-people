@@ -19,7 +19,7 @@ export const WorkingAgentLayout = ({ agentId, agentData }: BaseAgentLayoutProps)
     const [result, setResult] = useState('');
     const hasExecuted = useRef(false);
     const { transition } = useAgentStore();
-    const { executeAction, isProcessing } = useAgent(data, status => {
+    const { executeAction, isProcessing } = useAgent(agentId, status => {
         transition(agentId, status);
     });
 
