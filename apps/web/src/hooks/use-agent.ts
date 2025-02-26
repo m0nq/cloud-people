@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useState } from 'react';
 import { Node } from '@xyflow/react';
+
 import { AgentState } from '@app-types/agent';
 import { useAgentStore } from '@stores/agent-store';
 import type { NodeData } from '@app-types/workflow';
@@ -23,9 +24,8 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
     const [error, setError] = useState<string | null>(null);
 
     const { getAgentState, getAgentData } = useAgentStore();
-    const agentRuntime = getAgentState(agentId);
-
-    const agentNode = getAgentData(agentId);
+    const agentData = getAgentData(agentId);
+    const agentRuntime = getAgentState(agentData?.id);
 
     const canExecute = !agentRuntime?.state || agentRuntime.state === AgentState.Working;
 
@@ -46,47 +46,59 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
             setError(null);
             setResult(null);
 
-            const response = await fetch('/api/agent', {
+            const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
+            if (!browserUseEndpoint) {
+                throw new Error('Browser use endpoint not configured');
+            }
+
+            console.log(' Executing agent action with endpoint:', browserUseEndpoint);
+
+            const response = await fetch(`${browserUseEndpoint}/execute`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    message: {
-                        id: agentId,
-                        content: agentNode?.description || 'Perform the assigned task',
-                        role: 'user'
+                    task: agentData?.description || 'Navigate to google and perform researhc on OpenAI 03 vs Anthropic 3.7 for use with the Windsurf IDE',
+                    options: {
+                        agentId: agentData?.id,
+                        // Include any additional agent configuration from data that might be relevant
+                        speed: agentData?.speed,
+                        memoryLimit: agentData?.memoryLimit,
+                        models: agentData?.models,
+                        tools: agentData?.tools
                     }
                 })
             });
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorData = await response.json().catch(() => null);
+                throw new Error(errorData?.detail || `HTTP error! status: ${response.status}`);
             }
 
-            const data = await response.json();
+            const responseData = await response.json();
 
-            if (data.error) {
-                throw new Error(data.error);
+            if (responseData.error) {
+                throw new Error(responseData.error);
             }
 
-            setResult(data.result);
-            
+            setResult(responseData.result);
+
             // Update agent state based on metadata
-            if (data.metadata?.state) {
-                onStatusChange?.(data.metadata.state as AgentState);
+            if (responseData.metadata?.state) {
+                onStatusChange?.(responseData.metadata.state as AgentState);
             } else {
                 onStatusChange?.(AgentState.Complete);
             }
 
         } catch (error) {
-            console.error('❌ Error executing action:', error);
+            console.error(' Error executing action:', error);
             setError(error instanceof Error ? error.message : 'An unknown error occurred');
             onStatusChange?.(AgentState.Error);
         } finally {
             setIsProcessing(false);
         }
-    }, [agentId, agentNode?.description, agentRuntime?.state, canExecute, isProcessing, onStatusChange]);
+    }, [agentData, agentRuntime?.state, canExecute, isProcessing, onStatusChange]);
 
     return {
         isProcessing,

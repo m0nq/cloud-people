@@ -1,5 +1,3 @@
-import { Message } from 'ai';
-
 export interface ToolResponse {
     type: string;
     success: boolean;
@@ -7,7 +5,7 @@ export interface ToolResponse {
     error?: string;
 }
 
-export interface AgentResponse extends Message {
+export interface AgentResponse {
     toolResponses?: ToolResponse[];
 }
 

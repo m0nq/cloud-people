@@ -11,6 +11,7 @@ import { AgentData } from '@app-types/agent';
 import { DEFAULT_AGENT_STATE } from '@stores/agent-store';
 import { useModalStore } from '@stores/modal-store';
 import { useAgentCacheStore } from '@stores/agent-cache-store';
+import { useAgentStore } from '@stores/agent-store';
 import { fetchAgents } from '@lib/actions/agent-actions';
 
 export interface AgentSelectionModalProps {
@@ -26,6 +27,7 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
     const [activeTab, setActiveTab] = useState('agents');
     const { agents, lastFetchTime, setAgents } = useAgentCacheStore();
     const { openModal } = useModalStore();
+    const { setAgentData } = useAgentStore();
     const isInitialMount = useRef(true);
 
     useEffect(() => {
@@ -81,10 +83,12 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
 
     const handleAgentSelect = useCallback(
         (agent: AgentData) => {
+            // Synchronize with AgentStore before proceeding
+            setAgentData(agent.id, agent);
             onSelect({ ...agent, parentNodeId });
             onClose();
         },
-        [onSelect, onClose, parentNodeId]
+        [onSelect, onClose, parentNodeId, setAgentData]
     );
 
     return (

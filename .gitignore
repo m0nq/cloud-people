@@ -42,9 +42,9 @@ next-env.d.ts
 .idea
 # VS Code files that should not be shared
 .vscode/settings.json
-.vscode/launch.json
 .vscode/*.code-workspace
 # Keep VS Code extensions recommendations and project settings
+!.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/settings.json
 *.swp

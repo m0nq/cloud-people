@@ -16,6 +16,7 @@ import cloudHeadImage from '@public/pink-cloud-head.png';
 import { AgentSpeed } from '@app-types/agent';
 import { MemoryLimit } from '@app-types/agent';
 import { useAgentCacheStore } from '@stores/agent-cache-store';
+import { useAgentStore } from '@stores/agent-store';
 import { createAgent } from '@lib/actions/agent-actions';
 
 // Zod schema for agent configuration
@@ -52,6 +53,7 @@ type AgentConfigFormData = Omit<z.infer<typeof agentConfigSchema>, 'budget'> & {
 export const AgentConfigModal = () => {
     const { openModal, parentNodeId, isFromModal, closeModal } = useModalStore();
     const { invalidateCache } = useAgentCacheStore();
+    const { setAgentData } = useAgentStore();
     const [error, setError] = useState<string | null>(null);
 
     const formatBudgetDisplay = (value: string): string => {
@@ -138,6 +140,9 @@ export const AgentConfigModal = () => {
                 if (!agentRecord?.id) {
                     throw new Error('Failed to create agent record');
                 }
+
+                // Synchronize with AgentStore
+                setAgentData(agentRecord.id, agentRecord);
 
                 // TODO: will need to update AgentTools table to associate the agent with capabilities from the Tools
                 // table
