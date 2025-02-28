@@ -123,6 +123,10 @@ export const transitionNode = (set: Function, nodes: Node<NodeData>[], nodeId: s
     }
 };
 
+const hasAgentNodes = (nodes: Node<NodeData>[]): boolean => {
+    return nodes.some(node => node.data.type === NodeType.Agent);
+};
+
 export const createWorkflowExecution = (set: Function, get: Function) => {
     const startWorkflow = async () => {
         const { nodes, edges } = get();
@@ -130,6 +134,11 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
 
         if (!rootNode) {
             throw new Error('No root node found');
+        }
+
+        // Check if there are any agent nodes in the graph
+        if (!hasAgentNodes(nodes)) {
+            throw new Error('Cannot start workflow: No agent nodes detected in the graph.');
         }
 
         // Get workflow ID from root node
