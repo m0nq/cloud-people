@@ -301,6 +301,20 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
         }
     },
 
+    onBeforeDelete: ({ nodes, edges }) => {
+        // NOTE: This is a workaround until we implement concurrent node runs
+        // where users can change node relations by their edge attachments
+        const edgesToDelete = edges.filter(edge => edge.selected);
+        
+        if (edgesToDelete.length) {
+            // If there are edges selected for deletion, prevent the deletion
+            return false;
+        }
+        
+        // Allow deletion of nodes (but not edges)
+        return true;
+    },
+
     onNodesDelete: async (deletedNodes: Node[]) => {
         if (!deletedNodes.length) {
             return;
