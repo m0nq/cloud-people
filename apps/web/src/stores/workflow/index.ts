@@ -10,3 +10,4 @@ export { findNextNode } from './utils/state-helpers';
 export { getConnectedNodes } from './utils/state-helpers';
 export { isCurrentNode } from './utils/state-helpers';
 export { updateState } from './utils/state-helpers';
+export { hasAgentNodes } from './utils/state-helpers';

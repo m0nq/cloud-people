@@ -39,3 +39,12 @@ export const isCurrentNode = (get: Function, nodeId: string): boolean => {
     const { workflowExecution } = get();
     return workflowExecution?.currentNodeId === nodeId;
 };
+
+/**
+ * Checks if the graph contains any agent nodes
+ * @param nodes Array of nodes in the graph
+ * @returns Boolean indicating if there are any agent nodes
+ */
+export const hasAgentNodes = (nodes: Node<NodeData>[]): boolean => {
+    return nodes.some(node => node.type === NodeType.Agent);
+};

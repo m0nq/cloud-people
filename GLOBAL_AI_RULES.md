@@ -50,7 +50,7 @@ For every task, I will:
    c. Internal modules
    d. Relative imports
 
-Example:
+   Example:
 
 ````typescript
 import { ReactElement } from 'react';
@@ -64,36 +64,32 @@ import { MyInternalComponent } from '@/components';
 
 import { utils } from '../utils';
 
-```
-
-03.  Always leave import statements on their own line, meaning:
-
-    -   No code should share a line with an import statement
-    -   Leave a blank line after the last import before starting component/function code
-    -   Group imports as specified in rule 2
-
-    For example:
-
-    ```
-typescript
-import { ComponentA } from 'package';
-import { ComponentB } from 'package';
-
-const MyComponent = () => {
     ```
 
-04.  File and Code Style Conventions
+3. Always leave import statements on their own line, meaning:
+    - No code should share a line with an import statement
+    - Leave a blank line after the last import before starting component/function code
+    - Group imports as specified in rule 2
 
-    -   Follow the existing file naming conventions (e.g., kebab-case, PascalCase) and organization patterns.
-    -   Use consistent file extensions (.tsx, .ts).
-    -   Maintain consistent indentation and spacing across the project.
-    -   Use clear, descriptive naming conventions for variables, functions, and components.
-    -   Respect project-specific architectural decisions and established patterns for state management, data fetching, etc.
+   For example:
 
-05.  Tailwind CSS Rules
+   ```typescript
+    import { ComponentA } from 'package';
+    import { ComponentB } from 'package';
 
+    const MyComponent = () => {
+   ```
+
+4. File and Code Style Conventions
+    - Follow the existing file naming conventions (e.g., kebab-case, PascalCase) and organization patterns.
+    - Use consistent file extensions (.tsx, .ts).
+    - Maintain consistent indentation and spacing across the project.
+    - Use clear, descriptive naming conventions for variables, functions, and components.
+    - Respect project-specific architectural decisions and established patterns for state management, data fetching,
+      etc.
+
+5. Tailwind CSS Rules
     1. Write CSS using Tailwind classes unless otherwise specified:
-
         - Utilize styles in separate css files using the @apply rule.
         - Nested css selectors are prefered over global ones.
         - Maintain consistent class order:
@@ -104,112 +100,101 @@ const MyComponent = () => {
             - Visual Styles (e.g., bg-gray-50, rounded-md)
             - Interactive States (e.g., hover:bg-gray-100)
 
-        Example:
+       Example:
 
-        ```
-    css
-        .className
-    {
-    @apply
-        flex
-        items - center
-        justify - between
-        p - 4
-        mt - 2
-        w - full
-        text - sm
-        text - gray - 700
-        bg - white
-        hover:bg - gray - 50;
-    }
-    ```
+        ```css
+           .className {
+               @apply flex items-center justify-between p-4 mt-2 w-full text-sm
+               text-gray-700 bg-white hover:bg-gray-50;
+           }
+       ```
 
-    2. Follow mobile-first responsive design principles using Tailwind’s breakpoints (sm, md, lg, etc.) first before using custom breakpoint sizes.
+    2. Follow mobile-first responsive design principles using Tailwind’s breakpoints (sm, md, lg, etc.) first before
+       using custom breakpoint sizes.
 
-06.  Always consider conventions used in a file or project, specifically:
-
-    -   File Structure:
+6. Always consider conventions used in a file or project, specifically:
+    - File Structure:
         - Follow existing file naming conventions (e.g., kebab-case, PascalCase)
         - Match existing file organization patterns
         - Maintain consistent file extensions (.tsx, .ts, etc.)
-    -   Code Style:
+    - Code Style:
         - Match existing indentation and spacing
         - Follow established patterns for component organization
         - Use consistent naming conventions for variables, functions, and components
-    -   Project Patterns:
+    - Project Patterns:
         - Respect existing architectural decisions
         - Use established utility functions and helpers
         - Follow project-specific patterns for data fetching, state management, etc.
 
-07.  Hooks Guidelines
+7. Hooks Guidelines
+    - Follow the Rules of Hooks strictly.
+    - Use proper cleanup in useEffect.
+    - Avoid unnecessary dependencies in useEffect. Use useMemo or useCallback to stabilize dependencies.
+    - Write custom hooks for reusable logic.
 
-    -   Follow the Rules of Hooks strictly.
-    -   Use proper cleanup in useEffect.
-    -   Avoid unnecessary dependencies in useEffect. Use useMemo or useCallback to stabilize dependencies.
-    -   Write custom hooks for reusable logic.
-
-08.  Always follow these advanced React principles and patterns:
+8. Always follow these advanced React principles and patterns:
 
     a. Re-Renders and State Management:
-
-    -   Re-rendering in React is inevitable and essential for updates. Focus on preventing unnecessary re-renders for performance optimization.
-    -   Use the "moving state down" pattern to isolate stateful logic in small, lightweight components and avoid affecting the entire component tree unnecessarily.
-    -   Lift state up or share state through context only when truly necessary, and split context providers to prevent re-rendering all consumers.
+    - Re-rendering in React is inevitable and essential for updates. Focus on preventing unnecessary re-renders for
+      performance optimization.
+    - Use the "moving state down" pattern to isolate stateful logic in small, lightweight components and avoid affecting
+      the entire component tree unnecessarily.
+    - Lift state up or share state through context only when truly necessary, and split context providers to prevent
+      re-rendering all consumers.
 
     b. Component Composition and Props:
 
-    -   Prefer composition over inheritance. Build components that are single-purpose and modular.
-    -   Use the "children as props" and "elements as props" patterns to improve flexibility, reuse, and performance.
-    -   Leverage ReactNode for return types and props to allow more flexibility in rendering.
+    - Prefer composition over inheritance. Build components that are single-purpose and modular.
+    - Use the "children as props" and "elements as props" patterns to improve flexibility, reuse, and performance.
+    - Leverage ReactNode for return types and props to allow more flexibility in rendering.
 
     c. Component Architecture:
 
-    -   Keep components focused and single-responsibility
-    -   Use composition over inheritance
-    -   Split UI and logic when beneficial (Container/Presenter pattern)
-    -   Consider proper component boundaries for rerendering
+    - Keep components focused and single-responsibility
+    - Use composition over inheritance
+    - Split UI and logic when beneficial (Container/Presenter pattern)
+    - Consider proper component boundaries for rerendering
 
     d. Performance Optimization:
 
-    -   Only optimize after measuring (React DevTools Profiler)
-    -   Understand React's reconciliation process
-    -   Use React.memo() only for expensive computations or when renders must be prevented
-    -   Apply useMemo/useCallback judiciously:
-        -   For referential equality in deps arrays
-        -   For expensive computations
-        -   Not for simple values or functions
-    -   Implement proper code splitting and lazy loading
-    -   Use proper key props for lists (avoid index when possible)
+    - Only optimize after measuring (React DevTools Profiler)
+    - Understand React's reconciliation process
+    - Use React.memo() only for expensive computations or when renders must be prevented
+    - Apply useMemo/useCallback judiciously:
+        - For referential equality in deps arrays
+        - For expensive computations
+        - Not for simple values or functions
+    - Implement proper code splitting and lazy loading
+    - Use proper key props for lists (avoid index when possible)
 
     e. State Management:
 
-    -   Keep state as local as possible
-    -   Lift state up only when necessary
-    -   Use context carefully - consider context splitting
-    -   Implement proper state initialization patterns
-    -   Consider server state vs client state
+    - Keep state as local as possible
+    - Lift state up only when necessary
+    - Use context carefully - consider context splitting
+    - Implement proper state initialization patterns
+    - Consider server state vs client state
 
     f. Advanced Patterns:
 
-    -   Embrace modern patterns like render props and custom hooks for sharing logic.
-    -   Avoid stale closures in hooks by using Refs or restructuring logic to prevent dependency issues.
-    -   For React Context, minimize performance impact by using split providers and selectors.
+    - Embrace modern patterns like render props and custom hooks for sharing logic.
+    - Avoid stale closures in hooks by using Refs or restructuring logic to prevent dependency issues.
+    - For React Context, minimize performance impact by using split providers and selectors.
 
     g. Hooks Best Practices:
 
-    -   Follow hooks rules strictly
-    -   Use appropriate cleanup in useEffect
-    -   Avoid unnecessary dependencies in useEffect
-    -   Understand the difference between mount/update effects
-    -   Consider custom hooks for reusable logic
+    - Follow hooks rules strictly
+    - Use appropriate cleanup in useEffect
+    - Avoid unnecessary dependencies in useEffect
+    - Understand the difference between mount/update effects
+    - Consider custom hooks for reusable logic
 
     h. React-Specific Techniques:
 
-    -   Server and Client Components (Next.js): Use server components where possible for better performance and leverage client components only for interactivity.
-    -   Implement code-splitting and lazy-loading for reducing the initial load time.
-    -   Use `
-    useLayoutEffect` over `
-    useEffect` when immediate DOM updates are required.
+    - Server and Client Components (Next.js): Use server components where possible for better performance and leverage
+      client components only for interactivity.
+    - Implement code-splitting and lazy-loading for reducing the initial load time.
+    - Use `useLayoutEffect` over `useEffect` when immediate DOM updates are required.
 
     i. Next.js Specific:
 
@@ -239,8 +224,7 @@ const MyComponent = () => {
     l. CSS and Styling:
     - Leverage Tailwind CSS for styling with mobile-first design principles. Maintain utility class order:
         - Layout → Spacing → Sizing → Typography → Visual → Interaction.
-    - Prefer using `
-@apply` instead of inline styles to prioritize utility classes in css.
+    - Prefer using `@apply` instead of inline styles to prioritize utility classes in css.
 
     m. Accessibility:
 
@@ -251,16 +235,15 @@ const MyComponent = () => {
     -   Follow WCAG standards. Add proper ARIA attributes and ensure all elements are accessible via keyboard navigation.
     -   Manage focus appropriately and test with screen readers to ensure a fully accessible UI.
 
+9. Component Return Types and Prop Types
 
-09.  Component Return Types and Prop Types
     a. Use ReactNode for component return types. Avoid ReactElement unless specifically needed.
-        - ReactNode is more flexible and can handle null, undefined, strings, and numbers
-        - ReactElement is more restrictive and should be avoided unless specifically required
+    - ReactNode is more flexible and can handle null, undefined, strings, and numbers
+    - ReactElement is more restrictive and should be avoided unless specifically required
 
     For example:
 
-    ```
-    typescript
+    ```typescript
     // Correct:
     const MyComponent = (): ReactNode => {
         if (condition) return null;
@@ -272,7 +255,7 @@ const MyComponent = () => {
         // This would error if returning null
         return <div>Content < /div>;
     };
-    ```
+   ```
 
     b. Props Types:
 
@@ -281,22 +264,18 @@ const MyComponent = () => {
 
     For example:
 
-    ```
-    typescript
-
+    ```typescript
     // Correct:
     interface Props {
-        content: ReactNode;
-        children: ReactNode;
+      content: ReactNode;
+      children: ReactNode;
     }
 
     // Only when specifically needed:
     interface Props {
-        singleElement: ReactElement;
+      singleElement: ReactElement;
     }
-
     ```
-````
 
 10. Step-by-Step Problem-Solving Approach:
 
