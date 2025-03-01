@@ -1,12 +1,12 @@
-version: '3'
-
 services:
   browser-use:
     build:
       context: ./services/browser-use
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+    - "8000:8000"  # FastAPI
+    - "6080:6080"  # noVNC (browser-based VNC access)
+    - "5901:5901"  # VNC direct access
     environment:
       - DISPLAY=:99
       - PYTHONUNBUFFERED=1
