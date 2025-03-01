@@ -98,5 +98,29 @@ class AppConfig:
     DEFAULT_RECORDING_QUALITY = "medium"
     DEFAULT_RECORDING_FRAME_RATE = 5
     
+    # Browser settings
+    DEFAULT_BROWSER_VIEWPORT_WIDTH = 1280
+    DEFAULT_BROWSER_VIEWPORT_HEIGHT = 800
+    DEFAULT_BROWSER_HEADLESS = False
+    DEFAULT_BROWSER_SLOW_MO = 0  # milliseconds to wait between actions
+    
+    # Screenshot settings
+    SCREENSHOT_FORMAT = "png"
+    SCREENSHOT_QUALITY = 100
+    SCREENSHOT_FULL_PAGE = False
+    
+    # Browser action settings
+    DEFAULT_CLICK_TIMEOUT = 5000  # ms
+    DEFAULT_NAVIGATION_TIMEOUT = 30000  # ms
+    DEFAULT_WAIT_TIMEOUT = 5000  # ms
+    
+    # Security settings
+    ALLOWED_DOMAINS = []  # Empty list means all domains are allowed
+    BLOCKED_DOMAINS = []  # Domains to block
+    
+    # Storage settings
+    SCREENSHOTS_DIR = os.path.join(os.getcwd(), "screenshots")
+    RECORDINGS_DIR = os.path.join(os.getcwd(), "recordings")
+    
     # WebSocket settings
     WEBSOCKET_HEARTBEAT_INTERVAL = 30  # seconds

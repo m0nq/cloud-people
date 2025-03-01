@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 from ..base import LLMProviderStrategy
 
@@ -31,10 +31,81 @@ class OpenAILLMStrategy(LLMProviderStrategy):
                     self.llm.presence_penalty = options["presence_penalty"]
                 if "frequency_penalty" in options:
                     self.llm.frequency_penalty = options["frequency_penalty"]
+                if "temperature" in options:
+                    self.llm.temperature = options["temperature"]
+            
+            # Import necessary message types
+            from langchain_core.messages import HumanMessage, SystemMessage
+            
+            # Determine if this is a browser automation prompt
+            is_browser_automation = "browser actions" in prompt.lower() or "browser task" in prompt.lower()
+            
+            # Create appropriate messages based on prompt type
+            messages = []
+            
+            if is_browser_automation:
+                # Add a system message for browser automation tasks
+                system_prompt = """You are a browser automation expert. Your task is to generate a precise sequence of browser actions to accomplish the user's task.
                 
-            # Generate response
-            response = await self.llm.agenerate([prompt])
-            return response.generations[0][0].text
+                Return your response in valid JSON format with an array of actions. Each action should have a 'type' and 'params' object.
+                
+                Supported action types:
+                - navigate: Go to a URL (params: url)
+                - click: Click on an element (params: selector)
+                - type: Type text into an input field (params: selector, text)
+                - screenshot: Take a screenshot (params: name)
+                - wait: Wait for an element or time (params: selector or timeout in ms)
+                - scroll: Scroll the page (params: x, y or selector)
+                - press_key: Press a keyboard key (params: key, selector optional)
+                - select_option: Select an option from a dropdown (params: selector, value)
+                - hover: Hover over an element (params: selector)
+                - get_text: Get text from an element (params: selector)
+                
+                Example response format:
+                ```json
+                [
+                  {
+                    "type": "navigate",
+                    "params": {
+                      "url": "https://example.com"
+                    }
+                  },
+                  {
+                    "type": "click",
+                    "params": {
+                      "selector": "button.submit"
+                    }
+                  }
+                ]
+                ```
+                
+                Be precise with your selectors. Use CSS selectors that are specific enough to identify the element uniquely.
+                Think step by step and include all necessary actions to complete the task successfully.
+                """
+                messages.append(SystemMessage(content=system_prompt))
+                messages.append(HumanMessage(content=prompt))
+                
+                # Generate response
+                logger.debug(f"Generating browser automation response with system prompt")
+                response = await self.llm.agenerate([messages])
+                
+                # Extract the text from the response
+                result = response.generations[0][0].text
+                
+                # Clean up JSON response if needed
+                if "```json" in result:
+                    # Extract JSON from code blocks
+                    import re
+                    json_match = re.search(r'```json\s*([\s\S]*?)\s*```', result)
+                    if json_match:
+                        result = json_match.group(1).strip()
+                        logger.debug("Extracted JSON from code block")
+                
+                return result
+            else:
+                # For non-browser tasks, just use the prompt directly
+                return (await self.llm.agenerate([[HumanMessage(content=prompt)]])).generations[0][0].text
+                
         except Exception as e:
             logger.error(f"Error generating response with OpenAI: {str(e)}")
             raise

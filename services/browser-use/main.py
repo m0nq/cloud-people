@@ -200,43 +200,53 @@ async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
         task_status.end_time = datetime.now()
         task_status.progress = 1.0
         
+        # Store in history
+        task_history[task_id] = task_status
+        
+        # Broadcast update
+        await broadcast_task_update(task_id, task_status)
+        
     except asyncio.TimeoutError:
+        logger.error(f"Task {task_id} timed out after {request.operation_timeout} seconds")
         task_status.status = "failed"
-        task_status.error = f"Task execution timed out after {request.operation_timeout} seconds"
+        task_status.error = f"Task timed out after {request.operation_timeout} seconds"
         task_status.end_time = datetime.now()
+        
+        # Store in history
+        task_history[task_id] = task_status
+        
+        # Broadcast update
+        await broadcast_task_update(task_id, task_status)
+        
     except Exception as e:
+        logger.error(f"Error executing task {task_id}: {str(e)}")
         task_status.status = "failed"
         task_status.error = str(e)
         task_status.end_time = datetime.now()
-    finally:
-        # Stop recording if started
-        if recording_process and context:
-            try:
-                recording_path = await context.stop_recording(recording_process)
-                if recording_path:
-                    task_status.metadata["recording_path"] = recording_path
-            except Exception as e:
-                logger.error(f"Error stopping recording: {str(e)}")
         
-        # Clean up browser resources
+        # Store in history
+        task_history[task_id] = task_status
+        
+        # Broadcast update
+        await broadcast_task_update(task_id, task_status)
+        
+    finally:
+        # Clean up resources
         if context:
             try:
+                # Stop recording if it was started
+                if recording_process:
+                    await context.stop_recording(recording_process)
+                
+                # Clean up browser resources
                 await context._cleanup()
+                logger.info(f"Cleaned up resources for task {task_id}")
             except Exception as e:
-                logger.error(f"Error cleaning up browser resources: {str(e)}")
+                logger.error(f"Error cleaning up resources for task {task_id}: {str(e)}")
         
-        # Move from active to history
+        # Remove from active tasks
         if task_id in active_tasks:
-            task_history[task_id] = active_tasks[task_id]
             del active_tasks[task_id]
-        
-        # Broadcast final update
-        await broadcast_task_update(task_id, task_status)
-    
-    return task_status
-
-# Additional endpoints for task management, screenshots, recordings, etc.
-# (Implement as shown in the monitoring plan)
 
 # WebSocket for real-time updates
 @app.websocket("/ws/{client_id}")
