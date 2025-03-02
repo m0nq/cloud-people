@@ -10,6 +10,7 @@
                 "compose",
                 "up",
                 "-d",
+                "--build",
                 "browser-use"
             ],
             "cwd": "${workspaceFolder}",

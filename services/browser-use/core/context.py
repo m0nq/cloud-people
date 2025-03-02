@@ -8,6 +8,7 @@ import os
 from datetime import datetime
 
 from strategies.base import LLMProviderStrategy
+from .visualization import BrowserVisualization
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,15 @@ class BrowserUseContext:
         self.playwright = None
         self.recording_process = None
         self.screenshots_dir = os.path.join(os.getcwd(), "screenshots")
+        self.recordings_dir = os.path.join(os.getcwd(), "recordings")
         os.makedirs(self.screenshots_dir, exist_ok=True)
+        os.makedirs(self.recordings_dir, exist_ok=True)
+        
+        # Initialize visualization
+        self.visualization = BrowserVisualization(
+            screenshots_dir=self.screenshots_dir,
+            recordings_dir=self.recordings_dir
+        )
     
     async def _initialize_browser(self):
         """Initialize the browser if not already initialized"""
@@ -318,16 +327,16 @@ class BrowserUseContext:
         """Take a screenshot of the current page"""
         if not self.page:
             return ""
+            
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"{name}_{timestamp}.png"
+        filepath = os.path.join(self.screenshots_dir, filename)
         
         try:
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"{name}_{timestamp}.png"
-            path = os.path.join(self.screenshots_dir, filename)
-            
-            await self.page.screenshot(path=path)
-            logger.info(f"Screenshot saved to {path}")
-            
-            return path
+            await self.page.screenshot(path=filepath)
+            # Update visualization with new screenshot
+            self.visualization.update_current_screenshot(filepath)
+            return filepath
         except Exception as e:
             logger.error(f"Error taking screenshot: {str(e)}")
             return ""
@@ -343,13 +352,6 @@ class BrowserUseContext:
             return None
         
         try:
-            recordings_dir = os.path.join(os.getcwd(), "recordings")
-            os.makedirs(recordings_dir, exist_ok=True)
-            
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"recording_{timestamp}.mp4"
-            output_path = os.path.join(recordings_dir, filename)
-            
             # Start recording using ffmpeg (requires ffmpeg to be installed)
             cmd = [
                 "ffmpeg",
@@ -360,7 +362,7 @@ class BrowserUseContext:
                 "-r", str(config.get("frame_rate", 15)),
                 "-preset", "ultrafast",
                 "-crf", "25",
-                output_path
+                os.path.join(self.recordings_dir, f"recording_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4")
             ]
             
             process = subprocess.Popen(
@@ -370,7 +372,7 @@ class BrowserUseContext:
             )
             
             self.recording_process = process
-            logger.info(f"Started recording to {output_path}")
+            logger.info(f"Started recording to {self.recordings_dir}")
             
             return process
         except Exception as e:
