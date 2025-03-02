@@ -6,6 +6,7 @@ import json
 import re
 import os
 from datetime import datetime
+import uuid
 
 from strategies.base import LLMProviderStrategy
 from .visualization import BrowserVisualization
@@ -19,7 +20,9 @@ class BrowserUseContext:
         self,
         llm_provider: Optional[LLMProviderStrategy] = None,
         headless: Optional[bool] = False,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
+        session_id: Optional[str] = None,
+        persistent: bool = False
     ):
         self.llm_provider = llm_provider
         self.headless = headless
@@ -30,6 +33,8 @@ class BrowserUseContext:
         self.recording_process = None
         self.screenshots_dir = os.path.join(os.getcwd(), "screenshots")
         self.recordings_dir = os.path.join(os.getcwd(), "recordings")
+        self.session_id = session_id or str(uuid.uuid4())
+        self.persistent = persistent
         os.makedirs(self.screenshots_dir, exist_ok=True)
         os.makedirs(self.recordings_dir, exist_ok=True)
         
@@ -399,13 +404,22 @@ class BrowserUseContext:
             logger.error(f"Error stopping recording: {str(e)}")
             return None
         
-    async def _cleanup(self) -> None:
-        """Clean up browser resources"""
-        logger.info("Cleaning up browser resources")
+    async def _cleanup(self, force: bool = False) -> None:
+        """Clean up browser resources
+        
+        Args:
+            force: If True, clean up resources even if persistent is True
+        """
+        logger.info(f"Cleaning up browser resources (persistent={self.persistent}, force={force})")
         
         # Stop recording if active
         if self.recording_process:
             await self.stop_recording()
+        
+        # If persistent and not forced, keep the browser open
+        if self.persistent and not force:
+            logger.info(f"Keeping browser session {self.session_id} open for future tasks")
+            return
         
         # Close browser if it exists
         if self.browser:

@@ -19,6 +19,7 @@ from fastapi import WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import gradio as gr
+from contextlib import asynccontextmanager
 
 # Import configuration
 from config import AppConfig
@@ -27,6 +28,7 @@ from config import get_available_llm_providers
 from config import get_default_model_for_provider
 from config import get_default_provider
 from core.context import BrowserUseContext
+from core.session_manager import SessionManager
 # Import our LLM strategy implementation
 from strategies.llm.factory import LLMProviderFactory
 
@@ -40,8 +42,22 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI
-app = FastAPI(title="Browser Use Service")
+# Initialize FastAPI with lifespan
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Initialize resources on startup and clean up on shutdown"""
+    global session_manager
+    # Startup logic
+    session_manager.start()
+    logger.info("Application started")
+    
+    yield  # This is where FastAPI serves requests
+    
+    # Shutdown logic
+    await session_manager.stop()
+    logger.info("Application shutdown")
+
+app = FastAPI(title="Browser Use Service", lifespan=lifespan)
 
 # Configure CORS
 app.add_middleware(
@@ -71,12 +87,14 @@ app = gr.mount_gradio_app(app, interface, path="/visualize")
 # Default operation timeout (in seconds)
 DEFAULT_OPERATION_TIMEOUT = AppConfig.DEFAULT_OPERATION_TIMEOUT
 
-# In-memory storage for active tasks and history
+# Global variables
 active_tasks = {}
 task_history = {}
-
-# Connected WebSocket clients
 connected_clients = {}
+visualization = None
+
+# Initialize session manager
+session_manager = SessionManager(session_timeout_minutes=AppConfig.SESSION_TIMEOUT_MINUTES)
 
 # Task status model
 class TaskStatus(BaseModel):
@@ -112,6 +130,7 @@ class TaskRequest(BaseModel):
     recording_config: Optional[RecordingConfig] = None
     llm_provider: Optional[ProviderConfig] = None
     headless: Optional[bool] = False
+    persistent_session: Optional[bool] = False
 
 # Execute a browser task
 @app.post("/execute", response_model=TaskStatus)
@@ -131,7 +150,9 @@ async def execute_task(request: TaskRequest):
         task_id=task_id,
         status="pending",
         start_time=datetime.now(),
-        metadata={}
+        metadata={
+            "persistent_session": request.persistent_session
+        }
     )
 
     # Store task in active tasks
@@ -145,8 +166,10 @@ async def execute_task(request: TaskRequest):
 # Run a task in the background
 async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
     """Run a task in the background"""
+    global session_manager
     recording_process = None
     context = None
+    reused_session = False
 
     try:
         # Update task status
@@ -196,8 +219,30 @@ async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
             logger.error(f"Error creating LLM provider: {str(e)}")
             raise
 
-        # Create context with Playwright browser
-        context = BrowserUseContext(llm_provider, headless=request.headless)
+        # Check if we should reuse an existing session
+        if request.persistent_session and request.task_id:
+            # Try to get an existing session with the same ID
+            existing_context = session_manager.get_session(request.task_id)
+            if existing_context:
+                logger.info(f"Reusing existing browser session {request.task_id}")
+                context = existing_context
+                # Update the LLM provider
+                context.llm_provider = llm_provider
+                reused_session = True
+        
+        # Create a new context if we didn't reuse one
+        if not context:
+            # Create context with Playwright browser
+            context = BrowserUseContext(
+                llm_provider, 
+                headless=request.headless,
+                session_id=request.task_id or task_id,
+                persistent=request.persistent_session
+            )
+            
+            # If this is a persistent session, add it to the session manager
+            if request.persistent_session:
+                session_manager.add_session(context)
 
         # Start recording if enabled
         if request.recording_config and request.recording_config.enabled:
@@ -216,6 +261,11 @@ async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
         task_status.result = result
         task_status.end_time = datetime.now()
         task_status.progress = 1.0
+        
+        # Add session info to metadata
+        task_status.metadata["session_id"] = context.session_id
+        task_status.metadata["persistent_session"] = context.persistent
+        task_status.metadata["reused_session"] = reused_session
 
         # Store in history
         task_history[task_id] = task_status
@@ -255,9 +305,17 @@ async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
                 if recording_process:
                     await context.stop_recording(recording_process)
 
-                # Clean up browser resources
-                await context._cleanup()
-                logger.info(f"Cleaned up resources for task {task_id}")
+                # If this is a persistent session and the task completed successfully,
+                # don't clean up the browser resources
+                if not (request.persistent_session and task_status.status == "completed"):
+                    # For non-persistent sessions or failed tasks, clean up immediately
+                    if context.persistent:
+                        # For persistent sessions, let the session manager handle it
+                        await session_manager.close_session(context.session_id, force=task_status.status != "completed")
+                    else:
+                        # For non-persistent sessions, clean up immediately
+                        await context._cleanup()
+                    logger.info(f"Cleaned up resources for task {task_id}")
             except Exception as e:
                 logger.error(f"Error cleaning up resources for task {task_id}: {str(e)}")
 
@@ -437,3 +495,36 @@ async def list_recordings():
     except Exception as e:
         logger.error(f"Error listing recordings: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/sessions/{session_id}/close")
+async def close_session(session_id: str, force: bool = False):
+    """Explicitly close a browser session"""
+    global session_manager
+    
+    # Check if session exists
+    session = session_manager.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
+    
+    # Close the session
+    await session_manager.close_session(session_id, force=force)
+    
+    return {"status": "success", "message": f"Session {session_id} closed successfully"}
+
+@app.get("/sessions")
+async def list_sessions():
+    """List all active browser sessions"""
+    global session_manager
+    
+    sessions = []
+    for session_id, context in session_manager.sessions.items():
+        last_activity = session_manager.last_activity.get(session_id, datetime.now())
+        sessions.append({
+            "session_id": session_id,
+            "persistent": context.persistent,
+            "last_activity": last_activity.isoformat(),
+            "headless": context.headless,
+            "metadata": context.metadata
+        })
+    
+    return {"sessions": sessions}

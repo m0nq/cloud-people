@@ -6,6 +6,7 @@ import { AgentState } from '@app-types/agent';
 import { useAgentStore } from '@stores/agent-store';
 import type { NodeData } from '@app-types/workflow';
 import { NodeType } from '@app-types/workflow/node-types';
+import { useWorkflowStore } from '@stores/workflow/store';
 
 interface AgentHookResponse {
     isProcessing: boolean;
@@ -53,13 +54,21 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
 
             console.log(' Executing agent action with endpoint:', browserUseEndpoint);
 
+            // Check if this node has any outgoing connections (children)
+            // If it does, we should keep the browser session open
+            const workflowState = useWorkflowStore.getState();
+            // Simplified approach: directly check if there are any edges where this node is the source
+            const hasChildren = workflowState.edges.some(edge => edge.source === agentId);
+
             const response = await fetch(`${browserUseEndpoint}/execute`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    task: agentData?.description || 'Navigate to google and perform researhc on OpenAI 03 vs Anthropic 3.7 for use with the Windsurf IDE',
+                    task: agentData?.description || 'Navigate to google and perform research on OpenAI 03 vs Anthropic 3.7 for use with the Windsurf IDE',
+                    task_id: agentData?.id, // Use the agent ID as the session ID for persistence
+                    persistent_session: hasChildren, // Keep session open if this node has children
                     options: {
                         agentId: agentData?.id,
                         // Include any additional agent configuration from data that might be relevant
@@ -85,20 +94,52 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
             setResult(responseData.result);
 
             // Update agent state based on metadata
-            if (responseData.metadata?.state) {
-                onStatusChange?.(responseData.metadata.state as AgentState);
-            } else {
-                onStatusChange?.(AgentState.Complete);
+            // Let the agent store handle the state transition, which will trigger workflow progression
+            onStatusChange?.((responseData.metadata?.state as AgentState || AgentState.Complete));
+
+            // If this was the last node in the workflow (no children) and we used a persistent session,
+            // explicitly close the session to clean up resources
+            if (!hasChildren && responseData.metadata?.persistent_session) {
+                try {
+                    await fetch(`${browserUseEndpoint}/sessions/${agentData?.id}/close`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    console.log(`Closed browser session for agent ${agentData?.id}`);
+                } catch (closeError) {
+                    console.error('Error closing browser session:', closeError);
+                    // Don't throw here, as the main task was successful
+                }
             }
 
         } catch (error) {
             console.error(' Error executing action:', error);
             setError(error instanceof Error ? error.message : 'An unknown error occurred');
+            // Let the agent store handle the error state transition
             onStatusChange?.(AgentState.Error);
+
+            // If there was an error, try to close the session to clean up resources
+            try {
+                const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
+                await fetch(`${browserUseEndpoint}/sessions/${agentData?.id}/close`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        force: true
+                    })
+                });
+                console.log(`Closed browser session for agent ${agentData?.id} after error`);
+            } catch (closeError) {
+                console.error('Error closing browser session after error:', closeError);
+            }
         } finally {
             setIsProcessing(false);
         }
-    }, [agentData, agentRuntime?.state, canExecute, isProcessing, onStatusChange]);
+    }, [agentData, agentRuntime?.state, canExecute, isProcessing, onStatusChange, agentId]);
 
     return {
         isProcessing,

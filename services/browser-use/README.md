@@ -1,31 +1,49 @@
 # Browser Use Service
 
-A microservice for browser automation using Playwright with non-headless browser support. This service allows you to execute browser tasks via API endpoints and monitor the execution through VNC or noVNC.
+A service for AI-driven browser automation.
 
 ## Features
 
-- Direct Playwright integration for browser automation
-- Non-headless browser execution with visual monitoring capabilities
-- Multiple LLM provider support (OpenAI, Anthropic, Google Gemini)
-- Screenshot and video recording capabilities
-- WebSocket-based task monitoring
-- Containerized with all necessary dependencies
+- **AI-Powered Browser Automation**: Uses LLMs to generate and execute browser actions
+- **Multiple LLM Providers**: Supports OpenAI, Anthropic, Google, and more
+- **Browser Recording**: Captures browser sessions as videos or screenshots
+- **Real-Time Monitoring**: WebSocket-based task monitoring
+- **Containerized**: Packaged with all necessary dependencies
+- **Browser Session Persistence**: Maintains browser state between tasks
 
-## Architecture
+## Browser Session Persistence
 
-The service uses a simplified architecture:
-- `BrowserUseContext`: Core class that manages browser lifecycle and task execution
-- LLM Provider Strategies: Interchangeable LLM providers for generating browser actions
-- FastAPI endpoints: REST API for task execution and monitoring
+The Browser Use service supports persistent browser sessions between tasks, allowing subsequent tasks to build upon previous work without starting a fresh browser each time a new task comes in.
+
+### How It Works
+
+1. When a task is executed with `persistent_session: true`, the browser session is kept open after the task completes.
+2. Subsequent tasks can reuse the same session by providing the same `task_id`.
+3. The session will be automatically closed after a period of inactivity (default: 30 minutes).
+
+### Configuration
+
+- `SESSION_TIMEOUT_MINUTES`: Environment variable to set the timeout for inactive sessions (default: 30 minutes).
+
+### Usage in Workflows
+
+In a workflow context, browser sessions are automatically persisted between connected agent nodes. When an agent node has outgoing connections (children), the browser session is kept open for the next node to use. The last node in a workflow chain will automatically close the session.
+
+### Error Handling
+
+If a task fails, the browser session is automatically closed to prevent resource leaks.
 
 ## API Endpoints
 
-### POST /tasks
+### POST /execute
+
 Execute a browser task with the following request body:
+
 ```json
 {
   "task": "Navigate to example.com and extract the main heading",
   "task_id": "optional-custom-id",
+  "persistent_session": true,
   "operation_timeout": 60,
   "recording_config": {
     "enabled": true,
@@ -42,69 +60,68 @@ Execute a browser task with the following request body:
 }
 ```
 
-### GET /tasks/{task_id}
-Get the status and results of a specific task.
+### GET /sessions
 
-### GET /tasks
-Get a list of all active and historical tasks.
+Get a list of all active browser sessions.
 
-### POST /screenshot
-Take a screenshot of the current browser state.
+### POST /sessions/{session_id}/close
 
-### GET /providers
-Get a list of available LLM providers.
-
-### GET /health
-Health check endpoint.
+Explicitly close a browser session.
 
 ### WebSocket /ws/{client_id}
+
 WebSocket endpoint for real-time task updates.
+
+## Installation
+
+### Using Docker
+
+```bash
+# Build and run with Docker
+docker build -t browser-use .
+docker run -p 8000:8000 -e OPENAI_API_KEY=your_key_here browser-use
+```
+
+### Manual Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd browser-use
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the service
+python main.py
+```
 
 ## Environment Variables
 
-- `OPENAI_API_KEY`: API key for OpenAI
-- `ANTHROPIC_API_KEY`: API key for Anthropic
-- `GOOGLE_API_KEY`: API key for Google Gemini
-- `DISPLAY`: X11 display configuration (default: ":99")
-- `RESOLUTION_WIDTH`: Browser window width (default: "1920")
-- `RESOLUTION_HEIGHT`: Browser window height (default: "1080")
-- `PLAYWRIGHT_BROWSERS_PATH`: Path to Playwright browsers (default: "/home/pwuser/.cache/ms-playwright")
-- `VNC_PASSWORD`: Password for VNC access (default: "vncpassword")
+```
+# LLM Provider API Keys
+OPENAI_API_KEY=your_openai_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
+GOOGLE_API_KEY=your_google_api_key
+
+# Session Configuration
+SESSION_TIMEOUT_MINUTES=30  # Default: 30 minutes
+
+# Browser Configuration
+RESOLUTION_WIDTH=1920
+RESOLUTION_HEIGHT=1080
+PLAYWRIGHT_BROWSERS_PATH=/home/pwuser/.cache/ms-playwright
+DISPLAY=:99
+VNC_PASSWORD=secret_password
+```
 
 ## Monitoring
 
-The service provides multiple ways to monitor browser execution:
-- VNC: Connect to port 5901 with a VNC client
-- noVNC: Access the browser via web browser at port 6080
-- WebSocket: Real-time task status updates
-
-## Development
-
-1. Build the container:
-```bash
-docker build -t browser-use-service .
-```
-
-2. Run the service:
-```bash
-docker run -p 8000:8000 -p 6080:6080 -p 5901:5901 \
-  -e OPENAI_API_KEY=your_api_key \
-  browser-use-service
-```
-
-3. Test the API:
-```bash
-curl -X POST http://localhost:8000/tasks \
-  -H "Content-Type: application/json" \
-  -d '{"task": "Navigate to example.com and extract the main heading"}'
-```
-
-4. Monitor execution:
-- Open http://localhost:6080 in your browser to access noVNC
-- Or connect to localhost:5901 with a VNC client
+The service provides real-time monitoring of tasks through WebSockets. Connect to the `/ws/{client_id}` endpoint to receive updates on task status.
 
 ## Security Considerations
 
-- The service runs as a non-root user (pwuser)
-- Browser is isolated within the container
-- API keys should be provided via environment variables, not hardcoded
+- The service is designed to run in a containerized environment
+- API keys are passed securely through environment variables
+- Browser sessions are isolated and cleaned up after use
+- Session persistence is managed with timeouts to prevent resource leaks

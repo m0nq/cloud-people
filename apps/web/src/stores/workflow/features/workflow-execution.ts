@@ -11,6 +11,7 @@ import type { GraphState } from '@app-types/workflow';
 import { updateState } from '@stores/workflow';
 import { isWorkflowNode } from '@stores/workflow';
 import { findRootNode } from '@stores/workflow';
+import { hasAgentNodes } from '@stores/workflow';
 import { NodeType } from '@app-types/workflow/node-types';
 import { useAgentStore } from '@stores/agent-store';
 
@@ -121,10 +122,6 @@ export const transitionNode = (set: Function, nodes: Node<NodeData>[], nodeId: s
             console.error(`Invalid transition from ${currentAgent.state} to ${newState}`);
         }
     }
-};
-
-const hasAgentNodes = (nodes: Node<NodeData>[]): boolean => {
-    return nodes.some(node => node.data.type === NodeType.Agent);
 };
 
 export const createWorkflowExecution = (set: Function, get: Function) => {

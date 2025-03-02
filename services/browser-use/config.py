@@ -93,6 +93,9 @@ class AppConfig:
     # Default timeouts
     DEFAULT_OPERATION_TIMEOUT = 60  # seconds
     
+    # Session settings
+    SESSION_TIMEOUT_MINUTES = int(os.getenv("SESSION_TIMEOUT_MINUTES", "30"))
+    
     # Recording settings
     DEFAULT_RECORDING_FORMAT = "mp4"
     DEFAULT_RECORDING_QUALITY = "medium"
