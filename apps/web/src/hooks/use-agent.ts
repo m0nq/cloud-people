@@ -52,7 +52,7 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
                 throw new Error('Browser use endpoint not configured');
             }
 
-            console.log(' Executing agent action with endpoint:', browserUseEndpoint);
+            console.log('Executing agent action with endpoint:', browserUseEndpoint);
 
             // Check if this node has any outgoing connections (children)
             // If it does, we should keep the browser session open
@@ -85,21 +85,112 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
                 throw new Error(errorData?.detail || `HTTP error! status: ${response.status}`);
             }
 
-            const responseData = await response.json();
-
-            if (responseData.error) {
-                throw new Error(responseData.error);
+            const initialResponseData = await response.json();
+            
+            if (initialResponseData.error) {
+                throw new Error(initialResponseData.error);
+            }
+            
+            // Set initial result
+            setResult(initialResponseData.result || 'Task started...');
+            
+            // Get the task_id from the response
+            const taskId = initialResponseData.task_id;
+            
+            // Poll for task completion
+            let taskCompleted = initialResponseData.status === 'completed';
+            let pollCount = 0;
+            const maxPolls = 300; // Maximum number of polls (5 minutes at 1-second intervals)
+            let consecutiveErrors = 0;
+            const maxConsecutiveErrors = 5; // Maximum number of consecutive polling errors before giving up
+            
+            while (!taskCompleted && pollCount < maxPolls) {
+                // Wait 1 second between polls
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                try {
+                    // Check task status
+                    const statusResponse = await fetch(`${browserUseEndpoint}/execute/${taskId}`);
+                    
+                    if (statusResponse.ok) {
+                        const statusData = await statusResponse.json();
+                        consecutiveErrors = 0; // Reset consecutive errors counter
+                        
+                        // Update result with latest information
+                        if (statusData.result) {
+                            setResult(statusData.result);
+                        }
+                        
+                        // Check if task is completed or failed
+                        if (statusData.status === 'completed' || statusData.status === 'failed' || statusData.status === 'needs_assistance') {
+                            taskCompleted = true;
+                            
+                            // If task failed, throw an error
+                            if (statusData.status === 'failed' && statusData.error) {
+                                throw new Error(statusData.error);
+                            }
+                            
+                            // If task needs assistance, transition to assistance state
+                            if (statusData.status === 'needs_assistance') {
+                                console.log(`Task ${taskId} needs assistance: ${statusData.assistance_message}`);
+                                setResult(prev => `${prev ? prev : ''}\n\nNeeds assistance: ${statusData.assistance_message}`);
+                                onStatusChange?.(AgentState.Assistance);
+                                return statusData.assistance_message || 'Having some trouble. Little help?';
+                            }
+                            
+                            // Update final result
+                            if (statusData.result) {
+                                setResult(statusData.result);
+                            }
+                            
+                            // Update agent state based on metadata
+                            onStatusChange?.((statusData.metadata?.state as AgentState || AgentState.Complete));
+                        } else {
+                            // Task is still running, update progress if available
+                            console.log(`Task ${taskId} status: ${statusData.status}, progress: ${statusData.progress}`);
+                            
+                            // Optionally update UI with progress information
+                            if (statusData.progress) {
+                                setResult(prev => 
+                                    `${prev ? prev : 'Processing'} (${Math.round(statusData.progress * 100)}%)`
+                                );
+                            }
+                        }
+                    } else {
+                        console.warn(`Failed to get status for task ${taskId}: ${statusResponse.status}`);
+                        consecutiveErrors++;
+                        
+                        // If too many consecutive failures, break out of the loop
+                        if (consecutiveErrors >= maxConsecutiveErrors) {
+                            throw new Error(`Failed to get task status after ${maxConsecutiveErrors} consecutive attempts`);
+                        }
+                    }
+                } catch (pollError) {
+                    console.error(`Error polling task status:`, pollError);
+                    consecutiveErrors++;
+                    
+                    // If too many consecutive failures, break out of the loop
+                    if (consecutiveErrors >= maxConsecutiveErrors) {
+                        throw new Error(`Error polling task status: ${pollError instanceof Error ? pollError.message : 'Unknown error'}`);
+                    }
+                }
+                
+                pollCount++;
+            }
+            
+            // If we reached max polls without completion, consider it a timeout
+            if (!taskCompleted) {
+                const timeoutError = new Error(`Task ${taskId} did not complete within the expected time`);
+                console.error(timeoutError);
+                // Explicitly set the agent state to Error
+                onStatusChange?.(AgentState.Error);
+                throw timeoutError;
             }
 
-            setResult(responseData.result);
-
-            // Update agent state based on metadata
-            // Let the agent store handle the state transition, which will trigger workflow progression
-            onStatusChange?.((responseData.metadata?.state as AgentState || AgentState.Complete));
-
+            // Cleanup for successful completion
             // If this was the last node in the workflow (no children) and we used a persistent session,
             // explicitly close the session to clean up resources
-            if (!hasChildren && responseData.metadata?.persistent_session) {
+            if (!hasChildren && initialResponseData.metadata?.persistent_session) {
                 try {
                     await fetch(`${browserUseEndpoint}/sessions/${agentData?.id}/close`, {
                         method: 'POST',
@@ -115,8 +206,9 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
             }
 
         } catch (error) {
-            console.error(' Error executing action:', error);
+            console.error('Error executing action:', error);
             setError(error instanceof Error ? error.message : 'An unknown error occurred');
+            
             // Let the agent store handle the error state transition
             onStatusChange?.(AgentState.Error);
 
@@ -137,6 +229,7 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
                 console.error('Error closing browser session after error:', closeError);
             }
         } finally {
+            // Always ensure we reset the processing state
             setIsProcessing(false);
         }
     }, [agentData, agentRuntime?.state, canExecute, isProcessing, onStatusChange, agentId]);

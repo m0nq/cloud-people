@@ -99,13 +99,14 @@ session_manager = SessionManager(session_timeout_minutes=AppConfig.SESSION_TIMEO
 # Task status model
 class TaskStatus(BaseModel):
     task_id: str
-    status: str
+    status: str  # "pending", "running", "completed", "failed", "needs_assistance"
     progress: float = 0.0
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
     result: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
+    assistance_message: Optional[str] = None  # Message explaining why assistance is needed
 
 # Recording configuration
 class RecordingConfig(BaseModel):
@@ -256,6 +257,18 @@ async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
             timeout=request.operation_timeout
         )
 
+        # Check if the task needs assistance
+        if result.get("status") == "needs_assistance":
+            task_status.status = "needs_assistance"
+            task_status.assistance_message = result.get("message", "Assistance needed")
+            task_status.metadata["screenshot"] = result.get("screenshot")
+            
+            # Don't mark the task as completed yet
+            await broadcast_task_update(task_id, task_status)
+            
+            # Keep the task in active_tasks
+            return
+            
         # Update task status
         task_status.status = "completed"
         task_status.result = result
@@ -319,8 +332,8 @@ async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
             except Exception as e:
                 logger.error(f"Error cleaning up resources for task {task_id}: {str(e)}")
 
-        # Remove from active tasks
-        if task_id in active_tasks:
+        # Remove from active tasks only if not waiting for assistance
+        if task_id in active_tasks and task_status.status != "needs_assistance":
             del active_tasks[task_id]
 
 # WebSocket for real-time updates
@@ -528,3 +541,41 @@ async def list_sessions():
         })
     
     return {"sessions": sessions}
+
+# Add a new endpoint to request assistance for a task
+@app.post("/execute/{task_id}/assistance", response_model=TaskStatus)
+async def request_assistance(task_id: str, message: str = "Assistance needed"):
+    """Request assistance for a task"""
+    if task_id not in active_tasks:
+        raise HTTPException(status_code=404, detail=f"Task with ID {task_id} not found")
+    
+    task_status = active_tasks[task_id]
+    task_status.status = "needs_assistance"
+    task_status.assistance_message = message
+    
+    # Broadcast update
+    await broadcast_task_update(task_id, task_status)
+    
+    return task_status
+
+# Add a new endpoint to resolve assistance for a task
+@app.post("/execute/{task_id}/resolve", response_model=TaskStatus)
+async def resolve_assistance(task_id: str):
+    """Resolve assistance for a task and resume execution"""
+    if task_id not in active_tasks:
+        raise HTTPException(status_code=404, detail=f"Task with ID {task_id} not found")
+    
+    task_status = active_tasks[task_id]
+    
+    # Only resume if the task was in needs_assistance state
+    if task_status.status != "needs_assistance":
+        raise HTTPException(status_code=400, detail=f"Task with ID {task_id} is not in needs_assistance state")
+    
+    # Resume task execution
+    task_status.status = "running"
+    task_status.assistance_message = None
+    
+    # Broadcast update
+    await broadcast_task_update(task_id, task_status)
+    
+    return task_status

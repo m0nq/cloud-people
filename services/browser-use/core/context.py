@@ -35,6 +35,8 @@ class BrowserUseContext:
         self.recordings_dir = os.path.join(os.getcwd(), "recordings")
         self.session_id = session_id or str(uuid.uuid4())
         self.persistent = persistent
+        self.needs_assistance = False
+        self.assistance_message = None
         os.makedirs(self.screenshots_dir, exist_ok=True)
         os.makedirs(self.recordings_dir, exist_ok=True)
         
@@ -95,6 +97,14 @@ class BrowserUseContext:
                 return {
                     "success": False,
                     "error": "Failed to initialize browser"
+                }
+            
+            # Check if we need assistance before proceeding
+            if self.needs_assistance:
+                return {
+                    "success": False,
+                    "status": "needs_assistance",
+                    "message": self.assistance_message
                 }
                 
             # Generate browser actions from LLM
@@ -437,3 +447,35 @@ class BrowserUseContext:
                 self.playwright = None
             except Exception as e:
                 logger.error(f"Error stopping playwright: {str(e)}")
+
+    async def request_assistance(self, message: str) -> Dict[str, Any]:
+        """
+        Request human assistance for a task that the browser automation cannot handle
+        
+        Args:
+            message: A message explaining why assistance is needed
+            
+        Returns:
+            Dict with status information
+        """
+        logger.info(f"Requesting assistance for session {self.session_id}: {message}")
+        self.needs_assistance = True
+        self.assistance_message = message
+        
+        # Take a screenshot to help the human understand the current state
+        screenshot_path = await self._take_screenshot(f"assistance_{self.session_id}")
+        
+        return {
+            "success": False,
+            "status": "needs_assistance",
+            "message": message,
+            "screenshot": screenshot_path
+        }
+    
+    async def resolve_assistance(self) -> None:
+        """
+        Resolve the assistance request and continue execution
+        """
+        logger.info(f"Assistance resolved for session {self.session_id}")
+        self.needs_assistance = False
+        self.assistance_message = None
