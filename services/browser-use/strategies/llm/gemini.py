@@ -28,7 +28,6 @@ class GeminiLLMStrategy(LLMProviderStrategy):
                 model=model,
                 api_key=api_key,
                 temperature=temperature,
-                convert_system_message_to_human=True
             )
             logger.info(f"Successfully initialized Gemini LLM with model {model}")
         except Exception as e:

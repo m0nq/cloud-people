@@ -9,7 +9,7 @@ setup(
         "uvicorn>=0.34.0",
         "python-dotenv>=1.0.1",
         "httpx>=0.27.2",
-        "langchain-google-genai>=0.0.10",
+        "langchain-google-genai>=0.0.11",  # Updated to latest version
         "playwright>=1.49.0",
         "openai>=1.10.0",
         "anthropic>=0.8.0",

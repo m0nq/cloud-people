@@ -268,36 +268,61 @@ async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
 # WebSocket for real-time updates
 @app.websocket("/ws/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, client_id: str):
-    await websocket.accept()
-    connected_clients[client_id] = websocket
-
+    """WebSocket endpoint for real-time updates"""
     try:
-        while True:
-            # Wait for messages (heartbeat)
-            await websocket.receive_text()
-    except WebSocketDisconnect:
+        await websocket.accept()
+        connected_clients[client_id] = websocket
+        logger.info(f"Client {client_id} connected")
+        
+        # Keep connection alive and handle disconnection
+        try:
+            while True:
+                # Wait for any message - this keeps the connection alive
+                data = await websocket.receive_text()
+                logger.debug(f"Received message from client {client_id}: {data}")
+        except WebSocketDisconnect:
+            logger.info(f"Client {client_id} disconnected")
+        finally:
+            # Clean up client on disconnect
+            if client_id in connected_clients:
+                del connected_clients[client_id]
+                logger.info(f"Removed client {client_id} from connected clients")
+    except Exception as e:
+        logger.error(f"Error in WebSocket connection for client {client_id}: {str(e)}")
         if client_id in connected_clients:
             del connected_clients[client_id]
+        raise
 
 # Broadcast task status update to all connected clients
 async def broadcast_task_update(task_id: str, task_status: TaskStatus):
     """Broadcast task status update to all connected clients"""
     if not connected_clients:
         return
-
-    message = {
+        
+    # Create update message
+    update = {
         "type": "task_update",
         "task_id": task_id,
         "status": task_status.dict()
     }
-
-    for client_id, websocket in list(connected_clients.items()):
+    
+    # Send update to all connected clients
+    disconnected_clients = []
+    for client_id, websocket in connected_clients.items():
         try:
-            await websocket.send_json(message)
+            await websocket.send_json(update)
+        except WebSocketDisconnect:
+            disconnected_clients.append(client_id)
+            logger.info(f"Client {client_id} disconnected during broadcast")
         except Exception as e:
+            disconnected_clients.append(client_id)
             logger.error(f"Error sending update to client {client_id}: {str(e)}")
-            if client_id in connected_clients:
-                del connected_clients[client_id]
+    
+    # Clean up disconnected clients
+    for client_id in disconnected_clients:
+        if client_id in connected_clients:
+            del connected_clients[client_id]
+            logger.info(f"Removed disconnected client {client_id}")
 
 @app.get("/health")
 async def health_check():
@@ -372,24 +397,6 @@ async def root():
             "dashboard": "/visualize"
         }
     }
-
-@app.post("/run-task")
-async def run_task(request: TaskRequest):
-    """Run a browser automation task"""
-    try:
-        context = BrowserUseContext()
-        result = await context.run_task(request.task, request.options or {})
-        return {
-            "status": "success",
-            "result": result,
-            "visualization": {
-                "vnc": "http://localhost:6080/vnc.html",
-                "dashboard": "/visualize"
-            }
-        }
-    except Exception as e:
-        logger.error(f"Error running task: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/screenshots")
 async def list_screenshots():
