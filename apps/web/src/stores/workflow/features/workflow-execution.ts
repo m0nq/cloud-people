@@ -239,6 +239,15 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
 
             const lastNode = nodes.find(n => n.id === lastNodeId);
 
+            // Transition all non-active agent nodes to Idle state
+            nodes.forEach(node => {
+                if (node.id !== lastNodeId && 
+                    isValidWorkflowNode(node) && 
+                    node.data.type === NodeType.Agent) {
+                    transitionNode(set, nodes, node.id, AgentState.Idle);
+                }
+            });
+
             // Resume the agent's execution if it's an agent node
             if (lastNode && isValidWorkflowNode(lastNode) && lastNode.data.type === NodeType.Agent) {
                 // Get the agent ID
