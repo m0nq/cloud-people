@@ -15,6 +15,9 @@ import { hasAgentNodes } from '@stores/workflow';
 import { NodeType } from '@app-types/workflow/node-types';
 import { useAgentStore } from '@stores/agent-store';
 
+import { PauseResult } from '@lib/agent-operations';
+import { pauseAgentNode } from '@lib/agent-operations';
+
 const isValidWorkflowNode = (node: Node<NodeData> | undefined): node is Node<NodeData> => node !== undefined;
 
 const findNextNode = (nodes: Node<NodeData>[], edges: Edge<EdgeData>[], currentNodeId: string): Node<NodeData> | undefined => {
@@ -180,59 +183,75 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
         if (!workflowExecution) return;
 
         try {
-            // Find current active node
+            // Debug logging to help identify workflow state
+            console.log('Pausing workflow with state:', {
+                workflowId: workflowExecution?.id,
+                workflowState: workflowExecution?.state,
+                nodeCount: nodes.length
+            });
+
+            // Get the current node ID from workflow execution
             const currentNodeId = workflowExecution.currentNodeId;
-            if (!currentNodeId) {
-                console.warn('No current node ID found when attempting to pause workflow');
-                return;
-            }
+            console.log(`Current node ID: ${currentNodeId}`);
 
-            const currentNode = nodes.find(n => n.id === currentNodeId);
+            // Find agent nodes that need to be paused
+            const agentStore = useAgentStore.getState();
+            const nodesToPause: Node<NodeData>[] = [];
 
-            // Pause the active agent's execution if it's an agent node
-            if (currentNode && isValidWorkflowNode(currentNode) && currentNode.data.type === NodeType.Agent) {
-                // Use node ID as task ID for browser-use service
-                const nodeId = currentNode.id;
-                // Use agent ID for agent store operations
-                const agentId = currentNode.data.agentRef.agentId;
-
-                try {
-                    const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
-                    
-                    // First, check if the task exists
-                    const checkResponse = await fetch(`${browserUseEndpoint}/execute/${nodeId}`);
-                    
-                    if (checkResponse.ok) {
-                        // Task exists, try to pause it
-                        const taskStatus = await checkResponse.json();
-                        
-                        if (taskStatus.status === 'running') {
-                            // Call the browser-use service to pause the task using node ID as task ID
-                            const pauseResponse = await fetch(`${browserUseEndpoint}/execute/${nodeId}/pause`, {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                }
-                            });
-                            
-                            if (pauseResponse.ok) {
-                                console.log(`Successfully paused execution for node ${nodeId} (agent: ${agentId})`);
-                            } else {
-                                console.error(`Failed to pause execution for node ${nodeId}: ${pauseResponse.status}`);
-                            }
-                        } else {
-                            console.log(`Task for node ${nodeId} is not in running state (current state: ${taskStatus.status}), skipping pause`);
-                        }
-                    } else {
-                        console.warn(`Task for node ${nodeId} not found, skipping pause`);
-                    }
-                } catch (error) {
-                    console.error('Error pausing agent execution:', error);
-                    // Continue with workflow pause even if agent pause fails
+            // Primary approach: Find the current active node
+            if (currentNodeId) {
+                const currentNode = nodes.find(node => 
+                    node.id === currentNodeId && 
+                    isValidWorkflowNode(node) && 
+                    node.data.type === NodeType.Agent
+                );
+                
+                if (currentNode && isValidWorkflowNode(currentNode)) {
+                    nodesToPause.push(currentNode);
+                    console.log(`Found current node to pause: ${currentNode.id}`);
                 }
             }
 
-            // Find and reset non-terminal nodes
+            // Fallback approach: Find any nodes in Working state
+            // Only use this if we didn't find a node using the primary approach
+            if (!nodesToPause.length) {
+                const workingNodes = nodes.filter(node => 
+                    isValidWorkflowNode(node) && 
+                    node.data.type === NodeType.Agent &&
+                    agentStore.getAgentState(node.data.agentRef.agentId)?.state === AgentState.Working
+                );
+                
+                if (workingNodes.length > 0) {
+                    nodesToPause.push(...workingNodes);
+                    console.log(`Found ${workingNodes.length} working nodes to pause as fallback`);
+                }
+            }
+
+            // If we still didn't find any nodes to pause, log a warning
+            if (!nodesToPause.length) {
+                console.warn('No active agent nodes found to pause');
+            }
+
+            // Pause each identified agent node
+            const pauseResults: PauseResult[] = await Promise.all(
+                nodesToPause
+                    .filter(isValidWorkflowNode)
+                    .map(async (node) => {
+                        // Create a status change handler
+                        const onStatusChange = (status: AgentState) => {
+                            // Update the node state in the workflow
+                            transitionNode(set, nodes, node.id, status);
+                        };
+
+                        // Pause the agent node and return the result
+                        return pauseAgentNode(node.id, node.data.agentRef.agentId, onStatusChange);
+                    })
+            );
+
+            // Log the pause results
+            console.log('Pause results:', pauseResults);
+
+            // Find and reset non-terminal nodes (this still happens for all nodes)
             const nonTerminalNodes = findNonTerminalNodes(nodes);
             resetNodesToInitial(set, nodes, nonTerminalNodes);
 
@@ -263,8 +282,8 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
 
             // Transition all non-active agent nodes to Idle state
             nodes.forEach(node => {
-                if (node.id !== lastNodeId && 
-                    isValidWorkflowNode(node) && 
+                if (node.id !== lastNodeId &&
+                    isValidWorkflowNode(node) &&
                     node.data.type === NodeType.Agent) {
                     transitionNode(set, nodes, node.id, AgentState.Idle);
                 }
@@ -281,8 +300,8 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                 const agentData = agentStore.getAgentData(agentId);
 
                 // Set isResuming flag with node ID as the key for resumption
-                agentStore.setAgentData(agentId, { 
-                    ...agentData, 
+                agentStore.setAgentData(agentId, {
+                    ...agentData,
                     isResuming: true,
                     nodeId: nodeId // Store the node ID for reference
                 });

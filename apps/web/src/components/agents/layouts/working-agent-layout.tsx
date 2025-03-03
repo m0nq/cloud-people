@@ -15,11 +15,11 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
     const { transition } = useAgentStore();
     const agentStore = useAgentStore();
     const agentData = agentStore.getAgentData(agentId);
-    
+
     const {
         isProcessing,
         executeAction,
-        pauseExecution,
+        pauseAgentExecution,
         error
     } = useAgent(agentId, (status) => {
         transition(agentId, status);
@@ -33,7 +33,7 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
             try {
                 // executeAction now handles both new tasks and resuming
                 await executeAction();
-                
+
                 // If successful and we were resuming, reset the flag
                 if (isMounted && agentData?.isResuming) {
                     useAgentStore.getState().setAgentData(agentId, {
@@ -50,13 +50,15 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
         return () => {
             isMounted = false;
         };
-        
+
         // This needs to run only once
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handlePause = async () => {
-        await pauseExecution();
+        await pauseAgentExecution(agentId, agentData, (status) => {
+            transition(agentId, status);
+        });
     };
 
     return (
@@ -90,7 +92,7 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
                         size="sm"
                         radius="lg"
                         fullWidth
-                        onClick={handlePause}
+                        // onClick={handlePause}
                         icon={<WatchIcon width={15} height={15} />}>
                         Watch
                     </Button>
