@@ -30,6 +30,7 @@ export type AgentData = {
     tools?: string[];
     createdBy: string;
     parentNodeId?: string;
+    isResuming?: boolean;
 };
 
 export type AgentConfig = {

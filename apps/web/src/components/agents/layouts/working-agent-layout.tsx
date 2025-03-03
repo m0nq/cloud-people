@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import { useEffect } from 'react';
-import { useRef } from 'react';
 import Image from 'next/image';
 
 import './agent-card.styles.css';
@@ -8,31 +6,51 @@ import cloudHeadImage from '@public/pink-cloud-head.png';
 import { BaseAgentLayoutProps } from './base-agent-layout';
 import { Button } from '@components/utils/button/button';
 import { ChatIcon } from '@components/icons/chat-icon';
-import { PauseIcon } from '@components/icons/pause-icon';
 import { TaskStatusIcon } from '@components/icons/task-status-icon';
-// import { WatchIcon } from '@components/icons/watch-icon';
+import { WatchIcon } from '@components/icons/watch-icon';
 import { useAgent } from '@hooks/use-agent';
 import { useAgentStore } from '@stores/agent-store';
 
-export const WorkingAgentLayout = ({ agentId, agentData }: BaseAgentLayoutProps) => {
-    const { getAgentData } = useAgentStore();
-    const data = agentData || getAgentData(agentId);
-    const [result, setResult] = useState('');
-    const hasExecuted = useRef(false);
+export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
     const { transition } = useAgentStore();
-    const { executeAction, pauseExecution, isProcessing } = useAgent(agentId, status => {
+    const agentStore = useAgentStore();
+    const agentData = agentStore.getAgentData(agentId);
+    
+    const {
+        isProcessing,
+        executeAction,
+        pauseExecution,
+        error
+    } = useAgent(agentId, (status) => {
         transition(agentId, status);
     });
 
-    // Start execution when component mounts, but only once
+    // Start execution when component mounts
     useEffect(() => {
-        if (hasExecuted.current) return;
+        let isMounted = true;
 
         (async () => {
-            console.log('🚀 Working agent mounted, executing action...');
-            hasExecuted.current = true;
-            setResult(await executeAction());
+            try {
+                // executeAction now handles both new tasks and resuming
+                await executeAction();
+                
+                // If successful and we were resuming, reset the flag
+                if (isMounted && agentData?.isResuming) {
+                    useAgentStore.getState().setAgentData(agentId, {
+                        ...agentData,
+                        isResuming: false
+                    });
+                }
+            } catch (error) {
+                console.error(`Error during agent execution:`, error);
+            }
         })();
+
+        // Cleanup function
+        return () => {
+            isMounted = false;
+        };
+        
         // This needs to run only once
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -46,13 +64,13 @@ export const WorkingAgentLayout = ({ agentId, agentData }: BaseAgentLayoutProps)
             <div className="working-agent-wrapper">
                 {/* Content */}
                 <div className="agent-info-section">
-                    <Image src={data?.image || cloudHeadImage}
-                        alt={`Profile avatar of ${data?.name}`}
+                    <Image src={agentData?.image || cloudHeadImage}
+                        alt={`Profile avatar of ${agentData?.name}`}
                         className="rounded-full"
                         width={48}
                         height={48} />
                     <div className="agent-name">
-                        <span>{data?.name}</span>
+                        <span>{agentData?.name}</span>
                     </div>
                 </div>
 
@@ -63,7 +81,7 @@ export const WorkingAgentLayout = ({ agentId, agentData }: BaseAgentLayoutProps)
                         <span>Current Task:</span>
                     </div>
                     <div className="agent-tasks-container">
-                        <p>{isProcessing ? 'Processing...' : result || 'Ready'}</p>
+                        <p>{isProcessing && 'Processing...'}</p>
                     </div>
                 </div>
                 <div className="buttons-container">
@@ -72,10 +90,9 @@ export const WorkingAgentLayout = ({ agentId, agentData }: BaseAgentLayoutProps)
                         size="sm"
                         radius="lg"
                         fullWidth
-                        disabled={isProcessing}
                         onClick={handlePause}
-                        icon={<PauseIcon width={15} height={15} />}>
-                        Pause
+                        icon={<WatchIcon width={15} height={15} />}>
+                        Watch
                     </Button>
                     <Button variant="secondary"
                         size="sm"

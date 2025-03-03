@@ -5,7 +5,7 @@ import base64
 import logging
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 from typing import Dict
 from typing import List
@@ -42,20 +42,59 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Global variables for tracking application state
+startup_time = None
+cleanup_task = None
+
 # Initialize FastAPI with lifespan
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Initialize resources on startup and clean up on shutdown"""
-    global session_manager
+    global session_manager, startup_time, cleanup_task
+    
     # Startup logic
+    startup_time = datetime.now()
     session_manager.start()
     logger.info("Application started")
+    
+    # Start the task cleanup background task
+    cleanup_task = asyncio.create_task(periodic_task_cleanup())
+    logger.info("Started periodic task cleanup")
     
     yield  # This is where FastAPI serves requests
     
     # Shutdown logic
+    logger.info("Application shutting down, cleaning up resources...")
+    
+    # Cancel the cleanup task
+    if cleanup_task:
+        cleanup_task.cancel()
+        try:
+            await cleanup_task
+        except asyncio.CancelledError:
+            pass
+    
+    # Close all active browser sessions
+    for session_id, session in list(session_manager.sessions.items()):
+        try:
+            logger.info(f"Closing browser session {session_id}")
+            await session_manager.close_session(session_id, force=True)
+        except Exception as e:
+            logger.error(f"Error closing browser session {session_id} during shutdown: {e}")
+    
+    # Update all active tasks to failed state if they're still running
+    for task_id, task_status in list(active_tasks.items()):
+        if task_status.status in ["running", "paused", "pending"]:
+            task_status.status = "failed"
+            task_status.error = "Task terminated due to service shutdown"
+            task_status.end_time = datetime.now()
+            
+            # Move to history
+            task_history[task_id] = task_status
+            del active_tasks[task_id]
+    
     await session_manager.stop()
-    logger.info("Application shutdown")
+    logger.info("Application shutdown complete")
 
 app = FastAPI(title="Browser Use Service", lifespan=lifespan)
 
@@ -95,6 +134,91 @@ visualization = None
 
 # Initialize session manager
 session_manager = SessionManager(session_timeout_minutes=AppConfig.SESSION_TIMEOUT_MINUTES)
+
+# Task cleanup function
+async def periodic_task_cleanup():
+    """Periodically clean up stale tasks and sessions"""
+    while True:
+        try:
+            logger.info("Running periodic task cleanup")
+            now = datetime.now()
+            stale_threshold = now - timedelta(minutes=AppConfig.SESSION_TIMEOUT_MINUTES)
+            
+            # Check for stale tasks
+            for task_id, task_status in list(active_tasks.items()):
+                # Skip tasks that are not in a running or paused state
+                if task_status.status not in ["running", "paused"]:
+                    continue
+                
+                # Check last activity time
+                last_activity = None
+                if task_status.metadata and "last_activity" in task_status.metadata:
+                    try:
+                        last_activity = datetime.fromisoformat(task_status.metadata["last_activity"])
+                    except (ValueError, TypeError):
+                        pass
+                
+                # If no last activity or it's stale
+                if not last_activity or last_activity < stale_threshold:
+                    logger.info(f"Cleaning up stale task {task_id}")
+                    
+                    # Find associated session
+                    session_id = None
+                    if task_status.metadata and "session_id" in task_status.metadata:
+                        session_id = task_status.metadata["session_id"]
+                    
+                    # Close the session if it exists
+                    if session_id and session_id in session_manager.sessions:
+                        try:
+                            logger.info(f"Closing stale session {session_id}")
+                            await session_manager.close_session(session_id, force=True)
+                        except Exception as e:
+                            logger.error(f"Error closing stale session {session_id}: {e}")
+                    
+                    # Update task status
+                    task_status.status = "failed"
+                    task_status.error = "Task terminated due to inactivity"
+                    task_status.end_time = now
+                    
+                    # Move to history
+                    task_history[task_id] = task_status
+                    del active_tasks[task_id]
+                    
+                    # Broadcast update
+                    await broadcast_task_update(task_id, task_status)
+            
+            # Also check for orphaned sessions (sessions without an active task)
+            for session_id, context in list(session_manager.sessions.items()):
+                # Check if this session is associated with an active task
+                task_found = False
+                for task_id, task_status in active_tasks.items():
+                    if task_status.metadata and task_status.metadata.get("session_id") == session_id:
+                        task_found = True
+                        break
+                
+                # If no active task is using this session and it's not persistent, close it
+                if not task_found and not context.persistent:
+                    logger.info(f"Closing orphaned session {session_id}")
+                    try:
+                        await session_manager.close_session(session_id, force=True)
+                    except Exception as e:
+                        logger.error(f"Error closing orphaned session {session_id}: {e}")
+                
+                # For persistent sessions, check last activity
+                elif context.persistent:
+                    last_activity = session_manager.last_activity.get(session_id)
+                    if last_activity and last_activity < stale_threshold:
+                        logger.info(f"Closing stale persistent session {session_id}")
+                        try:
+                            await session_manager.close_session(session_id, force=True)
+                        except Exception as e:
+                            logger.error(f"Error closing stale persistent session {session_id}: {e}")
+            
+        except Exception as e:
+            logger.error(f"Error in task cleanup: {e}")
+        
+        # Sleep for cleanup interval
+        await asyncio.sleep(300)  # 5 minutes
 
 # Task status model
 class TaskStatus(BaseModel):
@@ -145,7 +269,34 @@ async def execute_task(request: TaskRequest):
 
     # Check if task already exists
     if task_id in active_tasks:
-        raise HTTPException(status_code=400, detail=f"Task with ID {task_id} already exists")
+        # Check if we should force cleanup of the existing task
+        force = request.options.get('force', False) if request.options else False
+        
+        if force:
+            logger.info(f"Force option enabled, cleaning up existing task {task_id}")
+            
+            # Get the existing task
+            existing_task = active_tasks[task_id]
+            
+            # Check if there's an associated session to close
+            session_id = existing_task.metadata.get("session_id") if existing_task.metadata else None
+            if session_id and session_id in session_manager.sessions:
+                try:
+                    # Close the session
+                    logger.info(f"Closing session {session_id} for task {task_id}")
+                    await session_manager.close_session(session_id, force=True)
+                except Exception as e:
+                    logger.error(f"Error closing session {session_id} for task {task_id}: {e}")
+            
+            # Move the task to history
+            task_history[task_id] = existing_task
+            del active_tasks[task_id]
+            
+            # Wait a moment for resources to clean up
+            await asyncio.sleep(0.5)
+        else:
+            # If force is not enabled, return an error
+            raise HTTPException(status_code=400, detail=f"Task with ID {task_id} already exists")
 
     # Create task status
     task_status = TaskStatus(
@@ -153,7 +304,9 @@ async def execute_task(request: TaskRequest):
         status="pending",
         start_time=datetime.now(),
         metadata={
-            "persistent_session": request.persistent_session
+            "persistent_session": request.persistent_session,
+            "created_at": datetime.now().isoformat(),
+            "last_activity": datetime.now().isoformat()
         }
     )
 
@@ -185,6 +338,10 @@ async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
                     task_status.metadata = task_status.metadata or {}
                     task_status.metadata["reused_session"] = True
                     task_status.metadata["session_id"] = session_id
+                    task_status.metadata["last_activity"] = datetime.now().isoformat()
+                    
+                    # Update session last activity
+                    session_manager.last_activity[session_id] = datetime.now()
                     break
         
         # If no existing session found, create a new one
@@ -229,6 +386,10 @@ async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
                 session_manager.add_session(context.session_id, context)
                 task_status.metadata = task_status.metadata or {}
                 task_status.metadata["session_id"] = context.session_id
+                task_status.metadata["last_activity"] = datetime.now().isoformat()
+                
+                # Initialize session last activity
+                session_manager.last_activity[context.session_id] = datetime.now()
         
         # Update task status
         task_status.status = "running"
@@ -237,6 +398,13 @@ async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
         
         # Execute the task
         result = await context.execute_task(request.task)
+        
+        # Update last activity
+        task_status.metadata = task_status.metadata or {}
+        task_status.metadata["last_activity"] = datetime.now().isoformat()
+        if "session_id" in task_status.metadata:
+            session_id = task_status.metadata["session_id"]
+            session_manager.last_activity[session_id] = datetime.now()
         
         # Check if the task needs assistance
         if result.get("status") == "needs_assistance":
@@ -291,10 +459,18 @@ async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
             # For non-persistent sessions or failed tasks, clean up immediately
             if context and context.persistent:
                 # For persistent sessions, let the session manager handle it
-                await session_manager.close_session(context.session_id, force=task_status.status == "failed")
+                try:
+                    await session_manager.close_session(context.session_id, force=task_status.status == "failed")
+                    logger.info(f"Closed session {context.session_id} after task completion")
+                except Exception as e:
+                    logger.error(f"Error closing session {context.session_id}: {e}")
             elif context:
                 # For non-persistent sessions, clean up immediately
-                await context._cleanup()
+                try:
+                    await context._cleanup()
+                    logger.info(f"Cleaned up non-persistent session after task completion")
+                except Exception as e:
+                    logger.error(f"Error cleaning up non-persistent session: {e}")
         
         # Move completed or failed tasks to history
         if task_id in active_tasks and task_status.status in ["completed", "failed"]:
@@ -340,7 +516,7 @@ async def broadcast_task_update(task_id: str, task_status: TaskStatus):
     update = {
         "type": "task_update",
         "task_id": task_id,
-        "status": task_status.dict()
+        "status": task_status.model_dump()
     }
     
     # Send update to all connected clients
@@ -363,8 +539,31 @@ async def broadcast_task_update(task_id: str, task_status: TaskStatus):
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
-    return {"status": "ok"}
+    """Health check endpoint with detailed status information"""
+    global startup_time
+    
+    # Count tasks by status
+    task_counts = {"total": len(active_tasks)}
+    for status in ["pending", "running", "completed", "failed", "needs_assistance", "paused"]:
+        task_counts[status] = sum(1 for t in active_tasks.values() if t.status == status)
+    
+    # Get session information
+    session_count = len(session_manager.sessions)
+    persistent_sessions = sum(1 for ctx in session_manager.sessions.values() if ctx.persistent)
+    
+    return {
+        "status": "healthy",
+        "uptime_seconds": (datetime.now() - startup_time).total_seconds() if startup_time else 0,
+        "active_tasks": task_counts,
+        "history_tasks": len(task_history),
+        "sessions": {
+            "total": session_count,
+            "persistent": persistent_sessions,
+            "non_persistent": session_count - persistent_sessions
+        },
+        "connected_clients": len(connected_clients),
+        "version": "1.0.0"  # Replace with your actual version
+    }
 
 @app.get("/providers")
 async def get_providers():
@@ -477,18 +676,49 @@ async def list_recordings():
 
 @app.post("/sessions/{session_id}/close")
 async def close_session(session_id: str, force: bool = False):
-    """Explicitly close a browser session"""
+    """Explicitly close a browser session with improved error handling"""
     global session_manager
     
     # Check if session exists
     session = session_manager.get_session(session_id)
     if not session:
+        # If force is true, we'll just return success even if session doesn't exist
+        if force:
+            return {"status": "success", "message": f"Session {session_id} not found (force=True)"}
         raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
     
-    # Close the session
-    await session_manager.close_session(session_id, force=force)
-    
-    return {"status": "success", "message": f"Session {session_id} closed successfully"}
+    try:
+        # Close the session
+        await session_manager.close_session(session_id, force=force)
+        
+        # Update any associated tasks
+        for task_id, task_status in list(active_tasks.items()):
+            if task_status.metadata and task_status.metadata.get("session_id") == session_id:
+                if task_status.status in ["running", "paused"]:
+                    task_status.status = "completed" if not force else "failed"
+                    task_status.end_time = datetime.now()
+                    if force:
+                        task_status.error = "Session was forcibly closed"
+                    
+                    # Broadcast update
+                    await broadcast_task_update(task_id, task_status)
+                    
+                    # Move to history if completed or failed
+                    if task_status.status in ["completed", "failed"]:
+                        task_history[task_id] = task_status
+                        del active_tasks[task_id]
+        
+        return {"status": "success", "message": f"Session {session_id} closed successfully"}
+    except Exception as e:
+        # If force is true, we'll consider this a success even if there was an error
+        if force:
+            if session_id in session_manager.sessions:
+                del session_manager.sessions[session_id]
+            return {"status": "success", "message": f"Forced session {session_id} closure (with error: {str(e)})"}
+        
+        # Otherwise, report the error
+        logger.error(f"Error closing session {session_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Error closing session: {str(e)}")
 
 @app.get("/sessions")
 async def list_sessions():
@@ -558,23 +788,46 @@ async def pause_task(task_id: str):
     if task_status.status != "running":
         raise HTTPException(status_code=400, detail=f"Task with ID {task_id} is not in running state")
     
+    # Check if the session still exists
+    session_id = task_status.metadata.get("session_id") if task_status.metadata else None
+    if not session_id or session_id not in session_manager.sessions:
+        # Session is gone, we need to report this and not try to pause
+        task_status.status = "failed"
+        task_status.error = "Browser session was lost and cannot be paused"
+        task_status.end_time = datetime.now()
+        
+        # Move to history
+        task_history[task_id] = task_status
+        del active_tasks[task_id]
+        
+        # Broadcast update
+        await broadcast_task_update(task_id, task_status)
+        
+        raise HTTPException(
+            status_code=400,
+            detail=f"Browser session for task {task_id} was lost and cannot be paused"
+        )
+    
     # Update task status
     task_status.status = "paused"
     task_status.metadata = task_status.metadata or {}
     task_status.metadata["paused_at"] = datetime.now().isoformat()
+    task_status.metadata["last_activity"] = datetime.now().isoformat()
+    
+    # Update session last activity
+    session_manager.last_activity[session_id] = datetime.now()
     
     # Get the browser context for this task
-    context = None
-    for session_id, ctx in session_manager.sessions.items():
-        if ctx.task_id == task_id:
-            context = ctx
-            break
+    context = session_manager.get_session(session_id)
     
     if context:
         # Take a screenshot to show the current state
-        screenshot_path = await context.take_screenshot()
-        if screenshot_path:
-            task_status.metadata["pause_screenshot"] = os.path.basename(screenshot_path)
+        try:
+            screenshot_path = await context.take_screenshot()
+            if screenshot_path:
+                task_status.metadata["pause_screenshot"] = os.path.basename(screenshot_path)
+        except Exception as e:
+            logger.error(f"Error taking screenshot during pause: {e}")
     
     # Broadcast update
     await broadcast_task_update(task_id, task_status)
@@ -583,7 +836,7 @@ async def pause_task(task_id: str):
 
 @app.post("/execute/{task_id}/resume", response_model=TaskStatus)
 async def resume_task(task_id: str):
-    """Resume a paused task"""
+    """Resume a paused task with improved error handling for orphaned sessions"""
     if task_id not in active_tasks:
         raise HTTPException(status_code=404, detail=f"Task with ID {task_id} not found")
     
@@ -593,10 +846,34 @@ async def resume_task(task_id: str):
     if task_status.status != "paused":
         raise HTTPException(status_code=400, detail=f"Task with ID {task_id} is not in paused state")
     
+    # Check if the session still exists
+    session_id = task_status.metadata.get("session_id") if task_status.metadata else None
+    if not session_id or session_id not in session_manager.sessions:
+        # Session is gone, we need to report this and not try to resume
+        task_status.status = "failed"
+        task_status.error = "Browser session was lost and cannot be resumed"
+        task_status.end_time = datetime.now()
+        
+        # Move to history
+        task_history[task_id] = task_status
+        del active_tasks[task_id]
+        
+        # Broadcast update
+        await broadcast_task_update(task_id, task_status)
+        
+        raise HTTPException(
+            status_code=400,
+            detail=f"Browser session for task {task_id} was lost and cannot be resumed"
+        )
+    
     # Update task status
     task_status.status = "running"
     task_status.metadata = task_status.metadata or {}
+    task_status.metadata["last_activity"] = datetime.now().isoformat()
     task_status.metadata["resumed_at"] = datetime.now().isoformat()
+    
+    # Update session last activity
+    session_manager.last_activity[session_id] = datetime.now()
     
     # Broadcast update
     await broadcast_task_update(task_id, task_status)

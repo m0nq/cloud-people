@@ -188,12 +188,12 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
             }
 
             const currentNode = nodes.find(n => n.id === currentNodeId);
-            
+
             // Pause the active agent's execution if it's an agent node
             if (currentNode && isValidWorkflowNode(currentNode) && currentNode.data.type === NodeType.Agent) {
                 // Get the agent ID
                 const agentId = currentNode.id;
-                
+
                 try {
                     // Call the browser-use service to pause the task
                     const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
@@ -209,7 +209,7 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                     // Continue with workflow pause even if agent pause fails
                 }
             }
-            
+
             // Find and reset non-terminal nodes
             const nonTerminalNodes = findNonTerminalNodes(nodes);
             resetNodesToInitial(set, nodes, nonTerminalNodes);
@@ -238,29 +238,18 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
             }
 
             const lastNode = nodes.find(n => n.id === lastNodeId);
-            
+
             // Resume the agent's execution if it's an agent node
             if (lastNode && isValidWorkflowNode(lastNode) && lastNode.data.type === NodeType.Agent) {
                 // Get the agent ID
                 const agentId = lastNode.id;
-                
-                try {
-                    // Call the browser-use service to resume the task
-                    const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
-                    await fetch(`${browserUseEndpoint}/execute/${agentId}/resume`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    });
-                    console.log(`Resumed execution for agent ${agentId}`);
-                    
-                    // Transition the node to Working state
-                    transitionNode(set, nodes, agentId, AgentState.Working);
-                } catch (error) {
-                    console.error('Error resuming agent execution:', error);
-                    // Continue with workflow resume even if agent resume fails
-                }
+
+                const agentStore = useAgentStore.getState();
+                const agentData = agentStore.getAgentData(agentId);
+
+                agentStore.setAgentData(agentId, { ...agentData, isResuming: true });
+
+                transitionNode(set, nodes, agentId, AgentState.Activating);
             }
         } catch (error) {
             console.error('Failed to resume workflow:', error);
