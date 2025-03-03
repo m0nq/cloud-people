@@ -78,7 +78,7 @@ const RootNode = ({ id, isConnectable, sourcePosition, targetPosition }: RootNod
         : '';
 
     return (
-        <NodeComponent.Root className="root-node">
+        <NodeComponent.Root className="root-node nodrag">
             <Tooltip content={tooltipContent} disabled={!isPlayButtonDisabled}>
                 <button className={`inner-circle ${isPlayButtonDisabled ? 'disabled' : ''}`}
                     onClick={handlePlayPause}

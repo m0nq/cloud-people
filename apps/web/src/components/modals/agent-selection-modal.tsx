@@ -22,6 +22,11 @@ export interface AgentSelectionModalProps {
 }
 
 export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children }: AgentSelectionModalProps) => {
+    // Only log in development mode
+    if (process.env.NODE_ENV === 'development') {
+        console.log('AgentSelectionModal rendering');
+    }
+    
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState('agents');
@@ -80,23 +85,31 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
     );
 
     const handleAgentSelect = useCallback((agent: AgentData) => {
-            // Create a unique ID for this instance of the agent
-            const uniqueAgentId = `${agent.id}-${Date.now()}`;
+        // Create a unique ID for this instance of the agent
+        const uniqueAgentId = `${agent.id}-${Date.now()}`;
 
-            // Create a new agent instance with the unique ID
-            const newAgent = {
-                ...agent,
-                id: uniqueAgentId,
-                parentNodeId
-            };
+        // Create a new agent instance with the unique ID
+        const newAgent = {
+            ...agent,
+            id: uniqueAgentId,
+            parentNodeId
+        };
 
-            // Synchronize with AgentStore before proceeding
-            setAgentData(uniqueAgentId, newAgent);
+        // Synchronize with AgentStore before proceeding
+        // Use a single batch update to reduce rerenders
+        setAgentData(uniqueAgentId, newAgent);
+        
+        // Close the modal first to prevent UI jank during node addition
+        onClose();
+        
+        // Then select the agent (which will trigger addNode)
+        // This separation helps reduce visible rerenders
+        setTimeout(() => {
             onSelect(newAgent);
-            onClose();
-        },
-        [onSelect, onClose, parentNodeId, setAgentData]
-    );
+        }, 0);
+    },
+    [onSelect, onClose, parentNodeId, setAgentData]
+);
 
     return (
         <div className="agent-selector-container">
