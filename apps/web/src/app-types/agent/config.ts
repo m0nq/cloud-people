@@ -26,7 +26,7 @@ export type AgentData = {
     memoryLimit: MemoryLimit;
     contextWindow?: string;
     budget: string;
-    models: string[];
+    model: string;
     tools?: string[];
     createdBy: string;
     parentNodeId?: string;

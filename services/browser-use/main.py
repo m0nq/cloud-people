@@ -99,7 +99,7 @@ session_manager = SessionManager(session_timeout_minutes=AppConfig.SESSION_TIMEO
 # Task status model
 class TaskStatus(BaseModel):
     task_id: str
-    status: str  # "pending", "running", "completed", "failed", "needs_assistance"
+    status: str  # "pending", "running", "completed", "failed", "needs_assistance", "paused"
     progress: float = 0.0
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
@@ -132,6 +132,7 @@ class TaskRequest(BaseModel):
     llm_provider: Optional[ProviderConfig] = None
     headless: Optional[bool] = False
     persistent_session: Optional[bool] = False
+    options: Optional[Dict[str, Any]] = None
 
 # Execute a browser task
 @app.post("/execute", response_model=TaskStatus)
@@ -167,100 +168,81 @@ async def execute_task(request: TaskRequest):
 # Run a task in the background
 async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
     """Run a task in the background"""
-    global session_manager
-    recording_process = None
-    context = None
-    reused_session = False
-
     try:
-        # Update task status
-        task_status.status = "running"
-        await broadcast_task_update(task_id, task_status)
-
-        # Configure LLM provider
-        default_provider = get_default_provider()
-        logger.info(f"Default provider: {default_provider}")
-
-        llm_config = request.llm_provider or ProviderConfig(
-            type=default_provider,
-            api_key=get_api_key_for_provider(default_provider),
-            model=get_default_model_for_provider(default_provider)
-        )
-
-        logger.info(f"LLM config: type={llm_config.type}, model={llm_config.model}")
-
-        # Use provided API key or fall back to environment variable
-        if not llm_config.api_key:
-            llm_config.api_key = get_api_key_for_provider(llm_config.type)
-            logger.info(f"Using API key from environment for {llm_config.type}")
-            if not llm_config.api_key:
-                logger.error(f"No API key available for provider {llm_config.type}")
-                raise ValueError(f"No API key available for provider {llm_config.type}")
-
-        # Ensure model is not None
-        if not llm_config.model:
-            logger.warning(f"Model is None, getting default for {llm_config.type}")
-            llm_config.model = get_default_model_for_provider(llm_config.type)
-            logger.info(f"Using default model: {llm_config.model}")
-
-        # Create LLM provider using factory
-        logger.info(f"Creating LLM provider with type={llm_config.type}, model={llm_config.model}")
-        try:
-            llm_provider = LLMProviderFactory.create_provider(
-                llm_config.type,
-                {
-                    "api_key": llm_config.api_key,
-                    "model": llm_config.model,
-                    "temperature": llm_config.temperature,
-                    **(llm_config.options or {})
-                }
-            )
-            logger.info(f"Successfully created LLM provider: {llm_provider.get_provider_name()}")
-        except Exception as e:
-            logger.error(f"Error creating LLM provider: {str(e)}")
-            raise
-
-        # Check if we should reuse an existing session
-        if request.persistent_session and request.task_id:
-            # Try to get an existing session with the same ID
-            existing_context = session_manager.get_session(request.task_id)
-            if existing_context:
-                logger.info(f"Reusing existing browser session {request.task_id}")
-                context = existing_context
-                # Update the LLM provider
-                context.llm_provider = llm_provider
-                reused_session = True
+        # Create a new browser context or reuse an existing one
+        reused_session = False
+        context = None
         
-        # Create a new context if we didn't reuse one
+        # Check if we should use a persistent session
+        if request.persistent_session:
+            # Try to find an existing session
+            for session_id, ctx in session_manager.sessions.items():
+                if ctx.persistent:
+                    logger.info(f"Reusing persistent session {session_id}")
+                    context = ctx
+                    context.task_id = task_id  # Update the task ID for the context
+                    reused_session = True
+                    task_status.metadata = task_status.metadata or {}
+                    task_status.metadata["reused_session"] = True
+                    task_status.metadata["session_id"] = session_id
+                    break
+        
+        # If no existing session found, create a new one
         if not context:
-            # Create context with Playwright browser
+            # Configure LLM provider
+            llm_provider = None
+            
+            # Get model from options if available
+            model = request.options.get('model') if request.options else None
+            provider_type = get_default_provider()
+            
+            try:
+                # Always create an LLM provider, using default model if none specified
+                llm_provider = LLMProviderFactory.create_provider(
+                    provider_type=provider_type,
+                    config={
+                        "api_key": get_api_key_for_provider(provider_type),
+                        "model": model or get_default_model_for_provider(provider_type),
+                        "temperature": 0.7,  # Default temperature
+                        "options": request.options
+                    }
+                )
+                logger.info(f"Created LLM provider with model: {model or get_default_model_for_provider(provider_type)}")
+            except ValueError as e:
+                logger.error(f"Error creating LLM provider: {str(e)}")
+                task_status.status = "failed"
+                task_status.error = str(e)
+                await broadcast_task_update(task_id, task_status)
+                return
+            
+            # Create a new browser context
             context = BrowserUseContext(
-                llm_provider, 
+                llm_provider=llm_provider,
                 headless=request.headless,
-                session_id=request.task_id or task_id,
-                persistent=request.persistent_session
+                metadata={"task_id": task_id},
+                persistent=request.persistent_session,
+                task_id=task_id
             )
             
-            # If this is a persistent session, add it to the session manager
+            # Register the session
             if request.persistent_session:
-                session_manager.add_session(context)
-
-        # Start recording if enabled
-        if request.recording_config and request.recording_config.enabled:
-            recording_process = await context.start_recording(request.recording_config.dict())
-            if recording_process:
-                task_status.metadata["recording_enabled"] = True
-
-        # Execute task with timeout
-        result = await asyncio.wait_for(
-            context.execute_task(request.task),
-            timeout=request.operation_timeout
-        )
-
+                session_manager.add_session(context.session_id, context)
+                task_status.metadata = task_status.metadata or {}
+                task_status.metadata["session_id"] = context.session_id
+        
+        # Update task status
+        task_status.status = "running"
+        task_status.start_time = datetime.now()
+        await broadcast_task_update(task_id, task_status)
+        
+        # Execute the task
+        result = await context.execute_task(request.task)
+        
         # Check if the task needs assistance
         if result.get("status") == "needs_assistance":
             task_status.status = "needs_assistance"
             task_status.assistance_message = result.get("message", "Assistance needed")
+            task_status.metadata = task_status.metadata or {}
             task_status.metadata["screenshot"] = result.get("screenshot")
             
             # Don't mark the task as completed yet
@@ -268,73 +250,57 @@ async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
             
             # Keep the task in active_tasks
             return
+        
+        # Check if the task is paused
+        if result.get("status") == "paused":
+            task_status.status = "paused"
+            task_status.metadata = task_status.metadata or {}
+            task_status.metadata["pause_reason"] = result.get("message", "Task paused")
+            task_status.metadata["screenshot"] = result.get("screenshot")
             
-        # Update task status
+            # Don't mark the task as completed yet
+            await broadcast_task_update(task_id, task_status)
+            
+            # Keep the task in active_tasks
+            return
+        
+        # Update task status with result
         task_status.status = "completed"
-        task_status.result = result
         task_status.end_time = datetime.now()
+        task_status.result = result
         task_status.progress = 1.0
         
-        # Add session info to metadata
-        task_status.metadata["session_id"] = context.session_id
-        task_status.metadata["persistent_session"] = context.persistent
-        task_status.metadata["reused_session"] = reused_session
-
-        # Store in history
-        task_history[task_id] = task_status
-
-        # Broadcast update
+        # Broadcast task update
         await broadcast_task_update(task_id, task_status)
-
-    except asyncio.TimeoutError:
-        logger.error(f"Task {task_id} timed out after {request.operation_timeout} seconds")
-        task_status.status = "failed"
-        task_status.error = f"Task timed out after {request.operation_timeout} seconds"
-        task_status.end_time = datetime.now()
-
-        # Store in history
-        task_history[task_id] = task_status
-
-        # Broadcast update
-        await broadcast_task_update(task_id, task_status)
-
+        
     except Exception as e:
-        logger.error(f"Error executing task {task_id}: {str(e)}")
+        logger.error(f"Error running task: {str(e)}")
         task_status.status = "failed"
         task_status.error = str(e)
         task_status.end_time = datetime.now()
-
-        # Store in history
-        task_history[task_id] = task_status
-
-        # Broadcast update
+        
+        # Broadcast task update
         await broadcast_task_update(task_id, task_status)
-
+    
     finally:
-        # Clean up resources
-        if context:
-            try:
-                # Stop recording if it was started
-                if recording_process:
-                    await context.stop_recording(recording_process)
-
-                # If this is a persistent session and the task completed successfully,
-                # don't clean up the browser resources
-                if not (request.persistent_session and task_status.status == "completed"):
-                    # For non-persistent sessions or failed tasks, clean up immediately
-                    if context.persistent:
-                        # For persistent sessions, let the session manager handle it
-                        await session_manager.close_session(context.session_id, force=task_status.status != "completed")
-                    else:
-                        # For non-persistent sessions, clean up immediately
-                        await context._cleanup()
-                    logger.info(f"Cleaned up resources for task {task_id}")
-            except Exception as e:
-                logger.error(f"Error cleaning up resources for task {task_id}: {str(e)}")
-
-        # Remove from active tasks only if not waiting for assistance
-        if task_id in active_tasks and task_status.status != "needs_assistance":
+        # If this is a persistent session and the task completed successfully or is paused/needs assistance,
+        # don't clean up the browser resources
+        if not (request.persistent_session and (task_status.status == "completed" or 
+                                               task_status.status == "paused" or 
+                                               task_status.status == "needs_assistance")):
+            # For non-persistent sessions or failed tasks, clean up immediately
+            if context and context.persistent:
+                # For persistent sessions, let the session manager handle it
+                await session_manager.close_session(context.session_id, force=task_status.status == "failed")
+            elif context:
+                # For non-persistent sessions, clean up immediately
+                await context._cleanup()
+        
+        # Move completed or failed tasks to history
+        if task_id in active_tasks and task_status.status in ["completed", "failed"]:
+            task_history[task_id] = active_tasks[task_id]
             del active_tasks[task_id]
+        # Don't remove tasks that are paused or need assistance from active_tasks
 
 # WebSocket for real-time updates
 @app.websocket("/ws/{client_id}")
@@ -574,6 +540,63 @@ async def resolve_assistance(task_id: str):
     # Resume task execution
     task_status.status = "running"
     task_status.assistance_message = None
+    
+    # Broadcast update
+    await broadcast_task_update(task_id, task_status)
+    
+    return task_status
+
+@app.post("/execute/{task_id}/pause", response_model=TaskStatus)
+async def pause_task(task_id: str):
+    """Pause a running task"""
+    if task_id not in active_tasks:
+        raise HTTPException(status_code=404, detail=f"Task with ID {task_id} not found")
+    
+    task_status = active_tasks[task_id]
+    
+    # Only pause if the task is running
+    if task_status.status != "running":
+        raise HTTPException(status_code=400, detail=f"Task with ID {task_id} is not in running state")
+    
+    # Update task status
+    task_status.status = "paused"
+    task_status.metadata = task_status.metadata or {}
+    task_status.metadata["paused_at"] = datetime.now().isoformat()
+    
+    # Get the browser context for this task
+    context = None
+    for session_id, ctx in session_manager.sessions.items():
+        if ctx.task_id == task_id:
+            context = ctx
+            break
+    
+    if context:
+        # Take a screenshot to show the current state
+        screenshot_path = await context.take_screenshot()
+        if screenshot_path:
+            task_status.metadata["pause_screenshot"] = os.path.basename(screenshot_path)
+    
+    # Broadcast update
+    await broadcast_task_update(task_id, task_status)
+    
+    return task_status
+
+@app.post("/execute/{task_id}/resume", response_model=TaskStatus)
+async def resume_task(task_id: str):
+    """Resume a paused task"""
+    if task_id not in active_tasks:
+        raise HTTPException(status_code=404, detail=f"Task with ID {task_id} not found")
+    
+    task_status = active_tasks[task_id]
+    
+    # Only resume if the task is paused
+    if task_status.status != "paused":
+        raise HTTPException(status_code=400, detail=f"Task with ID {task_id} is not in paused state")
+    
+    # Update task status
+    task_status.status = "running"
+    task_status.metadata = task_status.metadata or {}
+    task_status.metadata["resumed_at"] = datetime.now().isoformat()
     
     # Broadcast update
     await broadcast_task_update(task_id, task_status)

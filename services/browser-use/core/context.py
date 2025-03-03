@@ -22,7 +22,8 @@ class BrowserUseContext:
         headless: Optional[bool] = False,
         metadata: Optional[Dict[str, Any]] = None,
         session_id: Optional[str] = None,
-        persistent: bool = False
+        persistent: bool = False,
+        task_id: Optional[str] = None
     ):
         self.llm_provider = llm_provider
         self.headless = headless
@@ -37,6 +38,9 @@ class BrowserUseContext:
         self.persistent = persistent
         self.needs_assistance = False
         self.assistance_message = None
+        self.is_paused = False
+        self.pause_reason = None
+        self.task_id = task_id
         os.makedirs(self.screenshots_dir, exist_ok=True)
         os.makedirs(self.recordings_dir, exist_ok=True)
         
@@ -105,6 +109,14 @@ class BrowserUseContext:
                     "success": False,
                     "status": "needs_assistance",
                     "message": self.assistance_message
+                }
+            
+            # Check if execution is paused
+            if self.is_paused:
+                return {
+                    "success": False,
+                    "status": "paused",
+                    "message": f"Execution is paused: {self.pause_reason}"
                 }
                 
             # Generate browser actions from LLM
@@ -479,3 +491,38 @@ class BrowserUseContext:
         logger.info(f"Assistance resolved for session {self.session_id}")
         self.needs_assistance = False
         self.assistance_message = None
+
+    async def pause_execution(self, reason: str = "User requested pause"):
+        """Pause the execution of the current task"""
+        logger.info(f"Pausing execution: {reason}")
+        self.is_paused = True
+        self.pause_reason = reason
+        
+        # Take a screenshot of the current state
+        screenshot_path = await self._take_screenshot(f"paused_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+        
+        return {
+            "success": True,
+            "status": "paused",
+            "message": f"Execution paused: {reason}",
+            "screenshot": screenshot_path
+        }
+    
+    async def resume_execution(self):
+        """Resume the execution of the current task"""
+        if not self.is_paused:
+            logger.warning("Attempted to resume execution, but it was not paused")
+            return {
+                "success": False,
+                "message": "Execution was not paused"
+            }
+        
+        logger.info("Resuming execution")
+        self.is_paused = False
+        self.pause_reason = None
+        
+        return {
+            "success": True,
+            "status": "running",
+            "message": "Execution resumed"
+        }

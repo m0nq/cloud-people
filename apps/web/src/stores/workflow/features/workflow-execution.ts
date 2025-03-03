@@ -180,6 +180,36 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
         if (!workflowExecution) return;
 
         try {
+            // Find current active node
+            const currentNodeId = workflowExecution.currentNodeId;
+            if (!currentNodeId) {
+                console.warn('No current node ID found when attempting to pause workflow');
+                return;
+            }
+
+            const currentNode = nodes.find(n => n.id === currentNodeId);
+            
+            // Pause the active agent's execution if it's an agent node
+            if (currentNode && isValidWorkflowNode(currentNode) && currentNode.data.type === NodeType.Agent) {
+                // Get the agent ID
+                const agentId = currentNode.id;
+                
+                try {
+                    // Call the browser-use service to pause the task
+                    const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
+                    await fetch(`${browserUseEndpoint}/execute/${agentId}/pause`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    console.log(`Paused execution for agent ${agentId}`);
+                } catch (error) {
+                    console.error('Error pausing agent execution:', error);
+                    // Continue with workflow pause even if agent pause fails
+                }
+            }
+            
             // Find and reset non-terminal nodes
             const nonTerminalNodes = findNonTerminalNodes(nodes);
             resetNodesToInitial(set, nodes, nonTerminalNodes);
@@ -193,35 +223,45 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
     };
 
     const resumeWorkflow = async () => {
-        const { nodes, workflowExecution } = get();
+        const { nodes, workflowExecution }: GraphState = get();
         if (!workflowExecution) return;
 
         try {
-            // Find current node
-            const currentNode = nodes.find(n => n.id === workflowExecution.currentNodeId);
-            if (!currentNode || !isWorkflowNode(currentNode)) return;
+            // Update workflow state
+            await updateWorkflowState(set, workflowExecution, WorkflowState.Running);
 
-            // Set current node to Activating to resume workflow
-            transitionNode(set, nodes, currentNode.id, AgentState.Activating);
+            // Find the last active node
+            const lastNodeId = workflowExecution.currentNodeId;
+            if (!lastNodeId) {
+                console.warn('No last node ID found when attempting to resume workflow');
+                return;
+            }
 
-            // Find all agent nodes that are not root and not current node
-            nodes.filter((node: Node<NodeData>) => node.type !== NodeType.Root && isWorkflowNode(node) && node.id !== currentNode.id /* Skip current node */)
-                .forEach(node => transitionNode(set, nodes, node.id, AgentState.Idle));
-
-            // Update workflow execution state
-            await updateExecution({
-                id: workflowExecution.id,
-                nodeId: workflowExecution.currentNodeId,
-                workflowId: workflowExecution.workflowId,
-                currentStatus: WorkflowState.Running
-            });
-
-            updateState(set, {
-                workflowExecution: {
-                    ...workflowExecution,
-                    state: WorkflowState.Running
+            const lastNode = nodes.find(n => n.id === lastNodeId);
+            
+            // Resume the agent's execution if it's an agent node
+            if (lastNode && isValidWorkflowNode(lastNode) && lastNode.data.type === NodeType.Agent) {
+                // Get the agent ID
+                const agentId = lastNode.id;
+                
+                try {
+                    // Call the browser-use service to resume the task
+                    const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
+                    await fetch(`${browserUseEndpoint}/execute/${agentId}/resume`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    console.log(`Resumed execution for agent ${agentId}`);
+                    
+                    // Transition the node to Working state
+                    transitionNode(set, nodes, agentId, AgentState.Working);
+                } catch (error) {
+                    console.error('Error resuming agent execution:', error);
+                    // Continue with workflow resume even if agent resume fails
                 }
-            });
+            }
         } catch (error) {
             console.error('Failed to resume workflow:', error);
             throw error;
