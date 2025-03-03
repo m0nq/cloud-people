@@ -361,8 +361,6 @@ class BrowserUseContext:
         
         try:
             await self.page.screenshot(path=filepath)
-            # Update visualization with new screenshot
-            self.visualization.update_current_screenshot(filepath)
             return filepath
         except Exception as e:
             logger.error(f"Error taking screenshot: {str(e)}")

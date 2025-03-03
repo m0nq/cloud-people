@@ -9,9 +9,9 @@ import './agent-selection-modal.styles.css';
 import { AgentCard } from '@components/agents/agent-card';
 import { AgentData } from '@app-types/agent';
 import { DEFAULT_AGENT_STATE } from '@stores/agent-store';
+import { useAgentStore } from '@stores/agent-store';
 import { useModalStore } from '@stores/modal-store';
 import { useAgentCacheStore } from '@stores/agent-cache-store';
-import { useAgentStore } from '@stores/agent-store';
 import { fetchAgents } from '@lib/actions/agent-actions';
 
 export interface AgentSelectionModalProps {
@@ -33,7 +33,7 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
     useEffect(() => {
         let isMounted = true;
 
-        const loadAgents = async () => {
+        (async () => {
             try {
                 // Only check cache on initial mount or when lastFetchTime is 0 (cache invalidated)
                 if (!isInitialMount.current && lastFetchTime !== 0) {
@@ -57,9 +57,7 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
                     isInitialMount.current = false;
                 }
             }
-        };
-
-        loadAgents();
+        })();
 
         return () => {
             isMounted = false;
@@ -81,11 +79,20 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
         []
     );
 
-    const handleAgentSelect = useCallback(
-        (agent: AgentData) => {
+    const handleAgentSelect = useCallback((agent: AgentData) => {
+            // Create a unique ID for this instance of the agent
+            const uniqueAgentId = `${agent.id}-${Date.now()}`;
+
+            // Create a new agent instance with the unique ID
+            const newAgent = {
+                ...agent,
+                id: uniqueAgentId,
+                parentNodeId
+            };
+
             // Synchronize with AgentStore before proceeding
-            setAgentData(agent.id, agent);
-            onSelect({ ...agent, parentNodeId });
+            setAgentData(uniqueAgentId, newAgent);
+            onSelect(newAgent);
             onClose();
         },
         [onSelect, onClose, parentNodeId, setAgentData]

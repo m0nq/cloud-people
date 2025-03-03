@@ -102,14 +102,14 @@ export const transitionNode = (set: Function, nodes: Node<NodeData>[], nodeId: s
         if (agentStore.isTransitionAllowed(agentId, newState)) {
             agentStore.transition(agentId, newState);
 
-            // Update node data with the new agent state
+            // Update only the specific node that's being transitioned
             const updatedNodes = nodes.map(n => {
-                if (isWorkflowNode(n) && n.data.agentRef.agentId === agentId) {
+                if (n.id === nodeId) {
                     return {
                         ...n,
                         data: {
                             ...n.data,
-                            state: newState // Update with AgentState directly
+                            state: newState
                         }
                     };
                 }
