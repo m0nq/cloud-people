@@ -29,6 +29,7 @@ import { EdgeType } from '@app-types/workflow/node-types';
 import { fetchAgent } from '@lib/actions/agent-actions';
 import { calculateNodePositions } from '@lib/layout/node-layout';
 import { getSiblings } from '@lib/layout/node-layout';
+import { useAgentStore } from '@stores/agent-store';
 
 type PositionNodeChange = NodeChange & {
     type: 'position';
@@ -241,6 +242,14 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
                 }
             });
             newNodeId = node.id;
+
+            // Update the agent data with the node ID
+            const agentStore = useAgentStore.getState();
+            const updatedAgentData = {
+                ...agent,
+                nodeId: newNodeId
+            };
+            agentStore.setAgentData(agent.id, updatedAgentData);
 
             // Get position for new node
             const newNodePosition = allNodePositions.find(pos => pos.id === 'new-node')?.position;

@@ -187,6 +187,15 @@ async def periodic_task_cleanup():
                     # Broadcast update
                     await broadcast_task_update(task_id, task_status)
             
+            # Check for completed tasks in history that should be removed
+            completed_threshold = now - timedelta(minutes=30)  # Remove completed tasks after 30 minutes
+            for task_id, task_status in list(task_history.items()):
+                if task_status.status == "completed" and task_status.end_time:
+                    # If the task completed more than 30 minutes ago, remove it from history
+                    if task_status.end_time < completed_threshold:
+                        logger.info(f"Removing old completed task {task_id} from history")
+                        del task_history[task_id]
+            
             # Also check for orphaned sessions (sessions without an active task)
             for session_id, context in list(session_manager.sessions.items()):
                 # Check if this session is associated with an active task
@@ -383,7 +392,7 @@ async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
             
             # Register the session
             if request.persistent_session:
-                session_manager.add_session(context.session_id, context)
+                session_manager.add_session(context)
                 task_status.metadata = task_status.metadata or {}
                 task_status.metadata["session_id"] = context.session_id
                 task_status.metadata["last_activity"] = datetime.now().isoformat()

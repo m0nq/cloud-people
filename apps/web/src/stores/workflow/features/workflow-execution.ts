@@ -191,19 +191,41 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
 
             // Pause the active agent's execution if it's an agent node
             if (currentNode && isValidWorkflowNode(currentNode) && currentNode.data.type === NodeType.Agent) {
-                // Get the agent ID
-                const agentId = currentNode.id;
+                // Use node ID as task ID for browser-use service
+                const nodeId = currentNode.id;
+                // Use agent ID for agent store operations
+                const agentId = currentNode.data.agentRef.agentId;
 
                 try {
-                    // Call the browser-use service to pause the task
                     const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
-                    await fetch(`${browserUseEndpoint}/execute/${agentId}/pause`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
+                    
+                    // First, check if the task exists
+                    const checkResponse = await fetch(`${browserUseEndpoint}/execute/${nodeId}`);
+                    
+                    if (checkResponse.ok) {
+                        // Task exists, try to pause it
+                        const taskStatus = await checkResponse.json();
+                        
+                        if (taskStatus.status === 'running') {
+                            // Call the browser-use service to pause the task using node ID as task ID
+                            const pauseResponse = await fetch(`${browserUseEndpoint}/execute/${nodeId}/pause`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            
+                            if (pauseResponse.ok) {
+                                console.log(`Successfully paused execution for node ${nodeId} (agent: ${agentId})`);
+                            } else {
+                                console.error(`Failed to pause execution for node ${nodeId}: ${pauseResponse.status}`);
+                            }
+                        } else {
+                            console.log(`Task for node ${nodeId} is not in running state (current state: ${taskStatus.status}), skipping pause`);
                         }
-                    });
-                    console.log(`Paused execution for agent ${agentId}`);
+                    } else {
+                        console.warn(`Task for node ${nodeId} not found, skipping pause`);
+                    }
                 } catch (error) {
                     console.error('Error pausing agent execution:', error);
                     // Continue with workflow pause even if agent pause fails
@@ -250,15 +272,22 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
 
             // Resume the agent's execution if it's an agent node
             if (lastNode && isValidWorkflowNode(lastNode) && lastNode.data.type === NodeType.Agent) {
-                // Get the agent ID
-                const agentId = lastNode.id;
+                // Use node ID as task ID for browser-use service
+                const nodeId = lastNode.id;
+                // Use agent ID for agent store operations
+                const agentId = lastNode.data.agentRef.agentId;
 
                 const agentStore = useAgentStore.getState();
                 const agentData = agentStore.getAgentData(agentId);
 
-                agentStore.setAgentData(agentId, { ...agentData, isResuming: true });
+                // Set isResuming flag with node ID as the key for resumption
+                agentStore.setAgentData(agentId, { 
+                    ...agentData, 
+                    isResuming: true,
+                    nodeId: nodeId // Store the node ID for reference
+                });
 
-                transitionNode(set, nodes, agentId, AgentState.Activating);
+                transitionNode(set, nodes, nodeId, AgentState.Activating);
             }
         } catch (error) {
             console.error('Failed to resume workflow:', error);

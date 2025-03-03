@@ -31,6 +31,8 @@ export type AgentData = {
     createdBy: string;
     parentNodeId?: string;
     isResuming?: boolean;
+    nodeId?: string;
+    activeTaskId?: string;
 };
 
 export type AgentConfig = {
