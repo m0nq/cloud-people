@@ -78,11 +78,20 @@ export const pauseAgentExecution = async (
                 if (checkResponse.status === 404) {
                     console.warn(`[DEBUG] Task ${taskId} not found (404). The task may have completed or been closed.`);
                     
-                    // Update the agent state to reflect that it's no longer running
-                    onStatusChange?.(AgentState.Complete);
+                    // Update the agent state to Paused instead of Complete during a pause operation
+                    // This ensures the workflow remains paused and doesn't progress to the next node
+                    onStatusChange?.(AgentState.Paused);
                     
-                    // Since the task doesn't exist, we consider the pause "successful" in the sense
-                    // that the agent is no longer running
+                    // Store pause metadata in the agent store
+                    const { updateAgentState } = useAgentStore.getState();
+                    updateAgentState(agentId, {
+                        metadata: {
+                            pausedAt: new Date().toISOString(),
+                            pauseReason: 'Task not found during pause operation'
+                        }
+                    });
+                    
+                    // Since the task doesn't exist, we consider the pause "successful"
                     return true;
                 } else {
                     console.error(`[DEBUG] Task not found or cannot be accessed: HTTP ${checkResponse.status}`);
@@ -94,8 +103,20 @@ export const pauseAgentExecution = async (
             console.log(`[DEBUG] Task status:`, taskStatus);
             
             if (taskStatus.status !== 'running') {
-                console.log(`[DEBUG] Task ${taskId} is not in running state (current state: ${taskStatus.status}), marking as complete`);
-                onStatusChange?.(AgentState.Complete);
+                console.log(`[DEBUG] Task ${taskId} is not in running state (current state: ${taskStatus.status}), marking as paused`);
+                
+                // Update the agent state to Paused instead of Complete during a pause operation
+                onStatusChange?.(AgentState.Paused);
+                
+                // Store pause metadata in the agent store
+                const { updateAgentState } = useAgentStore.getState();
+                updateAgentState(agentId, {
+                    metadata: {
+                        pausedAt: new Date().toISOString(),
+                        pauseReason: `Task was in ${taskStatus.status} state during pause operation`
+                    }
+                });
+                
                 return true;
             }
 
@@ -153,11 +174,19 @@ export const pauseAgentExecution = async (
             if (error instanceof Error && error.message.includes('404')) {
                 console.warn(`[DEBUG] Task ${taskId} not found (404) during pause operation. The task may have completed or been closed.`);
                 
-                // Update the agent state to reflect that it's no longer running
-                onStatusChange?.(AgentState.Complete);
+                // Update the agent state to Paused instead of Complete during a pause operation
+                onStatusChange?.(AgentState.Paused);
                 
-                // Since the task doesn't exist, we consider the pause "successful" in the sense
-                // that the agent is no longer running
+                // Store pause metadata in the agent store
+                const { updateAgentState } = useAgentStore.getState();
+                updateAgentState(agentId, {
+                    metadata: {
+                        pausedAt: new Date().toISOString(),
+                        pauseReason: 'Task not found during pause operation'
+                    }
+                });
+                
+                // Since the task doesn't exist, we consider the pause "successful"
                 return true;
             }
             
@@ -167,10 +196,22 @@ export const pauseAgentExecution = async (
     } catch (error) {
         console.error(`[DEBUG] Error pausing agent ${agentId}:`, error);
         
-        // Update agent state to Error
-        onStatusChange?.(AgentState.Error);
+        // Update agent state to Paused instead of Error during a pause operation
+        // This ensures the workflow remains paused and doesn't progress to the next node
+        onStatusChange?.(AgentState.Paused);
         
-        return false;
+        // Store error metadata in the agent store
+        const { updateAgentState } = useAgentStore.getState();
+        updateAgentState(agentId, {
+            metadata: {
+                pausedAt: new Date().toISOString(),
+                pauseReason: `Error during pause operation: ${error instanceof Error ? error.message : String(error)}`,
+                pauseError: error instanceof Error ? error.message : String(error)
+            }
+        });
+        
+        // Return true to indicate the pause was "successful" in the sense that the workflow is now paused
+        return true;
     }
 };
 
@@ -187,20 +228,26 @@ export const pauseAgentNode = async (
     
     try {
         // Get agent data from the store
-        const { getAgentData } = useAgentStore.getState();
+        const { getAgentData, getAgentState } = useAgentStore.getState();
         const agentData = getAgentData(agentId);
         
         if (!agentData) {
             console.error(`[DEBUG] Agent data not found for agent ID ${agentId}`);
+            
+            // Even if agent data is not found, we should still transition the node to Paused
+            // to ensure the workflow remains paused
+            onStatusChange?.(AgentState.Paused);
+            
             return {
                 nodeId,
                 agentId,
-                success: false,
-                error: `Agent data not found for agent ID ${agentId}`
+                success: true, // Consider this "successful" in terms of pausing the workflow
+                error: `Agent data not found for agent ID ${agentId}, but node transitioned to Paused state`
             };
         }
         
         console.log(`[DEBUG] Retrieved agent data for ${agentId}:`, agentData);
+        console.log(`[DEBUG] Current agent state: ${getAgentState(agentId)?.state || 'unknown'}`);
         
         // Ensure the nodeId is set in the agent data
         const updatedAgentData = {
@@ -221,20 +268,30 @@ export const pauseAgentNode = async (
             };
         } else {
             console.error(`[DEBUG] Failed to pause agent node ${nodeId}`);
+            
+            // Even if pauseAgentExecution returns false, we should still transition the node to Paused
+            // to ensure the workflow remains paused
+            onStatusChange?.(AgentState.Paused);
+            
             return {
                 nodeId,
                 agentId,
-                success: false,
-                error: 'Failed to pause agent execution'
+                success: true, // Consider this "successful" in terms of pausing the workflow
+                error: 'Failed to pause agent execution, but node transitioned to Paused state'
             };
         }
     } catch (error) {
         console.error(`[DEBUG] Error pausing agent node ${nodeId}:`, error);
+        
+        // Even if an error occurs, we should still transition the node to Paused
+        // to ensure the workflow remains paused
+        onStatusChange?.(AgentState.Paused);
+        
         return {
             nodeId,
             agentId,
-            success: false,
-            error: error instanceof Error ? error.message : 'Unknown error'
+            success: true, // Consider this "successful" in terms of pausing the workflow
+            error: `Error during pause operation, but node transitioned to Paused state: ${error instanceof Error ? error.message : 'Unknown error'}`
         };
     }
 }; 
