@@ -31,7 +31,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, requireAuth = true }) 
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-gray-100' : 'bg-gray-50 text-gray-900'} flex transition-colors duration-200`}>
       {isAuthenticated && <Navbar />}
-      <main className="flex-1 p-0 ml-16 relative">
+      <main className="flex-1 p-0 ml-[116px] relative">
         <div className="absolute top-4 right-4 z-10">
           <ThemeToggle />
         </div>

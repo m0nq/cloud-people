@@ -161,7 +161,7 @@ export const Store: React.FC = () => {
   };
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pr-6">
       <h1 className={`text-2xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>Store</h1>
       
       {/* Tabs */}

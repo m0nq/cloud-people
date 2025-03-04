@@ -40,7 +40,10 @@ import {
   Filter,
   Info,
   Calendar,
-  ExternalLink
+  ExternalLink,
+  MessageSquare,
+  Copy,
+  FileCode
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
@@ -479,44 +482,9 @@ const connectionTypes = [
 const Flow = () => {
   const { isDarkMode } = useThemeStore();
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
-  const [nodes, setNodes] = useState<Node[]>([
-    {
-      id: '1',
-      type: 'agent',
-      position: { x: 250, y: 100 },
-      data: { 
-        label: 'Sophia', 
-        role: 'Research Specialist',
-        description: 'Expert in data analysis and research synthesis',
-        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-        skills: ['Data Analysis', 'Research', 'Report Writing'],
-      }
-    },
-    {
-      id: '2',
-      type: 'agent',
-      position: { x: 250, y: 250 },
-      data: { 
-        label: 'Marcus', 
-        role: 'Financial Analyst',
-        description: 'Specializes in financial modeling and forecasting',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-        skills: ['Financial Analysis', 'Forecasting', 'Risk Assessment'],
-      }
-    },
-    {
-      id: '3',
-      type: 'agent',
-      position: { x: 500, y: 175 },
-      data: { 
-        label: 'Elena', 
-        role: 'Content Creator',
-        description: 'Creates engaging content across multiple platforms',
-        avatar: 'https://images.unsplash.com/photo-1534751516642-a1af1ef26a56?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
-        skills: ['Content Writing', 'SEO', 'Social Media'],
-      }
-    }
-  ]);
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
+  const [showStartOptions, setShowStartOptions] = useState(true);
   
   // Custom edge style
   const customEdgeStyle = {
@@ -524,47 +492,6 @@ const Flow = () => {
     strokeWidth: 2,
     animated: true
   };
-  
-  const [edges, setEdges] = useState<Edge[]>([
-    { 
-      id: 'e1-2', 
-      source: '1', 
-      target: '2', 
-      type: 'custom',
-      animated: true,
-      style: customEdgeStyle,
-      data: {
-        type: 'collaboration',
-        label: 'Collaborates with',
-        description: 'Research data for financial analysis'
-      },
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        width: 20,
-        height: 20,
-        color: '#3b82f6', // blue for collaboration
-      },
-    },
-    { 
-      id: 'e2-3', 
-      source: '2', 
-      target: '3', 
-      type: 'custom',
-      animated: true,
-      style: customEdgeStyle,
-      data: {
-        type: 'data',
-        label: 'Provides data to',
-        description: 'Financial insights for content'
-      },
-      markerEnd: {
-        type: MarkerType.ArrowClosed,
-        width: 20,
-        height: 20,
-        color: '#10b981', // green for data
-      },
-    }
-  ]);
   
   const [selectedNodeType, setSelectedNodeType] = useState<string>('agent');
   const [reactFlowInstance, setReactFlowInstance] = useState<any>(null);
@@ -756,6 +683,7 @@ const Flow = () => {
       }
       
       setNodes((nds) => nds.concat(newNode));
+      setShowStartOptions(false);
     },
     [reactFlowInstance]
   );
@@ -775,6 +703,7 @@ const Flow = () => {
     };
     
     setNodes((nds) => [...nds, newNode]);
+    setShowStartOptions(false);
   };
   
   // Add schedule node
@@ -807,12 +736,14 @@ const Flow = () => {
     };
     
     setNodes((nds) => [...nds, newNode]);
+    setShowStartOptions(false);
   };
   
   const clearCanvas = () => {
     if (window.confirm('Are you sure you want to clear the canvas? This action cannot be undone.')) {
       setNodes([]);
       setEdges([]);
+      setShowStartOptions(true);
     }
   };
   
@@ -830,6 +761,7 @@ const Flow = () => {
       const flow = JSON.parse(savedFlow);
       setNodes(flow.nodes || []);
       setEdges(flow.edges || []);
+      setShowStartOptions(false);
     }
   };
   
@@ -899,6 +831,119 @@ const Flow = () => {
     }
   };
   
+  // Start from prompt
+  const startFromPrompt = () => {
+    setShowStartOptions(false);
+    // In a real app, this would open a prompt input
+    setTimeout(() => {
+      const newNode = {
+        id: nanoid(),
+        type: 'agent',
+        position: { x: 250, y: 100 },
+        data: { 
+          label: 'Sophia', 
+          role: 'Research Specialist',
+          description: 'Expert in data analysis and research synthesis',
+          avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+          skills: ['Data Analysis', 'Research', 'Report Writing'],
+        }
+      };
+      setNodes([newNode]);
+    }, 100);
+  };
+  
+  // Start from template
+  const startFromTemplate = () => {
+    setShowStartOptions(false);
+    // In a real app, this would load a template
+    setTimeout(() => {
+      setNodes([
+        {
+          id: '1',
+          type: 'agent',
+          position: { x: 250, y: 100 },
+          data: { 
+            label: 'Sophia', 
+            role: 'Research Specialist',
+            description: 'Expert in data analysis and research synthesis',
+            avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+            skills: ['Data Analysis', 'Research', 'Report Writing'],
+          }
+        },
+        {
+          id: '2',
+          type: 'agent',
+          position: { x: 250, y: 250 },
+          data: { 
+            label: 'Marcus', 
+            role: 'Financial Analyst',
+            description: 'Specializes in financial modeling and forecasting',
+            avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+            skills: ['Financial Analysis', 'Forecasting', 'Risk Assessment'],
+          }
+        },
+        {
+          id: '3',
+          type: 'agent',
+          position: { x: 500, y: 175 },
+          data: { 
+            label: 'Elena', 
+            role: 'Content Creator',
+            description: 'Creates engaging content across multiple platforms',
+            avatar: 'https://images.unsplash.com/photo-1534751516642-a1af1ef26a56?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80',
+            skills: ['Content Writing', 'SEO', 'Social Media'],
+          }
+        }
+      ]);
+      
+      setEdges([
+        { 
+          id: 'e1-2', 
+          source: '1', 
+          target: '2', 
+          type: 'custom',
+          animated: true,
+          style: customEdgeStyle,
+          data: {
+            type: 'collaboration',
+            label: 'Collaborates with',
+            description: 'Research data for financial analysis'
+          },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 20,
+            height: 20,
+            color: '#3b82f6', // blue for collaboration
+          },
+        },
+        { 
+          id: 'e2-3', 
+          source: '2', 
+          target: '3', 
+          type: 'custom',
+          animated: true,
+          style: customEdgeStyle,
+          data: {
+            type: 'data',
+            label: 'Provides data to',
+            description: 'Financial insights for content'
+          },
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 20,
+            height: 20,
+            color: '#10b981', // green for data
+          },
+        }
+      ]);
+    }, 100);
+  };
+  
+  // Start from scratch
+  const startFromScratch = () => {
+    setShowStartOptions(false);
+  };
+  
   // Suppress ResizeObserver errors
   useEffect(() => {
     const originalError = console.error;
@@ -919,9 +964,10 @@ const Flow = () => {
     if (savedFlow) {
       try {
         const flow = JSON.parse(savedFlow);
-        if (flow.nodes && flow.edges) {
+        if (flow.nodes && flow.nodes.length > 0 && flow.edges) {
           setNodes(flow.nodes);
           setEdges(flow.edges);
+          setShowStartOptions(false);
         }
       } catch (error) {
         console.error('Failed to load saved flow:', error);
@@ -1035,6 +1081,67 @@ const Flow = () => {
                 backgroundColor: isDarkMode ? '#1f2937' : '#f9fafb',
               }}
             />
+            
+            {/* Start options overlay */}
+            {showStartOptions && (
+              <div className="absolute inset-0 flex items-center justify-center bg-opacity-50 bg-gray-900 z-10">
+                <div className={`grid grid-cols-3 gap-8 p-8 max-w-5xl`}>
+                  {/* Prompt Card */}
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl`}
+                    onClick={startFromPrompt}
+                  >
+                    <div className={`h-48 flex items-center justify-center ${isDarkMode ? 'bg-blue-900/30' : 'bg-blue-50'}`}>
+                      <MessageSquare size={80} className={`${isDarkMode ? 'text-blue-400' : 'text-blue-500'}`} />
+                    </div>
+                    <div className="p-6">
+                      <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>Prompt</h3>
+                      <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Describe what you want to build and let AI create a flow for you.
+                      </p>
+                    </div>
+                  </motion.div>
+                  
+                  {/* Template Card */}
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl`}
+                    onClick={startFromTemplate}
+                  >
+                    <div className={`h-48 flex items-center justify-center ${isDarkMode ? 'bg-purple-900/30' : 'bg-purple-50'}`}>
+                      <Copy size={80} className={`${isDarkMode ? 'text-purple-400' : 'text-purple-500'}`} />
+                    </div>
+                    <div className="p-6">
+                      <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>From Template</h3>
+                      <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Start with a pre-built template and customize it to your needs.
+                      </p>
+                    </div>
+                  </motion.div>
+                  
+                  {/* From Scratch Card */}
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-2xl`}
+                    onClick={startFromScratch}
+                  >
+                    <div className={`h-48 flex items-center justify-center ${isDarkMode ? 'bg-green-900/30' : 'bg-green-50'}`}>
+                      <FileCode size={80} className={`${isDarkMode ? 'text-green-400' : 'text-green-500'}`} />
+                    </div>
+                    <div className="p-6">
+                      <h3 className={`text-xl font-bold mb-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>From Scratch</h3>
+                      <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        Build your flow from scratch with complete creative freedom.
+                      </p>
+                    </div>
+                  </motion.div>
+                </div>
+              </div>
+            )}
             
             {/* Connection settings panel */}
             {selectedEdge && (
