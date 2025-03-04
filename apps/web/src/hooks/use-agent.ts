@@ -6,6 +6,7 @@ import { AgentData } from '@app-types/agent/config';
 
 import { useAgentStore } from '@stores/agent-store';
 import { useWorkflowStore } from '@stores/workflow';
+import { updateState } from '@stores/workflow';
 import { pauseAgentExecution } from '@lib/agent-operations';
 
 interface AgentHookResponse {
@@ -245,13 +246,42 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
 
                     // Store the final taskId used for execution to ensure consistency
                     const { setAgentData } = useAgentStore.getState();
+                    
+                    // Make sure we're using the task_id from the response
+                    const finalTaskId = initialResponseData.task_id || taskId;
+                    console.log(`[DEBUG] Storing final task ID in agent data: ${finalTaskId}`);
+                    
                     setAgentData(agentData.id, {
                         ...agentData,
-                        activeTaskId: initialResponseData.task_id
+                        activeTaskId: finalTaskId
                     });
+
+                    // Also update the workflow store to ensure the currentNodeId is set
+                    // This is critical for pause/resume operations
+                    if (agentData.nodeId) {
+                        const workflowStore = useWorkflowStore.getState();
+                        const { workflowExecution } = workflowStore;
+                        
+                        if (workflowExecution) {
+                            // Use updateState utility function from @stores/workflow
+                            updateState(useWorkflowStore.setState, {
+                                workflowExecution: {
+                                    ...workflowExecution,
+                                    currentNodeId: agentData.nodeId
+                                }
+                            });
+                            console.log(`[DEBUG] Updated workflow execution with currentNodeId: ${agentData.nodeId}`);
+                        }
+                    }
+
+                    // Update the result with task information
+                    setResult(`Task created: ${finalTaskId}`);
                 } catch (error) {
-                    console.error('Error creating or managing task:', error);
-                    throw error;
+                    console.error('Error creating task:', error);
+                    setError(`Failed to create task: ${error instanceof Error ? error.message : String(error)}`);
+                    onStatusChange?.(AgentState.Error);
+                    setIsProcessing(false);
+                    return '';
                 }
             }
 

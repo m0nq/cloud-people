@@ -26,138 +26,210 @@ export const pauseAgentExecution = async (
         // Use activeTaskId if available, otherwise use nodeId, then fall back to agent ID
         const taskId = agentData.activeTaskId || agentData.nodeId || agentId;
         
+        console.log(`[DEBUG] Attempting to pause execution for agent ${agentId}`, {
+            agentData,
+            taskId,
+            activeTaskId: agentData.activeTaskId,
+            nodeId: agentData.nodeId
+        });
+        
         if (!taskId) {
             console.error('Cannot pause - no valid task ID available');
             return false;
         }
 
         const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
+        console.log(`[DEBUG] Using browser-use endpoint: ${browserUseEndpoint}`);
+        
         if (!browserUseEndpoint) {
             throw new Error('Browser use endpoint not configured');
         }
 
         // First check if the task exists and is in a valid state
-        const checkResponse = await fetch(`${browserUseEndpoint}/execute/${taskId}`);
+        console.log(`[DEBUG] Checking if task ${taskId} exists at ${browserUseEndpoint}/execute/${taskId}`);
         
-        if (!checkResponse.ok) {
-            throw new Error(`Task not found or cannot be accessed: HTTP ${checkResponse.status}`);
-        }
-        
-        const taskStatus = await checkResponse.json();
-        
-        if (taskStatus.status !== 'running') {
-            console.log(`Task ${taskId} is not in running state (current state: ${taskStatus.status}), cannot pause`);
-            return false;
-        }
-
-        const response = await fetch(`${browserUseEndpoint}/execute/${taskId}/pause`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            // Try to parse the error response
-            const errorData = await response.json().catch(() => null);
-            const errorMessage = errorData?.detail || `HTTP error! status: ${response.status}`;
-            
-            // Check for specific session lost error
-            if (errorMessage.includes('session was lost') || errorMessage.includes('cannot be paused')) {
-                console.error(`Browser session was lost for task ${taskId}`);
-                
-                // Update the agent state to Error with metadata
-                onStatusChange?.(AgentState.Error);
-                
-                // Store error metadata in the agent store
-                const { updateAgentState } = useAgentStore.getState();
-                updateAgentState(agentId, {
-                    metadata: {
-                        errorAt: new Date().toISOString(),
-                        errorMessage: 'Browser session was lost and cannot be paused. The task may need to be restarted.'
+        try {
+            // First, try to list all active tasks to see if our task is among them
+            try {
+                const listResponse = await fetch(`${browserUseEndpoint}/tasks`);
+                if (listResponse.ok) {
+                    const tasks = await listResponse.json();
+                    console.log(`[DEBUG] Active tasks:`, tasks);
+                    
+                    // Check if our task is in the list
+                    const ourTask = tasks.find((task: any) => task.task_id === taskId);
+                    if (ourTask) {
+                        console.log(`[DEBUG] Found our task in active tasks list:`, ourTask);
+                    } else {
+                        console.warn(`[DEBUG] Our task ${taskId} not found in active tasks list`);
                     }
-                });
-                
-                return false;
+                } else {
+                    console.warn(`[DEBUG] Failed to list active tasks: ${listResponse.status}`);
+                }
+            } catch (listError) {
+                console.warn(`[DEBUG] Error listing active tasks:`, listError);
             }
             
-            throw new Error(errorMessage);
-        }
-
-        const responseData = await response.json();
-        console.log(`Paused execution for agent ${taskId}:`, responseData);
-
-        // Update the agent state to Paused with metadata
-        onStatusChange?.(AgentState.Paused);
-
-        // Store pause metadata in the agent store
-        const { updateAgentState, setAgentData } = useAgentStore.getState();
-        updateAgentState(agentId, {
-            metadata: {
-                pausedAt: new Date().toISOString(),
-                pauseReason: responseData.message || 'Execution paused by user',
-                pauseScreenshot: responseData.metadata?.screenshot
+            const checkResponse = await fetch(`${browserUseEndpoint}/execute/${taskId}`);
+            
+            console.log(`[DEBUG] Check response status: ${checkResponse.status}`);
+            
+            if (!checkResponse.ok) {
+                if (checkResponse.status === 404) {
+                    console.warn(`[DEBUG] Task ${taskId} not found (404). The task may have completed or been closed.`);
+                    
+                    // Update the agent state to reflect that it's no longer running
+                    onStatusChange?.(AgentState.Complete);
+                    
+                    // Since the task doesn't exist, we consider the pause "successful" in the sense
+                    // that the agent is no longer running
+                    return true;
+                } else {
+                    console.error(`[DEBUG] Task not found or cannot be accessed: HTTP ${checkResponse.status}`);
+                    throw new Error(`Task not found or cannot be accessed: HTTP ${checkResponse.status}`);
+                }
             }
-        });
-        
-        // Store the taskId used for pausing to ensure consistency
-        setAgentData(agentId, {
-            ...agentData,
-            activeTaskId: taskId
-        });
+            
+            const taskStatus = await checkResponse.json();
+            console.log(`[DEBUG] Task status:`, taskStatus);
+            
+            if (taskStatus.status !== 'running') {
+                console.log(`[DEBUG] Task ${taskId} is not in running state (current state: ${taskStatus.status}), marking as complete`);
+                onStatusChange?.(AgentState.Complete);
+                return true;
+            }
 
-        return true;
+            console.log(`[DEBUG] Sending pause request to ${browserUseEndpoint}/execute/${taskId}/pause`);
+            const response = await fetch(`${browserUseEndpoint}/execute/${taskId}/pause`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            console.log(`[DEBUG] Pause response status: ${response.status}`);
+            
+            if (!response.ok) {
+                // Try to parse the error response
+                const errorText = await response.text();
+                console.error(`[DEBUG] Error response text:`, errorText);
+                
+                let errorData;
+                try {
+                    errorData = JSON.parse(errorText);
+                } catch (e) {
+                    console.error(`[DEBUG] Failed to parse error response as JSON:`, e);
+                }
+                
+                const errorMessage = errorData?.detail || `HTTP error! status: ${response.status}`;
+                console.error(`[DEBUG] Error message:`, errorMessage);
+                
+                // Check for specific session lost error
+                if (errorMessage.includes('session was lost') || errorMessage.includes('cannot be paused')) {
+                    console.error(`[DEBUG] Browser session was lost for task ${taskId}`);
+                    
+                    // Update the agent state to Error with metadata
+                    onStatusChange?.(AgentState.Error);
+                    
+                    // Store error metadata in the agent store
+                    const { updateAgentState } = useAgentStore.getState();
+                    
+                    // Return false to indicate pause failed
+                    return false;
+                }
+                
+                throw new Error(errorMessage);
+            }
+            
+            // Successfully paused
+            const pauseData = await response.json();
+            console.log(`[DEBUG] Pause successful:`, pauseData);
+            
+            // Update agent state to Paused
+            onStatusChange?.(AgentState.Paused);
+            
+            return true;
+        } catch (error) {
+            if (error instanceof Error && error.message.includes('404')) {
+                console.warn(`[DEBUG] Task ${taskId} not found (404) during pause operation. The task may have completed or been closed.`);
+                
+                // Update the agent state to reflect that it's no longer running
+                onStatusChange?.(AgentState.Complete);
+                
+                // Since the task doesn't exist, we consider the pause "successful" in the sense
+                // that the agent is no longer running
+                return true;
+            }
+            
+            // Re-throw other errors
+            throw error;
+        }
     } catch (error) {
-        console.error('Error pausing execution:', error);
+        console.error(`[DEBUG] Error pausing agent ${agentId}:`, error);
+        
+        // Update agent state to Error
+        onStatusChange?.(AgentState.Error);
+        
         return false;
     }
 };
 
 /**
- * Pause a single agent node and return a PauseResult
- * This function handles all the error handling and logging for pausing a single agent
+ * Function to pause a specific agent node in a workflow
+ * This is used by the workflow execution system to pause individual agent nodes
  */
 export const pauseAgentNode = async (
     nodeId: string,
-    agentId: string | undefined,
+    agentId: string,
     onStatusChange?: (status: AgentState) => void
 ): Promise<PauseResult> => {
-    // If no agent ID, return failure result
-    if (!agentId) {
-        console.warn(`Node ${nodeId} has no agent ID, skipping pause`);
-        return {
-            nodeId,
-            success: false,
-            error: 'No agent ID found'
-        };
-    }
-
+    console.log(`[DEBUG] Pausing agent node ${nodeId} with agent ID ${agentId}`);
+    
     try {
-        // Get the agent data from the store
-        const agentStore = useAgentStore.getState();
-        const agentData = agentStore.getAgentData(agentId);
-
-        // Debug logging for agent data
-        console.log(`Agent data for ${agentId}:`, {
-            nodeId,
-            activeTaskId: agentData?.activeTaskId
-        });
-
-        // Call the centralized pause function
-        const pauseResult = await pauseAgentExecution(agentId, agentData, onStatusChange);
-
-        const result = {
-            nodeId,
-            agentId,
-            success: pauseResult,
-            error: pauseResult ? null : 'Failed to pause execution'
-        };
-
-        console.log(`Pause result for agent ${agentId} (node ${nodeId}): ${pauseResult ? 'Success' : 'Failed'}`);
+        // Get agent data from the store
+        const { getAgentData } = useAgentStore.getState();
+        const agentData = getAgentData(agentId);
         
-        return result;
+        if (!agentData) {
+            console.error(`[DEBUG] Agent data not found for agent ID ${agentId}`);
+            return {
+                nodeId,
+                agentId,
+                success: false,
+                error: `Agent data not found for agent ID ${agentId}`
+            };
+        }
+        
+        console.log(`[DEBUG] Retrieved agent data for ${agentId}:`, agentData);
+        
+        // Ensure the nodeId is set in the agent data
+        const updatedAgentData = {
+            ...agentData,
+            nodeId: nodeId
+        };
+        
+        // Pause the agent execution
+        const success = await pauseAgentExecution(agentId, updatedAgentData, onStatusChange);
+        
+        if (success) {
+            console.log(`[DEBUG] Successfully paused agent node ${nodeId}`);
+            return {
+                nodeId,
+                agentId,
+                success: true,
+                error: null
+            };
+        } else {
+            console.error(`[DEBUG] Failed to pause agent node ${nodeId}`);
+            return {
+                nodeId,
+                agentId,
+                success: false,
+                error: 'Failed to pause agent execution'
+            };
+        }
     } catch (error) {
-        console.error(`Error pausing agent execution for node ${nodeId}:`, error);
+        console.error(`[DEBUG] Error pausing agent node ${nodeId}:`, error);
         return {
             nodeId,
             agentId,

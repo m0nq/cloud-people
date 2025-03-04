@@ -18,7 +18,7 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
 
     const {
         isProcessing,
-        executeAction,
+        executeTask,
         pauseAgentExecution,
         error
     } = useAgent(agentId, (status) => {
@@ -32,7 +32,7 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
         (async () => {
             try {
                 // executeAction now handles both new tasks and resuming
-                await executeAction();
+                await executeTask();
 
                 // If successful and we were resuming, reset the flag
                 if (isMounted && agentData?.isResuming) {
