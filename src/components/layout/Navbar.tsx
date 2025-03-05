@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Home, BarChart2, ShoppingBag, Key, LogOut, Layers } from 'lucide-react';
+import { Home, BarChart2, ShoppingBag, Key, LogOut, Layers, DollarSign } from 'lucide-react';
 import { useAuthStore } from '../../store/auth';
 import { useThemeStore } from '../../store/theme';
 
@@ -16,6 +16,7 @@ export const Navbar: React.FC = () => {
     { path: '/office', icon: <Layers size={20} />, label: 'Office' },
     { path: '/store', icon: <ShoppingBag size={20} />, label: 'Store' },
     { path: '/ranking', icon: <BarChart2 size={20} />, label: 'Ranking' },
+    { path: '/earn', icon: <DollarSign size={20} />, label: 'Earn' },
     { path: '/keys', icon: <Key size={20} />, label: 'Keys' },
   ];
   

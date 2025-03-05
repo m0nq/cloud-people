@@ -7,6 +7,7 @@ import { Office } from './pages/Office';
 import { Store } from './pages/Store';
 import { Ranking } from './pages/Ranking';
 import { Keys } from './pages/Keys';
+import { Earn } from './pages/Earn';
 import { useAuthStore } from './store/auth';
 
 function App() {
@@ -48,6 +49,12 @@ function App() {
         <Route path="/keys" element={
           <Layout>
             <Keys />
+          </Layout>
+        } />
+
+        <Route path="/earn" element={
+          <Layout>
+            <Earn />
           </Layout>
         } />
         
