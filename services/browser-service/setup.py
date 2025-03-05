@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="browser_use",
+    name="browser_service",
     version="0.1.40",  # Updated to match current version
     packages=find_packages(),
     install_requires=[
@@ -21,6 +21,7 @@ setup(
         "imageio>=2.31.1",  # For GIF creation
         "pyperclip>=1.9.0",
         "langchain-mistralai>=0.2.4",
-        "json-repair>=0.2.0"
+        "json-repair>=0.2.0",
+        "browser-use==0.1.40",  # Explicitly include the external browser-use package
     ],
 )

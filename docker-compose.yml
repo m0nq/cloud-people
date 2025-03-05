@@ -1,13 +1,13 @@
 services:
-  browser-use:
+  browser-service:
     build:
-      context: ./services/browser-use
+      context: ./services/browser-service
       dockerfile: Dockerfile
       args:
         BUILDKIT_INLINE_CACHE: 1
       cache_from:
-        - cloud-people-browser-use:latest
-    image: cloud-people-browser-use:latest
+        - cloud-people-browser-service:latest
+    image: cloud-people-browser-service:latest
     ports:
       - "8000:8000"  # FastAPI
       - "6080:6080"  # noVNC (browser-based VNC access)
@@ -22,8 +22,8 @@ services:
       - RESOLUTION_HEIGHT=1080
     volumes:
       - /dev/shm:/dev/shm  # Shared memory for browser
-      - ./services/browser-use/screenshots:/home/pwuser/app/screenshots  # Mount screenshots directory
-      - ./services/browser-use/recordings:/home/pwuser/app/recordings    # Mount recordings directory
+      - ./services/browser-service/screenshots:/home/pwuser/app/screenshots  # Mount screenshots directory
+      - ./services/browser-service/recordings:/home/pwuser/app/recordings    # Mount recordings directory
     shm_size: 2gb  # Explicit shared memory size
     ipc: host  # Required for Chrome to avoid memory issues
     deploy:

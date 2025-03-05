@@ -5,40 +5,34 @@ from ..base import LLMProviderStrategy
 
 logger = logging.getLogger(__name__)
 
-class GeminiLLMStrategy(LLMProviderStrategy):
-    """Google Gemini LLM implementation"""
+class OpenAILLMStrategy(LLMProviderStrategy):
+    """OpenAI LLM implementation"""
     
-    def __init__(self, api_key: str, model: str = "gemini-2.0-flash-exp", temperature: float = 0.7):
-        from langchain_google_genai import ChatGoogleGenerativeAI
-        
-        logger.debug(f"Initializing Gemini LLM with model={model}, temperature={temperature}")
-        logger.debug(f"API key present: {bool(api_key)}")
-        
-        # Ensure model is not None
-        if model is None:
-            model = "gemini-2.0-flash-exp"
-            logger.warning("Model was None, using default model: gemini-2.0-flash-exp")
-        
-        # Ensure model is a string
-        model = str(model)
-        logger.debug(f"Final model value: {model} (type: {type(model)})")
-            
-        try:
-            self.llm = ChatGoogleGenerativeAI(
-                model=model,
-                api_key=api_key,
-                temperature=temperature,
-            )
-            logger.info(f"Successfully initialized Gemini LLM with model {model}")
-        except Exception as e:
-            logger.error(f"Error initializing Gemini LLM: {str(e)}")
-            raise
+    def __init__(self, api_key: str, model: str = "gpt-4", temperature: float = 0.7):
+        from langchain_openai import ChatOpenAI
+        self.llm = ChatOpenAI(
+            model=model,
+            api_key=api_key,
+            temperature=temperature
+        )
+        logger.info(f"Initialized OpenAI LLM with model {model}")
     
     async def generate_response(self, prompt: str, options: Optional[Dict[str, Any]] = None) -> str:
-        """Generate a response using Gemini"""
+        """Generate a response using OpenAI"""
         try:
             # Apply any additional options if provided
-            temperature = options.get("temperature", 0.7) if options else 0.7
+            if options:
+                # Handle specific options for OpenAI
+                if "max_tokens" in options:
+                    self.llm.max_tokens = options["max_tokens"]
+                if "top_p" in options:
+                    self.llm.top_p = options["top_p"]
+                if "presence_penalty" in options:
+                    self.llm.presence_penalty = options["presence_penalty"]
+                if "frequency_penalty" in options:
+                    self.llm.frequency_penalty = options["frequency_penalty"]
+                if "temperature" in options:
+                    self.llm.temperature = options["temperature"]
             
             # Import necessary message types
             from langchain_core.messages import HumanMessage, SystemMessage
@@ -89,25 +83,17 @@ class GeminiLLMStrategy(LLMProviderStrategy):
                 Think step by step and include all necessary actions to complete the task successfully.
                 """
                 messages.append(SystemMessage(content=system_prompt))
-            
-            # Add the user's prompt as a human message
-            messages.append(HumanMessage(content=prompt))
-            
-            # Generate response with potentially adjusted temperature
-            if temperature != 0.7:
-                self.llm.temperature = temperature
+                messages.append(HumanMessage(content=prompt))
                 
-            logger.debug(f"Generating response with {len(messages)} messages")
-            response = await self.llm.agenerate([messages])
-            logger.debug("Successfully generated response")
-            
-            # Extract the text from the response
-            if response and response.generations and response.generations[0]:
+                # Generate response
+                logger.debug(f"Generating browser automation response with system prompt")
+                response = await self.llm.agenerate([messages])
+                
+                # Extract the text from the response
                 result = response.generations[0][0].text
-                logger.debug(f"Response text (first 100 chars): {result[:100]}...")
                 
                 # Clean up JSON response if needed
-                if is_browser_automation and "```json" in result:
+                if "```json" in result:
                     # Extract JSON from code blocks
                     import re
                     json_match = re.search(r'```json\s*([\s\S]*?)\s*```', result)
@@ -117,12 +103,21 @@ class GeminiLLMStrategy(LLMProviderStrategy):
                 
                 return result
             else:
-                logger.error("Empty response from Gemini")
-                return "No response generated"
+                # For non-browser tasks, just use the prompt directly
+                return (await self.llm.agenerate([[HumanMessage(content=prompt)]])).generations[0][0].text
                 
         except Exception as e:
-            logger.error(f"Error generating response with Gemini: {str(e)}")
+            logger.error(f"Error generating response with OpenAI: {str(e)}")
             raise
     
     def get_provider_name(self) -> str:
-        return "Google Gemini"
+        """Get the name of the provider"""
+        return "openai"
+        
+    def get_llm(self) -> Any:
+        """
+        Get the underlying LLM object.
+        
+        Returns the ChatOpenAI instance that can be used by the browser-use library.
+        """
+        return self.llm

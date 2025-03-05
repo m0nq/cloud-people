@@ -142,6 +142,21 @@ class BrowserUseContext:
                 # Execute actions
                 actions_executed = []
                 for action in actions:
+                    # Check if execution is paused before executing each action
+                    if self.is_paused:
+                        # Take a final screenshot before returning
+                        screenshot_path = await self._take_screenshot(f"paused_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+                        
+                        return {
+                            "task": task,
+                            "llm_response": actions_text,
+                            "actions_executed": actions_executed,
+                            "success": False,
+                            "status": "paused",
+                            "message": f"Execution is paused: {self.pause_reason}",
+                            "screenshot": screenshot_path
+                        }
+                        
                     try:
                         result = await self._execute_action(action)
                         actions_executed.append({
@@ -183,6 +198,14 @@ class BrowserUseContext:
     
     async def _execute_action(self, action: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a single browser action"""
+        # Check if execution is paused
+        if self.is_paused:
+            return {
+                "success": False,
+                "status": "paused",
+                "message": f"Execution is paused: {self.pause_reason}"
+            }
+            
         action_type = action.get("type", "").lower()
         params = action.get("params", {})
         

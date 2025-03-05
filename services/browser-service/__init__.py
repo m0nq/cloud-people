@@ -1,4 +1,4 @@
-"""Browser Use Service
+"""Browser Service
 
 A service for automated browser interaction using LLM-driven actions.
 """

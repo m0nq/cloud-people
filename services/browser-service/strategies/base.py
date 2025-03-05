@@ -13,3 +13,12 @@ class LLMProviderStrategy(ABC):
     def get_provider_name(self) -> str:
         """Get the name of the provider"""
         pass
+        
+    @abstractmethod
+    def get_llm(self) -> Any:
+        """
+        Get the underlying LLM object.
+        
+        This method returns the actual LLM object that can be used by the browser-use library.
+        """
+        pass

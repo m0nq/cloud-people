@@ -17,7 +17,6 @@ import { useAgentStore } from '@stores/agent-store';
 
 import { PauseResult } from '@lib/agent-operations';
 import { pauseAgentNode } from '@lib/agent-operations';
-import { pauseAgentExecution } from '@lib/agent-operations';
 
 const isValidWorkflowNode = (node: Node<NodeData> | undefined): node is Node<NodeData> => node !== undefined;
 
@@ -37,23 +36,23 @@ const findNonTerminalNodes = (nodes: Node<NodeData>[]): Node<NodeData>[] => {
         if (node.data.type !== NodeType.Agent || !isWorkflowNode(node)) {
             return false;
         }
-        
+
         // Get the current state of the agent
         const agentId = node.data.agentRef.agentId;
         const agentState = agentStore.getAgentState(agentId)?.state || AgentState.Initial;
-        
+
         // Log the node and its state for debugging
         console.log(`[DEBUG] Node ${node.id} (Agent ${agentId}) is in state: ${agentState}`);
-        
+
         // Consider a node pausable if it's not in a terminal state
         // Terminal states are: Complete, Error, Initial, Assistance
         const isTerminalState = [
-            AgentState.Complete, 
-            AgentState.Error, 
+            AgentState.Complete,
+            AgentState.Error,
             AgentState.Initial,
             AgentState.Assistance
         ].includes(agentState);
-        
+
         // Return true if the node is not in a terminal state
         return !isTerminalState;
     });
@@ -61,7 +60,7 @@ const findNonTerminalNodes = (nodes: Node<NodeData>[]): Node<NodeData>[] => {
 
 const resetNodesToInitial = (set: Function, nodes: Node<NodeData>[], targetNodes: Node<NodeData>[]) => {
     console.log(`[DEBUG] Resetting ${targetNodes.length} nodes to initial state`);
-    
+
     targetNodes.forEach(node => {
         try {
             console.log(`[DEBUG] Resetting node ${node.id} to AgentState.Initial`);
@@ -103,7 +102,7 @@ const updateWorkflowState = async (
                 timestamp: new Date().toISOString()
             } : undefined
         });
-        
+
         console.log(`[DEBUG] Successfully updated execution record for workflow ${workflowExecution.id} to state ${status}`);
 
         // Update workflow state
@@ -118,7 +117,7 @@ const updateWorkflowState = async (
                 } : undefined
             }
         });
-        
+
         console.log(`[DEBUG] Successfully updated workflow state in store to ${status}`);
     } catch (error) {
         console.error(`[DEBUG] Error updating workflow state to ${status}:`, error);
@@ -146,7 +145,7 @@ export const transitionNode = (set: Function, nodes: Node<NodeData>[], nodeId: s
 
         const currentState = currentAgent.state;
         console.log(`[DEBUG] Transitioning node ${nodeId} (Agent ${agentId}) from ${currentState} to ${newState}`);
-        
+
         if (agentStore.isTransitionAllowed(agentId, newState)) {
             // Update the agent state in the agent store
             agentStore.transition(agentId, newState);
@@ -252,22 +251,35 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
             // Find all non-terminal nodes (nodes that are not in Complete, Error, or Initial state)
             const nonTerminalNodes = findNonTerminalNodes(nodes);
             console.log(`[DEBUG] Found ${nonTerminalNodes.length} non-terminal nodes to pause`);
-            
+
             if (nonTerminalNodes.length === 0) {
                 console.log('[DEBUG] No non-terminal nodes found to pause');
                 return;
             }
-            
+
             // Pause all non-terminal nodes
             const pauseResults: PauseResult[] = await Promise.all(
                 nonTerminalNodes.map(node => {
                     if (isWorkflowNode(node) && node.data.type === NodeType.Agent) {
                         const agentId = node.data.agentRef.agentId;
                         console.log(`[DEBUG] Attempting to pause node ${node.id} with agent ID ${agentId}`);
-                        return pauseAgentNode(node.id, agentId, (status: AgentState) => {
-                            console.log(`[DEBUG] Node ${node.id} transitioned to state: ${status}`);
-                            transitionNode(set, nodes, node.id, status);
-                        });
+
+                        try {
+                            return pauseAgentNode(node.id, agentId, (status: AgentState) => {
+                                console.log(`[DEBUG] Node ${node.id} transitioned to state: ${status}`);
+                                transitionNode(set, nodes, node.id, status);
+                            });
+                        } catch (error) {
+                            console.error(`[DEBUG] Error in pauseAgentNode for node ${node.id}:`, error);
+                            // Even if pauseAgentNode throws an error, transition the node to Paused
+                            transitionNode(set, nodes, node.id, AgentState.Paused);
+                            return {
+                                nodeId: node.id,
+                                agentId,
+                                success: true, // Consider this "successful" in terms of pausing the workflow
+                                error: `Error during pause operation, but node transitioned to Paused state: ${error instanceof Error ? error.message : 'Unknown error'}`
+                            };
+                        }
                     }
                     return {
                         nodeId: node.id,
@@ -276,7 +288,7 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                     };
                 })
             );
-            
+
             // Log the results of pause attempts
             pauseResults.forEach(result => {
                 if (result.success) {
@@ -285,18 +297,18 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                     console.warn(`[DEBUG] Failed to pause node ${result.nodeId}: ${result.error}`);
                 }
             });
-            
+
             // Check if any nodes were successfully paused
             const anySuccess = pauseResults.some(result => result.success);
-            
+
             if (!anySuccess) {
                 console.warn('[DEBUG] Failed to pause any nodes, but workflow state is still Paused');
             } else {
-                console.log(`[DEBUG] Successfully paused ${pauseResults.filter(r => r.success).length} nodes`);
+                console.log(`[DEBUG] Successfully paused ${pauseResults.filter((r) => r.success).length} nodes`);
             }
         } catch (error) {
             console.error('[DEBUG] Failed to pause workflow:', error);
-            
+
             // Try to update workflow state even if an error occurred
             try {
                 if (workflowExecution) {
@@ -306,7 +318,7 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
             } catch (stateError) {
                 console.error('[DEBUG] Failed to update workflow state after error:', stateError);
             }
-            
+
             throw error;
         }
     };
@@ -369,7 +381,7 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
 
         try {
             if (!workflowExecution) return;
-            
+
             console.log(`[DEBUG] Progressing workflow for node ${nodeId} with status ${status}`, {
                 workflowState: workflowExecution.state,
                 currentNodeId: workflowExecution.currentNodeId
@@ -379,7 +391,7 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                 // Check if the workflow is paused before proceeding to the next node
                 if (workflowExecution.state === WorkflowState.Paused) {
                     console.log(`[DEBUG] Workflow is paused, not activating next node after completion of ${nodeId}`);
-                    
+
                     // Update the current node ID but maintain the paused state
                     await updateWorkflowState(
                         set,
@@ -389,11 +401,11 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                     );
                     return;
                 }
-                
+
                 const nextNode = findNextNode(nodes, edges, nodeId);
                 if (nextNode && isWorkflowNode(nextNode)) {
                     console.log(`[DEBUG] Activating next node ${nextNode.id} after completion of ${nodeId}`);
-                    
+
                     // Start next node
                     useAgentStore.getState().transition(nextNode.id, AgentState.Activating);
                     transitionNode(set, nodes, nextNode.id, AgentState.Activating);
@@ -407,7 +419,7 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                     );
                 } else {
                     console.log(`[DEBUG] No next node found after ${nodeId}, marking workflow as completed`);
-                    
+
                     // No next node, workflow is complete
                     await updateWorkflowState(
                         set,
@@ -418,7 +430,7 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                 }
             } else if (status === AgentState.Error || status === AgentState.Assistance) {
                 console.log(`[DEBUG] Node ${nodeId} entered ${status} state, pausing workflow`);
-                
+
                 // Reset all non-terminal nodes
                 const nonTerminalNodes = findNonTerminalNodes(nodes);
                 console.log(`[DEBUG] Resetting ${nonTerminalNodes.length} non-terminal nodes to Initial state`);

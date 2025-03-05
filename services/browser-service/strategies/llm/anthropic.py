@@ -5,32 +5,30 @@ from ..base import LLMProviderStrategy
 
 logger = logging.getLogger(__name__)
 
-class OpenAILLMStrategy(LLMProviderStrategy):
-    """OpenAI LLM implementation"""
+class AnthropicLLMStrategy(LLMProviderStrategy):
+    """Anthropic LLM implementation"""
     
-    def __init__(self, api_key: str, model: str = "gpt-4", temperature: float = 0.7):
-        from langchain_openai import ChatOpenAI
-        self.llm = ChatOpenAI(
+    def __init__(self, api_key: str, model: str = "claude-3-opus-20240229", temperature: float = 0.7):
+        from langchain_anthropic import ChatAnthropic
+        self.llm = ChatAnthropic(
             model=model,
             api_key=api_key,
             temperature=temperature
         )
-        logger.info(f"Initialized OpenAI LLM with model {model}")
+        logger.info(f"Initialized Anthropic LLM with model {model}")
     
     async def generate_response(self, prompt: str, options: Optional[Dict[str, Any]] = None) -> str:
-        """Generate a response using OpenAI"""
+        """Generate a response using Anthropic"""
         try:
             # Apply any additional options if provided
             if options:
-                # Handle specific options for OpenAI
+                # Handle specific options for Anthropic
                 if "max_tokens" in options:
                     self.llm.max_tokens = options["max_tokens"]
+                if "top_k" in options:
+                    self.llm.top_k = options["top_k"]
                 if "top_p" in options:
                     self.llm.top_p = options["top_p"]
-                if "presence_penalty" in options:
-                    self.llm.presence_penalty = options["presence_penalty"]
-                if "frequency_penalty" in options:
-                    self.llm.frequency_penalty = options["frequency_penalty"]
                 if "temperature" in options:
                     self.llm.temperature = options["temperature"]
             
@@ -107,8 +105,17 @@ class OpenAILLMStrategy(LLMProviderStrategy):
                 return (await self.llm.agenerate([[HumanMessage(content=prompt)]])).generations[0][0].text
                 
         except Exception as e:
-            logger.error(f"Error generating response with OpenAI: {str(e)}")
+            logger.error(f"Error generating response with Anthropic: {str(e)}")
             raise
     
     def get_provider_name(self) -> str:
-        return "OpenAI"
+        """Get the name of the provider"""
+        return "anthropic"
+        
+    def get_llm(self) -> Any:
+        """
+        Get the underlying LLM object.
+        
+        Returns the ChatAnthropic instance that can be used by the browser-use library.
+        """
+        return self.llm

@@ -24,7 +24,9 @@ RUN pip install --no-cache-dir -r requirements.txt && \
 
 # Copy and install the local package
 COPY . .
-RUN pip install -e . && \
+# Install browser-use first to ensure it's not overridden by the local package
+RUN pip install --no-cache-dir browser-use==0.1.40 && \
+    pip install -e . && \
     pip freeze | grep -v "^-e" > /requirements-lock.txt
 
 # Final stage
@@ -74,7 +76,9 @@ WORKDIR /home/pwuser/app
 # Copy requirements and install Python packages
 COPY --from=builder /requirements-lock.txt .
 COPY . .
-RUN pip install --no-cache-dir -r requirements-lock.txt && \
+# Install browser-use first to ensure it's not overridden by the local package
+RUN pip install --no-cache-dir browser-use==0.1.40 && \
+    pip install --no-cache-dir -r requirements-lock.txt && \
     pip install -e . && \
     # Install only Chromium browser
     mkdir -p /home/pwuser/.cache/ms-playwright && \

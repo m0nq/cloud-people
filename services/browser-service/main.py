@@ -27,10 +27,12 @@ from config import get_api_key_for_provider
 from config import get_available_llm_providers
 from config import get_default_model_for_provider
 from config import get_default_provider
-from core.context import BrowserUseContext
+from core.context import BrowserUseContext  # Legacy context, will be phased out
 from core.session_manager import SessionManager
 # Import our LLM strategy implementation
 from strategies.llm.factory import LLMProviderFactory
+# Import our new AgentAdapter
+from core.agent_adapter import agent_adapter
 
 # Load environment variables
 load_dotenv()
@@ -74,7 +76,15 @@ async def lifespan(app: FastAPI):
         except asyncio.CancelledError:
             pass
     
-    # Close all active browser sessions
+    # Close all active agents in the AgentAdapter
+    for task_id, agent in list(agent_adapter.active_agents.items()):
+        try:
+            logger.info(f"Cleaning up agent for task {task_id}")
+            await agent_adapter.cleanup_task(task_id)
+        except Exception as e:
+            logger.error(f"Error cleaning up agent for task {task_id} during shutdown: {e}")
+    
+    # Close all active browser sessions (legacy)
     for session_id, session in list(session_manager.sessions.items()):
         try:
             logger.info(f"Closing browser session {session_id}")
@@ -162,12 +172,20 @@ async def periodic_task_cleanup():
                 if not last_activity or last_activity < stale_threshold:
                     logger.info(f"Cleaning up stale task {task_id}")
                     
-                    # Find associated session
+                    # Clean up the agent if it exists
+                    if task_id in agent_adapter.active_agents:
+                        try:
+                            logger.info(f"Cleaning up stale agent for task {task_id}")
+                            await agent_adapter.cleanup_task(task_id)
+                        except Exception as e:
+                            logger.error(f"Error cleaning up stale agent for task {task_id}: {e}")
+                    
+                    # Find associated session (legacy)
                     session_id = None
                     if task_status.metadata and "session_id" in task_status.metadata:
                         session_id = task_status.metadata["session_id"]
                     
-                    # Close the session if it exists
+                    # Close the session if it exists (legacy)
                     if session_id and session_id in session_manager.sessions:
                         try:
                             logger.info(f"Closing stale session {session_id}")
@@ -196,7 +214,16 @@ async def periodic_task_cleanup():
                         logger.info(f"Removing old completed task {task_id} from history")
                         del task_history[task_id]
             
-            # Also check for orphaned sessions (sessions without an active task)
+            # Check for orphaned agents (agents without an active task)
+            for task_id, agent in list(agent_adapter.active_agents.items()):
+                if task_id not in active_tasks:
+                    logger.info(f"Cleaning up orphaned agent for task {task_id}")
+                    try:
+                        await agent_adapter.cleanup_task(task_id)
+                    except Exception as e:
+                        logger.error(f"Error cleaning up orphaned agent for task {task_id}: {e}")
+            
+            # Also check for orphaned sessions (sessions without an active task) - legacy
             for session_id, context in list(session_manager.sessions.items()):
                 # Check if this session is associated with an active task
                 task_found = False
@@ -270,222 +297,106 @@ class TaskRequest(BaseModel):
 # Execute a browser task
 @app.post("/execute", response_model=TaskStatus)
 async def execute_task(request: TaskRequest):
-    """Execute a browser task"""
-    global visualization
+    """
+    Execute a browser task.
     
-    # Generate a task ID if not provided
+    This endpoint creates a new task and executes it asynchronously.
+    """
+    # Generate task ID if not provided
     task_id = request.task_id or str(uuid.uuid4())
-
+    
     # Check if task already exists
     if task_id in active_tasks:
-        # Check if we should force cleanup of the existing task
-        force = request.options.get('force', False) if request.options else False
-        
-        if force:
-            logger.info(f"Force option enabled, cleaning up existing task {task_id}")
-            
-            # Get the existing task
-            existing_task = active_tasks[task_id]
-            
-            # Check if there's an associated session to close
-            session_id = existing_task.metadata.get("session_id") if existing_task.metadata else None
-            if session_id and session_id in session_manager.sessions:
-                try:
-                    # Close the session
-                    logger.info(f"Closing session {session_id} for task {task_id}")
-                    await session_manager.close_session(session_id, force=True)
-                except Exception as e:
-                    logger.error(f"Error closing session {session_id} for task {task_id}: {e}")
-            
-            # Move the task to history
-            task_history[task_id] = existing_task
-            del active_tasks[task_id]
-            
-            # Wait a moment for resources to clean up
-            await asyncio.sleep(0.5)
-        else:
-            # If force is not enabled, return an error
-            raise HTTPException(status_code=400, detail=f"Task with ID {task_id} already exists")
-
+        raise HTTPException(status_code=400, detail=f"Task with ID {task_id} already exists")
+    
+    # Validate LLM provider
+    llm_provider = request.llm_provider.type if request.llm_provider else get_default_provider()
+    if llm_provider not in get_available_llm_providers():
+        raise HTTPException(status_code=400, detail=f"Invalid LLM provider: {llm_provider}")
+    
     # Create task status
     task_status = TaskStatus(
         task_id=task_id,
         status="pending",
         start_time=datetime.now(),
         metadata={
+            "task": request.task,
+            "llm_provider": llm_provider,
+            "headless": request.headless,
             "persistent_session": request.persistent_session,
-            "created_at": datetime.now().isoformat(),
-            "last_activity": datetime.now().isoformat()
         }
     )
-
-    # Store task in active tasks
+    
+    # Add to active tasks
     active_tasks[task_id] = task_status
-
-    # Run task in background
+    
+    # Start task execution in background
     asyncio.create_task(run_task(task_id, request, task_status))
-
+    
     return task_status
 
 # Run a task in the background
 async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
-    """Run a task in the background"""
+    """
+    Run a task asynchronously.
+    
+    This function is called in a background task to execute the browser task.
+    """
+    logger.info(f"Starting task {task_id}: {request.task}")
+    
     try:
-        # Create a new browser context or reuse an existing one
-        reused_session = False
-        context = None
-        
-        # Check if we should use a persistent session
-        if request.persistent_session:
-            # Try to find an existing session
-            for session_id, ctx in session_manager.sessions.items():
-                if ctx.persistent:
-                    logger.info(f"Reusing persistent session {session_id}")
-                    context = ctx
-                    context.task_id = task_id  # Update the task ID for the context
-                    reused_session = True
-                    task_status.metadata = task_status.metadata or {}
-                    task_status.metadata["reused_session"] = True
-                    task_status.metadata["session_id"] = session_id
-                    task_status.metadata["last_activity"] = datetime.now().isoformat()
-                    
-                    # Update session last activity
-                    session_manager.last_activity[session_id] = datetime.now()
-                    break
-        
-        # If no existing session found, create a new one
-        if not context:
-            # Configure LLM provider
-            llm_provider = None
-            
-            # Get model from options if available
-            model = request.options.get('model') if request.options else None
-            provider_type = get_default_provider()
-            
-            try:
-                # Always create an LLM provider, using default model if none specified
-                llm_provider = LLMProviderFactory.create_provider(
-                    provider_type=provider_type,
-                    config={
-                        "api_key": get_api_key_for_provider(provider_type),
-                        "model": model or get_default_model_for_provider(provider_type),
-                        "temperature": 0.7,  # Default temperature
-                        "options": request.options
-                    }
-                )
-                logger.info(f"Created LLM provider with model: {model or get_default_model_for_provider(provider_type)}")
-            except ValueError as e:
-                logger.error(f"Error creating LLM provider: {str(e)}")
-                task_status.status = "failed"
-                task_status.error = str(e)
-                await broadcast_task_update(task_id, task_status)
-                return
-            
-            # Create a new browser context
-            context = BrowserUseContext(
-                llm_provider=llm_provider,
-                headless=request.headless,
-                metadata={"task_id": task_id},
-                persistent=request.persistent_session,
-                task_id=task_id
-            )
-            
-            # Register the session
-            if request.persistent_session:
-                session_manager.add_session(context)
-                task_status.metadata = task_status.metadata or {}
-                task_status.metadata["session_id"] = context.session_id
-                task_status.metadata["last_activity"] = datetime.now().isoformat()
-                
-                # Initialize session last activity
-                session_manager.last_activity[context.session_id] = datetime.now()
-        
         # Update task status
         task_status.status = "running"
-        task_status.start_time = datetime.now()
         await broadcast_task_update(task_id, task_status)
+        
+        # Get LLM provider
+        llm_provider = request.llm_provider.type if request.llm_provider else get_default_provider()
+        
+        # Create agent using the adapter
+        task_id, agent = await agent_adapter.create_agent(
+            task=request.task,
+            llm_provider=llm_provider,
+            headless=request.headless or False,
+            persistent_session=request.persistent_session or False,
+            task_id=task_id,
+            metadata=request.options,
+        )
         
         # Execute the task
-        result = await context.execute_task(request.task)
+        result = await agent_adapter.execute_task(task_id, agent)
         
-        # Update last activity
-        task_status.metadata = task_status.metadata or {}
-        task_status.metadata["last_activity"] = datetime.now().isoformat()
-        if "session_id" in task_status.metadata:
-            session_id = task_status.metadata["session_id"]
-            session_manager.last_activity[session_id] = datetime.now()
-        
-        # Check if the task needs assistance
-        if result.get("status") == "needs_assistance":
-            task_status.status = "needs_assistance"
-            task_status.assistance_message = result.get("message", "Assistance needed")
-            task_status.metadata = task_status.metadata or {}
-            task_status.metadata["screenshot"] = result.get("screenshot")
-            
-            # Don't mark the task as completed yet
-            await broadcast_task_update(task_id, task_status)
-            
-            # Keep the task in active_tasks
-            return
-        
-        # Check if the task is paused
-        if result.get("status") == "paused":
-            task_status.status = "paused"
-            task_status.metadata = task_status.metadata or {}
-            task_status.metadata["pause_reason"] = result.get("message", "Task paused")
-            task_status.metadata["screenshot"] = result.get("screenshot")
-            
-            # Don't mark the task as completed yet
-            await broadcast_task_update(task_id, task_status)
-            
-            # Keep the task in active_tasks
-            return
-        
-        # Update task status with result
+        # Update task status
         task_status.status = "completed"
-        task_status.end_time = datetime.now()
         task_status.result = result
+        task_status.end_time = datetime.now()
         task_status.progress = 1.0
         
-        # Broadcast task update
+        # Move to history
+        task_history[task_id] = task_status
+        del active_tasks[task_id]
+        
+        # Broadcast update
         await broadcast_task_update(task_id, task_status)
         
+        logger.info(f"Task {task_id} completed successfully")
+        
     except Exception as e:
-        logger.error(f"Error running task: {str(e)}")
+        logger.exception(f"Error executing task {task_id}: {str(e)}")
+        
+        # Update task status
         task_status.status = "failed"
         task_status.error = str(e)
         task_status.end_time = datetime.now()
         
-        # Broadcast task update
-        await broadcast_task_update(task_id, task_status)
-    
-    finally:
-        # If this is a persistent session and the task completed successfully or is paused/needs assistance,
-        # don't clean up the browser resources
-        if not (request.persistent_session and (task_status.status == "completed" or 
-                                               task_status.status == "paused" or 
-                                               task_status.status == "needs_assistance")):
-            # For non-persistent sessions or failed tasks, clean up immediately
-            if context and context.persistent:
-                # For persistent sessions, let the session manager handle it
-                try:
-                    await session_manager.close_session(context.session_id, force=task_status.status == "failed")
-                    logger.info(f"Closed session {context.session_id} after task completion")
-                except Exception as e:
-                    logger.error(f"Error closing session {context.session_id}: {e}")
-            elif context:
-                # For non-persistent sessions, clean up immediately
-                try:
-                    await context._cleanup()
-                    logger.info(f"Cleaned up non-persistent session after task completion")
-                except Exception as e:
-                    logger.error(f"Error cleaning up non-persistent session: {e}")
+        # Move to history
+        task_history[task_id] = task_status
+        del active_tasks[task_id]
         
-        # Move completed or failed tasks to history
-        if task_id in active_tasks and task_status.status in ["completed", "failed"]:
-            task_history[task_id] = active_tasks[task_id]
-            del active_tasks[task_id]
-        # Don't remove tasks that are paused or need assistance from active_tasks
+        # Broadcast update
+        await broadcast_task_update(task_id, task_status)
+        
+        # Clean up resources
+        await agent_adapter.cleanup_task(task_id)
 
 # WebSocket for real-time updates
 @app.websocket("/ws/{client_id}")
@@ -586,49 +497,122 @@ async def get_providers():
 # Get task status
 @app.get("/execute/{task_id}", response_model=TaskStatus)
 async def get_task_status(task_id: str):
-    """Get the status of a task"""
+    """
+    Get the status of a task.
+    
+    This endpoint retrieves the current status of a task by its ID.
+    """
+    # First check our local task tracking
     if task_id in active_tasks:
+        # For active tasks, check if we have an agent in the adapter
+        agent_status = agent_adapter.get_task_status(task_id)
+        
+        if agent_status["status"] != "not_found":
+            # Update our local task status with the agent status
+            task_status = active_tasks[task_id]
+            task_status.status = agent_status["status"]
+            return task_status
+        
         return active_tasks[task_id]
     elif task_id in task_history:
         return task_history[task_id]
     else:
+        # Check if the agent adapter knows about this task
+        agent_status = agent_adapter.get_task_status(task_id)
+        
+        if agent_status["status"] != "not_found":
+            # Create a new task status from the agent status
+            task_status = TaskStatus(
+                task_id=task_id,
+                status=agent_status["status"],
+                start_time=datetime.now(),  # We don't have the actual start time
+                metadata={"recovered_from_agent": True}
+            )
+            
+            # Add to active tasks
+            active_tasks[task_id] = task_status
+            return task_status
+        
         raise HTTPException(status_code=404, detail=f"Task with ID {task_id} not found")
 
 # Get all tasks
 @app.get("/tasks", response_model=Dict[str, List[TaskStatus]])
 async def get_all_tasks():
-    """Get all tasks (active and history)"""
+    """
+    Get all tasks (active and history).
+    
+    This endpoint returns all active and historical tasks, including those managed by the agent adapter.
+    """
+    # Get tasks from our tracking
+    active = list(active_tasks.values())
+    history = list(task_history.values())
+    
+    # Get task IDs we're already tracking
+    tracked_task_ids = set(active_tasks.keys()) | set(task_history.keys())
+    
+    # Get all agents from the adapter
+    for task_id, agent in agent_adapter.active_agents.items():
+        # Skip tasks we're already tracking
+        if task_id in tracked_task_ids:
+            continue
+        
+        # Get status from agent
+        agent_status = agent_adapter.get_task_status(task_id)
+        
+        # Create a TaskStatus object for this agent
+        if agent_status["status"] != "not_found":
+            task_status = TaskStatus(
+                task_id=task_id,
+                status=agent_status["status"],
+                metadata={"recovered_from_agent": True}
+            )
+            active.append(task_status)
+    
     return {
-        "active": list(active_tasks.values()),
-        "history": list(task_history.values())
+        "active": active,
+        "history": history
     }
 
 # Take a screenshot
 @app.post("/screenshot")
-async def take_screenshot():
-    """Take a screenshot of the current browser state"""
+async def take_screenshot(url: str = "https://example.com"):
+    """Take a screenshot of a website"""
     try:
-        # Create a temporary context for the screenshot
-        context = BrowserUseContext(
-            LLMProviderFactory.create_provider(
-                get_default_provider(),
-                {"api_key": get_api_key_for_provider(get_default_provider())}
-            ),
-            headless=False
-        )
-
-        # Take screenshot
-        screenshot = await context.take_screenshot()
-
-        # Clean up
-        await context._cleanup()
-
-        if screenshot:
+        # Import the Playwright module
+        from playwright.async_api import async_playwright
+        
+        # Initialize Playwright
+        playwright = await async_playwright().start()
+        
+        try:
+            # Launch a browser
+            browser = await playwright.chromium.launch(headless=True)
+            
+            # Create a new page
+            page = await browser.new_page()
+            
+            # Navigate to the URL
+            await page.goto(url)
+            
+            # Wait for the page to load
+            await page.wait_for_load_state("networkidle")
+            
+            # Take a screenshot
+            screenshot_bytes = await page.screenshot(full_page=True)
+            
+            # Close the browser
+            await browser.close()
+            
             # Return as base64
-            return {"screenshot": base64.b64encode(screenshot).decode('utf-8')}
-        else:
-            raise HTTPException(status_code=500, detail="Failed to take screenshot")
+            return {"screenshot": base64.b64encode(screenshot_bytes).decode('utf-8')}
+        except Exception as e:
+            logger.error(f"Error taking screenshot: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail=str(e))
+        finally:
+            # Close Playwright
+            await playwright.stop()
     except Exception as e:
+        logger.error(f"Error taking screenshot: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
@@ -686,43 +670,59 @@ async def list_recordings():
 @app.post("/sessions/{session_id}/close")
 async def close_session(session_id: str, force: bool = False):
     """Explicitly close a browser session with improved error handling"""
-    global session_manager
+    # Check if any active agents are using this session
+    session_agents = []
+    for task_id, agent in agent_adapter.active_agents.items():
+        # Check if this agent is using the specified session
+        if hasattr(agent, '_context') and agent._context and getattr(agent._context, 'session_id', None) == session_id:
+            session_agents.append((task_id, agent))
     
-    # Check if session exists
-    session = session_manager.get_session(session_id)
-    if not session:
+    if not session_agents:
         # If force is true, we'll just return success even if session doesn't exist
         if force:
             return {"status": "success", "message": f"Session {session_id} not found (force=True)"}
         raise HTTPException(status_code=404, detail=f"Session {session_id} not found")
     
     try:
-        # Close the session
-        await session_manager.close_session(session_id, force=force)
-        
-        # Update any associated tasks
-        for task_id, task_status in list(active_tasks.items()):
-            if task_status.metadata and task_status.metadata.get("session_id") == session_id:
-                if task_status.status in ["running", "paused"]:
-                    task_status.status = "completed" if not force else "failed"
-                    task_status.end_time = datetime.now()
-                    if force:
-                        task_status.error = "Session was forcibly closed"
-                    
-                    # Broadcast update
-                    await broadcast_task_update(task_id, task_status)
-                    
-                    # Move to history if completed or failed
-                    if task_status.status in ["completed", "failed"]:
-                        task_history[task_id] = task_status
-                        del active_tasks[task_id]
+        # Close each agent using this session
+        for task_id, agent in session_agents:
+            try:
+                # Close the browser context
+                if agent._browser_context:
+                    await agent._browser_context.close()
+                
+                # Close the browser if it's not shared
+                if agent._browser and not agent._shared_browser:
+                    await agent._browser.close()
+                
+                # Remove from active agents
+                await agent_adapter.cleanup_task(task_id)
+                
+                # Update any associated tasks
+                if task_id in active_tasks:
+                    task_status = active_tasks[task_id]
+                    if task_status.status in ["running", "paused"]:
+                        task_status.status = "completed" if not force else "failed"
+                        task_status.end_time = datetime.now()
+                        if force:
+                            task_status.error = "Session was forcibly closed"
+                        
+                        # Broadcast update
+                        await broadcast_task_update(task_id, task_status)
+                        
+                        # Move to history if completed or failed
+                        if task_status.status in ["completed", "failed"]:
+                            task_history[task_id] = task_status
+                            del active_tasks[task_id]
+            except Exception as e:
+                logger.warning(f"Error closing agent for task {task_id}: {e}")
+                if not force:
+                    raise
         
         return {"status": "success", "message": f"Session {session_id} closed successfully"}
     except Exception as e:
         # If force is true, we'll consider this a success even if there was an error
         if force:
-            if session_id in session_manager.sessions:
-                del session_manager.sessions[session_id]
             return {"status": "success", "message": f"Forced session {session_id} closure (with error: {str(e)})"}
         
         # Otherwise, report the error
@@ -732,29 +732,70 @@ async def close_session(session_id: str, force: bool = False):
 @app.get("/sessions")
 async def list_sessions():
     """List all active browser sessions"""
-    global session_manager
-    
     sessions = []
-    for session_id, context in session_manager.sessions.items():
-        last_activity = session_manager.last_activity.get(session_id, datetime.now())
-        sessions.append({
-            "session_id": session_id,
-            "persistent": context.persistent,
-            "last_activity": last_activity.isoformat(),
-            "headless": context.headless,
-            "metadata": context.metadata
-        })
+    session_ids = set()
+    
+    # Collect session information from active agents
+    for task_id, agent in agent_adapter.active_agents.items():
+        if hasattr(agent, '_context') and agent._context:
+            session_id = getattr(agent._context, 'session_id', None)
+            if session_id and session_id not in session_ids:
+                session_ids.add(session_id)
+                
+                # Get metadata from the task if available
+                metadata = {}
+                if task_id in active_tasks and active_tasks[task_id].metadata:
+                    metadata = active_tasks[task_id].metadata
+                
+                # Determine if this is a persistent session
+                persistent = False
+                if hasattr(agent, '_config'):
+                    persistent = getattr(agent._config, 'persistent_session', False)
+                
+                # Get last activity time
+                last_activity = datetime.now()
+                if metadata and "last_activity" in metadata:
+                    try:
+                        last_activity = datetime.fromisoformat(metadata["last_activity"])
+                    except (ValueError, TypeError):
+                        pass
+                
+                sessions.append({
+                    "session_id": session_id,
+                    "persistent": persistent,
+                    "last_activity": last_activity.isoformat(),
+                    "headless": getattr(agent, '_headless', True),
+                    "metadata": metadata
+                })
     
     return {"sessions": sessions}
 
 # Add a new endpoint to request assistance for a task
 @app.post("/execute/{task_id}/assistance", response_model=TaskStatus)
 async def request_assistance(task_id: str, message: str = "Assistance needed"):
-    """Request assistance for a task"""
-    if task_id not in active_tasks:
-        raise HTTPException(status_code=404, detail=f"Task with ID {task_id} not found")
+    """
+    Request assistance for a task.
     
-    task_status = active_tasks[task_id]
+    This endpoint marks a task as needing assistance and stores the assistance message.
+    """
+    # Check if task exists in our tracking
+    if task_id not in active_tasks:
+        # Try to get task status from agent
+        agent_status = agent_adapter.get_task_status(task_id)
+        if agent_status["status"] == "not_found":
+            raise HTTPException(status_code=404, detail=f"Task with ID {task_id} not found")
+        
+        # Create a new TaskStatus object if task exists in agent but not in our tracking
+        task_status = TaskStatus(
+            task_id=task_id,
+            status=agent_status["status"],
+            metadata={"recovered_from_agent": True}
+        )
+        active_tasks[task_id] = task_status
+    else:
+        task_status = active_tasks[task_id]
+    
+    # Update task status
     task_status.status = "needs_assistance"
     task_status.assistance_message = message
     
@@ -766,11 +807,27 @@ async def request_assistance(task_id: str, message: str = "Assistance needed"):
 # Add a new endpoint to resolve assistance for a task
 @app.post("/execute/{task_id}/resolve", response_model=TaskStatus)
 async def resolve_assistance(task_id: str):
-    """Resolve assistance for a task and resume execution"""
-    if task_id not in active_tasks:
-        raise HTTPException(status_code=404, detail=f"Task with ID {task_id} not found")
+    """
+    Resolve assistance for a task and resume execution.
     
-    task_status = active_tasks[task_id]
+    This endpoint resolves the assistance request for a task and resumes its execution.
+    """
+    # Check if task exists in our tracking
+    if task_id not in active_tasks:
+        # Try to get task status from agent
+        agent_status = agent_adapter.get_task_status(task_id)
+        if agent_status["status"] == "not_found":
+            raise HTTPException(status_code=404, detail=f"Task with ID {task_id} not found")
+        
+        # Create a new TaskStatus object if task exists in agent but not in our tracking
+        task_status = TaskStatus(
+            task_id=task_id,
+            status=agent_status["status"],
+            metadata={"recovered_from_agent": True}
+        )
+        active_tasks[task_id] = task_status
+    else:
+        task_status = active_tasks[task_id]
     
     # Only resume if the task was in needs_assistance state
     if task_status.status != "needs_assistance":
@@ -787,104 +844,68 @@ async def resolve_assistance(task_id: str):
 
 @app.post("/execute/{task_id}/pause", response_model=TaskStatus)
 async def pause_task(task_id: str):
-    """Pause a running task"""
+    """
+    Pause a running task.
+    
+    This endpoint pauses a running task, allowing it to be resumed later.
+    """
+    # Check if task exists
     if task_id not in active_tasks:
-        raise HTTPException(status_code=404, detail=f"Task with ID {task_id} not found")
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
     
     task_status = active_tasks[task_id]
     
-    # Only pause if the task is running
+    # Check if task is running
     if task_status.status != "running":
-        raise HTTPException(status_code=400, detail=f"Task with ID {task_id} is not in running state")
+        raise HTTPException(status_code=400, detail=f"Task {task_id} is not running (current status: {task_status.status})")
     
-    # Check if the session still exists
-    session_id = task_status.metadata.get("session_id") if task_status.metadata else None
-    if not session_id or session_id not in session_manager.sessions:
-        # Session is gone, we need to report this and not try to pause
-        task_status.status = "failed"
-        task_status.error = "Browser session was lost and cannot be paused"
-        task_status.end_time = datetime.now()
+    try:
+        # Pause the task using the adapter
+        result = await agent_adapter.pause_task(task_id)
         
-        # Move to history
-        task_history[task_id] = task_status
-        del active_tasks[task_id]
-        
-        # Broadcast update
-        await broadcast_task_update(task_id, task_status)
-        
-        raise HTTPException(
-            status_code=400,
-            detail=f"Browser session for task {task_id} was lost and cannot be paused"
-        )
-    
-    # Update task status
-    task_status.status = "paused"
-    task_status.metadata = task_status.metadata or {}
-    task_status.metadata["paused_at"] = datetime.now().isoformat()
-    task_status.metadata["last_activity"] = datetime.now().isoformat()
-    
-    # Update session last activity
-    session_manager.last_activity[session_id] = datetime.now()
-    
-    # Get the browser context for this task
-    context = session_manager.get_session(session_id)
-    
-    if context:
-        # Take a screenshot to show the current state
-        try:
-            screenshot_path = await context.take_screenshot()
-            if screenshot_path:
-                task_status.metadata["pause_screenshot"] = os.path.basename(screenshot_path)
-        except Exception as e:
-            logger.error(f"Error taking screenshot during pause: {e}")
-    
-    # Broadcast update
-    await broadcast_task_update(task_id, task_status)
-    
-    return task_status
+        if result["status"] == "success":
+            # Update task status
+            task_status.status = "paused"
+            await broadcast_task_update(task_id, task_status)
+            logger.info(f"Task {task_id} paused")
+            return task_status
+        else:
+            # Handle error
+            raise HTTPException(status_code=500, detail=f"Failed to pause task: {result['message']}")
+    except Exception as e:
+        logger.exception(f"Error pausing task {task_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error pausing task: {str(e)}")
 
 @app.post("/execute/{task_id}/resume", response_model=TaskStatus)
 async def resume_task(task_id: str):
-    """Resume a paused task with improved error handling for orphaned sessions"""
+    """
+    Resume a paused task.
+    
+    This endpoint resumes a previously paused task.
+    """
+    # Check if task exists
     if task_id not in active_tasks:
-        raise HTTPException(status_code=404, detail=f"Task with ID {task_id} not found")
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
     
     task_status = active_tasks[task_id]
     
-    # Only resume if the task is paused
+    # Check if task is paused
     if task_status.status != "paused":
-        raise HTTPException(status_code=400, detail=f"Task with ID {task_id} is not in paused state")
+        raise HTTPException(status_code=400, detail=f"Task {task_id} is not paused (current status: {task_status.status})")
     
-    # Check if the session still exists
-    session_id = task_status.metadata.get("session_id") if task_status.metadata else None
-    if not session_id or session_id not in session_manager.sessions:
-        # Session is gone, we need to report this and not try to resume
-        task_status.status = "failed"
-        task_status.error = "Browser session was lost and cannot be resumed"
-        task_status.end_time = datetime.now()
+    try:
+        # Resume the task using the adapter
+        result = await agent_adapter.resume_task(task_id)
         
-        # Move to history
-        task_history[task_id] = task_status
-        del active_tasks[task_id]
-        
-        # Broadcast update
-        await broadcast_task_update(task_id, task_status)
-        
-        raise HTTPException(
-            status_code=400,
-            detail=f"Browser session for task {task_id} was lost and cannot be resumed"
-        )
-    
-    # Update task status
-    task_status.status = "running"
-    task_status.metadata = task_status.metadata or {}
-    task_status.metadata["last_activity"] = datetime.now().isoformat()
-    task_status.metadata["resumed_at"] = datetime.now().isoformat()
-    
-    # Update session last activity
-    session_manager.last_activity[session_id] = datetime.now()
-    
-    # Broadcast update
-    await broadcast_task_update(task_id, task_status)
-    
-    return task_status
+        if result["status"] == "success":
+            # Update task status
+            task_status.status = "running"
+            await broadcast_task_update(task_id, task_status)
+            logger.info(f"Task {task_id} resumed")
+            return task_status
+        else:
+            # Handle error
+            raise HTTPException(status_code=500, detail=f"Failed to resume task: {result['message']}")
+    except Exception as e:
+        logger.exception(f"Error resuming task {task_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error resuming task: {str(e)}")
