@@ -10,6 +10,8 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+import copy
+import json
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -18,7 +20,11 @@ from fastapi import WebSocket
 from fastapi import WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from pydantic import Field
 import gradio as gr
+
+from core.agent_adapter import AgentAdapter
+from core.state_utils import restore_state
 from contextlib import asynccontextmanager
 
 # Import configuration
@@ -47,6 +53,11 @@ logger = logging.getLogger(__name__)
 # Global variables for tracking application state
 startup_time = None
 cleanup_task = None
+active_tasks = {}  # Store active tasks by task_id
+task_history = {}  # Store completed tasks by task_id
+task_requests = {}  # Store original task requests by task_id
+connected_clients = {}
+visualization = None
 
 # Initialize FastAPI with lifespan
 @asynccontextmanager
@@ -137,8 +148,6 @@ app = gr.mount_gradio_app(app, interface, path="/visualize")
 DEFAULT_OPERATION_TIMEOUT = AppConfig.DEFAULT_OPERATION_TIMEOUT
 
 # Global variables
-active_tasks = {}
-task_history = {}
 connected_clients = {}
 visualization = None
 
@@ -305,98 +314,120 @@ async def execute_task(request: TaskRequest):
     # Generate task ID if not provided
     task_id = request.task_id or str(uuid.uuid4())
     
-    # Check if task already exists
+    # Check if task ID already exists
     if task_id in active_tasks:
-        raise HTTPException(status_code=400, detail=f"Task with ID {task_id} already exists")
-    
-    # Validate LLM provider
-    llm_provider = request.llm_provider.type if request.llm_provider else get_default_provider()
-    if llm_provider not in get_available_llm_providers():
-        raise HTTPException(status_code=400, detail=f"Invalid LLM provider: {llm_provider}")
+        raise HTTPException(status_code=400, detail=f"Task ID {task_id} already exists")
     
     # Create task status
     task_status = TaskStatus(
         task_id=task_id,
         status="pending",
-        start_time=datetime.now(),
         metadata={
             "task": request.task,
-            "llm_provider": llm_provider,
+            "llm_provider": request.llm_provider.type if request.llm_provider else get_default_provider(),
             "headless": request.headless,
-            "persistent_session": request.persistent_session,
+            "persistent_session": request.persistent_session or False,
         }
     )
     
-    # Add to active tasks
+    # Store task status
     active_tasks[task_id] = task_status
     
-    # Start task execution in background
+    # Store the original request for potential resume operations
+    task_requests[task_id] = request
+    
+    # Start task in background
     asyncio.create_task(run_task(task_id, request, task_status))
     
     return task_status
 
 # Run a task in the background
 async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
-    """
-    Run a task asynchronously.
-    
-    This function is called in a background task to execute the browser task.
-    """
-    logger.info(f"Starting task {task_id}: {request.task}")
-    
+    """Run a task in the background"""
     try:
-        # Update task status
+        # Update task status to running
         task_status.status = "running"
+        task_status.start_time = datetime.now()
         await broadcast_task_update(task_id, task_status)
         
-        # Get LLM provider
-        llm_provider = request.llm_provider.type if request.llm_provider else get_default_provider()
+        # Configure the LLM provider
+        llm_provider = None
+        if request.llm_provider:
+            llm_provider = request.llm_provider
+        else:
+            # Use default provider
+            default_provider = get_default_provider()
+            if default_provider:
+                llm_provider = ProviderConfig(
+                    type=default_provider,
+                    model=get_default_model_for_provider(default_provider),
+                    api_key=get_api_key_for_provider(default_provider)
+                )
         
-        # Create agent using the adapter
-        task_id, agent = await agent_adapter.create_agent(
-            task=request.task,
-            llm_provider=llm_provider,
-            headless=request.headless or False,
-            persistent_session=request.persistent_session or False,
-            task_id=task_id,
-            metadata=request.options,
-        )
+        # Check if we're resuming from a saved state
+        resume_options = None
+        if request.options and "resume_from" in request.options:
+            resume_options = request.options["resume_from"]
+            logger.info(f"Resuming task {task_id} from saved state: {resume_options}")
         
         # Execute the task
-        result = await agent_adapter.execute_task(task_id, agent)
+        result = await agent_adapter.execute_task(
+            task=request.task,
+            task_id=task_id,
+            headless=request.headless if request.headless is not None else True,
+            llm_provider=llm_provider,
+            operation_timeout=request.operation_timeout or DEFAULT_OPERATION_TIMEOUT,
+            options=request.options
+        )
         
-        # Update task status
-        task_status.status = "completed"
-        task_status.result = result
+        # Check if the task was paused during execution
+        # If it was paused, we don't want to update its status or move it to history
+        if task_id in active_tasks and active_tasks[task_id].status == "paused":
+            logger.info(f"Task {task_id} was paused during execution, not updating status")
+            return
+        
+        # Update task status based on result
         task_status.end_time = datetime.now()
         task_status.progress = 1.0
         
-        # Move to history
-        task_history[task_id] = task_status
-        del active_tasks[task_id]
+        if result.get("status") == "success":
+            task_status.status = "completed"
+            task_status.result = result
+        elif result.get("status") == "needs_assistance":
+            task_status.status = "needs_assistance"
+            task_status.assistance_message = result.get("message", "Assistance needed")
+            task_status.result = result
+        else:
+            task_status.status = "failed"
+            task_status.error = result.get("message", "Unknown error")
         
-        # Broadcast update
+        # Broadcast the update
         await broadcast_task_update(task_id, task_status)
         
-        logger.info(f"Task {task_id} completed successfully")
+        # Move task to history
+        if task_status.status in ["completed", "failed"]:
+            task_history[task_id] = task_status
+            if task_id in active_tasks:
+                del active_tasks[task_id]
+        
+        logger.info(f"Task {task_id} completed with status: {task_status.status}")
         
     except Exception as e:
+        # Check if the task was paused during execution
+        if task_id in active_tasks and active_tasks[task_id].status == "paused":
+            logger.info(f"Task {task_id} was paused during execution, not updating status")
+            return
+            
         logger.exception(f"Error executing task {task_id}: {str(e)}")
-        
-        # Update task status
         task_status.status = "failed"
-        task_status.error = str(e)
         task_status.end_time = datetime.now()
-        
-        # Move to history
-        task_history[task_id] = task_status
-        del active_tasks[task_id]
-        
-        # Broadcast update
+        task_status.error = str(e)
         await broadcast_task_update(task_id, task_status)
         
-        # Clean up resources
-        await agent_adapter.cleanup_task(task_id)
+        # Move task to history
+        task_history[task_id] = task_status
+        if task_id in active_tasks:
+            del active_tasks[task_id]
 
 # WebSocket for real-time updates
 @app.websocket("/ws/{client_id}")
@@ -847,12 +878,14 @@ async def pause_task(task_id: str):
     """
     Pause a running task.
     
-    This endpoint pauses a running task, allowing it to be resumed later.
+    This endpoint pauses a running task by saving its state and canceling the current execution.
+    The task can be resumed later from its saved state.
     """
     # Check if task exists
     if task_id not in active_tasks:
         raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
     
+    # Get task status
     task_status = active_tasks[task_id]
     
     # Check if task is running
@@ -860,33 +893,210 @@ async def pause_task(task_id: str):
         raise HTTPException(status_code=400, detail=f"Task {task_id} is not running (current status: {task_status.status})")
     
     try:
-        # Pause the task using the adapter
-        result = await agent_adapter.pause_task(task_id)
+        # Get the agent
+        agent = agent_adapter.get_agent_for_task(task_id)
+        if not agent:
+            raise HTTPException(status_code=404, detail=f"No agent found for task {task_id}")
         
-        if result["status"] == "success":
-            # Update task status
-            task_status.status = "paused"
-            await broadcast_task_update(task_id, task_status)
-            logger.info(f"Task {task_id} paused")
-            return task_status
-        else:
-            # Handle error
-            raise HTTPException(status_code=500, detail=f"Failed to pause task: {result['message']}")
+        # Save the current state
+        current_url = agent.page.url if hasattr(agent, 'page') and agent.page else None
+        current_title = await agent.page.title() if hasattr(agent, 'page') and agent.page else None
+        
+        # Store state in task metadata for resuming later
+        if not task_status.metadata:
+            task_status.metadata = {}
+        
+        # Enhanced state persistence with more browser state information
+        try:
+            # Capture form data if available
+            form_data = await agent.page.evaluate("""() => { 
+                try {
+                    return Array.from(document.forms).map(form => {
+                        const formData = new FormData(form);
+                        return Array.from(formData.entries()).map(([key, value]) => [key, value]);
+                    });
+                } catch (e) {
+                    return [];
+                }
+            }""") if hasattr(agent, 'page') and agent.page else []
+            
+            # Capture scroll position
+            scroll_position = await agent.page.evaluate("""() => { 
+                return {x: window.scrollX, y: window.scrollY};
+            }""") if hasattr(agent, 'page') and agent.page else None
+            
+            # Capture localStorage
+            local_storage = await agent.page.evaluate("""() => { 
+                try {
+                    return Object.entries(localStorage);
+                } catch (e) {
+                    return [];
+                }
+            }""") if hasattr(agent, 'page') and agent.page else []
+            
+            # Capture sessionStorage
+            session_storage = await agent.page.evaluate("""() => { 
+                try {
+                    return Object.entries(sessionStorage);
+                } catch (e) {
+                    return [];
+                }
+            }""") if hasattr(agent, 'page') and agent.page else []
+            
+            # Capture DOM state of important elements (like input values)
+            dom_state = await agent.page.evaluate("""() => {
+                try {
+                    const inputs = Array.from(document.querySelectorAll('input:not([type="password"]), textarea, select'));
+                    return inputs.map(el => ({
+                        selector: getUniqueSelector(el),
+                        value: el.value,
+                        checked: el.checked,
+                        type: el.type
+                    }));
+                    
+                    // Helper function to get a unique selector for an element
+                    function getUniqueSelector(el) {
+                        if (el.id) return `#${el.id}`;
+                        if (el.name) return `[name="${el.name}"]`;
+                        
+                        // Try with classes
+                        if (el.className) {
+                            const classes = el.className.split(' ').filter(c => c.trim().length > 0);
+                            if (classes.length > 0) {
+                                const selector = '.' + classes.join('.');
+                                if (document.querySelectorAll(selector).length === 1) return selector;
+                            }
+                        }
+                        
+                        // Fallback to a path selector
+                        let path = '';
+                        let parent = el;
+                        while (parent && parent.tagName) {
+                            let tag = parent.tagName.toLowerCase();
+                            const siblings = Array.from(parent.parentNode?.children || []);
+                            if (siblings.length > 1) {
+                                const index = siblings.indexOf(parent) + 1;
+                                tag += `:nth-child(${index})`;
+                            }
+                            path = tag + (path ? ' > ' + path : '');
+                            parent = parent.parentNode;
+                        }
+                        return path;
+                    }
+                } catch (e) {
+                    return [];
+                }
+            }""") if hasattr(agent, 'page') and agent.page else []
+            
+            # Log the captured state for debugging
+            logger.info(f"Captured enhanced state for task {task_id}: "
+                      f"form_data: {len(form_data)} forms, "
+                      f"dom_state: {len(dom_state)} elements, "
+                      f"local_storage: {len(local_storage)} items, "
+                      f"session_storage: {len(session_storage)} items")
+            
+        except Exception as capture_error:
+            logger.warning(f"Error capturing enhanced state for task {task_id}: {str(capture_error)}")
+            # Continue with basic state if enhanced capture fails
+            form_data = []
+            scroll_position = None
+            local_storage = []
+            session_storage = []
+            dom_state = []
+        
+        task_status.metadata["paused_state"] = {
+            "url": current_url,
+            "title": current_title,
+            "timestamp": datetime.now().isoformat(),
+            "task_memory": agent.task_memory.get_history() if hasattr(agent, 'task_memory') else [],
+            # Add enhanced state information
+            "form_data": form_data,
+            "scroll_position": scroll_position,
+            "local_storage": local_storage,
+            "session_storage": session_storage,
+            "dom_state": dom_state
+        }
+        
+        # Cancel the browser execution but keep the task in active_tasks
+        if hasattr(agent, 'browser') and agent.browser:
+            await agent.browser.close()
+            
+        # Remove the agent from active_agents to prevent automatic completion
+        # but keep the task in active_tasks
+        if task_id in agent_adapter.active_agents:
+            del agent_adapter.active_agents[task_id]
+        
+        # Update task status
+        task_status.status = "paused"
+        
+        # Broadcast update
+        await broadcast_task_update(task_id, task_status)
+        
+        return task_status
     except Exception as e:
         logger.exception(f"Error pausing task {task_id}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error pausing task: {str(e)}")
+
+@app.post("/execute/{task_id}/cancel", response_model=TaskStatus)
+async def cancel_task(task_id: str):
+    """
+    Cancel a running task.
+    
+    This endpoint cancels a running task and cleans up associated resources.
+    """
+    # Check if task exists
+    if task_id not in active_tasks:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    
+    # Get task status
+    task_status = active_tasks[task_id]
+    
+    # Check if task is running or paused
+    if task_status.status not in ["running", "paused"]:
+        raise HTTPException(status_code=400, detail=f"Task {task_id} is not running or paused (current status: {task_status.status})")
+    
+    try:
+        # Get the agent
+        agent = agent_adapter.get_agent_for_task(task_id)
+        if not agent:
+            raise HTTPException(status_code=404, detail=f"No agent found for task {task_id}")
+        
+        # Close the browser if it's open
+        if hasattr(agent, 'browser') and agent.browser:
+            await agent.browser.close()
+        
+        # Update task status
+        task_status.status = "cancelled"
+        task_status.end_time = datetime.now()
+        
+        # Move to history
+        task_history[task_id] = task_status
+        if task_id in active_tasks:
+            del active_tasks[task_id]
+        
+        # Clean up resources
+        await agent_adapter.cleanup_task(task_id)
+        
+        # Broadcast update
+        await broadcast_task_update(task_id, task_status)
+        
+        return task_status
+    except Exception as e:
+        logger.exception(f"Error cancelling task {task_id}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error cancelling task: {str(e)}")
 
 @app.post("/execute/{task_id}/resume", response_model=TaskStatus)
 async def resume_task(task_id: str):
     """
     Resume a paused task.
     
-    This endpoint resumes a previously paused task.
+    This endpoint resumes a paused task by restarting it from its saved state.
     """
     # Check if task exists
     if task_id not in active_tasks:
         raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
     
+    # Get task status
     task_status = active_tasks[task_id]
     
     # Check if task is paused
@@ -894,18 +1104,101 @@ async def resume_task(task_id: str):
         raise HTTPException(status_code=400, detail=f"Task {task_id} is not paused (current status: {task_status.status})")
     
     try:
-        # Resume the task using the adapter
-        result = await agent_adapter.resume_task(task_id)
+        # Check if we have saved state
+        if not task_status.metadata or "paused_state" not in task_status.metadata:
+            raise HTTPException(status_code=400, detail=f"No saved state found for task {task_id}")
         
-        if result["status"] == "success":
-            # Update task status
-            task_status.status = "running"
-            await broadcast_task_update(task_id, task_status)
-            logger.info(f"Task {task_id} resumed")
-            return task_status
-        else:
-            # Handle error
-            raise HTTPException(status_code=500, detail=f"Failed to resume task: {result['message']}")
+        # Get the original task request
+        original_request = task_requests.get(task_id)
+        if not original_request:
+            raise HTTPException(status_code=400, detail=f"Original request not found for task {task_id}")
+        
+        # Update task status
+        task_status.status = "running"
+        
+        # Broadcast update
+        await broadcast_task_update(task_id, task_status)
+        
+        # Start a new task execution with the saved state
+        paused_state = task_status.metadata["paused_state"]
+        
+        # Create a modified task that includes resuming from the saved URL
+        modified_request = copy.deepcopy(original_request)
+        
+        # If we don't have options, create it
+        if not modified_request.options:
+            modified_request.options = {}
+        
+        # Add resume information to options
+        modified_request.options["resume_from"] = paused_state
+        
+        # Start the task in a background task
+        asyncio.create_task(run_task(task_id, modified_request, task_status))
+        
+        return task_status
     except Exception as e:
         logger.exception(f"Error resuming task {task_id}: {str(e)}")
+        # Update task status to error
+        task_status.status = "error"
+        task_status.error = f"Error resuming task: {str(e)}"
+        await broadcast_task_update(task_id, task_status)
+        raise HTTPException(status_code=500, detail=f"Error resuming task: {str(e)}")
+
+@app.post("/execute/{task_id}/resume", response_model=TaskStatus)
+async def resume_task(task_id: str):
+    """
+    Resume a paused task.
+    
+    This endpoint resumes a paused task by restarting it from its saved state.
+    """
+    # Check if task exists
+    if task_id not in active_tasks:
+        raise HTTPException(status_code=404, detail=f"Task {task_id} not found")
+    
+    # Get task status
+    task_status = active_tasks[task_id]
+    
+    # Check if task is paused
+    if task_status.status != "paused":
+        raise HTTPException(status_code=400, detail=f"Task {task_id} is not paused (current status: {task_status.status})")
+    
+    try:
+        # Check if we have saved state
+        if not task_status.metadata or "paused_state" not in task_status.metadata:
+            raise HTTPException(status_code=400, detail=f"No saved state found for task {task_id}")
+        
+        # Get the original task request
+        original_request = task_requests.get(task_id)
+        if not original_request:
+            raise HTTPException(status_code=400, detail=f"Original request not found for task {task_id}")
+        
+        # Update task status
+        task_status.status = "running"
+        
+        # Broadcast update
+        await broadcast_task_update(task_id, task_status)
+        
+        # Start a new task execution with the saved state
+        paused_state = task_status.metadata["paused_state"]
+        
+        # Create a modified task that includes resuming from the saved URL
+        modified_request = copy.deepcopy(original_request)
+        
+        # If we don't have options, create it
+        if not modified_request.options:
+            modified_request.options = {}
+        
+        # Add resume information to options
+        modified_request.options["resume_from"] = paused_state
+        
+        # Start the task in a background task
+        asyncio.create_task(run_task(task_id, modified_request, task_status))
+        
+        return task_status
+    except Exception as e:
+        logger.exception(f"Error resuming task {task_id}: {str(e)}")
+        # Update task status to error
+        task_status.status = "error"
+        task_status.error = f"Error resuming task: {str(e)}"
+        await broadcast_task_update(task_id, task_status)
         raise HTTPException(status_code=500, detail=f"Error resuming task: {str(e)}")

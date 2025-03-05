@@ -9,12 +9,14 @@ import logging
 import os
 import uuid
 from typing import Any, Dict, Optional
+import asyncio
 
 from browser_use import Agent
 from browser_use import BrowserConfig
 from browser_use import BrowserContextConfig
 
 from strategies.llm.factory import LLMProviderFactory
+from core.state_utils import restore_state
 
 logger = logging.getLogger(__name__)
 
@@ -88,40 +90,136 @@ class AgentAdapter:
             save_conversation_path=os.path.join(os.getcwd(), "recordings", f"{task_id}.json"),
         )
         
+        # Add is_paused attribute to the agent
+        agent.is_paused = False
+        
         # Store agent
         self.active_agents[task_id] = agent
         
         return task_id, agent
     
-    async def execute_task(self, task_id: str, agent: Agent) -> Dict[str, Any]:
+    async def execute_task(
+        self,
+        task: str,
+        task_id: str,
+        headless: bool = True,
+        llm_provider = None,
+        operation_timeout: int = 300,
+        options: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """
-        Execute a task using the provided agent.
+        Execute a task using the browser-use library.
         
         Args:
+            task: The task description
             task_id: The task ID
-            agent: The agent to use
+            headless: Whether to run in headless mode
+            llm_provider: The LLM provider configuration
+            operation_timeout: Timeout for the operation in seconds
+            options: Additional options for the task
             
         Returns:
             Dict: The result of the task execution
         """
         try:
+            # Check if we're resuming from a saved state
+            resuming = False
+            resume_data = None
+            
+            if options and "resume_from" in options:
+                resuming = True
+                resume_data = options["resume_from"]
+                logger.info(f"Resuming task {task_id} from URL: {resume_data.get('url')}")
+            
+            # Get LLM provider strategy
+            provider_type = llm_provider.type if llm_provider and hasattr(llm_provider, 'type') else "gemini"
+            llm_strategy = LLMProviderFactory.get_provider(provider_type)
+            
+            # Configure browser settings
+            browser_config = BrowserConfig(
+                headless=headless,
+            )
+            
+            # Configure browser context settings
+            context_config = BrowserContextConfig(
+                highlight_elements=True,  # Highlight elements for better visibility
+                wait_for_network_idle_page_load_time=3.0,  # Increase wait time for better reliability
+                browser_window_size={'width': 1920, 'height': 1080},  # Set window size
+            )
+            
+            # Create agent
+            agent = Agent(
+                task=task,
+                llm=llm_strategy.get_llm(),
+                # Pass browser configuration
+                browser=None,  # Will be created by the Agent
+                browser_context=None,  # Will be created by the Agent
+                # Additional settings
+                generate_gif=True,  # Generate GIF recordings
+                save_conversation_path=os.path.join(os.getcwd(), "recordings", f"{task_id}.json"),
+            )
+            
+            # Store agent
+            self.active_agents[task_id] = agent
+            
+            # If resuming, navigate to the saved URL first and restore state
+            if resuming and resume_data:
+                # Initialize the browser if not already initialized
+                if not agent.browser:
+                    await agent.init_browser()
+                
+                # Use the restore_state helper function to restore all browser state
+                # with retry mechanism and improved error handling
+                try:
+                    # Ensure we have a page to work with
+                    if not hasattr(agent, 'page') or not agent.page:
+                        # If agent doesn't have a page attribute, we need to access it through the browser context
+                        if agent.browser and agent.browser_context:
+                            pages = await agent.browser_context.pages()
+                            page = pages[0] if pages else await agent.browser_context.new_page()
+                            # Store the page reference for future use
+                            agent.page = page
+                        else:
+                            logger.error(f"Browser or browser context not initialized for task {task_id}")
+                            raise Exception("Browser not properly initialized")
+                    
+                    restoration_success = await restore_state(agent.page, resume_data)
+                except Exception as e:
+                    logger.error(f"Error accessing or restoring page for task {task_id}: {str(e)}")
+                    restoration_success = False
+                
+                # If we have saved memory, restore it
+                if resume_data.get('task_memory'):
+                    agent.task_memory.history = resume_data.get('task_memory', [])
+                
+                # Log restoration status
+                if restoration_success:
+                    logger.info(f"Successfully restored state for task {task_id}")
+                else:
+                    logger.warning(f"State restoration had some issues for task {task_id}, but continuing execution")
+            
             # Run the agent
             result = await agent.run()
             
             # Format the response
             response = {
-                "task_id": task_id,
-                "status": "completed",
+                "status": "success",
                 "result": result,
             }
+            
+            # Clean up resources
+            await self.cleanup_task(task_id)
             
             return response
         except Exception as e:
             logger.exception(f"Error executing task {task_id}: {str(e)}")
+            
+            # Clean up resources
+            await self.cleanup_task(task_id)
+            
             return {
-                "task_id": task_id,
                 "status": "error",
-                "error": str(e),
+                "message": str(e),
             }
     
     async def pause_task(self, task_id: str) -> Dict[str, Any]:
@@ -139,7 +237,8 @@ class AgentAdapter:
             return {"status": "error", "message": f"No agent found for task {task_id}"}
         
         try:
-            await agent.pause()
+            # Set the is_paused attribute instead of calling pause()
+            agent.is_paused = True
             return {"status": "success", "message": f"Task {task_id} paused"}
         except Exception as e:
             logger.exception(f"Error pausing task {task_id}: {str(e)}")
@@ -160,10 +259,38 @@ class AgentAdapter:
             return {"status": "error", "message": f"No agent found for task {task_id}"}
         
         try:
-            await agent.resume()
+            # Set the is_paused attribute to False instead of calling resume()
+            agent.is_paused = False
             return {"status": "success", "message": f"Task {task_id} resumed"}
         except Exception as e:
             logger.exception(f"Error resuming task {task_id}: {str(e)}")
+            return {"status": "error", "message": str(e)}
+    
+    async def cancel_task(self, task_id: str) -> Dict[str, Any]:
+        """
+        Cancel a task.
+        
+        Args:
+            task_id: The task ID
+            
+        Returns:
+            Dict: The result of the cancel operation
+        """
+        agent = self.get_agent_for_task(task_id)
+        if not agent:
+            return {"status": "error", "message": f"No agent found for task {task_id}"}
+        
+        try:
+            # Close the browser if it's open
+            if hasattr(agent, 'browser') and agent.browser:
+                await agent.browser.close()
+            
+            # Clean up the agent
+            await self.cleanup_task(task_id)
+            
+            return {"status": "success", "message": f"Task {task_id} cancelled"}
+        except Exception as e:
+            logger.exception(f"Error cancelling task {task_id}: {str(e)}")
             return {"status": "error", "message": str(e)}
     
     async def cleanup_task(self, task_id: str) -> None:
@@ -197,7 +324,7 @@ class AgentAdapter:
         
         # Get agent status
         status = "running"
-        if agent.is_paused:
+        if agent.state.paused:
             status = "paused"
         
         return {

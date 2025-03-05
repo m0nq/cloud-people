@@ -17,6 +17,8 @@ import { useAgentStore } from '@stores/agent-store';
 
 import { PauseResult } from '@lib/agent-operations';
 import { pauseAgentNode } from '@lib/agent-operations';
+import { AgentSpeed } from '@app-types/agent';
+import { MemoryLimit } from '@app-types/agent';
 
 const isValidWorkflowNode = (node: Node<NodeData> | undefined): node is Node<NodeData> => node !== undefined;
 
@@ -257,37 +259,45 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                 return;
             }
 
-            // Pause all non-terminal nodes
-            const pauseResults: PauseResult[] = await Promise.all(
-                nonTerminalNodes.map(node => {
-                    if (isWorkflowNode(node) && node.data.type === NodeType.Agent) {
-                        const agentId = node.data.agentRef.agentId;
-                        console.log(`[DEBUG] Attempting to pause node ${node.id} with agent ID ${agentId}`);
+            // Pause all non-terminal nodes with a timeout to prevent hanging
+            const pausePromises = nonTerminalNodes.map(node => {
+                if (isWorkflowNode(node) && node.data.type === NodeType.Agent) {
+                    const agentId = node.data.agentRef.agentId;
+                    console.log(`[DEBUG] Attempting to pause node ${node.id} with agent ID ${agentId}`);
 
-                        try {
-                            return pauseAgentNode(node.id, agentId, (status: AgentState) => {
-                                console.log(`[DEBUG] Node ${node.id} transitioned to state: ${status}`);
-                                transitionNode(set, nodes, node.id, status);
-                            });
-                        } catch (error) {
-                            console.error(`[DEBUG] Error in pauseAgentNode for node ${node.id}:`, error);
-                            // Even if pauseAgentNode throws an error, transition the node to Paused
-                            transitionNode(set, nodes, node.id, AgentState.Paused);
-                            return {
-                                nodeId: node.id,
-                                agentId,
-                                success: true, // Consider this "successful" in terms of pausing the workflow
-                                error: `Error during pause operation, but node transitioned to Paused state: ${error instanceof Error ? error.message : 'Unknown error'}`
-                            };
-                        }
-                    }
-                    return {
-                        nodeId: node.id,
-                        success: false,
-                        error: 'Not a valid agent node'
-                    };
-                })
-            );
+                    // Create a promise that will resolve after a timeout if the pause operation takes too long
+                    return Promise.race([
+                        // The actual pause operation
+                        pauseAgentNode(node.id, agentId, (status: AgentState) => {
+                            console.log(`[DEBUG] Node ${node.id} transitioned to state: ${status}`);
+                            transitionNode(set, nodes, node.id, status);
+                        }),
+
+                        // A timeout promise that will resolve after 5 seconds
+                        new Promise<PauseResult>((resolve) => {
+                            setTimeout(() => {
+                                console.warn(`[DEBUG] Pause operation timed out for node ${node.id}`);
+                                // Force transition to paused state
+                                transitionNode(set, nodes, node.id, AgentState.Paused);
+                                resolve({
+                                    nodeId: node.id,
+                                    agentId,
+                                    success: true, // Consider this "successful" for workflow purposes
+                                    error: 'Pause operation timed out, but node transitioned to Paused state'
+                                });
+                            }, 5000); // 5 second timeout
+                        })
+                    ]);
+                }
+                return Promise.resolve({
+                    nodeId: node.id,
+                    success: false,
+                    error: 'Not a valid agent node'
+                });
+            });
+
+            // Wait for all pause operations to complete or timeout
+            const pauseResults: PauseResult[] = await Promise.all(pausePromises);
 
             // Log the results of pause attempts
             pauseResults.forEach(result => {
@@ -295,6 +305,13 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                     console.log(`[DEBUG] Successfully paused node ${result.nodeId}`);
                 } else {
                     console.warn(`[DEBUG] Failed to pause node ${result.nodeId}: ${result.error}`);
+
+                    // Even if pauseAgentNode returns failure, force the node to Paused state
+                    const node = nodes.find(n => n.id === result.nodeId);
+                    if (node && isWorkflowNode(node) && node.data.type === NodeType.Agent) {
+                        console.log(`[DEBUG] Forcing node ${node.id} to Paused state after failure`);
+                        transitionNode(set, nodes, node.id, AgentState.Paused);
+                    }
                 }
             });
 
@@ -314,6 +331,13 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                 if (workflowExecution) {
                     await updateWorkflowState(set, workflowExecution, WorkflowState.Paused);
                     console.log('[DEBUG] Updated workflow state to Paused despite error');
+
+                    // Force all non-terminal nodes to Paused state
+                    const nonTerminalNodes = findNonTerminalNodes(nodes);
+                    nonTerminalNodes.forEach(node => {
+                        console.log(`[DEBUG] Forcing node ${node.id} to Paused state after error`);
+                        transitionNode(set, nodes, node.id, AgentState.Paused);
+                    });
                 }
             } catch (stateError) {
                 console.error('[DEBUG] Failed to update workflow state after error:', stateError);
@@ -325,20 +349,79 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
 
     const resumeWorkflow = async () => {
         const { nodes, workflowExecution }: GraphState = get();
-        if (!workflowExecution) return;
+        if (!workflowExecution) {
+            console.error('[DEBUG] Cannot resume workflow - workflowExecution is undefined');
+            return;
+        }
 
         try {
+            // Debug logging to help identify workflow state
+            console.log('[DEBUG] Resuming workflow with state:', {
+                workflowId: workflowExecution?.id,
+                workflowState: workflowExecution?.state,
+                currentNodeId: workflowExecution?.currentNodeId,
+                nodeCount: nodes.length
+            });
+
             // Update workflow state
             await updateWorkflowState(set, workflowExecution, WorkflowState.Running);
 
             // Find the last active node
             const lastNodeId = workflowExecution.currentNodeId;
             if (!lastNodeId) {
-                console.warn('No last node ID found when attempting to resume workflow');
-                return;
+                console.warn('[DEBUG] No last node ID found when attempting to resume workflow');
+
+                // Recovery: Find the first agent node and use it as a starting point
+                const firstAgentNode = nodes.find(node =>
+                    isValidWorkflowNode(node) && node.data.type === NodeType.Agent
+                );
+
+                if (firstAgentNode) {
+                    console.log(`[DEBUG] Recovered workflow by using node ${firstAgentNode.id} as starting point`);
+                    // Update workflow state with the new node
+                    await updateWorkflowState(
+                        set,
+                        workflowExecution,
+                        WorkflowState.Running,
+                        firstAgentNode.id
+                    );
+
+                    // Resume with this node
+                    transitionNode(set, nodes, firstAgentNode.id, AgentState.Activating);
+                    return;
+                } else {
+                    throw new Error('Cannot resume workflow: No valid agent nodes found');
+                }
             }
 
             const lastNode = nodes.find(n => n.id === lastNodeId);
+
+            // Recovery for missing node
+            if (!lastNode) {
+                console.warn(`[DEBUG] Last node ${lastNodeId} not found in workflow, attempting recovery`);
+
+                // Find the first agent node and use it as a fallback
+                const firstAgentNode = nodes.find(node =>
+                    isValidWorkflowNode(node) && node.data.type === NodeType.Agent
+                );
+
+                if (firstAgentNode) {
+                    console.log(`[DEBUG] Recovered workflow by using node ${firstAgentNode.id} as starting point`);
+                    // Update workflow state with the new node
+                    await updateWorkflowState(
+                        set,
+                        workflowExecution,
+                        WorkflowState.Running,
+                        firstAgentNode.id
+                    );
+
+                    // Resume with this node
+                    transitionNode(set, nodes, firstAgentNode.id, AgentState.Activating);
+                    return;
+                } else {
+                    throw new Error('Cannot resume workflow: No valid agent nodes found');
+                }
+            }
 
             // Transition all non-active agent nodes to Idle state
             nodes.forEach(node => {
@@ -359,17 +442,60 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                 const agentStore = useAgentStore.getState();
                 const agentData = agentStore.getAgentData(agentId);
 
+                // Check if agent data exists
+                if (!agentData) {
+                    console.warn(`[DEBUG] Agent data not found for agent ${agentId}, creating minimal data`);
+
+                    // Create minimal agent data to prevent errors
+                    const minimalAgentData = {
+                        id: agentId,
+                        nodeId: nodeId,
+                        name: `Agent ${agentId.substring(0, 8)}`,
+                        description: '',
+                        speed: AgentSpeed.Fast,
+                        memoryLimit: MemoryLimit.Medium,
+                        model: 'gemini-2.0-flash',
+                        tools: [],
+                        budget: '0',
+                        createdBy: 'system'
+                    };
+
+                    // Set the minimal agent data
+                    agentStore.setAgentData(agentId, minimalAgentData);
+                }
+
                 // Set isResuming flag with node ID as the key for resumption
                 agentStore.setAgentData(agentId, {
-                    ...agentData,
+                    ...agentStore.getAgentData(agentId),
                     isResuming: true,
                     nodeId: nodeId // Store the node ID for reference
                 });
 
                 transitionNode(set, nodes, nodeId, AgentState.Activating);
+            } else {
+                console.warn(`[DEBUG] Last node ${lastNodeId} is not a valid agent node or is missing`);
+                throw new Error(`Cannot resume workflow: Last node ${lastNodeId} is not a valid agent node`);
             }
         } catch (error) {
-            console.error('Failed to resume workflow:', error);
+            console.error('[DEBUG] Failed to resume workflow:', error);
+
+            // Try to update the workflow state to error
+            try {
+                if (workflowExecution) {
+                    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+                    await updateWorkflowState(
+                        set,
+                        workflowExecution,
+                        WorkflowState.Paused,
+                        workflowExecution.currentNodeId,
+                        errorMessage
+                    );
+                    console.log('[DEBUG] Updated workflow state to Paused due to resume failure');
+                }
+            } catch (stateError) {
+                console.error('[DEBUG] Failed to update workflow state after error:', stateError);
+            }
+
             throw error;
         }
     };
