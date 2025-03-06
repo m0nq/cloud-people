@@ -93,4 +93,4 @@ services/browser-service/pdm.lock
 services/browser-service/.pdm.toml
 services/browser-service/recordings/*
 services/browser-service/screenshots/*
-# services/web-ui
+services/web-ui
