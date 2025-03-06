@@ -81,15 +81,17 @@ import { utils } from '../utils';
    ```
 
 4. File and Code Style Conventions
-    - Follow the existing file naming conventions (e.g., kebab-case, PascalCase) and organization patterns.
+    - Follow the Airbnb Style Guide for code formatting as long as it doesn't conflict with JavaScript/TypeScript semi-standard style.
+    - Use lowercase with dashes for directories and file names (e.g., user-card.tsx, not UserCard.tsx).
     - Use consistent file extensions (.tsx, .ts).
     - Maintain consistent indentation and spacing across the project.
     - Use clear, descriptive naming conventions for variables, functions, and components.
+    - Prefer named exports for components.
     - Respect project-specific architectural decisions and established patterns for state management, data fetching,
       etc.
 
 5. Tailwind CSS Rules
-    1. Write CSS using Tailwind classes unless otherwise specified:
+    1. Use Tailwind CSS for styling:
         - Utilize styles in separate css files using the @apply rule.
         - Nested css selectors are prefered over global ones.
         - Maintain consistent class order:
@@ -315,3 +317,19 @@ import { utils } from '../utils';
 This methodical approach ensures thorough problem-solving and maintains code quality while preventing oversights in
 complex implementations. It emphasizes the importance of understanding the broader context and potential impacts of
 changes before implementing them.
+
+11. Project Structure & Technology Stack
+
+    a. Next.js & React:
+        - Follow Next.js patterns and use the App Router
+        - Correctly determine when to use server vs. client components in Next.js
+        - Use server components by default and make client components only when needed
+
+    b. Data Fetching & Forms:
+        - Use Next.js fetch API for frontend data fetching
+        - Use Formik for form handling
+        - Use Zod for validation
+
+    c. State Management & Backend:
+        - Use Zustand for state management
+        - Use Supabase for database access
