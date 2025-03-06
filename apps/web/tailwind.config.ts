@@ -3,6 +3,7 @@ import defaultTheme from 'tailwindcss/defaultTheme';
 import { Config } from 'tailwindcss';
 
 const config: Config = {
+    darkMode: 'class',
     content: ['./src/pages/**/*.{js,ts,jsx,tsx,mdx}', './src/components/**/*.{js,ts,jsx,tsx,mdx}', './src/app/**/*.{js,ts,jsx,tsx,mdx}'],
     theme: {
         fontFamily: {
@@ -43,29 +44,57 @@ const config: Config = {
                 primary: '#6652ff',
                 secondary: '#56e8cd',
 
-                // Dark mode
-                dark: '#181a1a',
+                // Background colors
+                light: {
+                    DEFAULT: '#ffffff',
+                    secondary: '#f9fafb'
+                },
+                dark: {
+                    DEFAULT: '#181a1a',
+                    secondary: '#1f2937'
+                },
 
                 // Button colors
-                'btn-gray': '#515568',
-                'btn-muted': '#111212',
+                'btn-gray': {
+                    light: '#515568',
+                    dark: '#374151'
+                },
+                'btn-muted': {
+                    light: '#111212',
+                    dark: '#1f2937'
+                },
 
                 // Navigation
-                'nav-border': '#3d3d3d',
-                'nav-text': '#bac5d1',
+                'nav-border': {
+                    light: '#e5e7eb',
+                    dark: '#3d3d3d'
+                },
+                'nav-text': {
+                    light: '#4b5563',
+                    dark: '#bac5d1'
+                },
 
-                // Text
-                'color-light': '#dce0f4',
+                // Text colors
+                text: {
+                    primary: {
+                        light: '#111827',
+                        dark: '#f9fafb'
+                    },
+                    secondary: {
+                        light: '#4b5563',
+                        dark: '#9ca3af'
+                    },
+                    muted: {
+                        light: '#6b7280',
+                        dark: '#6b7280'
+                    }
+                },
 
-                'color-light-gray': '#45505a',
-                'color-dark-gray': '#2d3034',
-                'color-muted-gray': '#2d2d2d',
-                'color-gray': '#515568',
-                'color-slate': '#bec1cf',
-                'color-meta': '#9d9d9d',
-
-                'icon-gray': '#818181',
-                'border-light': '#dbdbdb',
+                // Border colors
+                border: {
+                    light: '#e5e7eb',
+                    dark: '#374151'
+                },
 
                 // Gradients (to be used with bg-gradient-to-r)
                 'gradient-purple': {

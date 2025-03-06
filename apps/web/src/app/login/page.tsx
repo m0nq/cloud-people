@@ -1,98 +1,155 @@
+'use client';
+
 import { ReactNode } from 'react';
-import Link from 'next/link';
+
+import { motion } from 'framer-motion';
 
 import './login.styles.css';
-import { AuthenticationButton } from '@components/utils/auth-button/auth-button';
-import { loginOrSignUp } from '@lib/actions/authentication-actions';
-import { SocialLoginButton } from '@components/utils/social-login/social-login-button';
+import { ThemeToggle } from './theme-toggle';
+import { LoginForm } from './login-form';
 
-const LoginPage = async ({ searchParams }: { searchParams: Promise<{ message: string }> }): Promise<ReactNode> => {
-    const { message } = await searchParams;
+export default function LoginPage({ searchParams }: { searchParams: { message: string } }): ReactNode {
+    const { message } = searchParams;
 
     return (
-        <div className="login-container">
-            <div className="banner">
-                <svg width="292" height="189" viewBox="0 0 292 189" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path fillRule="evenodd" clipRule="evenodd" fill="white"
-                        d="M291.628 119.176C291.628 151.492 269.326 178.599 239.273 185.944C237.599 186.535 235.867 187.109 234.08 187.666L234.563 187.502L234.452 187.428C233.215 187.928 231.863 188.203 230.447 188.203C224.543 188.203 219.757 183.417 219.757 177.513C219.757 177.469 219.757 177.425 219.758 177.38V136.591C219.758 127.746 212.588 120.577 203.744 120.577C194.9 120.577 187.73 127.746 187.73 136.591V170.263H187.727C187.728 170.333 187.729 170.403 187.729 170.474C187.729 176.378 182.943 181.164 177.039 181.164C171.135 181.164 166.349 176.378 166.349 170.474C166.349 170.403 166.35 170.333 166.351 170.263H166.35V121.659C166.35 110.64 157.417 101.707 146.398 101.707C135.379 101.707 126.446 110.64 126.446 121.659V170.263H126.443C126.444 170.333 126.445 170.403 126.445 170.474C126.445 176.378 121.658 181.164 115.755 181.164C109.851 181.164 105.065 176.378 105.065 170.474C105.065 170.402 105.065 170.33 105.067 170.259V136.591C105.067 127.746 97.8971 120.577 89.053 120.577C80.2088 120.577 73.0392 127.746 73.0392 136.591V177.799L73.0334 177.803C72.8796 183.573 68.1541 188.203 62.3473 188.203C61.2816 188.203 60.2523 188.047 59.2811 187.757L58.9625 187.987C56.8028 187.33 54.7216 186.648 52.7236 185.944C22.6722 178.597 0.371094 151.491 0.371094 119.176C0.371094 83.1618 28.0709 53.6169 63.328 50.6844C78.6571 20.6028 109.922 0 145.999 0C182.076 0 213.341 20.6027 228.671 50.6843C263.928 53.6164 291.628 83.1614 291.628 119.176ZM89.1741 115.068C100.26 115.068 109.248 106.081 109.248 94.9944C109.248 83.9081 100.26 74.9209 89.1741 74.9209C78.0878 74.9209 69.1007 83.9081 69.1007 94.9944C69.1007 106.081 78.0878 115.068 89.1741 115.068ZM172.949 67.9795C172.949 82.864 160.882 94.9303 145.998 94.9303C131.113 94.9303 119.047 82.864 119.047 67.9795C119.047 53.095 131.113 41.0287 145.998 41.0287C160.882 41.0287 172.949 53.095 172.949 67.9795ZM202.822 115.068C213.908 115.068 222.895 106.081 222.895 94.9944C222.895 83.9081 213.908 74.9209 202.822 74.9209C191.735 74.9209 182.748 83.9081 182.748 94.9944C182.748 106.081 191.735 115.068 202.822 115.068Z" />
-                </svg>
-                <h1 className="font-head">Cloud People</h1>
-            </div>
-            <div className="form-area">
-                <div className="login-form-wrapper">
-                    <h2>Running your business from the clouds</h2>
-                    <form className="login-form">
-                        <input className="input" placeholder="Email" id="email" name="email" type="email" required />
-                        <div className="agreement-wrapper">
-                            <label htmlFor="agreement" className="agreement-label">
-                                <input className="agreement-checkbox" type="checkbox" id="agreement" name="agreement" />
-                                I agree to the <Link href="#">Terms of Service</Link>and{' '}
-                                <Link href="#">Privacy Policy</Link>
-                            </label>
-                        </div>
-                        <AuthenticationButton className="submit-button"
-                            formAction={loginOrSignUp}
-                            buttonType="submit" />
-                    </form>
-                    <div className="separating-area">
-                        <div className="w-full">
-                            <hr />
-                        </div>
-                        <div>
-                            <span className="text-md text-color-light">or</span>
-                        </div>
-                        <div className="w-full">
-                            <hr />
-                        </div>
-                    </div>
-                    <div className="social-login-area">
-                        <SocialLoginButton provider="google">
-                            <span>
-                                <svg width="20" height="19" viewBox="0 0 20 19" fill="currentColor"
-                                    xmlns="http://www.w3.org/2000/svg">
-                                    <g clipPath="url(#clip0_618_2904)">
-                                        <path fill="currentColor"
-                                            d="M19.3147 9.71894C19.3147 9.07316 19.2623 8.42389 19.1506 7.78857H10.1899V11.4469H15.3213C15.1084 12.6267 14.4242 13.6704 13.4224 14.3337V16.7074H16.4837C18.2815 15.0528 19.3147 12.6093 19.3147 9.71894Z" />
-                                        <path fill="currentColor"
-                                            d="M10.1899 19.0009C12.7521 19.0009 14.9128 18.1596 16.4871 16.7075L13.4258 14.3338C12.574 14.9132 11.4745 15.2414 10.1934 15.2414C7.71496 15.2414 5.61354 13.5693 4.85954 11.3213H1.70044V13.7683C3.31315 16.9763 6.59792 19.0009 10.1899 19.0009Z" />
-                                        <path fill="currentColor"
-                                            d="M4.85612 11.3211C4.45818 10.1413 4.45818 8.86368 4.85612 7.68381V5.23682H1.70051C0.353087 7.92118 0.353087 11.0838 1.70051 13.7681L4.85612 11.3211Z" />
-                                        <path fill="currentColor"
-                                            d="M10.1899 3.76015C11.5443 3.7392 12.8533 4.24885 13.8342 5.18436L16.5465 2.47207C14.829 0.859358 12.5496 -0.0272856 10.1899 0.000640194C6.59792 0.000640194 3.31315 2.02526 1.70044 5.23672L4.85605 7.68372C5.60656 5.4322 7.71146 3.76015 10.1899 3.76015Z" />
-                                    </g>
-                                    <defs>
-                                        <clipPath id="clip0_618_2904">
-                                            <rect width="19" height="19" fill="white" transform="translate(0.5)" />
-                                        </clipPath>
-                                    </defs>
-                                </svg>
-                                Continue with Google
-                            </span>
-                        </SocialLoginButton>
-                        {/*<SocialLoginButton provider="apple">*/}
-                        {/*    <span>*/}
-                        {/*        <svg width="20" height="19" viewBox="0 0 20 19" fill="currentColor"*/}
-                        {/*            xmlns="http://www.w3.org/2000/svg">*/}
-                        {/*            <g clipPath="url(#clip0_618_2911)">*/}
-                        {/*                <path fill="currentColor"*/}
-                        {/*                    d="M17.7519 14.8068C17.4646 15.4706 17.1244 16.0816 16.7304 16.6434C16.1932 17.4092 15.7534 17.9393 15.4145 18.2337C14.8891 18.7169 14.3261 18.9644 13.7233 18.9784C13.2905 18.9784 12.7687 18.8553 12.1611 18.6055C11.5516 18.3568 10.9915 18.2337 10.4793 18.2337C9.9422 18.2337 9.36612 18.3568 8.74993 18.6055C8.1328 18.8553 7.63565 18.9855 7.25554 18.9984C6.67747 19.023 6.10127 18.7685 5.52613 18.2337C5.15904 17.9135 4.69989 17.3647 4.14985 16.5871C3.55969 15.7567 3.0745 14.7939 2.6944 13.6961C2.28732 12.5104 2.08325 11.3622 2.08325 10.2507C2.08325 8.97735 2.35839 7.87914 2.90949 6.95884C3.34261 6.21962 3.9188 5.6365 4.63996 5.20843C5.36112 4.78035 6.14033 4.56221 6.97947 4.54825C7.43862 4.54825 8.04073 4.69028 8.78898 4.96941C9.53512 5.24947 10.0142 5.3915 10.2243 5.3915C10.3813 5.3915 10.9135 5.22543 11.8157 4.89435C12.669 4.58731 13.3891 4.46018 13.979 4.51026C15.5775 4.63926 16.7785 5.26941 17.5771 6.40469C16.1475 7.27092 15.4403 8.48418 15.4544 10.0406C15.4673 11.2529 15.9071 12.2618 16.7714 13.0628C17.1631 13.4346 17.6006 13.7219 18.0873 13.926C17.9818 14.2321 17.8703 14.5253 17.7519 14.8068ZM14.0857 0.380108C14.0857 1.33033 13.7386 2.21754 13.0466 3.03874C12.2116 4.01498 11.2016 4.5791 10.1063 4.49008C10.0923 4.37609 10.0842 4.25611 10.0842 4.13003C10.0842 3.21782 10.4813 2.24158 11.1865 1.44337C11.5386 1.03922 11.9864 0.703181 12.5294 0.435112C13.0712 0.171044 13.5837 0.025008 14.0658 0C14.0798 0.127029 14.0857 0.254066 14.0857 0.380096V0.380108Z" />*/}
-                        {/*            </g>*/}
-                        {/*            <defs>*/}
-                        {/*                <clipPath id="clip0_618_2911">*/}
-                        {/*                    <rect width="19" height="19" fill="currentColor"*/}
-                        {/*                        transform="translate(0.5)" />*/}
-                        {/*                </clipPath>*/}
-                        {/*            </defs>*/}
-                        {/*        </svg>*/}
-                        {/*        Continue with Apple*/}
-                        {/*    </span>*/}
-                        {/*</SocialLoginButton>*/}
-                    </div>
-                    {message && <p className="display-message">{message}</p> || null}
-                </div>
-            </div>
+    // <div className={`flex min-h-screen ${isDarkMode ? 'bg-gray-900' : ''}`}>
+    <div className={`flex min-h-screen`}>
+      {/* Theme toggle button */}
+      <div className="absolute top-4 right-4 z-10">
+        <ThemeToggle />
+      </div>
+      
+      {/* Left side with background color and logo */}
+      <div className="hidden md:flex md:w-1/2 bg-[#56E8CD] flex-col items-center justify-center fixed left-0 top-0 h-full">
+        <div className="flex flex-col items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="200" height="140" viewBox="0 0 67 44" fill="none" className="mb-4">
+            <path fillRule="evenodd" clipRule="evenodd" d="M66.0155 27.6498C66.0155 34.9354 60.9873 41.0467 54.2119 42.7026C53.8347 42.8356 53.4443 42.965 53.0414 43.0906L53.1504 43.0537L53.1255 43.037C52.8467 43.1497 52.542 43.2118 52.2228 43.2118C50.8918 43.2118 49.8127 42.1328 49.8127 40.8017L49.8128 40.7887V31.5758C49.8128 29.5819 48.1964 27.9655 46.2025 27.9655C44.2086 27.9655 42.5922 29.5819 42.5922 31.5758V39.1671H42.5918C42.5921 39.1829 42.5922 39.1988 42.5922 39.2147C42.5922 40.5457 41.5132 41.6248 40.1822 41.6248C38.8512 41.6248 37.7722 40.5457 37.7722 39.2147C37.7722 39.1988 37.7723 39.1829 37.7726 39.1671H37.7721V28.2096C37.7721 25.7253 35.7582 23.7114 33.2739 23.7114C30.7896 23.7114 28.7757 25.7253 28.7757 28.2096V39.1671H28.7753C28.7756 39.1829 28.7757 39.1988 28.7757 39.2147C28.7757 40.5457 27.6967 41.6248 26.3657 41.6248C25.0347 41.6248 23.9557 40.5457 23.9557 39.2147C23.9557 39.1988 23.9558 39.1829 23.9561 39.1671H23.9557V31.5758C23.9557 29.5819 22.3393 27.9655 20.3454 27.9655C18.3515 27.9655 16.7352 29.5819 16.7352 31.5758V40.7987L16.7352 40.8017L16.7352 40.8048V40.8662L16.7343 40.8668C16.6998 42.1678 15.6344 43.2118 14.3251 43.2118C14.0847 43.2118 13.8526 43.1766 13.6335 43.1111L13.5615 43.1632C13.0747 43.015 12.6056 42.8613 12.1552 42.7025C5.37999 41.0464 0.352051 34.9353 0.352051 27.6498C0.352051 19.5304 6.59693 12.8696 14.5456 12.2084C18.0015 5.42659 25.0502 0.781738 33.1837 0.781738C41.3172 0.781738 48.3658 5.42659 51.8218 12.2084C59.7705 12.8695 66.0155 19.5303 66.0155 27.6498ZM20.3728 26.7236C22.8722 26.7236 24.8983 24.6974 24.8983 22.198C24.8983 19.6987 22.8722 17.6725 20.3728 17.6725C17.8734 17.6725 15.8473 19.6987 15.8473 22.198C15.8473 24.6974 17.8734 26.7236 20.3728 26.7236ZM39.2598 16.1076C39.2598 19.4633 36.5394 22.1836 33.1837 22.1836C29.8281 22.1836 27.1077 19.4633 27.1077 16.1076C27.1077 12.7519 29.8281 10.0316 33.1837 10.0316C36.5394 10.0316 39.2598 12.7519 39.2598 16.1076ZM45.9947 26.7236C48.4941 26.7236 50.5202 24.6974 50.5202 22.198C50.5202 19.6987 48.4941 17.6725 45.9947 17.6725C43.4953 17.6725 41.4692 19.6987 41.4692 22.198C41.4692 24.6974 43.4953 26.7236 45.9947 26.7236Z" fill="white"/>
+          </svg>
+          <h2 className="text-3xl font-bold text-white mb-2">CLOUD PEOPLE</h2>
         </div>
+      </div>
+      
+      {/* Right side with login form */}
+      {/* <div className={`w-full md:w-1/2 flex items-center justify-center p-8 md:ml-auto ${isDarkMode ? 'bg-gray-900' : ''}`}> */}
+      <div className={`w-full md:w-1/2 flex items-center justify-center p-8 md:ml-auto `}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md" >
+          <div className="text-center mb-8">
+            {/* <h2 className={`text-3xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-2`}> */}
+            <h2 className={`text-3xl font-bold text-gray-900 mb-2`}>
+              Welcome to The Rebellion
+            </h2>
+            {/* <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}> */}
+            <p className={`text-gray-600`}>
+              Enter your credentials to access your dashboard
+            </p>
+          </div>
+          
+          {/* Social login buttons */}
+          <div className="mb-6">
+            <div className="grid grid-cols-3 gap-3">
+              {/* <button type="button" onClick={() => handleSocialLogin('google')} className={`flex justify-center items-center py-2 px-4 border ${ isDarkMode ? 'border-gray-600 bg-gray-800 hover:bg-gray-700 text-white' : 'border-gray-300 bg-white hover:bg-gray-50 text-gray-700' } rounded-md shadow-sm transition-colors duration-200`}> */}
+              <button type="button" className={`flex justify-center items-center py-2 px-4 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 rounded-md shadow-sm transition-colors duration-200`}>
+                <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                </svg>
+                Google
+              </button>
+              {/* <button type="button" onClick={() => handleSocialLogin('apple')} className={`flex justify-center items-center py-2 px-4 border ${ isDarkMode ? 'border-gray-600 bg-gray-800 hover:bg-gray-700 text-white' : 'border-gray-300 bg-white hover:bg-gray-50 text-gray-700' } rounded-md shadow-sm transition-colors duration-200`} */}
+              <button type="button" className={`flex justify-center items-center py-2 px-4 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 rounded-md shadow-sm transition-colors duration-200`}>
+                {/* <Apple size={20} className="mr-2" /> */}
+                Apple
+              </button>
+              <button type="button" className={`flex justify-center items-center py-2 px-4 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 rounded-md shadow-sm transition-colors duration-200`}>
+                X
+              </button>
+            </div>
+          </div>
+          
+          {/* Divider */}
+          <div className="relative my-6">
+            <div className={`absolute inset-0 flex items-center`}>
+              {/* <div className={`w-full border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-300'}`}></div> */}
+              <div className={`w-full border-t border-gray-300`}></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              {/* <span className={`px-2 ${isDarkMode ? 'bg-gray-900 text-gray-400' : 'bg-white text-gray-500'}`}> */}
+              <span className={`px-2 bg-white text-gray-500`}>
+                Or continue with email
+              </span>
+            </div>
+          </div>
+          
+          {/* <form className="space-y-6" onSubmit={handleSubmit}> */}
+          <form className="space-y-6">
+            {false && (
+            //   <div className={`rounded-md ${isDarkMode ? 'bg-red-900' : 'bg-red-50'} p-4`}>
+              <div className={`rounded-md bg-red-50 p-4`}>
+                <div className="flex">
+                  <div className="ml-3">
+                    {/* <h3 className={`text-sm font-medium text-red-800`}>{error}</h3> */}
+                    <h3 className={`text-sm font-medium text-red-800`}>Error message...</h3>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div className="space-y-4">
+              <div>
+                {/* <label htmlFor="email" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}> */}
+                <label htmlFor="email" className={`block text-sm font-medium text-gray-700 mb-1`}>
+                  Email address
+                </label>
+                {/* <input id="email" name="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={`appearance-none block w-full px-3 py-2 border ${ isDarkMode ? 'border-gray-600 bg-gray-800 text-white placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500' } rounded-md shadow-sm focus:outline-none sm:text-sm`} /> */}
+                <input id="email" name="email" type="email" autoComplete="email" className={`appearance-none block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500 rounded-md shadow-sm focus:outline-none sm:text-sm`} />
+              </div>
+              
+              <div>
+                {/* <label htmlFor="password" className={`block text-sm font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'} mb-1`}> */}
+                <label htmlFor="password" className={`block text-sm font-medium text-gray-700 mb-1`}>
+                  Password
+                </label>
+                {/* <input id="password" name="password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={`appearance-none block w-full px-3 py-2 border ${ isDarkMode ? 'border-gray-600 bg-gray-800 text-white placeholder-gray-500 focus:ring-blue-500 focus:border-blue-500' : 'border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500' } rounded-md shadow-sm focus:outline-none sm:text-sm`} /> */}
+                <input id="password" name="password" type="password" autoComplete="current-password" className={`appearance-none block w-full px-3 py-2 border border-gray-300 bg-white text-gray-900 placeholder-gray-400 focus:ring-blue-500 focus:border-blue-500 rounded-md shadow-sm focus:outline-none sm:text-sm`} />
+              </div>
+            </div>
+            
+            <div>
+              {/* <button type="submit" disabled={isLoading} className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" > */}
+              <button type="submit" className="w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500" >
+                {/* {isLoading ? ( */}
+                {false ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Loading...
+                  </>
+                ) : (
+                //   <>
+                    // Sign in <ArrowRight size={16} className="ml-2" />
+                //   </>
+                    <p>Sign in</p>
+                )}
+              </button>
+            </div>
+            
+            <div className="text-center mt-4">
+              {/* <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}> */}
+              <p className={`text-sm text-gray-600`}>
+                For demo purposes, any email and password will work
+              </p>
+            </div>
+          </form>
+        </motion.div>
+      </div>
+    </div>
     );
-};
-
-export default LoginPage;
+}

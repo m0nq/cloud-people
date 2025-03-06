@@ -1,76 +1,87 @@
 .login-container {
-  @apply flex flex-row items-center w-full h-screen font-inter;
+  @apply flex min-h-screen;
 }
 
 .banner {
-  @apply bg-secondary w-3/5 h-full flex flex-col items-center justify-center text-center;
+  @apply hidden md:flex md:w-1/2 bg-[#56E8CD] flex-col items-center justify-center fixed left-0 top-0 h-full;
 }
 
 .font-head {
-  @apply font-bold w-full uppercase tracking-[0.5rem] text-[#18642D] pt-6;
+  @apply text-3xl font-bold text-white mb-2;
 }
 
 .form-area {
-  @apply w-2/5 h-screen bg-dark text-color-light;
+  @apply w-full md:w-1/2 flex items-center justify-center p-8 md:ml-auto;
 }
 
 .login-form-wrapper {
-  @apply h-full w-3/4 mx-auto flex flex-col items-center justify-center text-center;
+  @apply w-full max-w-md;
+}
 
-  h2 {
-    @apply font-semibold self-start text-left mb-10;
-  }
+.login-form-header {
+  @apply text-center mb-8;
+}
+
+.login-form-header h2 {
+  @apply text-3xl font-bold mb-2 text-gray-900 dark:text-white;
+}
+
+.login-form-header p {
+  @apply text-gray-600 dark:text-gray-300;
 }
 
 .login-form {
-  @apply flex flex-col items-center justify-evenly w-full;
+  @apply space-y-6;
+}
+
+.input-group {
+  @apply space-y-1;
+}
+
+.input-label {
+  @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
 }
 
 .input {
-  @apply rounded-md w-full bg-dark text-color-light;
-}
-
-.agreement-wrapper {
-  @apply my-4 self-start;
-}
-
-.agreement-label {
-  @apply text-sm items-center flex grow shrink basis-auto gap-2 text-left;
-}
-
-a {
-  @apply text-color-light hover:text-primary visited:text-color-light;
-}
-
-.agreement-checkbox {
-  @apply rounded m-0 bg-dark;
-
-}
-
-.submit-button {
-  @apply py-3 px-4 rounded-md no-underline w-full bg-primary text-white hover:bg-primary/60;
-}
-
-.display-message {
-  @apply mt-4 p-4 text-center;
-}
-
-.separating-area {
-  @apply w-full flex flex-row items-center justify-center my-4 py-4;
-
-  hr {
-    @apply border-gray-400 dark:border-gray-600 border-opacity-75;
-  }
+  @apply appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm
+         placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500
+         dark:bg-gray-800 dark:text-white dark:placeholder-gray-500;
 }
 
 .social-login-area {
-  @apply w-full flex flex-col gap-3;
-
-  button {
-    @apply w-full text-sm border border-black rounded-md;
-  }
+  @apply grid grid-cols-3 gap-3 mb-6;
 }
 
-.social-login-area button span {
-  @apply flex justify-center gap-x-2 w-full text-sm px-4 py-3 rounded-md border border-solid border-color-light;
+.social-button {
+  @apply flex justify-center items-center py-2 px-4 border border-gray-300 dark:border-gray-600
+         bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700
+         text-gray-700 dark:text-white rounded-md shadow-sm transition-colors duration-200;
+}
+
+.separating-area {
+  @apply relative my-6;
+}
+
+.separating-area hr {
+  @apply absolute inset-0 flex items-center border-t border-gray-300 dark:border-gray-700;
+}
+
+.separating-area span {
+  @apply relative flex justify-center text-sm;
+}
+
+.separating-area span span {
+  @apply px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400;
+}
+
+.error-message {
+  @apply rounded-md bg-red-50 dark:bg-red-900 p-4 mb-4;
+}
+
+.error-message-text {
+  @apply text-sm font-medium text-red-800 dark:text-red-200;
+}
+
+.display-message {
+  @apply mt-4 p-4 text-center text-sm text-gray-600 dark:text-gray-400;
 }
