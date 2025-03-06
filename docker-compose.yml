@@ -1,44 +1,42 @@
-version: '3'
-
 services:
-  browser-use:
+  browser-service:
     build:
-      context: ./services/browser-use
+      context: ./services/browser-service
       dockerfile: Dockerfile
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+      cache_from:
+        - cloud-people-browser-service:latest
+    image: cloud-people-browser-service:latest
     ports:
-      - "8000:8000"
+      - "8000:8000"  # FastAPI
+      - "6080:6080"  # noVNC (browser-based VNC access)
+      - "5901:5901"  # VNC direct access
     environment:
       - DISPLAY=:99
       - PYTHONUNBUFFERED=1
       - GEMINI_API_KEY=${GOOGLE_API_KEY}
+      - HEADLESS=false  # Ensure browser is visible in VNC
+      - BROWSER_TIMEOUT=60000  # Increase timeout for browser operations
+      - RESOLUTION_WIDTH=1920
+      - RESOLUTION_HEIGHT=1080
+    volumes:
+      - /dev/shm:/dev/shm  # Shared memory for browser
+      - ./services/browser-service/screenshots:/home/pwuser/app/screenshots  # Mount screenshots directory
+      - ./services/browser-service/recordings:/home/pwuser/app/recordings    # Mount recordings directory
+    shm_size: 2gb  # Explicit shared memory size
     ipc: host  # Required for Chrome to avoid memory issues
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+        reservations:
+          cpus: '1'
+          memory: 2G
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
     restart: unless-stopped
-
-  web:
-    build:
-      context: .
-      dockerfile: apps/web/Dockerfile
-    ports:
-      - "3000:3000"
-    environment:
-      - BROWSER_USE_API_URL=http://browser-use:8000
-    depends_on:
-      browser-use:
-        condition: service_healthy
-
-  server:
-    build:
-      context: .
-      dockerfile: apps/server/Dockerfile
-    ports:
-      - "4000:4000"
-    environment:
-      - BROWSER_USE_API_URL=http://browser-use:8000
-    depends_on:
-      browser-use:
-        condition: service_healthy
