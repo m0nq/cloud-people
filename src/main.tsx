@@ -1,10 +1,16 @@
 import { StrictMode } from 'react';
-import { createRoot } from 'react-dom/client';
-import App from './App.tsx';
+import dynamic from 'next/dynamic';
 import './index.css';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+// Dynamically import App with no SSR to prevent hydration issues
+const App = dynamic(() => import('./App'), {
+  ssr: false
+});
+
+export default function Root() {
+  return (
+    <StrictMode>
+      <App />
+    </StrictMode>
+  );
+}
