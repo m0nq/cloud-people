@@ -1,0 +1,16 @@
+{
+  "name": "@cloud-people/types",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint src --ext .ts"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3",
+    "@cloud-people/tsconfig": "workspace:*",
+    "@cloud-people/eslint-config": "workspace:*"
+  }
+}

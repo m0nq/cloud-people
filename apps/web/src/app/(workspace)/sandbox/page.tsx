@@ -1,6 +1,7 @@
 'use client';
 import { ReactNode } from 'react';
 import { useState } from 'react';
+import { Profiler } from 'react';
 import '@xyflow/react/dist/style.css';
 import { Panel } from '@xyflow/react';
 import { ReactFlow } from '@xyflow/react';
@@ -21,6 +22,34 @@ import { SandboxRunButton } from '@components/sandbox-run-button/sandbox-run-but
 import { BranchesIcon } from '@components/icons/branches-icon';
 import { DatePicker } from '@components/calendar/date-picker';
 
+// Profiler callback function to measure render performance
+// Only active in development mode
+const onRenderCallback = (
+    id: string,
+    phase: string,
+    actualDuration: number,
+    baseDuration: number,
+    startTime: number,
+    commitTime: number
+) => {
+    // Only log in development mode
+    if (process.env.NODE_ENV === 'development') {
+        console.log(`Profiler [${id}] - ${phase}:`);
+        console.log(`  Actual duration: ${actualDuration.toFixed(2)}ms`);
+        console.log(`  Base duration: ${baseDuration.toFixed(2)}ms`);
+        console.log(`  Start time: ${startTime.toFixed(2)}ms`);
+        console.log(`  Commit time: ${commitTime.toFixed(2)}ms`);
+    }
+};
+
+// Conditional Profiler component that only profiles in development
+const ConditionalProfiler = ({ id, children }: { id: string; children: ReactNode }): ReactNode => {
+    if (process.env.NODE_ENV === 'development') {
+        return <Profiler id={id} onRender={onRenderCallback}>{children}</Profiler>;
+    }
+    return children;
+};
+
 const Sandbox = (): ReactNode => {
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
@@ -30,66 +59,68 @@ const Sandbox = (): ReactNode => {
     };
 
     return (
-        <WorkflowRenderer>
-            {({ ...props }): ReactNode => (
-                <div className="flow-container">
-                    <ReactFlow
-                        nodeOrigin={[0.5, 0.5]}
-                        nodesDraggable
-                        nodesFocusable
-                        autoPanOnConnect
-                        panOnScroll
-                        selectionOnDrag
-                        panOnDrag
-                        proOptions={{ hideAttribution: true }}
-                        {...props}>
-                        <Panel className="flow-panel">
-                            <SandboxController />
-                            <SandboxRunButton />
-                        </Panel>
-                        <Panel className="flow-controls">
-                            <button onClick={() => alert('Something magical just happened. ✨')}>
-                                <LuMousePointer className="icon-button" strokeWidth={1.5} />
-                            </button>
-                            <button onClick={() => alert('Something magical just happened. ✨')}>
-                                <IoHandRightOutline className="icon-button" strokeWidth={1.5} />
-                            </button>
-                            <button onClick={() => alert('Something magical just happened. ✨')}>
-                                <FiUserPlus className="icon-button" strokeWidth={1.5} />
-                            </button>
-                            <button onClick={() => setIsCalendarOpen(true)}>
-                                <TbCalendarTime className="icon-button" strokeWidth={1.5} />
-                            </button>
-                            <button onClick={() => alert('Something magical just happened. ✨')}>
-                                <BranchesIcon className="icon-button" />
-                            </button>
-                            <button onClick={() => alert('Something magical just happened. ✨')}>
-                                <PiClipboardLight className="icon-button" strokeWidth={1.5} />
-                            </button>
-                            <button onClick={() => alert('Something magical just happened. ✨')}>
-                                <CiCircleCheck className="icon-button" strokeWidth={0.5} />
-                            </button>
-                            <button onClick={() => alert('Something magical just happened. ✨')}>
-                                <HiOutlinePencilAlt className="icon-button" strokeWidth={1.5} />
-                            </button>
-                            <button onClick={() => alert('Something magical just happened. ✨')}>
-                                <CiSearch className="icon-button" strokeWidth={0.5} />
-                            </button>
-                        </Panel>
-                        <Panel className="timing-controls">
-                            <button onClick={() => alert('Something magical just happened. ✨')}>
-                                <LuClock4 className="icon-button" strokeWidth={1.5} />
-                            </button>
-                        </Panel>
-                        {isCalendarOpen && (
-                            <Panel className="calendar-panel">
-                                <DatePicker isOpen={isCalendarOpen} onClose={() => setIsCalendarOpen(false)} onDateSelect={handleDateSelect} />
+        <ConditionalProfiler id="WorkflowContainer">
+            <WorkflowRenderer>
+                {({ ...props }): ReactNode => (
+                    <div className="flow-container">
+                        <ReactFlow
+                            nodeOrigin={[0.5, 0.5]}
+                            nodesDraggable
+                            nodesFocusable
+                            autoPanOnConnect
+                            panOnScroll
+                            selectionOnDrag
+                            panOnDrag
+                            proOptions={{ hideAttribution: true }}
+                            {...props}>
+                            <Panel className="flow-panel">
+                                <SandboxController />
+                                <SandboxRunButton />
                             </Panel>
-                        )}
-                    </ReactFlow>
-                </div>
-            )}
-        </WorkflowRenderer>
+                            <Panel className="flow-controls">
+                                <button onClick={() => alert('Something magical just happened. ✨')}>
+                                    <LuMousePointer className="icon-button" strokeWidth={1.5} />
+                                </button>
+                                <button onClick={() => alert('Something magical just happened. ✨')}>
+                                    <IoHandRightOutline className="icon-button" strokeWidth={1.5} />
+                                </button>
+                                <button onClick={() => alert('Something magical just happened. ✨')}>
+                                    <FiUserPlus className="icon-button" strokeWidth={1.5} />
+                                </button>
+                                <button onClick={() => setIsCalendarOpen(true)}>
+                                    <TbCalendarTime className="icon-button" strokeWidth={1.5} />
+                                </button>
+                                <button onClick={() => alert('Something magical just happened. ✨')}>
+                                    <BranchesIcon className="icon-button" />
+                                </button>
+                                <button onClick={() => alert('Something magical just happened. ✨')}>
+                                    <PiClipboardLight className="icon-button" strokeWidth={1.5} />
+                                </button>
+                                <button onClick={() => alert('Something magical just happened. ✨')}>
+                                    <CiCircleCheck className="icon-button" strokeWidth={0.5} />
+                                </button>
+                                <button onClick={() => alert('Something magical just happened. ✨')}>
+                                    <HiOutlinePencilAlt className="icon-button" strokeWidth={1.5} />
+                                </button>
+                                <button onClick={() => alert('Something magical just happened. ✨')}>
+                                    <CiSearch className="icon-button" strokeWidth={0.5} />
+                                </button>
+                            </Panel>
+                            <Panel className="timing-controls">
+                                <button onClick={() => alert('Something magical just happened. ✨')}>
+                                    <LuClock4 className="icon-button" strokeWidth={1.5} />
+                                </button>
+                            </Panel>
+                            {isCalendarOpen && (
+                                <Panel className="calendar-panel">
+                                    <DatePicker isOpen={isCalendarOpen} onClose={() => setIsCalendarOpen(false)} onDateSelect={handleDateSelect} />
+                                </Panel>
+                            )}
+                        </ReactFlow>
+                    </div>
+                )}
+            </WorkflowRenderer>
+        </ConditionalProfiler>
     );
 };
 

@@ -131,6 +131,11 @@ const nodeStateSelector = (state: WorkflowStore) => ({
  * };
  */
 export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
+    // Only log in development mode
+    if (process.env.NODE_ENV === 'development') {
+        console.log('WorkflowRenderer rendering');
+    }
+    
     // Load with initial state nodes
     // when a node is clicked, corresponding nodes will be updated by our graph store
     const {
@@ -143,10 +148,15 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         onNodesDelete
     } = useWorkflowStore(useShallow(nodeStateSelector));
 
-    // Modify nodes to include any additional data needed for rendering
-    const nodesWithModals = useMemo(() => {
-        return nodes?.map((node) => node);
-    }, [nodes]);
+    // Log when nodes or edges change - only in development
+    useEffect(() => {
+        if (process.env.NODE_ENV === 'development') {
+            console.log('Nodes or edges changed:', { nodesCount: nodes.length, edgesCount: edges.length });
+        }
+    }, [nodes, edges]);
+
+    // Only create a new reference if the nodes array actually changes
+    const nodesWithModals = useMemo(() => nodes, [nodes]);
 
     const [layout, setLayout] = useState<{ nodes: Node<NodeData | InitialStateNodeData>[]; edges: Edge[] }>({
         nodes: nodesWithModals,
@@ -170,16 +180,20 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
     const isPositionChange = (change: NodeChange): change is PositionChange =>
         change.type === 'position';
 
-    // Calculate layout on client-side only
+    // Calculate layout on client-side only, but only when necessary
     useEffect(() => {
         let isSubscribed = true;
 
         const updateLayout = (newNodes: Node<NodeData | InitialStateNodeData>[], newEdges: Edge[]) => {
             if (!isSubscribed) return;
-            setLayout({ nodes: newNodes, edges: newEdges });
+            
+            // Use startTransition to batch updates and reduce render priority
+            startTransition(() => {
+                setLayout({ nodes: newNodes, edges: newEdges });
+            });
         };
 
-        // Always recalculate layout for new nodes
+        // Only recalculate layout when necessary
         const hasNewNodes = nodesWithModals.some(node => !node.position);
         const hasInitialNodes = nodesWithModals.some(node => node.type === NodeType.Initial);
 
@@ -193,9 +207,9 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         return () => {
             isSubscribed = false;
         };
-    }, [nodesWithModals, edges]);
+    }, [nodesWithModals, edges, startTransition]);
 
-    // Wrap node changes to track positioning
+    // Wrap node changes to track positioning and batch updates
     const wrappedOnNodesChange = useCallback(
         (changes: NodeChange[]) => {
             // Track which nodes are being positioned
@@ -209,9 +223,12 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
                 }
             });
 
-            onNodesChange?.(changes);
+            // Use startTransition to batch updates
+            startTransition(() => {
+                onNodesChange?.(changes);
+            });
         },
-        [onNodesChange]
+        [onNodesChange, startTransition]
     );
 
     // Cleanup memoized handlers when component unmounts
@@ -226,19 +243,30 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         };
     }, [nodesWithModals]);
 
+    // Memoize the props object to prevent unnecessary rerenders
+    const flowProps = useMemo(() => ({
+        nodes: layout.nodes,
+        edges: layout.edges,
+        edgeTypes,
+        nodeTypes,
+        onNodesChange: wrappedOnNodesChange,
+        onEdgesChange,
+        onBeforeDelete,
+        onNodesDelete,
+        onConnect
+    }), [
+        layout.nodes, 
+        layout.edges, 
+        wrappedOnNodesChange, 
+        onEdgesChange, 
+        onBeforeDelete, 
+        onNodesDelete, 
+        onConnect
+    ]);
+
     return (
         <>
-            {children({
-                nodes: layout.nodes,
-                edges: layout.edges,
-                edgeTypes,
-                nodeTypes,
-                onNodesChange: wrappedOnNodesChange,
-                onEdgesChange,
-                onBeforeDelete,
-                onNodesDelete,
-                onConnect
-            })}
+            {children(flowProps)}
             <Modal />
         </>
     );

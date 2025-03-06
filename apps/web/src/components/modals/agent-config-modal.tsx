@@ -42,7 +42,7 @@ const agentConfigSchema = z.object({
             return isNaN(num) ? 0 : num;
         })
         .refine(val => val >= 0, 'Amount must be positive'),
-    models: z.string().optional().default(''),
+    model: z.string().min(1, 'Model is required').default('gemini-2.0-flash'),
     tools: z.string().optional().default('')
 });
 
@@ -92,7 +92,7 @@ export const AgentConfigModal = () => {
             contextWindow: '',
             memoryLimit: MemoryLimit.Small,
             budget: '0.00',
-            models: '',
+            model: 'gemini-2.0-flash',
             tools: ''
         },
         validate: async values => {
@@ -126,7 +126,7 @@ export const AgentConfigModal = () => {
                     contextWindow: values.contextWindow ? DOMPurify.sanitize(values.contextWindow) : '',
                     memoryLimit: values.memoryLimit,
                     budget: values.budget.replace(/[^0-9.]/g, ''), // Remove currency formatting
-                    models: values.models || '',
+                    model: values.model,
                     tools: values.tools || ''
                 };
 
@@ -198,7 +198,7 @@ export const AgentConfigModal = () => {
                                 placeholder="Give your agent a name..."
                                 className="name-input" {...formik.getFieldProps('name')} />
                             {formik.touched.name && formik.errors.name &&
-                                <div className="w-full h-fit text-white">{formik.errors.name}</div>}
+                              <div className="w-full h-fit text-white">{formik.errors.name}</div>}
                         </div>
                         <button type="button" className="minimize-button" onClick={handleClick}>
                             <MinimizeIcon color="white" width={24} height={24} />
@@ -219,7 +219,7 @@ export const AgentConfigModal = () => {
                                 placeholder="Does research on historical data and current trends to identify trends and holes in the market for the company to fill."
                             />
                             {formik.touched.description && formik.errors.description &&
-                                <div className="w-full h-fit text-white">{formik.errors.description}</div>}
+                              <div className="w-full h-fit text-white">{formik.errors.description}</div>}
                         </div>
                     </div>
 
@@ -295,7 +295,7 @@ export const AgentConfigModal = () => {
                                     />
                                 </div>
                                 {formik.touched.budget && formik.errors.budget &&
-                                    <div className="text-white w-full h-fit">{formik.errors.budget}</div>}
+                                  <div className="text-white w-full h-fit">{formik.errors.budget}</div>}
                             </div>
                         </div>
 
@@ -303,12 +303,16 @@ export const AgentConfigModal = () => {
                         <div className="models-tools-section">
                             <div className="models-section">
                                 <label className="label-details">
-                                    AI models
+                                    AI Model
                                     <InfoIcon color="#575D69" width={16} height={16} strokeWidth={2} />
                                 </label>
                                 <input type="text"
-                                    placeholder="Search"
-                                    className="config-input" {...formik.getFieldProps('models')} />
+                                    placeholder="Enter model name (e.g. gpt-4)"
+                                    className="config-input"
+                                    {...formik.getFieldProps('model')} />
+                                {formik.touched.model && formik.errors.model && (
+                                    <div className="text-white">{formik.errors.model}</div>
+                                )}
                                 <div className="models-container">
                                     <div className="model-icon bg-emerald-500"></div>
                                     <div className="model-icon bg-purple-500"></div>
