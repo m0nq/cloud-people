@@ -5,7 +5,8 @@ export enum AgentState {
     Working = 'WORKING',
     Complete = 'COMPLETE',
     Error = 'ERROR',
-    Assistance = 'ASSISTANCE'
+    Assistance = 'ASSISTANCE',
+    Paused = 'PAUSED'
 }
 
 export type AgentRuntimeState = {
@@ -16,4 +17,5 @@ export type AgentRuntimeState = {
     progress?: number;
     error?: string;
     assistanceMessage?: string;
+    metadata?: Record<string, any>; // Store pause-related info here
 };
