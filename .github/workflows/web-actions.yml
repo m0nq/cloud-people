@@ -41,11 +41,6 @@ concurrency:
     group: 'pages'
     cancel-in-progress: false
 
-defaults:
-    run:
-        shell: bash
-        working-directory: apps/web
-
 jobs:
     build:
         name: Build and Test Web App 🛠️
@@ -65,14 +60,15 @@ jobs:
               uses: wyvox/action-setup-pnpm@v3
               with:
                   node-version: 'lts/*'
+                  package_json_directory: '.'
 
             - name: Install dependencies
-              run: pnpm install --frozen-lockfile
+              run: |
+                echo "node-linker=hoisted" >> .npmrc
+                pnpm install --frozen-lockfile --prefer-offline
 
             - name: Run linter
-              working-directory: apps/web
-              run: pnpm lint
+              run: pnpm --filter "@cloud-people/web..." lint
 
             - name: Build
-              working-directory: apps/web
-              run: pnpm build
+              run: pnpm --filter "@cloud-people/web..." build
