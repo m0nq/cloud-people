@@ -132,4 +132,10 @@
       }
     }
   }
+
+}
+
+.display-message {
+  @apply fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg text-sm font-medium text-center
+    bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-200 shadow-md z-50;
 }

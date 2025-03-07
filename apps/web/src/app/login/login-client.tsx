@@ -130,7 +130,7 @@ export const LoginClient = (): ReactNode => {
                                 />
                             </div>
 
-                            <div className="input-group">
+                            {/* <div className="input-group">
                                 <label htmlFor="password" className="input-label">
                                     Password
                                 </label>
@@ -139,7 +139,7 @@ export const LoginClient = (): ReactNode => {
                                     type="password"
                                     autoComplete="current-password"
                                     className="input" />
-                            </div>
+                            </div> */}
                         </div>
 
                         <AuthenticationButton className="submit-button"
