@@ -146,11 +146,11 @@ export const LoginClient = (): ReactNode => {
                             formAction={loginOrSignUp}
                             buttonType="submit" />
 
-                        <div className="text-center mt-4">
-                            <p className={`text-sm text-gray-600`}>
-                                For demo purposes, any email and password will work
-                            </p>
-                        </div>
+                        {/* <div classname="text-center mt-4">
+                            <p classname={`text-sm text-gray-600`}>
+                                for demo purposes, any email and password will work
+                            </p> */}
+                        {/* </div> */}
                     </form>
                 </motion.div>
             </div>
