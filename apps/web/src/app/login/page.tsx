@@ -3,11 +3,7 @@ import { ReactNode } from 'react';
 import './login.styles.css';
 import { LoginClient } from './login-client';
 
-interface PageProps {
-  searchParams: Promise<{ message?: string }>;
-}
-
-const LoginPage = async ({ searchParams }: PageProps): Promise<ReactNode> => {
+const LoginPage = async ({ searchParams }: { searchParams: Promise<{ message?: string }> }): Promise<ReactNode> => {
   const { message } = await searchParams;
 
   return (
