@@ -9,7 +9,9 @@
             "runtimeArgs": [
                 "compose",
                 "up",
-                "-d"
+                "-d",
+                "--build",
+                "browser-use"
             ],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
@@ -21,7 +23,8 @@
             "runtimeExecutable": "docker",
             "runtimeArgs": [
                 "compose",
-                "down"
+                "down",
+                "browser-use"
             ],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
@@ -33,7 +36,8 @@
             "runtimeExecutable": "docker",
             "runtimeArgs": [
                 "compose",
-                "build"
+                "build",
+                "browser-use"
             ],
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal"
