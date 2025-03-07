@@ -1,87 +1,135 @@
 .login-container {
-  @apply flex min-h-screen;
+  @apply flex min-h-screen dark:bg-gray-900;
+}
+
+.theme-toggle {
+  @apply absolute top-4 right-4 z-10;
 }
 
 .banner {
   @apply hidden md:flex md:w-1/2 bg-[#56E8CD] flex-col items-center justify-center fixed left-0 top-0 h-full;
-}
 
-.font-head {
-  @apply text-3xl font-bold text-white mb-2;
+  .banner-content {
+    @apply flex flex-col items-center;
+  }
+
+  .banner-logo {
+    @apply mb-4;
+  }
+
+  .banner-title {
+    @apply text-3xl font-bold text-white mb-2 uppercase;
+  }
 }
 
 .form-area {
-  @apply w-full md:w-1/2 flex items-center justify-center p-8 md:ml-auto;
-}
+  @apply w-full md:w-1/2 flex items-center justify-center p-8 md:ml-auto bg-[#F9FAFB] dark:bg-gray-900;
 
-.login-form-wrapper {
-  @apply w-full max-w-md;
-}
+  .form-container {
+    @apply w-full max-w-md;
+  }
 
-.login-form-header {
-  @apply text-center mb-8;
-}
+  .form-header {
+    @apply text-center mb-8;
 
-.login-form-header h2 {
-  @apply text-3xl font-bold mb-2 text-gray-900 dark:text-white;
-}
+    .title {
+      @apply text-3xl font-bold text-gray-900 dark:text-white mb-2;
+    }
 
-.login-form-header p {
-  @apply text-gray-600 dark:text-gray-300;
-}
+    .subtitle {
+      @apply text-gray-600 dark:text-gray-300;
+    }
+  }
 
-.login-form {
-  @apply space-y-6;
-}
+  .social-login-container {
+    @apply mb-6;
 
-.input-group {
-  @apply space-y-1;
-}
+    .social-buttons {
+      @apply grid grid-cols-3 gap-3;
+    }
 
-.input-label {
-  @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1;
-}
+    .social-icon {
+      @apply h-5 w-5;
+      flex-shrink: 0;
+    }
 
-.input {
-  @apply appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm
-         placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500
-         dark:bg-gray-800 dark:text-white dark:placeholder-gray-500;
-}
+    .social-button {
+      @apply flex justify-center items-center gap-2 py-2 px-4 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700
+      text-gray-700 dark:text-white rounded-md shadow-sm transition-colors duration-200;
 
-.social-login-area {
-  @apply grid grid-cols-3 gap-3 mb-6;
-}
+    }
+  }
 
-.social-button {
-  @apply flex justify-center items-center py-2 px-4 border border-gray-300 dark:border-gray-600
-         bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700
-         text-gray-700 dark:text-white rounded-md shadow-sm transition-colors duration-200;
-}
+  .divider {
+    @apply relative my-6;
 
-.separating-area {
-  @apply relative my-6;
-}
+    .divider-line {
+      @apply absolute inset-0 flex items-center;
 
-.separating-area hr {
-  @apply absolute inset-0 flex items-center border-t border-gray-300 dark:border-gray-700;
-}
+      .line {
+        @apply w-full border-t border-gray-300 dark:border-gray-700;
+      }
+    }
 
-.separating-area span {
-  @apply relative flex justify-center text-sm;
-}
+    .divider-text {
+      @apply relative flex justify-center text-sm;
 
-.separating-area span span {
-  @apply px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400;
-}
+      .text {
+        @apply px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400;
+      }
+    }
+  }
 
-.error-message {
-  @apply rounded-md bg-red-50 dark:bg-red-900 p-4 mb-4;
-}
+  .login-form {
+    @apply space-y-6;
 
-.error-message-text {
-  @apply text-sm font-medium text-red-800 dark:text-red-200;
-}
+    .error-message {
+      @apply rounded-md bg-red-50 dark:bg-red-900 p-4;
 
-.display-message {
-  @apply mt-4 p-4 text-center text-sm text-gray-600 dark:text-gray-400;
+      .error-content {
+        @apply flex;
+
+        .error-text {
+          @apply ml-3 text-sm font-medium text-red-800 dark:text-red-200;
+        }
+      }
+    }
+
+    .form-fields {
+      @apply space-y-4;
+
+      .input-group {
+        @apply space-y-1;
+
+        .input-label {
+          @apply block text-sm font-medium text-gray-700 dark:text-gray-300;
+        }
+
+        .input {
+          @apply appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white
+          dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-md
+          shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500
+          sm:text-sm;
+        }
+      }
+    }
+
+    .submit-button {
+      @apply w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm
+      font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2
+      focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed;
+
+      .spinner {
+        @apply animate-spin -ml-1 mr-2 h-4 w-4 text-white;
+
+        .spinner-circle {
+          @apply opacity-25;
+        }
+
+        .spinner-path {
+          @apply opacity-75;
+        }
+      }
+    }
+  }
 }

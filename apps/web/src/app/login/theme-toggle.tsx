@@ -1,6 +1,5 @@
-'use client';
-
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useEffect } from 'react';
 
 export const ThemeToggle = () => {
     const [isDark, setIsDark] = useState(false);
