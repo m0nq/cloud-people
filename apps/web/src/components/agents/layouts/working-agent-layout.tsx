@@ -1,6 +1,4 @@
-import { useState } from 'react';
 import { useEffect } from 'react';
-import { useRef } from 'react';
 import Image from 'next/image';
 
 import './agent-card.styles.css';
@@ -13,41 +11,68 @@ import { WatchIcon } from '@components/icons/watch-icon';
 import { useAgent } from '@hooks/use-agent';
 import { useAgentStore } from '@stores/agent-store';
 
-export const WorkingAgentLayout = ({ agentId, agentData }: BaseAgentLayoutProps) => {
-    const { getAgentData } = useAgentStore();
-    const data = agentData || getAgentData(agentId);
-    const [result, setResult] = useState('');
-    const hasExecuted = useRef(false);
+export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
     const { transition } = useAgentStore();
-    const { executeAction, isProcessing } = useAgent(agentId, status => {
+    const agentStore = useAgentStore();
+    const agentData = agentStore.getAgentData(agentId);
+
+    const {
+        isProcessing,
+        executeTask,
+        pauseAgentExecution,
+        error
+    } = useAgent(agentId, (status) => {
         transition(agentId, status);
     });
 
-    // Start execution when component mounts, but only once
+    // Start execution when component mounts
     useEffect(() => {
-        if (hasExecuted.current) return;
+        let isMounted = true;
 
         (async () => {
-            console.log('🚀 Working agent mounted, executing action...');
-            hasExecuted.current = true;
-            setResult(await executeAction());
+            try {
+                // executeAction now handles both new tasks and resuming
+                await executeTask();
+
+                // If successful and we were resuming, reset the flag
+                if (isMounted && agentData?.isResuming) {
+                    useAgentStore.getState().setAgentData(agentId, {
+                        ...agentData,
+                        isResuming: false
+                    });
+                }
+            } catch (error) {
+                console.error(`Error during agent execution:`, error);
+            }
         })();
+
+        // Cleanup function
+        return () => {
+            isMounted = false;
+        };
+
         // This needs to run only once
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const handlePause = async () => {
+        await pauseAgentExecution(agentId, agentData, (status) => {
+            transition(agentId, status);
+        });
+    };
 
     return (
         <div className="working-agent-card">
             <div className="working-agent-wrapper">
                 {/* Content */}
                 <div className="agent-info-section">
-                    <Image src={data?.image || cloudHeadImage}
-                        alt={`Profile avatar of ${data?.name}`}
+                    <Image src={agentData?.image || cloudHeadImage}
+                        alt={`Profile avatar of ${agentData?.name}`}
                         className="rounded-full"
                         width={48}
                         height={48} />
                     <div className="agent-name">
-                        <span>{data?.name}</span>
+                        <span>{agentData?.name}</span>
                     </div>
                 </div>
 
@@ -58,7 +83,7 @@ export const WorkingAgentLayout = ({ agentId, agentData }: BaseAgentLayoutProps)
                         <span>Current Task:</span>
                     </div>
                     <div className="agent-tasks-container">
-                        <p>{isProcessing ? 'Processing...' : result || 'Ready'}</p>
+                        <p>{isProcessing && 'Processing...'}</p>
                     </div>
                 </div>
                 <div className="buttons-container">
@@ -67,9 +92,8 @@ export const WorkingAgentLayout = ({ agentId, agentData }: BaseAgentLayoutProps)
                         size="sm"
                         radius="lg"
                         fullWidth
-                        disabled={isProcessing}
-                        // onClick={onExecute}
-                        icon={<WatchIcon />}>
+                        // onClick={handlePause}
+                        icon={<WatchIcon width={15} height={15} />}>
                         Watch
                     </Button>
                     <Button variant="secondary"

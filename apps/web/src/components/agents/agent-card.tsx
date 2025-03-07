@@ -26,7 +26,8 @@ const AGENT_LAYOUTS = {
     [AgentState.Working]: WorkingAgentLayout,
     [AgentState.Error]: AssistanceAgentLayout,
     [AgentState.Assistance]: AssistanceAgentLayout,
-    [AgentState.Complete]: CompleteAgentLayout
+    [AgentState.Complete]: CompleteAgentLayout,
+    [AgentState.Paused]: BaseAgentLayout
 };
 
 export const AgentCard = ({

@@ -12,7 +12,7 @@ export class AgentFactory {
             description: agentData.description || '',
             model: {
                 provider: 'anthropic', // This could come from agentData.models
-                name: agentData.models[0], // Using first model for now
+                name: agentData.model, // Using first model for now
                 parameters: {
                     contextWindow: agentData.contextWindow,
                     memoryLimit: agentData.memoryLimit,

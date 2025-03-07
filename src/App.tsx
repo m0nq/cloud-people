@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
 import { Login } from './pages/Login';
 import { Home } from './pages/Home';
@@ -12,6 +12,16 @@ import { useAuthStore } from './store/auth';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Prevent hydration issues by not rendering until client-side
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <Router>

@@ -1,76 +1,141 @@
 .login-container {
-  @apply flex flex-row items-center w-full h-screen font-inter;
+  @apply flex min-h-screen dark:bg-gray-900;
+}
+
+.theme-toggle {
+  @apply absolute top-4 right-4 z-10;
 }
 
 .banner {
-  @apply bg-secondary w-3/5 h-full flex flex-col items-center justify-center text-center;
-}
+  @apply hidden md:flex md:w-1/2 bg-[#56E8CD] flex-col items-center justify-center fixed left-0 top-0 h-full;
 
-.font-head {
-  @apply font-bold w-full uppercase tracking-[0.5rem] text-[#18642D] pt-6;
+  .banner-content {
+    @apply flex flex-col items-center;
+  }
+
+  .banner-logo {
+    @apply mb-4;
+  }
+
+  .banner-title {
+    @apply text-3xl font-bold text-white mb-2 uppercase;
+  }
 }
 
 .form-area {
-  @apply w-2/5 h-screen bg-dark text-color-light;
-}
+  @apply w-full md:w-1/2 flex items-center justify-center p-8 md:ml-auto bg-[#F9FAFB] dark:bg-gray-900;
 
-.login-form-wrapper {
-  @apply h-full w-3/4 mx-auto flex flex-col items-center justify-center text-center;
-
-  h2 {
-    @apply font-semibold self-start text-left mb-10;
+  .form-container {
+    @apply w-full max-w-md;
   }
-}
 
-.login-form {
-  @apply flex flex-col items-center justify-evenly w-full;
-}
+  .form-header {
+    @apply text-center mb-8;
 
-.input {
-  @apply rounded-md w-full bg-dark text-color-light;
-}
+    .title {
+      @apply text-3xl font-bold text-gray-900 dark:text-white mb-2;
+    }
 
-.agreement-wrapper {
-  @apply my-4 self-start;
-}
+    .subtitle {
+      @apply text-gray-600 dark:text-gray-300;
+    }
+  }
 
-.agreement-label {
-  @apply text-sm items-center flex grow shrink basis-auto gap-2 text-left;
-}
+  .social-login-container {
+    @apply mb-6;
 
-a {
-  @apply text-color-light hover:text-primary visited:text-color-light;
-}
+    .social-buttons {
+      @apply flex items-center justify-center w-full gap-3;
 
-.agreement-checkbox {
-  @apply rounded m-0 bg-dark;
+      .social-button {
+        @apply flex flex-1 h-10 w-full justify-center items-center gap-2 py-2 px-4 border border-gray-300 dark:border-gray-600
+        bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-white
+        rounded-md shadow-sm transition-colors duration-200;
 
-}
+        .social-icon {
+          @apply h-5 w-5;
+          flex-shrink: 0;
+        }
+      }
+    }
+  }
 
-.submit-button {
-  @apply py-3 px-4 rounded-md no-underline w-full bg-primary text-white hover:bg-primary/60;
+  .divider {
+    @apply relative my-6;
+
+    .divider-line {
+      @apply absolute inset-0 flex items-center;
+
+      .line {
+        @apply w-full border-t border-gray-300 dark:border-gray-700;
+      }
+    }
+
+    .divider-text {
+      @apply relative flex justify-center text-sm;
+
+      .text {
+        @apply px-2 bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400;
+      }
+    }
+  }
+
+  .login-form {
+    @apply space-y-6;
+
+    .error-message {
+      @apply rounded-md bg-red-50 dark:bg-red-900 p-4;
+
+      .error-content {
+        @apply flex;
+
+        .error-text {
+          @apply ml-3 text-sm font-medium text-red-800 dark:text-red-200;
+        }
+      }
+    }
+
+    .form-fields {
+      @apply space-y-4;
+
+      .input-group {
+        @apply space-y-1;
+
+        .input-label {
+          @apply block text-sm font-medium text-gray-700 dark:text-gray-300;
+        }
+
+        .input {
+          @apply appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white
+          dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 rounded-md
+          shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500
+          sm:text-sm;
+        }
+      }
+    }
+
+    .submit-button {
+      @apply w-full flex justify-center items-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm
+      font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2
+      focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed;
+
+      .spinner {
+        @apply animate-spin -ml-1 mr-2 h-4 w-4 text-white;
+
+        .spinner-circle {
+          @apply opacity-25;
+        }
+
+        .spinner-path {
+          @apply opacity-75;
+        }
+      }
+    }
+  }
+
 }
 
 .display-message {
-  @apply mt-4 p-4 text-center;
-}
-
-.separating-area {
-  @apply w-full flex flex-row items-center justify-center my-4 py-4;
-
-  hr {
-    @apply border-gray-400 dark:border-gray-600 border-opacity-75;
-  }
-}
-
-.social-login-area {
-  @apply w-full flex flex-col gap-3;
-
-  button {
-    @apply w-full text-sm border border-black rounded-md;
-  }
-}
-
-.social-login-area button span {
-  @apply flex justify-center gap-x-2 w-full text-sm px-4 py-3 rounded-md border border-solid border-color-light;
+  @apply fixed top-4 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg text-sm font-medium text-center
+    bg-blue-50 text-blue-700 dark:bg-blue-900 dark:text-blue-200 shadow-md z-50;
 }

@@ -45,12 +45,13 @@ export const DEFAULT_AGENT_STATE: AgentRuntimeState = {
 const isValidTransition = (currentStatus: AgentState, newStatus: AgentState): boolean => {
     const transitions: Record<AgentState, AgentState[]> = {
         [AgentState.Initial]: [AgentState.Idle, AgentState.Activating],
-        [AgentState.Idle]: [AgentState.Activating, AgentState.Initial],
-        [AgentState.Activating]: [AgentState.Working, AgentState.Initial],
-        [AgentState.Working]: [AgentState.Complete, AgentState.Error, AgentState.Assistance, AgentState.Initial],
-        [AgentState.Error]: [AgentState.Activating, AgentState.Initial],
-        [AgentState.Assistance]: [AgentState.Activating, AgentState.Initial],
-        [AgentState.Complete]: [AgentState.Initial]
+        [AgentState.Idle]: [AgentState.Activating, AgentState.Initial, AgentState.Paused],
+        [AgentState.Activating]: [AgentState.Working, AgentState.Initial, AgentState.Paused],
+        [AgentState.Working]: [AgentState.Complete, AgentState.Error, AgentState.Assistance, AgentState.Initial, AgentState.Paused],
+        [AgentState.Error]: [AgentState.Activating, AgentState.Initial, AgentState.Paused],
+        [AgentState.Assistance]: [AgentState.Activating, AgentState.Initial, AgentState.Paused],
+        [AgentState.Complete]: [AgentState.Initial, AgentState.Paused],
+        [AgentState.Paused]: [AgentState.Activating, AgentState.Working, AgentState.Initial]
     };
 
     return transitions[currentStatus]?.includes(newStatus) ?? false;
