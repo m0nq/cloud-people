@@ -43,9 +43,7 @@ export const loginWithOAuth = async (provider: Provider) => {
 };
 
 export const loginOrSignUp = async (formData: FormData) => {
-    // Be explicit about the callback URL
-    // const emailRedirectTo = (await headers()).get('origin') ?? '/';
-    const emailRedirectTo = `${(await headers()).get('origin')}/auth/callback`;
+    const emailRedirectTo = (await headers()).get('origin') ?? 'http://localhost:3000';
     const supabase = await createClient();
     const email = DOMPurify.sanitize(formData.get('email') as string);
     // const agreement = DOMPurify.sanitize(formData.get('agreement') as string);
@@ -53,7 +51,7 @@ export const loginOrSignUp = async (formData: FormData) => {
     const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-            emailRedirectTo,
+            emailRedirectTo,  // Let Supabase handle the full callback URL
             shouldCreateUser: true
         }
     });
