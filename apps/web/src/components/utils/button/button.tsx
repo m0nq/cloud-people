@@ -7,7 +7,7 @@ export type ButtonSize = 'sm' | 'md' | 'lg';
 export type ButtonRadius = 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
 
 interface ButtonProps {
-    children: ReactNode;
+    children?: ReactNode;
     variant?: ButtonVariant;
     size?: ButtonSize;
     radius?: ButtonRadius;
@@ -73,8 +73,8 @@ export const Button = ({
             onClick={onClick}
             disabled={disabled}
             style={style}
-            className={`${baseClasses} ${variantClasses} ${sizeClasses} ${radiusClasses} ${widthClasses} ${activeClasses} ${shadowClasses} ${durationClass} ${className}`}>
-            {icon && <span className="button-icon">{icon}</span>}
+            className={`${baseClasses} ${variantClasses} ${sizeClasses} ${radiusClasses} ${widthClasses} ${activeClasses} ${shadowClasses} ${durationClass} ${icon && !children ? 'p-2' : ''} ${className}`}>
+            {icon && <span className={`button-icon ${!children ? 'm-0' : ''}`}>{icon}</span>}
             {children}
         </button>
     );
