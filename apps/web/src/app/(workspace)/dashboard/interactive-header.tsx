@@ -6,10 +6,11 @@ import { Button } from '@components/utils/button/button';
 
 export const InteractiveHeader = () => {
     return (
-        <div className="fixed top-20 right-6 z-10 flex flex-row space-x-4">
-            <Link href="/sandbox" className="shadow-lg">
+        <div className="flex justify-end space-x-4 mb-4">
+            <Link href="/sandbox"
+                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 space-x-2">
                 Start New Project
-                <FaArrowRight size={20} />
+                <FaArrowRight size={16} />
             </Link>
             <Button variant="secondary"
                 size="lg"
