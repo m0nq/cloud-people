@@ -13,7 +13,9 @@ import { KeyboardSensor } from '@dnd-kit/core';
 import { PointerSensor } from '@dnd-kit/core';
 import { useSensor } from '@dnd-kit/core';
 import { useSensors } from '@dnd-kit/core';
-
+import { FiBriefcase } from 'react-icons/fi';
+import { FiMoreVertical } from 'react-icons/fi';
+import { FiUsers } from 'react-icons/fi';
 import { SortableContext } from '@dnd-kit/sortable';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -23,16 +25,9 @@ import { useProjectsStore } from '@stores/projects-store';
 import type { Project } from '@stores/projects-store';
 import { useCategoriesStore } from '@stores/categories-store';
 import type { Category } from '@stores/categories-store';
-
-import { Button } from '@components/utils/button/button';
 import { Card } from '@components/card';
 import { CompanyCard } from '@components/cards/company-card/company-card';
 import { LoadingSpinner } from '@components/spinners/loading-spinner';
-
-import { FiBriefcase } from 'react-icons/fi';
-import { FiMoreVertical } from 'react-icons/fi';
-import { FiUsers } from 'react-icons/fi';
-
 import { DraggableCategory } from './components/draggable-category';
 import { InteractiveHeader } from './interactive-header';
 
@@ -114,7 +109,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialProjects, initialCategorie
 
     if (error) {
         return (
-            <div className="p-8 text-center text-red-600">
+            <div className="error-container">
                 Error loading dashboard: {error.message}
             </div>
         );
@@ -124,87 +119,85 @@ const Dashboard: React.FC<DashboardProps> = ({ initialProjects, initialCategorie
         <div className="dashboard-container">
             <InteractiveHeader />
 
-            <div className="space-y-8">
-                <div className="space-y-4">
-                    <div className="py-2">
-                        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+            <div className="dashboard-content">
+                <div className="dashboard-section">
+                    <div className="section-header">
+                        <h1 className="section-title">Dashboard</h1>
                     </div>
 
                     <CompanyCard name="Cool Coffee Mugs. llc"
                         logoUrl="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" />
 
                     {/* <Card className={`max-w-3xl ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}> */}
-                    <Card className={`max-w-3xl bg-white`}>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6">
+                    <Card className="dashboard-card">
+                        <div className="card-grid">
                             {/*<div className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>*/}
-                            <div className="p-4 rounded-lg bg-white shadow-sm border border-gray-100">
-                                <div className="flex items-center space-x-3 mb-4">
-                                    <div className="w-10 h-10 rounded-full overflow-hidden">
+                            <div className="profile-container">
+                                <div className="profile-header">
+                                    <div className="profile-image-container">
                                         <Image src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
                                             alt="Manager"
                                             width={256}
                                             height={256}
-                                            className="w-full h-full object-cover" />
+                                            className="profile-image" />
                                     </div>
                                     {/*<h2 className={`text-lg font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>*/}
-                                    <h2 className={`text-lg font-semibold text-gray-900`}>
+                                    <h2 className="profile-name">
                                         Manager Mike
                                     </h2>
                                 </div>
                                 {/*<div className={`p-3 rounded-lg ${isDarkMode ? 'bg-gray-600/50' : 'bg-white'} mb-4`}>*/}
-                                <div className="p-3 rounded-lg bg-gray-50 mb-4">
+                                <div className="task-container">
                                     {/*<div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>*/}
-                                    <div className={`text-sm text-gray-600`}>
+                                    <div className="task-label">
                                         Current Task:
                                     </div>
                                     {/*<div className={`${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>*/}
-                                    <div className="text-gray-900">
+                                    <div className="task-name">
                                         Name of task
                                     </div>
                                 </div>
-                                <div className="flex space-x-2">
-                                    <Button variant="secondary" className="flex-1">
+                                <div className="action-buttons">
+                                    <button className="action-button bg-gray-500 hover:bg-gray-600">
                                         Watch
-                                    </Button>
-                                    <Button variant="primary" className="flex-1 bg-emerald-500 hover:bg-emerald-600">
+                                    </button>
+                                    <button className="action-button bg-secondary hover:bg-secondary/60">
                                         Meeting
-                                    </Button>
+                                    </button>
                                 </div>
                             </div>
 
-                            {/*<div className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>*/}
-                            <div className="p-4 rounded-lg bg-white shadow-sm border border-gray-100">
-                                <div className="flex items-center justify-between mb-4">
-                                    {/*<div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>*/}
-                                    <div className={`text-sm text-gray-600`}>
+                            <div className="stats-container">
+                                <div className="stats-header">
+                                    <div className="stats-label">
                                         Net Profit
                                     </div>
-                                    <Button variant="muted"
-                                        size="sm"
-                                        icon={<FiMoreVertical size={16} className="text-gray-600" />} />
+                                    <button className="stats-options-button">
+                                        <FiMoreVertical size={16} className="text-gray-600" />
+                                    </button>
                                 </div>
-                                <div className="p-4 rounded-lg bg-blue-600 mb-4">
-                                    <div className="flex items-center justify-between">
-                                        <div className="text-2xl font-bold text-white">$25,215</div>
-                                        <div className="text-sm text-indigo-200">All Time</div>
+                                <div className="profit-display">
+                                    <div className="profit-content">
+                                        <div className="profit-amount">$25,215</div>
+                                        <div className="profit-period">All Time</div>
                                     </div>
                                 </div>
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-2">
-                                            <FiBriefcase size={16} className={'text-gray-600'} />
+                                <div className="expense-list">
+                                    <div className="expense-item">
+                                        <div className="expense-label">
+                                            <FiBriefcase size={16} className="expense-icon" />
                                             {/*<span className={isDarkMode ? 'text-gray-300' : 'text-gray-900'}>Business Expenses</span>*/}
-                                            <span className={'text-gray-900'}>Business Expenses</span>
+                                            <span className="expense-name">Business Expenses</span>
                                         </div>
-                                        <div className="text-red-500">-$5,154.50</div>
+                                        <div className="expense-amount">-$5,154.50</div>
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-2">
-                                            <FiUsers size={16} className={'text-gray-600'} />
+                                    <div className="expense-item">
+                                        <div className="expense-label">
+                                            <FiUsers size={16} className="expense-icon" />
                                             {/*<span className={isDarkMode ? 'text-gray-300' : 'text-gray-900'}>Taxes</span>*/}
-                                            <span className={'text-gray-900'}>Taxes</span>
+                                            <span className="expense-name">Taxes</span>
                                         </div>
-                                        <div className="text-red-500">-$1,140.50</div>
+                                        <div className="expense-amount">-$1,140.50</div>
                                     </div>
                                 </div>
                             </div>
@@ -212,14 +205,14 @@ const Dashboard: React.FC<DashboardProps> = ({ initialProjects, initialCategorie
                     </Card>
 
                     {loading ? (
-                        <div className="flex justify-center py-12">
+                        <div className="loading-container">
                             <LoadingSpinner />
                         </div>
                     ) : (
                         <motion.div variants={container}
                             initial="hidden"
                             animate="show"
-                            className="space-y-8">
+                            className="categories-container">
                             <DndContext sensors={sensors}
                                 collisionDetection={closestCenter}
                                 onDragEnd={handleDragEnd}>

@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 
 import './button.styles.css';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'muted' | 'dark' | 'gradient';
+export type ButtonVariant = 'primary' | 'secondary' | 'muted' | 'dark' | 'gradient' | 'bare';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 export type ButtonRadius = 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
 
@@ -40,6 +40,10 @@ interface ButtonProps {
         x?: string;
         y?: string;
     };
+    /** When true, the button will not apply fixed height constraints */
+    noFixedHeight?: boolean;
+    /** When true, allows className to override internal styles */
+    overrideStyles?: boolean;
 }
 
 export const Button = ({
@@ -56,11 +60,20 @@ export const Button = ({
     isActive = false,
     hasShadow = false,
     customStyles,
-    padding
+    padding,
+    noFixedHeight = false,
+    overrideStyles = false
 }: ButtonProps) => {
+    // Base classes that should always be applied
     const baseClasses = 'button-base';
+    
+    // Variant classes
     const variantClasses = customStyles ? 'button-custom' : `button-${variant}`;
-    const sizeClasses = padding ? '' : `button-${size}`; // Skip size class if custom padding
+    
+    // Size classes - skip if noFixedHeight is true or custom padding is provided
+    const sizeClasses = (noFixedHeight || padding) ? '' : `button-${size}`;
+    
+    // Other feature classes
     const radiusClasses = `button-radius-${radius}`;
     const widthClasses = fullWidth ? 'w-full' : '';
     const activeClasses = isActive ? 'button-secondary-active' : '';
@@ -73,6 +86,11 @@ export const Button = ({
         paddingStyles.x && `px-${paddingStyles.x}`,
         paddingStyles.y && `py-${paddingStyles.y}`
     ].filter(Boolean).join(' ') : '';
+
+    // Determine final class string based on overrideStyles flag
+    const buttonClasses = overrideStyles
+        ? `${baseClasses} ${className}`
+        : `${baseClasses} ${variantClasses} ${sizeClasses} ${radiusClasses} ${widthClasses} ${activeClasses} ${shadowClasses} ${durationClass} ${customPaddingClasses} ${className}`;
 
     const style = customStyles
         ? ({
@@ -91,7 +109,7 @@ export const Button = ({
             onClick={onClick}
             disabled={disabled}
             style={style}
-            className={`${baseClasses} ${variantClasses} ${sizeClasses} ${radiusClasses} ${widthClasses} ${activeClasses} ${shadowClasses} ${durationClass} ${customPaddingClasses} ${icon && !children ? 'p-2' : ''} ${className}`}>
+            className={buttonClasses}>
             {icon && <span className={`button-icon ${!children ? 'm-0' : ''}`}>{icon}</span>}
             {children}
         </button>

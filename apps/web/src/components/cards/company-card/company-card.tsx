@@ -1,11 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import { FaPause } from 'react-icons/fa';
-import { LuBook } from 'react-icons/lu';
+import { PiPause } from 'react-icons/pi';
+import { RiBookLine } from 'react-icons/ri';
 import { VscSettings } from 'react-icons/vsc';
 
-import { Button } from '@components/utils/button/button';
+import './company-card.styles.css';
 import { Card } from '@components/card';
 
 interface CompanyCardProps {
@@ -15,7 +15,6 @@ interface CompanyCardProps {
     onViewDocs?: () => void;
     onPause?: () => void;
     onSettings?: () => void;
-    className?: string;
 }
 
 export const CompanyCard = ({
@@ -24,42 +23,33 @@ export const CompanyCard = ({
     onOpen,
     onViewDocs,
     onPause,
-    onSettings,
-    className = ''
+    onSettings
 }: CompanyCardProps) => (
-    <Card className={`max-w-3xl bg-white shadow-sm rounded-lg overflow-hidden ${className}`}>
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-            <div className="flex items-center space-x-2">
+    <Card className="company-card-container">
+        <div className="card-header">
+            <div className="company-info">
                 <Image src={logoUrl}
                     alt={`${name} Logo`}
                     width={256}
                     height={256}
-                    className="w-6 h-6 rounded" />
-                <span className="text-sm font-medium text-gray-700">
+                    className="company-logo" />
+                <span className="company-name">
                     {name}
                 </span>
             </div>
-            <div className="flex items-center space-x-4">
-                <Button variant="muted"
-                    size="sm"
-                    icon={<LuBook size={20} className="text-gray-600" />}
-                    onClick={onViewDocs}
-                    aria-label="View Documentation" />
-                <Button variant="muted"
-                    size="sm"
-                    icon={<FaPause size={20} className="text-gray-600" />}
-                    onClick={onPause}
-                    aria-label="Pause" />
-                <Button variant="muted"
-                    size="sm"
-                    icon={<VscSettings size={20} className="text-gray-600" />}
-                    onClick={onSettings}
-                    aria-label="Settings" />
-                <Button variant="primary"
-                    size="sm"
-                    onClick={onOpen}>
+            <div className="action-buttons">
+                <button onClick={onViewDocs} className="action-button" aria-label="View Documentation">
+                    <RiBookLine size={20} className="icon-button" />
+                </button>
+                <button onClick={onPause} className="action-button" aria-label="Pause">
+                    <PiPause size={20} className="icon-button" />
+                </button>
+                <button onClick={onSettings} className="action-button" aria-label="Settings">
+                    <VscSettings size={20} className="icon-button" />
+                </button>
+                <button className="open-button" onClick={onOpen}>
                     Open
-                </Button>
+                </button>
             </div>
         </div>
     </Card>

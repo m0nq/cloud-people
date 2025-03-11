@@ -1,5 +1,20 @@
 .dashboard-container {
   @apply h-fit px-28 pt-12 bg-gray-50;
+
+  .dashboard-content {
+    @apply space-y-8;
+
+    .dashboard-section {
+
+      .section-header {
+        @apply py-2;
+
+        .section-title {
+          @apply text-2xl font-bold text-gray-900;
+        }
+      }
+    }
+  }
 }
 
 .interactive-header-container {
@@ -10,16 +25,132 @@
 
     .header-link {
       @apply h-full gap-2 px-6 py-2 flex items-center justify-center text-white no-underline
-      bg-blue-600 rounded-md shadow-lg outline-none transition-all duration-200 hover:bg-[#2A4DD0]
-      hover:no-underline hover:shadow-lg focus:bg-blue-700 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2
-      active:bg-blue-800 active:shadow-md;
+      bg-blue-600 rounded-md shadow-xl outline-none transition-all duration-200 hover:bg-[#2A4DD0]
+      hover:no-underline hover:shadow-xl focus:bg-blue-700 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2
+      active:bg-blue-800 active:shadow-xl;
     }
 
     .header-button {
-      @apply h-full gap-0 px-6 text-black bg-[#E5E7EB] font-semibold rounded-md shadow-lg outline-none
+      @apply h-full gap-0 px-6 text-black bg-[#E5E7EB] font-semibold rounded-md shadow-xl outline-none
       transition-all duration-200 hover:bg-gray-300 hover:shadow-xl
       focus:bg-gray-300 focus:ring-2 focus:ring-gray-400 focus:ring-offset-2
-      active:bg-gray-400 active:shadow-md;
+      active:bg-gray-400 active:shadow-xl;
+    }
+  }
+}
+
+.error-container {
+  @apply p-8 text-center text-red-600;
+}
+
+.loading-container {
+  @apply flex justify-center py-12;
+}
+
+.categories-container {
+  @apply space-y-8;
+}
+
+.dashboard-card {
+  @apply max-w-3xl bg-white;
+
+  .card-grid {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-6 p-6;
+
+    .profile-container {
+      @apply p-4 rounded-lg bg-gray-50;
+
+      .profile-header {
+        @apply flex items-center space-x-3 mb-4;
+
+        .profile-image-container {
+          @apply w-10 h-10 rounded-full overflow-hidden;
+
+          .profile-image {
+            @apply w-full h-full object-cover;
+          }
+        }
+
+        .profile-name {
+          @apply text-lg font-semibold text-gray-900;
+        }
+      }
+
+      .task-container {
+        @apply p-3 rounded-lg bg-white mb-4;
+
+        .task-label {
+          @apply text-sm text-gray-600;
+        }
+
+        .task-name {
+          @apply text-gray-900;
+        }
+      }
+
+      .action-buttons {
+        @apply flex gap-2 justify-between;
+
+        .action-button {
+          @apply flex-1 py-2 px-4 rounded-md transition-colors text-white font-semibold;
+        }
+      }
+    }
+
+    .stats-container {
+      @apply p-4 rounded-lg bg-gray-50;
+
+      .stats-header {
+        @apply flex items-center justify-between mb-4;
+
+        .stats-label {
+          @apply text-sm text-gray-600;
+        }
+
+        .stats-options-button {
+          @apply p-1 rounded-lg hover:bg-gray-100;
+        }
+      }
+
+      .profit-display {
+        @apply p-4 rounded-lg bg-primary mb-4;
+
+        .profit-content {
+          @apply flex items-center justify-between;
+
+          .profit-amount {
+            @apply text-2xl font-bold text-white;
+          }
+
+          .profit-period {
+            @apply text-sm text-indigo-200;
+          }
+        }
+      }
+
+      .expense-list {
+        @apply space-y-3;
+
+        .expense-item {
+          @apply flex items-center justify-between;
+
+          .expense-label {
+            @apply flex items-center space-x-2;
+
+            .expense-icon {
+              @apply text-gray-600;
+            }
+
+            .expense-name {
+              @apply text-gray-900;
+            }
+          }
+
+          .expense-amount {
+            @apply text-red-500;
+          }
+        }
+      }
     }
   }
 }
