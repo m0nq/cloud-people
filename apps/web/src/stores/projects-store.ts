@@ -10,12 +10,14 @@ export interface Project {
 interface ProjectsState {
     projects: Project[];
     loading: boolean;
+    error: Error | null;
     fetchProjects: () => Promise<void>;
 }
 
 export const useProjectsStore = create<ProjectsState>((set) => ({
     projects: [],
     loading: false,
+    error: null,
     fetchProjects: async () => {
         set({ loading: true });
         try {
@@ -43,6 +45,7 @@ export const useProjectsStore = create<ProjectsState>((set) => ({
             set({ projects: mockProjects });
         } catch (error) {
             console.error('Error fetching projects:', error);
+            set({ error: error instanceof Error ? error : new Error('Failed to fetch projects') });
         } finally {
             set({ loading: false });
         }

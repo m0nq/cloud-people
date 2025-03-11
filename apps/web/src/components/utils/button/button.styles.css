@@ -91,20 +91,3 @@
 .button-icon {
   @apply flex items-center justify-center mr-2;
 }
-
-.button-icon:only-child {
-  @apply m-0;
-}
-
-/* Icon-only button sizes */
-.button-sm:has(.button-icon:only-child) {
-  @apply p-2;
-}
-
-.button-md:has(.button-icon:only-child) {
-  @apply p-3;
-}
-
-.button-lg:has(.button-icon:only-child) {
-  @apply p-4;
-}

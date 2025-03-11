@@ -6,6 +6,21 @@ export type ButtonVariant = 'primary' | 'secondary' | 'muted' | 'dark' | 'gradie
 export type ButtonSize = 'sm' | 'md' | 'lg';
 export type ButtonRadius = 'none' | 'sm' | 'md' | 'lg' | 'xl' | 'full';
 
+interface ButtonStyleProps {
+    backgroundColor?: string;
+    textColor?: string;
+    hoverBackgroundColor?: string;
+    activeBackgroundColor?: string;
+    borderColor?: string;
+    gradientFrom?: string;
+    gradientTo?: string;
+    transitionDuration?: '200' | '300';
+    padding?: {
+        x?: string;
+        y?: string;
+    };
+}
+
 interface ButtonProps {
     children?: ReactNode;
     variant?: ButtonVariant;
@@ -19,15 +34,11 @@ interface ButtonProps {
     fullWidth?: boolean;
     isActive?: boolean;
     hasShadow?: boolean;
-    customStyles?: {
-        backgroundColor?: string;
-        textColor?: string;
-        hoverBackgroundColor?: string;
-        activeBackgroundColor?: string;
-        borderColor?: string;
-        gradientFrom?: string;
-        gradientTo?: string;
-        transitionDuration?: '200' | '300';
+    customStyles?: ButtonStyleProps;
+    /** Override default size padding. This takes precedence over customStyles.padding */
+    padding?: {
+        x?: string;
+        y?: string;
     };
 }
 
@@ -44,16 +55,24 @@ export const Button = ({
     fullWidth = false,
     isActive = false,
     hasShadow = false,
-    customStyles
+    customStyles,
+    padding
 }: ButtonProps) => {
     const baseClasses = 'button-base';
     const variantClasses = customStyles ? 'button-custom' : `button-${variant}`;
-    const sizeClasses = `button-${size}`;
+    const sizeClasses = padding ? '' : `button-${size}`; // Skip size class if custom padding
     const radiusClasses = `button-radius-${radius}`;
     const widthClasses = fullWidth ? 'w-full' : '';
     const activeClasses = isActive ? 'button-secondary-active' : '';
     const shadowClasses = hasShadow ? 'button-shadow' : '';
     const durationClass = customStyles?.transitionDuration ? `duration-${customStyles.transitionDuration}` : '';
+
+    // Handle padding customization
+    const paddingStyles = padding || customStyles?.padding;
+    const customPaddingClasses = paddingStyles ? [
+        paddingStyles.x && `px-${paddingStyles.x}`,
+        paddingStyles.y && `py-${paddingStyles.y}`
+    ].filter(Boolean).join(' ') : '';
 
     const style = customStyles
         ? ({
@@ -68,12 +87,11 @@ export const Button = ({
         : undefined;
 
     return (
-        <button
-            type={type}
+        <button type={type}
             onClick={onClick}
             disabled={disabled}
             style={style}
-            className={`${baseClasses} ${variantClasses} ${sizeClasses} ${radiusClasses} ${widthClasses} ${activeClasses} ${shadowClasses} ${durationClass} ${icon && !children ? 'p-2' : ''} ${className}`}>
+            className={`${baseClasses} ${variantClasses} ${sizeClasses} ${radiusClasses} ${widthClasses} ${activeClasses} ${shadowClasses} ${durationClass} ${customPaddingClasses} ${icon && !children ? 'p-2' : ''} ${className}`}>
             {icon && <span className={`button-icon ${!children ? 'm-0' : ''}`}>{icon}</span>}
             {children}
         </button>
