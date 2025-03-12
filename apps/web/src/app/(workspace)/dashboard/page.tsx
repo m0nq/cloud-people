@@ -31,28 +31,20 @@ import { LoadingSpinner } from '@components/spinners/loading-spinner';
 import { DraggableCategory } from './components/draggable-category';
 import { InteractiveHeader } from './interactive-header';
 
-type DashboardProps = {
-    className?: string;
-    initialProjects?: Project[];
-    initialCategories?: Category[];
-};
-
 type ScrollRefs = Record<number, HTMLDivElement | null>;
 
 type ScrollHandler = (categoryId: number) => void;
 
 type CategoryProjectsGetter = (categoryType: string) => Project[];
 
-const Dashboard: React.FC<DashboardProps> = ({ initialProjects, initialCategories }) => {
+const Dashboard = () => {
     const { projects, loading, fetchProjects, error } = useProjectsStore();
     const { categories, reorderCategories } = useCategoriesStore();
     const scrollContainerRefs = useRef<ScrollRefs>({});
 
     useEffect(() => {
-        if (!initialProjects) {
-            void fetchProjects().catch(console.error);
-        }
-    }, [fetchProjects, initialProjects]);
+        void fetchProjects().catch(console.error);
+    }, [fetchProjects]);
 
     const handleScrollLeft = useCallback<ScrollHandler>((categoryId) => {
         const container = scrollContainerRefs.current[categoryId];
