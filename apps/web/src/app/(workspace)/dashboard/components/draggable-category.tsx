@@ -9,10 +9,10 @@ import { RiDraggable } from 'react-icons/ri';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 interface DraggableCategoryProps {
-    id: string;
+    id: number;
     title: string;
-    onScrollLeft: (id: string) => void;
-    onScrollRight: (id: string) => void;
+    onScrollLeft: (id: number) => void;
+    onScrollRight: (id: number) => void;
     scrollContainerRef: (el: HTMLDivElement | null) => void;
     projects: Project[];
 }

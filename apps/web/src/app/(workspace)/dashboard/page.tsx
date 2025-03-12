@@ -37,9 +37,9 @@ type DashboardProps = {
     initialCategories?: Category[];
 };
 
-type ScrollRefs = Record<string, HTMLDivElement | null>;
+type ScrollRefs = Record<number, HTMLDivElement | null>;
 
-type ScrollHandler = (categoryId: string) => void;
+type ScrollHandler = (categoryId: number) => void;
 
 type CategoryProjectsGetter = (categoryType: string) => Project[];
 
@@ -101,13 +101,11 @@ const Dashboard: React.FC<DashboardProps> = ({ initialProjects, initialCategorie
         const { active, over } = event;
 
         if (over && active.id !== over.id) {
-            const oldIndex = categories.findIndex(cat => cat.id === active.id);
-            const newIndex = categories.findIndex(cat => cat.id === over.id);
-            reorderCategories(oldIndex, newIndex);
+            reorderCategories(Number(active.id), Number(over.id));
         }
-    }, [categories, reorderCategories]);
+    }, [reorderCategories]);
 
-    const getScrollContainerRef = useCallback((categoryId: string) => (el: HTMLDivElement | null) => {
+    const getScrollContainerRef = useCallback((categoryId: number) => (el: HTMLDivElement | null) => {
         scrollContainerRefs.current[categoryId] = el;
     }, []);
 
@@ -243,7 +241,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialProjects, initialCategorie
                                                     title={category.title}
                                                     onScrollLeft={() => handleScrollLeft(category.id)}
                                                     onScrollRight={() => handleScrollRight(category.id)}
-                                                    scrollContainerRef={(el) => { scrollContainerRefs.current[category.id] = el; }} />
+                                                    scrollContainerRef={getScrollContainerRef(category.id)} />
                                             </div>
                                         );
                                     })}
