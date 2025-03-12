@@ -1,27 +1,32 @@
 .button-base {
-  @apply flex items-center justify-center gap-2 font-sans font-bold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply flex items-center justify-center gap-2 font-sans transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 /* Variants */
 .button-primary {
-  @apply bg-btn-gray text-white hover:bg-btn-gray/60 active:bg-btn-gray/40;
+  @apply bg-btn-gray text-white hover:bg-btn-gray/60 active:bg-btn-gray/40 font-bold;
 }
 
 .button-secondary {
-  @apply bg-secondary text-[#2F3338] hover:bg-secondary/80 active:bg-secondary/60;
+  @apply bg-secondary text-[#2F3338] hover:bg-secondary/80 active:bg-secondary/60 font-bold;
 }
 
 .button-muted {
-  @apply bg-btn-muted text-white hover:bg-btn-muted/60 active:bg-btn-muted/40;
+  @apply bg-btn-muted text-white hover:bg-btn-muted/60 active:bg-btn-muted/40 font-bold;
 }
 
 .button-dark {
-  @apply bg-dark text-white/60 hover:text-white hover:bg-dark/80 active:bg-dark/60;
+  @apply bg-dark text-white/60 hover:text-white hover:bg-dark/80 active:bg-dark/60 font-bold;
 }
 
 .button-gradient {
   background: linear-gradient(89deg, var(--gradient-from, theme('colors.gradient-dark.from')) 14.21%, var(--gradient-to, theme('colors.gradient-dark.to')) 101.01%);
-  @apply hover:brightness-110 active:brightness-90;
+  @apply hover:brightness-110 active:brightness-90 font-bold;
+}
+
+/* Bare variant with minimal styling */
+.button-bare {
+  @apply bg-transparent hover:bg-gray-100/50 active:bg-gray-200/50;
 }
 
 /* Custom styled button */
@@ -41,7 +46,7 @@
 
 /* Active state */
 .button-secondary-active {
-  @apply bg-secondary text-white hover:bg-secondary/80 active:bg-secondary/40;
+  @apply bg-secondary text-white hover:bg-secondary/80 active:bg-secondary/40 font-bold;
 }
 
 /* Sizes */
@@ -89,5 +94,5 @@
 
 /* Icon */
 .button-icon {
-  @apply flex items-center justify-center;
+  @apply flex items-center justify-center mr-2;
 }
