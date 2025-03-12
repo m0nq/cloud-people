@@ -1,0 +1,35 @@
+.company-card-container {
+  @apply max-w-3xl bg-white shadow-sm rounded-lg overflow-hidden mt-7;
+
+  .card-header {
+    @apply flex items-center justify-between p-4 border-b border-gray-200;
+
+    .company-info {
+      @apply flex items-center gap-3;
+
+      .company-logo {
+        @apply w-6 h-6 rounded object-cover;
+      }
+
+      .company-name {
+        @apply text-gray-900 font-medium;
+      }
+    }
+
+    .action-buttons {
+      @apply flex items-center justify-end gap-2;
+
+      .action-button {
+        @apply flex items-center justify-center rounded-lg p-2 hover:bg-gray-100;
+      }
+
+      .icon-button {
+        @apply text-gray-600 hover:text-gray-900;
+      }
+
+      .open-button {
+        @apply bg-blue-600 text-white py-1 px-2.5 rounded-md hover:bg-blue-700;
+      }
+    }
+  }
+}
