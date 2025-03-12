@@ -20,7 +20,7 @@ interface ProjectCardProps {
  * A card component that displays project information including name and last updated time.
  * Uses relative time formatting for the last updated timestamp.
  */
-export const ProjectCard = memo(({ project }: ProjectCardProps) => {
+const ProjectCardComponent = ({ project }: ProjectCardProps) => {
     const router = useRouter();
 
     // Ensure project has required properties
@@ -86,4 +86,10 @@ export const ProjectCard = memo(({ project }: ProjectCardProps) => {
             </Card>
         </motion.div>
     );
-});
+};
+
+// Create a memoized version of the component with a proper display name
+export const ProjectCard = memo(ProjectCardComponent);
+
+// Set the display name explicitly
+ProjectCard.displayName = 'ProjectCard';
