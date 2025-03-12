@@ -8,7 +8,7 @@ export interface Category {
 
 interface CategoriesState {
     categories: Category[];
-    reorderCategories: (oldIndex: number, newIndex: number) => void;
+    reorderCategories: (activeId: string, overId: string) => void;
 }
 
 export const useCategoriesStore = create<CategoriesState>((set) => ({
@@ -19,7 +19,7 @@ export const useCategoriesStore = create<CategoriesState>((set) => ({
     { id: 'templates', title: 'Templates', type: 'templates' },
   ],
   setCategories: (categories) => set({ categories }),
-  reorderCategories: (activeId, overId) => {
+  reorderCategories: (activeId: string, overId: string) => {
     set((state) => {
       const oldIndex = state.categories.findIndex((cat) => cat.id === activeId);
       const newIndex = state.categories.findIndex((cat) => cat.id === overId);
