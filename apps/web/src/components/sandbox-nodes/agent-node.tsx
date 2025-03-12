@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useEffect } from 'react';
 import { useMemo } from 'react';
 import { Position } from '@xyflow/react';
+import { useShallow } from 'zustand/react/shallow';
 
 import { AgentCard } from '@components/agents/agent-card';
 import { NodeComponent } from '@components/utils/node-component/node-component';
@@ -15,6 +16,15 @@ import './node.styles.css';
 import { WorkflowState } from '@app-types/workflow';
 import type { NodeData } from '@app-types/workflow';
 import { fetchAgent } from '@lib/actions/agent-actions';
+
+const DEFAULT_AGENT_STATE = {
+    state: AgentState.Working,
+    isEditable: false,
+    isLoading: false,
+    error: null,
+    progress: 0,
+    assistanceMessage: null
+};
 
 type AgentNodeProps = {
     id: string;
@@ -54,8 +64,15 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
 
     const [isLoadingData, setIsLoadingData] = useState(false);
     const agentId = data.agentRef?.agentId;
-    const agentRuntime = getAgentState(agentId);
-    const agentData = getAgentData(agentId);
+
+    // Use atomic selectors with useShallow for better performance
+    const agentState = useAgentStore(
+        useShallow(state => state.agentState[agentId] || DEFAULT_AGENT_STATE)
+    );
+    const { state, isEditable } = agentState;
+
+    // Memoize agentData to prevent unnecessary rerenders
+    const agentData = useMemo(() => getAgentData(agentId), [getAgentData, agentId]);
 
     // Combined effect for agent initialization and data fetching
     useEffect(() => {
@@ -96,25 +113,25 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         return () => {
             removeAgent(agentId);
         };
-    }, [agentId, data.state, getAgentData, removeAgent, setAgentData, updateAgentState]);
+    }, [agentId, data.state, getAgentData, removeAgent, setAgentData, updateAgentState, agentData]);
 
     // Memoize workflow state effect
     useEffect(() => {
-        if (!agentRuntime?.state) return;
+        if (!state) return;
 
-        if (agentRuntime.state === AgentState.Complete) {
-            progressWorkflow(id, agentRuntime.state);
-        } else if (agentRuntime.state === AgentState.Error || agentRuntime.state === AgentState.Assistance) {
+        if (state === AgentState.Complete) {
+            progressWorkflow(id, state);
+        } else if (state === AgentState.Error || state === AgentState.Assistance) {
             pauseWorkflow();
         }
-    }, [agentRuntime?.state, id, progressWorkflow, pauseWorkflow]);
+    }, [state, id, progressWorkflow, pauseWorkflow, agentData]);
 
     // Memoize handlers
     const handleAgentDetails = useCallback(() => {
-        if (agentRuntime?.isEditable) {
+        if (isEditable) {
             openModal({ type: 'agent-details', parentNodeId: id });
         }
-    }, [id, openModal, agentRuntime?.isEditable]);
+    }, [id, openModal, isEditable]);
 
     const handleClick = useCallback(() => {
         // Check if this node already has a child
@@ -144,12 +161,12 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     // Memoize complex class names
     const containerClassName = useMemo(() =>
             `agent-node-container`,
-        [agentRuntime.isLoading]
+        []
     );
 
     const contentClassName = useMemo(() =>
-            `w-full h-full ${agentRuntime.isEditable ? 'cursor-pointer' : 'cursor-default'}`,
-        [agentRuntime.isEditable]
+            `w-full h-full ${isEditable ? 'cursor-pointer' : 'cursor-default'}`,
+        [isEditable]
     );
 
     const handleClassName = useMemo(() =>
@@ -173,8 +190,8 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                 <div className={contentClassName} onClick={handleAgentDetails}>
                     <AgentCard agentId={agentId}
                         agentData={agentData}
-                        state={agentRuntime.state}
-                        onEdit={agentRuntime.isEditable ? handleAgentDetails : undefined}
+                        state={state}
+                        onEdit={isEditable ? handleAgentDetails : undefined}
                         onAssistanceRequest={handleAssistanceRequest}
                         onRestart={handleRestart} />
                 </div>

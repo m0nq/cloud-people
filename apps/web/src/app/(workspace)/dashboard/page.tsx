@@ -31,28 +31,20 @@ import { LoadingSpinner } from '@components/spinners/loading-spinner';
 import { DraggableCategory } from './components/draggable-category';
 import { InteractiveHeader } from './interactive-header';
 
-type DashboardProps = {
-    className?: string;
-    initialProjects?: Project[];
-    initialCategories?: Category[];
-};
+type ScrollRefs = Record<number, HTMLDivElement | null>;
 
-type ScrollRefs = Record<string, HTMLDivElement | null>;
-
-type ScrollHandler = (categoryId: string) => void;
+type ScrollHandler = (categoryId: number) => void;
 
 type CategoryProjectsGetter = (categoryType: string) => Project[];
 
-const Dashboard: React.FC<DashboardProps> = ({ initialProjects, initialCategories }) => {
+const Dashboard = () => {
     const { projects, loading, fetchProjects, error } = useProjectsStore();
     const { categories, reorderCategories } = useCategoriesStore();
     const scrollContainerRefs = useRef<ScrollRefs>({});
 
     useEffect(() => {
-        if (!initialProjects) {
-            void fetchProjects().catch(console.error);
-        }
-    }, [fetchProjects, initialProjects]);
+        void fetchProjects().catch(console.error);
+    }, [fetchProjects]);
 
     const handleScrollLeft = useCallback<ScrollHandler>((categoryId) => {
         const container = scrollContainerRefs.current[categoryId];
@@ -101,13 +93,11 @@ const Dashboard: React.FC<DashboardProps> = ({ initialProjects, initialCategorie
         const { active, over } = event;
 
         if (over && active.id !== over.id) {
-            const oldIndex = categories.findIndex(cat => cat.id === active.id);
-            const newIndex = categories.findIndex(cat => cat.id === over.id);
-            reorderCategories(oldIndex, newIndex);
+            reorderCategories(Number(active.id), Number(over.id));
         }
-    }, [categories, reorderCategories]);
+    }, [reorderCategories]);
 
-    const getScrollContainerRef = useCallback((categoryId: string) => (el: HTMLDivElement | null) => {
+    const getScrollContainerRef = useCallback((categoryId: number) => (el: HTMLDivElement | null) => {
         scrollContainerRefs.current[categoryId] = el;
     }, []);
 
@@ -243,7 +233,7 @@ const Dashboard: React.FC<DashboardProps> = ({ initialProjects, initialCategorie
                                                     title={category.title}
                                                     onScrollLeft={() => handleScrollLeft(category.id)}
                                                     onScrollRight={() => handleScrollRight(category.id)}
-                                                    scrollContainerRef={(el) => { scrollContainerRefs.current[category.id] = el; }} />
+                                                    scrollContainerRef={getScrollContainerRef(category.id)} />
                                             </div>
                                         );
                                     })}

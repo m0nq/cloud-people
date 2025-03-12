@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useState } from 'react';
+import { useMemo } from 'react';
 
 import { createClient } from '@lib/supabase/client';
 import { signOut } from '@lib/actions/authentication-actions';
@@ -17,10 +18,13 @@ export const AuthenticationButton = ({ formAction, buttonType, className }: Auth
     const [loading, setLoading] = useState(true);
     const supabase = createClient();
 
+    // Memoize the supabase auth object to prevent infinite rerenders
+    const supabaseAuth = useMemo(() => supabase.auth, [supabase]);
+
     useEffect(() => {
         const getUser = async () => {
             try {
-                const { data: { user } } = await supabase.auth.getUser();
+                const { data: { user } } = await supabaseAuth.getUser();
                 setUser(user);
             } catch (error) {
                 console.error('Error fetching user:', error);
@@ -31,14 +35,14 @@ export const AuthenticationButton = ({ formAction, buttonType, className }: Auth
 
         getUser();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabaseAuth.onAuthStateChange((_event, session) => {
             setUser(session?.user ?? null);
         });
 
         return () => {
             subscription.unsubscribe();
         };
-    }, []);
+    }, [supabaseAuth]);
 
     if (loading) {
         return null; // Or a loading spinner

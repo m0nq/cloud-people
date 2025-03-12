@@ -176,10 +176,6 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         dragging?: boolean;
     };
 
-    // Type guard for position changes
-    const isPositionChange = (change: NodeChange): change is PositionChange =>
-        change.type === 'position';
-
     // Calculate layout on client-side only, but only when necessary
     useEffect(() => {
         let isSubscribed = true;
@@ -214,7 +210,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         (changes: NodeChange[]) => {
             // Track which nodes are being positioned
             changes.forEach(change => {
-                if (isPositionChange(change)) {
+                if (change.type === 'position') {
                     if (change.dragging) {
                         positioningNodesRef.current.add(change.id);
                     } else {
