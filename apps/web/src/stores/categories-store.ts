@@ -2,7 +2,8 @@ import { create } from 'zustand';
 
 export interface Category {
     id: string;
-    name: string;
+    title: string;
+    type: 'recent' | 'top' | 'all' | 'templates';
 }
 
 interface CategoriesState {
@@ -11,18 +12,25 @@ interface CategoriesState {
 }
 
 export const useCategoriesStore = create<CategoriesState>((set) => ({
-    categories: [
-        { id: 'recent', name: 'Recent Projects' },
-        { id: 'top', name: 'Top Projects' },
-        { id: 'templates', name: 'Templates' },
-        { id: 'all', name: 'All Projects' }
-    ],
-    reorderCategories: (oldIndex: number, newIndex: number) => {
-        set((state) => {
-            const newCategories = [...state.categories];
-            const [removed] = newCategories.splice(oldIndex, 1);
-            newCategories.splice(newIndex, 0, removed);
-            return { categories: newCategories };
-        });
-    }
+  categories: [
+    { id: 'recent', title: 'Recent Projects', type: 'recent' },
+    { id: 'top', title: 'Tutorials', type: 'top' },
+    { id: 'all', title: 'All Projects', type: 'all' },
+    { id: 'templates', title: 'Templates', type: 'templates' },
+  ],
+  setCategories: (categories) => set({ categories }),
+  reorderCategories: (activeId, overId) => {
+    set((state) => {
+      const oldIndex = state.categories.findIndex((cat) => cat.id === activeId);
+      const newIndex = state.categories.findIndex((cat) => cat.id === overId);
+      
+      if (oldIndex === -1 || newIndex === -1) return state;
+      
+      const newCategories = [...state.categories];
+      const [movedCategory] = newCategories.splice(oldIndex, 1);
+      newCategories.splice(newIndex, 0, movedCategory);
+      
+      return { categories: newCategories };
+    });
+  },
 }));

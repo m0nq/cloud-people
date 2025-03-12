@@ -41,7 +41,7 @@ type ScrollRefs = Record<string, HTMLDivElement | null>;
 
 type ScrollHandler = (categoryId: string) => void;
 
-type CategoryProjectsGetter = (categoryId: string) => Project[];
+type CategoryProjectsGetter = (categoryType: string) => Project[];
 
 const Dashboard: React.FC<DashboardProps> = ({ initialProjects, initialCategories }) => {
     const { projects, loading, fetchProjects, error } = useProjectsStore();
@@ -68,9 +68,23 @@ const Dashboard: React.FC<DashboardProps> = ({ initialProjects, initialCategorie
         }
     }, []);
 
-    const getCategoryProjects = useMemo<CategoryProjectsGetter>(() =>
-            (categoryId: string) => projects.filter(project => project.categoryId === categoryId)
-        , [projects]);
+    const getCategoryProjects = useMemo<CategoryProjectsGetter>(() => {
+            return (categoryType: string) => {
+                switch (categoryType) {
+                    case 'recent':
+                        return projects.slice(0, 3);
+                    case 'top':
+                        return [...projects].sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+                    case 'templates':
+                        return projects.filter(project => ['6', '7', '8', '9', '10'].includes(project.id));
+                    case 'all':
+                    default:
+                        return projects;
+                }
+            };
+        },
+        [projects]
+    );
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -158,10 +172,10 @@ const Dashboard: React.FC<DashboardProps> = ({ initialProjects, initialCategorie
                                     </div>
                                 </div>
                                 <div className="action-buttons">
-                                    <button className="action-button bg-gray-500 hover:bg-gray-600">
+                                    <button className="action-button watch-button">
                                         Watch
                                     </button>
-                                    <button className="action-button bg-secondary hover:bg-secondary/60">
+                                    <button className="action-button meeting-button">
                                         Meeting
                                     </button>
                                 </div>
@@ -218,14 +232,21 @@ const Dashboard: React.FC<DashboardProps> = ({ initialProjects, initialCategorie
                                 onDragEnd={handleDragEnd}>
                                 <SortableContext items={categories.map(cat => cat.id)}
                                     strategy={verticalListSortingStrategy}>
-                                    {categories.map((category) => (
-                                        <DraggableCategory key={category.id}
-                                            category={category}
-                                            onScrollLeft={handleScrollLeft}
-                                            onScrollRight={handleScrollRight}
-                                            scrollContainerRef={getScrollContainerRef(category.id)}
-                                            projects={getCategoryProjects(category.id)} />
-                                    ))}
+                                    {categories.map((category) => {
+                                        const categoryProjects = getCategoryProjects(category.type);
+
+                                        return (
+                                            <div key={category.id} className="draggable-category">
+                                                <DraggableCategory
+                                                    id={category.id}
+                                                    projects={categoryProjects}
+                                                    title={category.title}
+                                                    onScrollLeft={() => handleScrollLeft(category.id)}
+                                                    onScrollRight={() => handleScrollRight(category.id)}
+                                                    scrollContainerRef={(el) => { scrollContainerRefs.current[category.id] = el; }} />
+                                            </div>
+                                        );
+                                    })}
                                 </SortableContext>
                             </DndContext>
                         </motion.div>

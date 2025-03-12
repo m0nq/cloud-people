@@ -7,11 +7,11 @@ export type TimeRange = 'Today' | 'Yesterday' | 'Recently' | string;
  */
 export const isValidISODate = (dateString: string): boolean => {
     if (!dateString) return false;
-    
+
     // ISO 8601 regex pattern
     const isoDatePattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,3})?(?:Z|[+-]\d{2}:?\d{2})?$/;
     if (!isoDatePattern.test(dateString)) return false;
-    
+
     const date = new Date(dateString);
     return !isNaN(date.getTime());
 };
@@ -32,27 +32,27 @@ export const formatRelativeTime = (date: string): TimeRange => {
         const lastUpdated = new Date(date);
         const now = new Date();
         const MS_PER_DAY = 1000 * 60 * 60 * 24;
-        
+
         // Ensure we're comparing dates in UTC to avoid timezone issues
         const diffInDays = (now.getTime() - lastUpdated.getTime()) / MS_PER_DAY;
-        
+
         // Handle different time ranges
         if (diffInDays < 0) {
             console.warn('[DateUtils] Future date detected:', { date, diffInDays });
             return 'Recently';
         }
-        
+
         if (diffInDays < 1) {
             // Check if it's the same calendar day
             return now.toDateString() === lastUpdated.toDateString() ? 'Today' : 'Yesterday';
         }
-        
+
         if (diffInDays < 2) {
             return 'Yesterday';
         }
-        
+
         if (diffInDays > 365) {
-            return new Intl.DateTimeFormat('en', { 
+            return new Intl.DateTimeFormat('en', {
                 year: 'numeric',
                 month: 'short',
                 day: 'numeric'
@@ -68,4 +68,11 @@ export const formatRelativeTime = (date: string): TimeRange => {
         console.error('[DateUtils] Error formatting date:', { date, error });
         return 'Recently';
     }
+};
+
+export const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD'
+    }).format(amount);
 };

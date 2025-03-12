@@ -39,7 +39,7 @@ export const CompanyCard = ({
             </div>
             <div className="action-buttons">
                 <button onClick={onViewDocs} className="action-button" aria-label="View Documentation">
-                    <RiBookLine size={20} className="icon-button" />
+                    <RiBookLine size={20} className="text-gray-500 hover:text-gray-900" />
                 </button>
                 <button onClick={onPause} className="action-button" aria-label="Pause">
                     <PiPause size={20} className="icon-button" />
