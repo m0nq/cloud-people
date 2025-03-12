@@ -467,7 +467,7 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
             // Always ensure we reset the processing state
             setIsProcessing(false);
         }
-    }, [agentData, agentRuntime?.state, canExecute, isProcessing, onStatusChange, agentId]);
+    }, [agentData, isProcessing, onStatusChange]);
 
     return {
         isProcessing,
