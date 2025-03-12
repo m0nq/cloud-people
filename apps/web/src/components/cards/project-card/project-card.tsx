@@ -8,7 +8,6 @@ import Image from 'next/image';
 import { Card } from '@components/card';
 import { CardContent } from '@components/card';
 import type { Project } from '@stores/projects-store';
-import { formatRelativeTime } from '@utils/date/format';
 import { formatCurrency } from '@utils/date/format';
 import { FiTrendingUp } from 'react-icons/fi';
 import Link from 'next/link';
@@ -35,14 +34,6 @@ export const ProjectCard = memo(({ project }: ProjectCardProps) => {
         // In a real app, this would clone the project
         console.log('Cloning project:', project.id);
     };
-
-    const handleDetails = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        router.push('/office');
-    };
-
-    const formattedDate = formatRelativeTime(project.updatedAt);
-    const projectInitial = project.title.charAt(0).toUpperCase();
 
     return (
         <motion.div variants={{
@@ -80,10 +71,12 @@ export const ProjectCard = memo(({ project }: ProjectCardProps) => {
                                 <span className={`font-medium text-green-600`}>{formatCurrency(project.revenue)}</span>
                             </div>
                             <div className="flex space-x-2">
-                                <button onClick={handleClone} className="py-1 px-2 text-xs">
+                                <button onClick={handleClone}
+                                    className="py-1.5 px-2.5 text-xs text-white font-semibold rounded-md bg-blue-700  hover:bg-blue-800">
                                     Clone
                                 </button>
-                                <Link href="/sandbox" className="py-1 px-2 text-xs">
+                                <Link href="/sandbox"
+                                    className="py-1.5 px-2.5 text-xs text-gray-600 font-semibold rounded-md border border-solid">
                                     Details
                                 </Link>
                             </div>

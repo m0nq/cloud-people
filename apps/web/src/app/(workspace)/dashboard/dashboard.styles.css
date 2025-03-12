@@ -92,7 +92,7 @@
     }
 
     .projects-container {
-      @apply flex gap-x-4 overflow-x-auto pb-4;
+      @apply flex gap-1 overflow-x-auto pb-4;
       scrollbar-width: none;
       -ms-overflow-style: none;
       -webkit-overflow-scrolling: touch;
