@@ -6,7 +6,7 @@
   }
 
   .navigation-content {
-    @apply h-full fixed top-0 left-0 py-4 mx-2 flex flex-col justify-between items-center transition-transform
+    @apply h-full fixed top-0 left-0 py-4 w-16 flex flex-col justify-between items-center transition-transform
     duration-300 ease-in-out bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700;
 
     &.hidden {
@@ -31,7 +31,7 @@
   }
 
   .toggle-button {
-    @apply fixed top-4 left-3 w-16 h-16 rounded-[20px] border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-md flex items-center
+    @apply fixed top-4 left-3 w-12 h-12 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-md flex items-center
     justify-center text-2xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 active:brightness-90 transition-transform duration-300 ease-in-out
     translate-x-0 z-50;
 
