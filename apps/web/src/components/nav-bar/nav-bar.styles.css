@@ -14,7 +14,7 @@
     }
 
     .nav-header {
-      @apply flex-shrink-0 flex items-center justify-center h-16 border-b border-gray-200 dark:border-gray-700;
+      @apply flex-shrink-0 flex items-center justify-center h-auto pb-4 border-b border-gray-200 dark:border-gray-700;
 
       .nav-logo {
         @apply flex items-center justify-center;

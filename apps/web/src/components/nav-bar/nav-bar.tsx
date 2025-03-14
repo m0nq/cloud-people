@@ -20,6 +20,7 @@ import { Config } from '@config/constants';
 import { NetworkIcon } from '@components/icons/network-icon';
 import { MessageIcon } from '@components/icons/message-icon';
 import { LogoIcon } from '@components/icons/logo-icon';
+import { ThemeToggle } from '@components/theme/theme-toggle';
 
 import './nav-bar.styles.css';
 
@@ -95,9 +96,9 @@ export const NavBar = () => {
 
             <div className={`navigation-content ${!isNavVisible ? 'hidden' : ''}`}>
                 <div className="nav-header">
-                    <Link href="/" className="nav-logo">
-                        <LogoIcon width="30" height="20" />
-                    </Link>
+                    <div className="nav-theme-toggle">
+                        <ThemeToggle />
+                    </div>
                 </div>
 
                 <nav className="nav-primary">
