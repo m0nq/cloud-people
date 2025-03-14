@@ -1,2 +1,2 @@
-export { ThemeProvider } from './theme-provider';
+export { ClientThemeProvider } from './client-theme-provider';
 export { ThemeToggle } from './theme-toggle';

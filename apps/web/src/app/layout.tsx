@@ -5,11 +5,15 @@ import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
 
-import './globals.css';
 import { dmSans } from '@lib/fonts';
 import { lexend } from '@lib/fonts';
 import { inter } from '@lib/fonts';
 import { validateEnv } from '@lib/env';
+
+import './globals.css';
+
+// Import the client component wrapper
+import { ClientThemeProvider } from '@components/theme/client-theme-provider';
 
 export type LayoutProps = {
     params?: any;
@@ -31,7 +35,11 @@ const RootLayout = ({ children }: LayoutProps) => {
     return (
         <html lang="en">
             <body className={`${dmSans.variable} ${lexend.variable} ${inter.variable}`} suppressHydrationWarning>
-                <MantineProvider>{children}</MantineProvider>
+                <MantineProvider>
+                    <ClientThemeProvider>
+                        {children}
+                    </ClientThemeProvider>
+                </MantineProvider>
             </body>
         </html>
     );
