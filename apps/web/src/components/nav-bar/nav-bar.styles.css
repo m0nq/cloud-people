@@ -1,7 +1,64 @@
 .nav-bar {
-  @apply fixed top-0 left-0 h-full w-24 z-50;
+  @apply fixed left-0 top-0 h-full w-16 z-10 flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-colors duration-200;
+
+  .nav-header {
+    @apply flex-shrink-0 flex items-center justify-center h-16 border-b border-gray-200 dark:border-gray-700;
+
+    .nav-logo {
+      @apply flex items-center justify-center;
+    }
+  }
+
+  .nav-primary {
+    @apply flex-1 flex flex-col items-center pt-5 space-y-6;
+  }
+
+  .nav-secondary {
+    @apply flex-shrink-0 flex flex-col items-center pb-5 space-y-6;
+  }
 }
 
+.nav-item {
+  @apply relative;
+
+  .nav-link {
+    @apply flex items-center justify-center w-10 h-10 rounded-lg transition-colors duration-200;
+
+    &.nav-link-active {
+      @apply bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300;
+
+      .nav-indicator {
+        @apply absolute left-0 w-1 h-10 bg-blue-600 dark:bg-blue-400 rounded-r-md;
+      }
+    }
+
+    &.nav-link-inactive {
+      @apply text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200;
+    }
+  }
+
+  .nav-tooltip {
+    @apply absolute left-16 top-1 bg-gray-800 dark:bg-gray-700 text-white text-sm py-1 px-3 rounded-md whitespace-nowrap z-20;
+
+    .nav-tooltip-arrow {
+      @apply absolute left-0 top-1/2 transform -translate-x-1 -translate-y-1/2 border-4 border-transparent border-r-gray-800 dark:border-r-gray-700;
+    }
+  }
+
+  .nav-logout-button {
+    @apply flex items-center justify-center w-10 h-10 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200 transition-colors duration-200;
+  }
+
+  .nav-logout-tooltip {
+    @apply absolute left-16 bottom-1 bg-gray-800 dark:bg-gray-700 text-white text-sm py-1 px-3 rounded-md whitespace-nowrap z-20;
+
+    .nav-tooltip-arrow {
+      @apply absolute left-0 top-1/2 transform -translate-x-1 -translate-y-1/2 border-4 border-transparent border-r-gray-800 dark:border-r-gray-700;
+    }
+  }
+}
+
+/* Keep existing styles for backward compatibility */
 .navigation-area {
   @apply h-full fixed top-0 left-0 py-4 mx-2 flex flex-col justify-between items-center transition-transform
   duration-300 ease-in-out;
