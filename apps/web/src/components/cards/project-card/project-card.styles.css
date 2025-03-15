@@ -1,0 +1,98 @@
+/* Project Card Container */
+.project-card-container {
+  @apply h-full overflow-hidden;
+}
+
+/* Project Card Inner - matches the first div inside Card */
+.project-card-inner {
+  @apply flex flex-col h-full;
+  
+  /* Project Card Image Section - child of inner container */
+  .project-card-image {
+    @apply relative h-36 overflow-hidden;
+    
+    /* Image thumbnail - child of image section */
+    .project-card-thumbnail {
+      @apply object-cover w-full h-full;
+    }
+    
+    /* Overlay - child of image section */
+    .project-card-overlay {
+      @apply absolute inset-0;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.4), transparent);
+    }
+  }
+  
+  /* Project Card Content - child of inner container */
+  .project-card-content {
+    @apply p-3;
+    
+    /* Project Card Header - child of content */
+    .project-card-header {
+      @apply flex items-center justify-between mb-1;
+      
+      /* Project Card Title - child of header */
+      .project-card-title {
+        @apply text-base font-semibold truncate;
+        color: rgb(var(--foreground));
+      }
+    }
+    
+    /* Project Card Description - child of content */
+    .project-card-description {
+      @apply text-xs line-clamp-2 mb-2 h-8;
+      color: rgb(var(--muted-foreground));
+    }
+    
+    /* Project Card Footer - child of content */
+    .project-card-footer {
+      @apply flex justify-between items-center mt-auto pt-2;
+      border-top: 1px solid rgb(var(--border));
+      
+      /* Revenue Section - child of footer */
+      .project-card-revenue {
+        @apply flex items-center text-sm;
+        
+        /* Revenue Icon - child of revenue section */
+        .project-card-revenue-icon {
+          @apply mr-1;
+          color: rgb(var(--success, 22 163 74));
+        }
+        
+        /* Revenue Amount - child of revenue section */
+        .project-card-revenue-amount {
+          @apply font-medium;
+          color: rgb(var(--success, 22 163 74));
+        }
+      }
+      
+      /* Action Buttons - child of footer */
+      .project-card-actions {
+        @apply flex space-x-2;
+        
+        /* Action Button - child of actions */
+        .project-card-action-button {
+          @apply py-1.5 px-2.5 text-xs font-semibold rounded-md;
+          background-color: rgb(var(--primary, 37 99 235));
+          color: rgb(var(--primary-foreground, 255 255 255));
+          
+          &:hover {
+            background-color: rgb(var(--primary-hover, 29 78 216));
+          }
+        }
+        
+        /* Action Link - child of actions */
+        .project-card-action-link {
+          @apply py-1.5 px-2.5 text-xs font-semibold rounded-md border border-solid;
+          color: rgb(var(--muted-foreground));
+          border-color: rgb(var(--border));
+          
+          &:hover {
+            background-color: rgb(var(--secondary, 243 244 246));
+            color: rgb(var(--secondary-foreground, 15 23 42));
+          }
+        }
+      }
+    }
+  }
+}

@@ -12,6 +12,8 @@ import { formatCurrency } from '@utils/date/format';
 import { FiTrendingUp } from 'react-icons/fi';
 import Link from 'next/link';
 
+import './project-card.styles.css';
+
 interface ProjectCardProps {
     project: Project;
 }
@@ -42,42 +44,38 @@ const ProjectCardComponent = ({ project }: ProjectCardProps) => {
         }}>
             <Card interactive
                 onClick={() => router.push('/sandbox')}
-                className="h-full hover:shadow-md transition-shadow duration-300 overflow-hidden">
-                <div className="flex flex-col h-full">
-                    <div className="relative h-36 overflow-hidden">
+                className="project-card-container">
+                <div className="project-card-inner">
+                    <div className="project-card-image">
                         <Image src={project.thumbnail}
                             alt={project.title}
                             width={800}
                             height={144}
-                            className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                            className="project-card-thumbnail" />
+                        <div className="project-card-overlay"></div>
                     </div>
-
-                    <CardContent className="p-3">
-                        <div className="flex items-center justify-between mb-1">
-                            {/*<h3 className={`text-base font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} truncate`}>{project.title}</h3>*/}
-                            <h3 className={`text-base font-semibold text-gray-900 truncate`}>{project.title}</h3>
+                    <CardContent className="project-card-content">
+                        <div className="project-card-header">
+                            <h3 className="project-card-title">{project.title}</h3>
                         </div>
 
-                        {/*<p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-xs line-clamp-2 mb-2 h-8`}>{project.description}</p>*/}
-                        <p className={`text-gray-600 text-xs line-clamp-2 mb-2 h-8`}>{project.description}</p>
+                        <p className="project-card-description">{project.description}</p>
 
-                        {/*<div className={`flex justify-between items-center mt-auto pt-2 border-t ${isDarkMode ? 'border-gray-700' : 'border-gray-100'}`}>*/}
-                        <div className={`flex justify-between items-center mt-auto pt-2 border-t border-gray-100`}>
-                            <div className="flex items-center text-green-600 text-sm">
-                                {/*<FiTrendingUp size={14} className={`mr-1 ${isDarkMode ? 'text-green-400' : 'text-green-600'}`} />*/}
-                                <FiTrendingUp size={14} className={`mr-1 text-green-600`} />
-                                {/*<span className={`font-medium ${isDarkMode ? 'text-green-400' : 'text-green-600'}`}>{formatCurrency(project.revenue)}</span>*/}
-                                <span className={`font-medium text-green-600`}>{formatCurrency(project.revenue)}</span>
+                        <div className="project-card-footer">
+                            <div className="project-card-revenue">
+                                <FiTrendingUp size={14} className="project-card-revenue-icon" />
+                                <span className="project-card-revenue-amount">{formatCurrency(project.revenue)}</span>
                             </div>
-                            <div className="flex space-x-2">
+                            <div className="project-card-actions">
                                 <button onClick={handleClone}
-                                    className="py-1.5 px-2.5 text-xs text-white font-semibold rounded-md bg-blue-700  hover:bg-blue-800">
+                                    className="project-card-action-button"
+                                    aria-label="Clone Project">
                                     Clone
                                 </button>
-                                <Link href="/sandbox"
-                                    className="py-1.5 px-2.5 text-xs text-gray-600 font-semibold rounded-md border border-solid">
-                                    Details
+                                <Link href="/sandbox" 
+                                    className="project-card-action-link"
+                                    onClick={(e) => e.stopPropagation()}>
+                                    View
                                 </Link>
                             </div>
                         </div>

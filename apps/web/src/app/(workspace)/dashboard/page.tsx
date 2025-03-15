@@ -29,7 +29,7 @@ import { Card } from '@components/card';
 import { CompanyCard } from '@components/cards/company-card/company-card';
 import { LoadingSpinner } from '@components/spinners/loading-spinner';
 import { DraggableCategory } from './components/draggable-category';
-import { InteractiveHeader } from './interactive-header';
+import { InteractiveHeader } from './components/interactive-header';
 
 type ScrollRefs = Record<number, HTMLDivElement | null>;
 
@@ -132,10 +132,8 @@ const Dashboard = () => {
                     <CompanyCard name="Cool Coffee Mugs. llc"
                         logoUrl="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" />
 
-                    {/* <Card className={`max-w-3xl ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}> */}
                     <Card className="dashboard-card">
                         <div className="card-grid">
-                            {/*<div className={`p-4 rounded-lg ${isDarkMode ? 'bg-gray-700/50' : 'bg-gray-50'}`}>*/}
                             <div className="profile-container">
                                 <div className="profile-header">
                                     <div className="profile-image-container">
@@ -145,18 +143,14 @@ const Dashboard = () => {
                                             height={256}
                                             className="profile-image" />
                                     </div>
-                                    {/*<h2 className={`text-lg font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>*/}
                                     <h2 className="profile-name">
                                         Manager Mike
                                     </h2>
                                 </div>
-                                {/*<div className={`p-3 rounded-lg ${isDarkMode ? 'bg-gray-600/50' : 'bg-white'} mb-4`}>*/}
                                 <div className="task-container">
-                                    {/*<div className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>*/}
                                     <div className="task-label">
                                         Current Task:
                                     </div>
-                                    {/*<div className={`${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>*/}
                                     <div className="task-name">
                                         Name of task
                                     </div>
@@ -177,7 +171,7 @@ const Dashboard = () => {
                                         Net Profit
                                     </div>
                                     <button className="stats-options-button">
-                                        <FiMoreVertical size={16} className="text-gray-600" />
+                                        <FiMoreVertical size={16} className="text-[rgb(var(--muted-foreground))]" />
                                     </button>
                                 </div>
                                 <div className="profit-display">
@@ -188,17 +182,15 @@ const Dashboard = () => {
                                 </div>
                                 <div className="expense-list">
                                     <div className="expense-item">
-                                        <div className="expense-label">
-                                            <FiBriefcase size={16} className="expense-icon" />
-                                            {/*<span className={isDarkMode ? 'text-gray-300' : 'text-gray-900'}>Business Expenses</span>*/}
+                                        <div className="expense-info">
+                                            <FiBriefcase size={16} className="expense-icon text-[rgb(var(--foreground))]" />
                                             <span className="expense-name">Business Expenses</span>
                                         </div>
                                         <div className="expense-amount">-$5,154.50</div>
                                     </div>
                                     <div className="expense-item">
-                                        <div className="expense-label">
-                                            <FiUsers size={16} className="expense-icon" />
-                                            {/*<span className={isDarkMode ? 'text-gray-300' : 'text-gray-900'}>Taxes</span>*/}
+                                        <div className="expense-info">
+                                            <FiUsers size={16} className="expense-icon text-[rgb(var(--foreground))]" />
                                             <span className="expense-name">Taxes</span>
                                         </div>
                                         <div className="expense-amount">-$1,140.50</div>

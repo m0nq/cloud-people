@@ -3,7 +3,7 @@
 import { FaArrowRight } from 'react-icons/fa';
 import Link from 'next/link';
 
-import './dashboard.styles.css';
+import '../dashboard.styles.css';
 import { Button } from '@components/utils/button/button';
 import { IoIosList } from 'react-icons/io';
 

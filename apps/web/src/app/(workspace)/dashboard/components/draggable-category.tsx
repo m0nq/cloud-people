@@ -6,7 +6,8 @@ import { CSS } from '@dnd-kit/utilities';
 import { ProjectCard } from '@components/cards/project-card/project-card';
 import type { Project } from '@stores/projects-store';
 import { RiDraggable } from 'react-icons/ri';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { FaChevronLeft } from 'react-icons/fa';
+import { FaChevronRight } from 'react-icons/fa';
 
 interface DraggableCategoryProps {
     id: number;
