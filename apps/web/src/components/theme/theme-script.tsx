@@ -1,47 +1,39 @@
-'use client';
-
-import { ReactElement } from 'react';
+import { FC } from 'react';
 
 /**
- * This component injects a script into the head of the document that reads the theme
- * from localStorage and applies the dark class to the html element before the page renders.
- * This prevents the flash of light theme when the page loads with dark mode enabled.
+ * ThemeScript component that injects a script into the head of the document
+ * to apply the correct theme before React hydration, preventing flash of light mode
+ * when dark mode is toggled on during loading.
  */
-export const ThemeScript = (): ReactElement => {
-  // This script will run before the page renders and hydration occurs
-  return (
-    <script
-      id="theme-script"
-      dangerouslySetInnerHTML={{
-        __html: `
-          (function() {
-            try {
-              // Check if we have a theme preference stored
-              const storedTheme = localStorage.getItem('theme-storage');
-              
-              if (storedTheme) {
-                const themeData = JSON.parse(storedTheme);
-                
-                // Apply dark mode if the stored preference is dark
-                if (themeData.state && themeData.state.isDarkMode) {
-                  document.documentElement.classList.add('dark');
-                } else {
-                  document.documentElement.classList.remove('dark');
-                }
-              } else {
-                // If no stored preference, check system preference
-                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                if (prefersDark) {
-                  document.documentElement.classList.add('dark');
-                }
-              }
-            } catch (e) {
-              // If there's an error, do nothing
-              console.error('Error applying theme:', e);
-            }
-          })();
-        `,
-      }}
-    />
-  );
+export const ThemeScript: FC = () => {
+  // This script runs before React hydration to ensure the correct theme is applied
+  const themeScript = `
+    (function() {
+      try {
+        // Get the stored theme from localStorage
+        const storedTheme = localStorage.getItem('theme');
+        // Get the system preference
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        // Determine which theme to apply
+        const isDark = 
+          storedTheme === 'dark' || 
+          (storedTheme === 'system' && systemPrefersDark) || 
+          (!storedTheme && systemPrefersDark);
+        
+        // Apply the theme by adding or removing the 'dark' class
+        if (isDark) {
+          document.documentElement.classList.add('dark');
+        } else {
+          document.documentElement.classList.remove('dark');
+        }
+      } catch (e) {
+        // Fallback if localStorage is not available
+        console.error('Error applying theme:', e);
+      }
+    })();
+  `;
+
+  // Return a script element with the theme script
+  return <script dangerouslySetInnerHTML={{ __html: themeScript }} />;
 };

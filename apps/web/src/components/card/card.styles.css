@@ -1,15 +1,15 @@
 /* Base Card Styles */
 .card {
   @apply rounded-lg shadow-md overflow-hidden;
-  background-color: rgb(var(--card));
-  color: rgb(var(--card-foreground));
+  background-color: var(--card);
+  color: var(--card-foreground);
 }
 
 /* Card Variants */
 .card.card-dark {
-  background-color: rgb(var(--card));
-  color: rgb(var(--card-foreground));
-  border: 1px solid rgb(var(--border));
+  background-color: var(--card);
+  color: var(--card-foreground);
+  border: 1px solid var(--border);
 }
 
 .card.card-interactive {
@@ -19,47 +19,47 @@
 /* Card Header - Child component of Card */
 .card .card-header {
   @apply px-6 py-4;
-  border-bottom: 1px solid rgb(var(--border));
+  border-bottom: 1px solid var(--border);
 }
 
 .card-header.card-header-dark {
-  border-color: rgb(var(--border));
+  border-color: var(--border);
 }
 
 .card-header.card-header-light {
-  border-color: rgb(var(--border));
+  border-color: var(--border);
 }
 
 /* Card Title - Child component of Card */
 .card .card-title {
   @apply text-lg font-semibold;
-  color: rgb(var(--foreground));
+  color: var(--foreground);
 }
 
 .card-title.card-title-dark {
-  color: rgb(var(--foreground));
+  color: var(--foreground);
 }
 
 .card-title.card-title-light {
-  color: rgb(var(--foreground));
+  color: var(--foreground);
 }
 
 /* Card Content - Child component of Card */
 .card .card-content {
   @apply px-6 py-4;
-  background-color: rgb(var(--card));
+  background-color: var(--card);
 }
 
 /* Card Footer - Child component of Card */
 .card .card-footer {
   @apply px-6 py-4;
-  border-top: 1px solid rgb(var(--border));
+  border-top: 1px solid var(--border);
 }
 
 .card-footer.card-footer-dark {
-  border-color: rgb(var(--border));
+  border-color: var(--border);
 }
 
 .card-footer.card-footer-light {
-  border-color: rgb(var(--border));
+  border-color: var(--border);
 }

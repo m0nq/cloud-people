@@ -1,6 +1,6 @@
 .dashboard-container {
   @apply h-fit px-28 pt-12;
-  background-color: rgb(var(--background));
+  background-color: var(--background);
   
   .dashboard-content {
     @apply space-y-8;
@@ -13,7 +13,7 @@
     
     .section-title {
       @apply text-2xl font-bold;
-      color: rgb(var(--foreground));
+      color: var(--foreground);
     }
   }
 }
@@ -36,20 +36,20 @@
       transition-all duration-200 hover:shadow-xl
       focus:ring-2 focus:ring-offset-2
       active:shadow-xl;
-      color: rgb(var(--foreground));
-      background-color: rgb(var(--secondary));
+      color: var(--foreground);
+      background-color: var(--secondary);
       
       &:hover {
-        background-color: rgba(var(--secondary-foreground), 0.1);
+        background-color: var(--secondary-foreground);
       }
       
       &:focus {
-        background-color: rgba(var(--secondary-foreground), 0.1);
+        background-color: var(--secondary-foreground);
         @apply focus:ring-gray-400;
       }
       
       &:active {
-        background-color: rgba(var(--secondary-foreground), 0.2);
+        background-color: var(--secondary-foreground);
       }
     }
   }
@@ -57,7 +57,7 @@
 
 .error-container {
   @apply p-8 text-center;
-  color: rgb(var(--destructive));
+  color: var(--destructive);
 }
 
 .loading-container {
@@ -75,7 +75,7 @@
     @apply space-y-4;
     
     &.is-dragging {
-      background-color: rgb(var(--secondary));
+      background-color: var(--secondary);
       @apply rounded-lg;
     }
   }
@@ -92,13 +92,13 @@
     @apply cursor-grab mr-2 p-1 rounded-md active:cursor-grabbing;
     
     &:hover {
-      background-color: rgb(var(--secondary));
+      background-color: var(--secondary);
     }
   }
   
   .category-title {
     @apply text-xl font-semibold;
-    color: rgb(var(--foreground));
+    color: var(--foreground);
   }
   
   .scroll-controls {
@@ -108,11 +108,11 @@
   .scroll-left-button, .scroll-right-button {
     @apply inline-flex items-center justify-between font-medium rounded-md transition-colors focus:outline-none
     focus:ring-2 focus:ring-offset-2 text-sm px-3 py-1.5;
-    color: rgb(var(--foreground));
-    border: 1px solid rgb(var(--border));
+    color: var(--foreground);
+    border: 1px solid var(--border);
     
     &:hover {
-      background-color: rgb(var(--secondary));
+      background-color: var(--secondary);
     }
     
     &:focus {
@@ -151,23 +151,23 @@
 
 .dashboard-card {
   @apply max-w-3xl rounded-lg shadow-md;
-  background-color: rgb(var(--card));
-  border: 1px solid rgb(var(--border));
+  background-color: var(--card);
+  border: 1px solid var(--border);
   
   .card-grid {
     @apply grid grid-cols-1 md:grid-cols-2 gap-6 p-6;
-    background-color: rgb(var(--card));
+    background-color: var(--card);
   }
   
   .card-content {
     @apply p-4 rounded-lg;
-    background-color: rgb(var(--card));
+    background-color: var(--card);
   }
   
   .profile-container {
     @apply p-4 rounded-lg;
-    background-color: rgb(var(--accent));
-    border: 1px solid rgb(var(--border));
+    /* background-color: rgb(var(--accent)); */
+    background-color: #2D3543;
     
     .profile-header {
       @apply flex items-center space-x-3 mb-4;
@@ -182,23 +182,23 @@
       
       .profile-name {
         @apply text-lg font-semibold;
-        color: rgb(var(--foreground));
+        color: var(--foreground);
       }
     }
   }
   
   .task-container {
     @apply p-3 rounded-lg mb-4;
-    background-color: rgb(var(--secondary));
-    border: 1px solid rgb(var(--border));
+    background-color: var(--secondary);
+    border: 1px solid var(--border);
     
     .task-label {
       @apply text-sm;
-      color: rgb(var(--muted-foreground));
+      color: var(--muted-foreground);
     }
     
     .task-name {
-      color: rgb(var(--foreground));
+      color: var(--foreground);
     }
   }
   
@@ -219,8 +219,8 @@
   }
   .stats-container {
     @apply p-4 rounded-lg;
-    background-color: rgb(var(--accent));
-    border: 1px solid rgb(var(--border));
+    background-color: var(--accent);
+    border: 1px solid var(--border);
     
     .stats-header {
       @apply flex items-center justify-between mb-4;
@@ -228,22 +228,22 @@
     
     .stats-label {
       @apply text-sm;
-      color: rgb(var(--muted-foreground));
+      color: var(--muted-foreground);
     }
     
     .stats-options-button {
       @apply p-1 rounded-lg;
       
       &:hover {
-        background-color: rgb(var(--secondary));
+        background-color: var(--secondary);
       }
     }
   }
   
   .profit-display {
     @apply p-4 rounded-lg mb-4;
-    background-color: rgb(var(--primary));
-    border: 1px solid rgba(var(--primary-foreground), 0.1);
+    background-color: var(--primary);
+    border: 1px solid var(--primary-foreground);
     
     .profit-content {
       @apply flex items-center justify-between;
@@ -251,12 +251,12 @@
     
     .profit-amount {
       @apply text-2xl font-bold;
-      color: rgb(var(--primary-foreground));
+      color: var(--primary-foreground);
     }
     
     .profit-period {
       @apply text-sm;
-      color: rgba(var(--primary-foreground), 0.8);
+      color: var(--primary-foreground);
     }
   }
   
@@ -274,12 +274,12 @@
   
   .expense-icon {
     @apply p-1 rounded-md;
-    background-color: rgb(var(--secondary));
-    border: 1px solid rgb(var(--border));
+    background-color: var(--secondary);
+    border: 1px solid var(--border);
   }
   
   .expense-name {
-    color: rgb(var(--foreground));
+    color: var(--foreground);
   }
   
   .expense-amount {

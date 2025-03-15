@@ -38,10 +38,7 @@ const RootLayout = ({ children }: LayoutProps) => {
             <head>
                 <ThemeScript />
             </head>
-            <body 
-                className={`${dmSans.variable} ${lexend.variable} ${inter.variable}`}
-                suppressHydrationWarning
-            >
+            <body className={`${dmSans.variable} ${lexend.variable} ${inter.variable}`} suppressHydrationWarning>
                 <MantineProvider>
                     <ClientThemeProvider>
                         {children}

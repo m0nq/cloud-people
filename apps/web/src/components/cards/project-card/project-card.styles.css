@@ -45,20 +45,20 @@
       /* Project Card Title - child of header */
       .project-card-title {
         @apply text-base font-semibold truncate;
-        color: rgb(var(--foreground));
+        color: var(--foreground);
       }
     }
     
     /* Project Card Description - child of content */
     .project-card-description {
       @apply text-xs line-clamp-2 mb-2 h-8;
-      color: rgb(var(--muted-foreground));
+      color: var(--muted-foreground);
     }
     
     /* Project Card Footer - child of content */
     .project-card-footer {
       @apply flex justify-between items-center mt-auto pt-2;
-      border-top: 1px solid rgb(var(--border));
+      border-top: 1px solid var(--border);
       
       /* Revenue Section - child of footer */
       .project-card-revenue {
@@ -67,13 +67,13 @@
         /* Revenue Icon - child of revenue section */
         .project-card-revenue-icon {
           @apply mr-1;
-          color: rgb(var(--success, 22 163 74));
+          color: var(--success, 22 163 74);
         }
         
         /* Revenue Amount - child of revenue section */
         .project-card-revenue-amount {
           @apply font-medium;
-          color: rgb(var(--success, 22 163 74));
+          color: var(--success, 22 163 74);
         }
       }
       
@@ -84,23 +84,23 @@
         /* Action Button - child of actions */
         .project-card-action-button {
           @apply py-1.5 px-2.5 text-xs font-semibold rounded-md;
-          background-color: rgb(var(--primary, 37 99 235));
-          color: rgb(var(--primary-foreground, 255 255 255));
+          background-color: var(--primary, 37 99 235);
+          color: var(--primary-foreground, 255 255 255);
           
           &:hover {
-            background-color: rgb(var(--primary-hover, 29 78 216));
+            background-color: var(--primary-hover, 29 78 216);
           }
         }
         
         /* Action Link - child of actions */
         .project-card-action-link {
           @apply py-1.5 px-2.5 text-xs font-semibold rounded-md border border-solid;
-          color: rgb(var(--muted-foreground));
-          border-color: rgb(var(--border));
+          color: var(--muted-foreground);
+          border-color: var(--border);
           
           &:hover {
-            background-color: rgb(var(--secondary, 243 244 246));
-            color: rgb(var(--secondary-foreground, 15 23 42));
+            background-color: var(--secondary, 243 244 246);
+            color: var(--secondary-foreground, 15 23 42);
           }
         }
       }
