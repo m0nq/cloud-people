@@ -1,6 +1,17 @@
+/* Project Card Wrapper */
+.project-card-wrapper {
+  @apply h-full w-full p-1 overflow-hidden;
+}
+
+/* Project Card Motion Container */
+.project-card-motion-container {
+  @apply h-full w-full overflow-hidden rounded-lg cursor-pointer;
+  transform-origin: center center;
+}
+
 /* Project Card Container */
 .project-card-container {
-  @apply h-full overflow-hidden;
+  @apply h-full w-full rounded-lg;
 }
 
 /* Project Card Inner - matches the first div inside Card */

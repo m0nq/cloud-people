@@ -129,7 +129,7 @@
   }
   
   .projects-container {
-    @apply flex gap-1 overflow-x-auto pb-4;
+    @apply flex gap-3 overflow-x-auto pb-4;
     scrollbar-width: none;
     -ms-overflow-style: none;
     -webkit-overflow-scrolling: touch;
@@ -139,8 +139,13 @@
     }
   }
   
+  /* Project card container styles */
   .project-card-container {
-    @apply flex-shrink-0 w-80 p-2 transform-gpu;
+    @apply flex-shrink-0 w-80 transform-gpu;
+  }
+  
+  &:hover {
+    @apply shadow-lg;
   }
 }
 
@@ -199,16 +204,19 @@
   
   .action-buttons {
     @apply flex gap-2 justify-between;
-  }
   
-  .watch-button {
-    @apply bg-gray-500 hover:bg-gray-600;
+    .action-button {
+      @apply flex-1 p-2 rounded-lg;
+    }
+    
+    .watch-button {
+      @apply bg-gray-500 hover:bg-gray-600 text-white;
+    }
+    
+    .meeting-button {
+      @apply bg-emerald-400 hover:bg-emerald-500 text-gray-800;
+    }
   }
-  
-  .meeting-button {
-    @apply bg-emerald-400 hover:bg-emerald-500;
-  }
-  
   .stats-container {
     @apply p-4 rounded-lg;
     background-color: rgb(var(--accent));
