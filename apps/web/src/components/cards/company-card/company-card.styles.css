@@ -1,13 +1,11 @@
 /* Company Card Container */
 .company-card-container {
-  @apply max-w-3xl rounded-lg overflow-hidden mt-7 shadow-md;
-  background-color: var(--card);
+  @apply max-w-3xl rounded-t-lg overflow-hidden mt-7 shadow-md bg-[var(--card)];
   border: 1px solid var(--border);
 
   /* Card Header */
   .card-header {
     @apply flex items-center justify-between p-4;
-    border-bottom: 1px solid var(--border);
 
     /* Company Info Section */
     .company-info {
@@ -44,9 +42,7 @@
       }
 
       .open-button {
-        @apply py-1 px-2.5 rounded-md;
-        background-color: var(--primary);
-        color: var(--primary-foreground);
+        @apply py-1 px-2.5 rounded-md bg-blue-600 font-semibold text-[var(--primary-foreground)];
 
         &:hover {
           @apply opacity-90;

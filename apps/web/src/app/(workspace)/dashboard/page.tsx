@@ -61,20 +61,20 @@ const Dashboard = () => {
     }, []);
 
     const getCategoryProjects = useMemo<CategoryProjectsGetter>(() => {
-            return (categoryType: string) => {
-                switch (categoryType) {
-                    case 'recent':
-                        return projects.slice(0, 3);
-                    case 'top':
-                        return [...projects].sort((a, b) => b.revenue - a.revenue).slice(0, 5);
-                    case 'templates':
-                        return projects.filter(project => ['6', '7', '8', '9', '10'].includes(project.id));
-                    case 'all':
-                    default:
-                        return projects;
-                }
-            };
-        },
+        return (categoryType: string) => {
+            switch (categoryType) {
+                case 'recent':
+                    return projects.slice(0, 3);
+                case 'top':
+                    return [...projects].sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+                case 'templates':
+                    return projects.filter(project => ['6', '7', '8', '9', '10'].includes(project.id));
+                case 'all':
+                default:
+                    return projects;
+            }
+        };
+    },
         [projects]
     );
 
@@ -132,7 +132,7 @@ const Dashboard = () => {
                     <CompanyCard name="Cool Coffee Mugs. llc"
                         logoUrl="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" />
 
-                    <Card className="dashboard-card">
+                    <div className="dashboard-card">
                         <div className="card-grid">
                             <div className="profile-container">
                                 <div className="profile-header">
@@ -171,7 +171,7 @@ const Dashboard = () => {
                                         Net Profit
                                     </div>
                                     <button className="stats-options-button">
-                                        <FiMoreVertical size={16} className="text-[rgb(var(--muted-foreground))]" />
+                                        <FiMoreVertical size={16} className="text-[var(--muted-foreground)]" />
                                     </button>
                                 </div>
                                 <div className="profit-display">
@@ -183,14 +183,14 @@ const Dashboard = () => {
                                 <div className="expense-list">
                                     <div className="expense-item">
                                         <div className="expense-info">
-                                            <FiBriefcase size={16} className="expense-icon text-[rgb(var(--foreground))]" />
+                                            <FiBriefcase size={25} className="expense-icon text-[rgb(var(--foreground))]" />
                                             <span className="expense-name">Business Expenses</span>
                                         </div>
                                         <div className="expense-amount">-$5,154.50</div>
                                     </div>
                                     <div className="expense-item">
                                         <div className="expense-info">
-                                            <FiUsers size={16} className="expense-icon text-[rgb(var(--foreground))]" />
+                                            <FiUsers size={25} className="expense-icon text-[rgb(var(--foreground))]" />
                                             <span className="expense-name">Taxes</span>
                                         </div>
                                         <div className="expense-amount">-$1,140.50</div>
@@ -198,7 +198,7 @@ const Dashboard = () => {
                                 </div>
                             </div>
                         </div>
-                    </Card>
+                    </div>
 
                     {loading ? (
                         <div className="loading-container">

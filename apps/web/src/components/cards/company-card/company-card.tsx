@@ -25,7 +25,7 @@ export const CompanyCard = ({
     onPause,
     onSettings
 }: CompanyCardProps) => (
-    <Card className="company-card-container">
+    <div className="company-card-container">
         <div className="card-header">
             <div className="company-info">
                 <Image src={logoUrl}
@@ -52,5 +52,5 @@ export const CompanyCard = ({
                 </button>
             </div>
         </div>
-    </Card>
+    </div>
 );

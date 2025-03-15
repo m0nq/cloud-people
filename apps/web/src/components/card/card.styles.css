@@ -19,7 +19,6 @@
 /* Card Header - Child component of Card */
 .card .card-header {
   @apply px-6 py-4;
-  border-bottom: 1px solid var(--border);
 }
 
 .card-header.card-header-dark {

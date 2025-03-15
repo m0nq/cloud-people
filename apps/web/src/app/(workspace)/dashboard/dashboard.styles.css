@@ -1,6 +1,5 @@
 .dashboard-container {
-  @apply h-fit px-28 pt-12;
-  background-color: var(--background);
+  @apply h-fit px-28 pt-12 bg-[var(--background)];
   
   .dashboard-content {
     @apply space-y-8;
@@ -12,8 +11,7 @@
     @apply py-2;
     
     .section-title {
-      @apply text-2xl font-bold;
-      color: var(--foreground);
+      @apply text-2xl font-bold text-[var(--foreground)];
     }
   }
 }
@@ -32,24 +30,19 @@
     }
     
     .header-button {
-      @apply h-full gap-0 px-6 rounded-md shadow-xl outline-none
-      transition-all duration-200 hover:shadow-xl
-      focus:ring-2 focus:ring-offset-2
-      active:shadow-xl;
-      color: var(--foreground);
-      background-color: var(--secondary);
+      @apply h-full gap-0 px-6 rounded-md shadow-xl outline-none transition-all duration-200 text-[var(--foreground)]
+      bg-[var(--secondary)] hover:shadow-xl focus:ring-2 focus:ring-offset-2 active:shadow-xl;
       
       &:hover {
-        background-color: var(--secondary-foreground);
+        @apply bg-[var(--secondary-foreground)];
       }
       
       &:focus {
-        background-color: var(--secondary-foreground);
-        @apply focus:ring-gray-400;
+        @apply focus:ring-gray-400 bg-[var(--secondary-foreground)];
       }
       
       &:active {
-        background-color: var(--secondary-foreground);
+        @apply bg-[var(--secondary-foreground)];
       }
     }
   }
@@ -75,8 +68,7 @@
     @apply space-y-4;
     
     &.is-dragging {
-      background-color: var(--secondary);
-      @apply rounded-lg;
+      @apply rounded-lg bg-[var(--secondary)];
     }
   }
   
@@ -143,14 +135,10 @@
   .project-card-container {
     @apply flex-shrink-0 w-80 transform-gpu;
   }
-  
-  &:hover {
-    @apply shadow-lg;
-  }
 }
 
 .dashboard-card {
-  @apply max-w-3xl rounded-lg shadow-md;
+  @apply max-w-3xl rounded-lg shadow-md rounded-t-none;
   background-color: var(--card);
   border: 1px solid var(--border);
   
@@ -165,9 +153,7 @@
   }
   
   .profile-container {
-    @apply p-4 rounded-lg;
-    /* background-color: rgb(var(--accent)); */
-    background-color: #2D3543;
+    @apply p-4 rounded-lg bg-[var(--accent)];
     
     .profile-header {
       @apply flex items-center space-x-3 mb-4;
@@ -235,15 +221,13 @@
       @apply p-1 rounded-lg;
       
       &:hover {
-        background-color: var(--secondary);
+        @apply bg-[var(--secondary)];
       }
     }
   }
   
   .profit-display {
-    @apply p-4 rounded-lg mb-4;
-    background-color: var(--primary);
-    border: 1px solid var(--primary-foreground);
+    @apply p-4 rounded-lg mb-4 bg-[var(--primary)];
     
     .profit-content {
       @apply flex items-center justify-between;
@@ -269,17 +253,15 @@
   }
   
   .expense-info {
-    @apply flex items-center gap-2;
+    @apply flex items-center gap-2 text-[var(--foreground)];
   }
   
   .expense-icon {
     @apply p-1 rounded-md;
-    background-color: var(--secondary);
-    border: 1px solid var(--border);
   }
   
   .expense-name {
-    color: var(--foreground);
+    @apply text-[var(--foreground)];
   }
   
   .expense-amount {
