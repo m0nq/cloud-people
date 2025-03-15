@@ -14,6 +14,7 @@ import './globals.css';
 
 // Import the client component wrapper
 import { ClientThemeProvider } from '@components/theme/client-theme-provider';
+import { ThemeScript } from '@components/theme/theme-script';
 
 export type LayoutProps = {
     params?: any;
@@ -33,8 +34,14 @@ const RootLayout = ({ children }: LayoutProps) => {
     validateEnv();
 
     return (
-        <html lang="en">
-            <body className={`${dmSans.variable} ${lexend.variable} ${inter.variable}`} suppressHydrationWarning>
+        <html lang="en" suppressHydrationWarning>
+            <head>
+                <ThemeScript />
+            </head>
+            <body 
+                className={`${dmSans.variable} ${lexend.variable} ${inter.variable}`}
+                suppressHydrationWarning
+            >
                 <MantineProvider>
                     <ClientThemeProvider>
                         {children}
