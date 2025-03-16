@@ -137,7 +137,7 @@
   
   /* Dashboard project card wrapper styles */
   .dashboard-project-card-wrapper {
-    @apply w-80 transform-gpu;
+    @apply w-80 min-w-80 transform-gpu;
   }
 }
 
