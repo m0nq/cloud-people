@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
-import { Card } from '@components/card';
 import { CardContent } from '@components/card';
 import type { Project } from '@stores/projects-store';
 import { formatCurrency } from '@utils/date/format';
@@ -38,53 +37,58 @@ const ProjectCardComponent = ({ project }: ProjectCardProps) => {
     };
 
     return (
-        <div className="project-card-wrapper">
-            <motion.div 
-                className="project-card-motion-container"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}>
-                <Card interactive={false}
-                    onClick={() => router.push('/sandbox')}
-                    className="project-card-container">
-                    <div className="project-card-inner">
-                        <div className="project-card-image">
-                            <Image src={project.thumbnail}
-                                alt={project.title}
-                                width={800}
-                                height={144}
-                                className="project-card-thumbnail" />
-                            <div className="project-card-overlay"></div>
-                        </div>
-                        <CardContent className="project-card-content">
-                            <div className="project-card-header">
-                                <h3 className="project-card-title">{project.title}</h3>
-                            </div>
-
-                            <p className="project-card-description">{project.description}</p>
-
-                            <div className="project-card-footer">
-                                <div className="project-card-revenue">
-                                    <FiTrendingUp size={14} className="project-card-revenue-icon" />
-                                    <span className="project-card-revenue-amount">{formatCurrency(project.revenue)}</span>
-                                </div>
-                                <div className="project-card-actions">
-                                    <button onClick={handleClone}
-                                        className="project-card-action-button"
-                                        aria-label="Clone Project">
-                                        Clone
-                                    </button>
-                                    <Link href="/sandbox"
-                                        className="project-card-action-link"
-                                        onClick={(e) => e.stopPropagation()}>
-                                        View
-                                    </Link>
-                                </div>
-                            </div>
-                        </CardContent>
+        <motion.div className="project-card-motion-container"
+            whileHover={{
+                scale: 1.05
+            }}
+            transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 20
+            }}
+            variants={{
+                hidden: { opacity: 0, y: 20 },
+                show: { opacity: 1, y: 0 }
+            }}>
+            <div onClick={() => router.push('/sandbox')}
+                className="project-card-container">
+                <div className="project-card-inner">
+                    <div className="project-card-image">
+                        <Image src={project.thumbnail}
+                            alt={project.title}
+                            width={800}
+                            height={144}
+                            className="project-card-thumbnail" />
                     </div>
-                </Card>
-            </motion.div>
-        </div>
+                    <CardContent className="project-card-content">
+                        <div className="project-card-header">
+                            <h3 className="project-card-title">{project.title}</h3>
+                        </div>
+
+                        <p className="project-card-description">{project.description}</p>
+
+                        <div className="project-card-footer">
+                            <div className="project-card-revenue">
+                                <FiTrendingUp size={14} className="project-card-revenue-icon" />
+                                <span className="project-card-revenue-amount">{formatCurrency(project.revenue)}</span>
+                            </div>
+                            <div className="project-card-actions">
+                                <button onClick={handleClone}
+                                    className="project-card-action-button"
+                                    aria-label="Clone Project">
+                                    Clone
+                                </button>
+                                <Link href="/sandbox"
+                                    className="project-card-action-link"
+                                    onClick={(e) => e.stopPropagation()}>
+                                    Details
+                                </Link>
+                            </div>
+                        </div>
+                    </CardContent>
+                </div>
+            </div>
+        </motion.div>
     );
 };
 

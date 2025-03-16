@@ -7,11 +7,16 @@
 }
 
 .dashboard-section {
-  .section-header {
-    @apply py-2;
-    
-    .section-title {
-      @apply text-2xl font-bold text-[var(--foreground)];
+  
+  .dashboard-header-wrapper {
+    @apply px-2;
+
+    .section-header {
+      @apply py-2;
+      
+      .section-title {
+        @apply text-2xl font-bold text-[var(--foreground)];
+      }
     }
   }
 }
@@ -65,7 +70,6 @@
   @apply mt-12;
   
   .draggable-category-container {
-    @apply space-y-4;
     
     &.is-dragging {
       @apply rounded-lg bg-[var(--secondary)];
@@ -121,7 +125,7 @@
   }
   
   .projects-container {
-    @apply flex gap-3 overflow-x-auto pb-4;
+    @apply flex overflow-auto py-4 px-2;
     scrollbar-width: none;
     -ms-overflow-style: none;
     -webkit-overflow-scrolling: touch;
@@ -131,9 +135,9 @@
     }
   }
   
-  /* Project card container styles */
-  .project-card-container {
-    @apply flex-shrink-0 w-80 transform-gpu;
+  /* Dashboard project card wrapper styles */
+  .dashboard-project-card-wrapper {
+    @apply w-80 transform-gpu;
   }
 }
 
@@ -192,7 +196,7 @@
     @apply flex gap-2 justify-between;
   
     .action-button {
-      @apply flex-1 p-2 rounded-lg;
+      @apply flex-1 p-2 rounded-lg font-semibold;
     }
     
     .watch-button {
@@ -227,7 +231,7 @@
   }
   
   .profit-display {
-    @apply p-4 rounded-lg mb-4 bg-[var(--primary)];
+    @apply p-4 rounded-lg mb-4 bg-[#4F46E5];
     
     .profit-content {
       @apply flex items-center justify-between;

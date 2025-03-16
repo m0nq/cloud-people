@@ -34,10 +34,10 @@
       }
 
       .icon-button {
-        color: var(--muted-foreground);
+        color: var(--primary);
 
         &:hover {
-          color: var(--foreground);
+          color: var(--primary-hover);
         }
       }
 

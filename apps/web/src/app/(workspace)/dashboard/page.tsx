@@ -125,75 +125,77 @@ const Dashboard = () => {
 
             <div className="dashboard-content">
                 <div className="dashboard-section">
-                    <div className="section-header">
-                        <h1 className="section-title">Dashboard</h1>
-                    </div>
+                    <div className="dashboard-header-wrapper">
+                        <div className="section-header">
+                            <h1 className="section-title">Dashboard</h1>
+                        </div>
 
-                    <CompanyCard name="Cool Coffee Mugs. llc"
-                        logoUrl="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" />
+                        <CompanyCard name="Cool Coffee Mugs. llc"
+                            logoUrl="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" />
 
-                    <div className="dashboard-card">
-                        <div className="card-grid">
-                            <div className="profile-container">
-                                <div className="profile-header">
-                                    <div className="profile-image-container">
-                                        <Image src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-                                            alt="Manager"
-                                            width={256}
-                                            height={256}
-                                            className="profile-image" />
-                                    </div>
-                                    <h2 className="profile-name">
-                                        Manager Mike
-                                    </h2>
-                                </div>
-                                <div className="task-container">
-                                    <div className="task-label">
-                                        Current Task:
-                                    </div>
-                                    <div className="task-name">
-                                        Name of task
-                                    </div>
-                                </div>
-                                <div className="action-buttons">
-                                    <button className="action-button watch-button">
-                                        Watch
-                                    </button>
-                                    <button className="action-button meeting-button">
-                                        Meeting
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="stats-container">
-                                <div className="stats-header">
-                                    <div className="stats-label">
-                                        Net Profit
-                                    </div>
-                                    <button className="stats-options-button">
-                                        <FiMoreVertical size={16} className="text-[var(--muted-foreground)]" />
-                                    </button>
-                                </div>
-                                <div className="profit-display">
-                                    <div className="profit-content">
-                                        <div className="profit-amount">$25,215</div>
-                                        <div className="profit-period">All Time</div>
-                                    </div>
-                                </div>
-                                <div className="expense-list">
-                                    <div className="expense-item">
-                                        <div className="expense-info">
-                                            <FiBriefcase size={25} className="expense-icon text-[rgb(var(--foreground))]" />
-                                            <span className="expense-name">Business Expenses</span>
+                        <div className="dashboard-card">
+                            <div className="card-grid">
+                                <div className="profile-container">
+                                    <div className="profile-header">
+                                        <div className="profile-image-container">
+                                            <Image src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                                                alt="Manager"
+                                                width={256}
+                                                height={256}
+                                                className="profile-image" />
                                         </div>
-                                        <div className="expense-amount">-$5,154.50</div>
+                                        <h2 className="profile-name">
+                                            Manager Mike
+                                        </h2>
                                     </div>
-                                    <div className="expense-item">
-                                        <div className="expense-info">
-                                            <FiUsers size={25} className="expense-icon text-[rgb(var(--foreground))]" />
-                                            <span className="expense-name">Taxes</span>
+                                    <div className="task-container">
+                                        <div className="task-label">
+                                            Current Task:
                                         </div>
-                                        <div className="expense-amount">-$1,140.50</div>
+                                        <div className="task-name">
+                                            Name of task
+                                        </div>
+                                    </div>
+                                    <div className="action-buttons">
+                                        <button className="action-button watch-button">
+                                            Watch
+                                        </button>
+                                        <button className="action-button meeting-button">
+                                            Meeting
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="stats-container">
+                                    <div className="stats-header">
+                                        <div className="stats-label">
+                                            Net Profit
+                                        </div>
+                                        <button className="stats-options-button">
+                                            <FiMoreVertical size={16} className="text-[var(--muted-foreground)]" />
+                                        </button>
+                                    </div>
+                                    <div className="profit-display">
+                                        <div className="profit-content">
+                                            <div className="profit-amount">$25,215</div>
+                                            <div className="profit-period">All Time</div>
+                                        </div>
+                                    </div>
+                                    <div className="expense-list">
+                                        <div className="expense-item">
+                                            <div className="expense-info">
+                                                <FiBriefcase size={25} className="expense-icon text-[rgb(var(--foreground))]" />
+                                                <span className="expense-name">Business Expenses</span>
+                                            </div>
+                                            <div className="expense-amount">-$5,154.50</div>
+                                        </div>
+                                        <div className="expense-item">
+                                            <div className="expense-info">
+                                                <FiUsers size={25} className="expense-icon text-[rgb(var(--foreground))]" />
+                                                <span className="expense-name">Taxes</span>
+                                            </div>
+                                            <div className="expense-amount">-$1,140.50</div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

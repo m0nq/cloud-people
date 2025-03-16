@@ -1,42 +1,36 @@
 /* Project Card Wrapper */
 .project-card-wrapper {
-  @apply h-full w-full p-1 overflow-hidden;
+  @apply h-full w-full p-1;
 }
 
 /* Project Card Motion Container */
 .project-card-motion-container {
-  @apply h-full w-full overflow-hidden rounded-lg cursor-pointer;
+  @apply flex justify-center items-center p-3 h-full w-full rounded-lg cursor-pointer relative z-0 hover:z-10 overflow-visible;
   transform-origin: center center;
 }
 
 /* Project Card Container */
 .project-card-container {
-  @apply h-full w-full rounded-lg;
+  @apply h-full w-full rounded-lg transition-all duration-300 shadow-md transform-gpu;
 }
 
 /* Project Card Inner - matches the first div inside Card */
 .project-card-inner {
-  @apply flex flex-col h-full;
+  @apply flex flex-col h-full w-full;
   
   /* Project Card Image Section - child of inner container */
   .project-card-image {
-    @apply relative h-36 overflow-hidden;
+    @apply relative h-36 w-full;
     
     /* Image thumbnail - child of image section */
     .project-card-thumbnail {
-      @apply object-cover w-full h-full;
-    }
-    
-    /* Overlay - child of image section */
-    .project-card-overlay {
-      @apply absolute inset-0;
-      background: linear-gradient(to top, rgba(0, 0, 0, 0.4), transparent);
+      @apply object-cover w-full h-full rounded-t-lg;
     }
   }
   
   /* Project Card Content - child of inner container */
   .project-card-content {
-    @apply p-3;
+    @apply p-3 transform-gpu;
     
     /* Project Card Header - child of content */
     .project-card-header {
@@ -62,18 +56,18 @@
       
       /* Revenue Section - child of footer */
       .project-card-revenue {
-        @apply flex items-center text-sm;
+        @apply flex items-center text-sm transition-all duration-300;
+        color: var(--success, 22 163 74);
         
         /* Revenue Icon - child of revenue section */
         .project-card-revenue-icon {
           @apply mr-1;
-          color: var(--success, 22 163 74);
         }
         
         /* Revenue Amount - child of revenue section */
         .project-card-revenue-amount {
           @apply font-medium;
-          color: var(--success, 22 163 74);
+          /* color: var(--success, 22 163 74); */
         }
       }
       
@@ -88,7 +82,7 @@
           color: var(--primary-foreground, 255 255 255);
           
           &:hover {
-            background-color: var(--primary-hover, 29 78 216);
+            background-color: var(--primary-hover);
           }
         }
         
@@ -107,3 +101,6 @@
     }
   }
 }
+
+/* Hover styles for the card - applied to the container */
+
