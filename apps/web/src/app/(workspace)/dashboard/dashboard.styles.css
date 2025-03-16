@@ -35,20 +35,8 @@
     }
     
     .header-button {
-      @apply h-full gap-0 px-6 rounded-md shadow-xl outline-none transition-all duration-200 text-[var(--foreground)]
-      bg-[var(--secondary)] hover:shadow-xl focus:ring-2 focus:ring-offset-2 active:shadow-xl;
-      
-      &:hover {
-        @apply bg-[var(--secondary-foreground)];
-      }
-      
-      &:focus {
-        @apply focus:ring-gray-400 bg-[var(--secondary-foreground)];
-      }
-      
-      &:active {
-        @apply bg-[var(--secondary-foreground)];
-      }
+      @apply flex items-center justify-center gap-2 h-full px-6 rounded-md shadow-xl outline-none transition-all duration-200 text-[var(--foreground)]
+      bg-[var(--secondary)] hover:bg-[var(--accent)] hover:shadow-xl focus:bg-[var(--accent)] focus:ring-2 focus:ring-offset-2 active:shadow-xl active:bg-[var(--accent)];
     }
   }
 }
