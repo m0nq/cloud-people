@@ -30,7 +30,7 @@
   
   /* Project Card Content - child of inner container */
   .project-card-content {
-    @apply p-3 transform-gpu;
+    @apply p-3 transform-gpu bg-[var(--card-background)] rounded-b-lg;
     
     /* Project Card Header - child of content */
     .project-card-header {

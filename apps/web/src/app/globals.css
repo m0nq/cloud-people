@@ -21,6 +21,7 @@
   --destructive-foreground: #FFFFFF;
   --muted: #F1F5F9;
   --muted-foreground: #64748B;
+  --card-background: #FFFFFF;
 }
 
 .dark {
@@ -42,6 +43,7 @@
   --destructive-foreground: #FFFFFF;
   --muted: #1E293B;
   --muted-foreground: #94A3B8;
+  --card-background: #212936;
 }
 
 body {

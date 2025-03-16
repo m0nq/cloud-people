@@ -11,15 +11,21 @@ export const ThemeScript: FC = () => {
     (function() {
       try {
         // Get the stored theme from localStorage
-        const storedTheme = localStorage.getItem('theme');
-        // Get the system preference
-        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const storedThemeData = localStorage.getItem('theme-storage');
+        let isDark = false;
         
-        // Determine which theme to apply
-        const isDark = 
-          storedTheme === 'dark' || 
-          (storedTheme === 'system' && systemPrefersDark) || 
-          (!storedTheme && systemPrefersDark);
+        if (storedThemeData) {
+          try {
+            const themeData = JSON.parse(storedThemeData);
+            isDark = themeData.state?.isDarkMode === true;
+          } catch (parseError) {
+            console.error('Error parsing theme data:', parseError);
+          }
+        } else {
+          // If no stored theme, check system preference
+          const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          isDark = systemPrefersDark;
+        }
         
         // Apply the theme by adding or removing the 'dark' class
         if (isDark) {
@@ -27,9 +33,40 @@ export const ThemeScript: FC = () => {
         } else {
           document.documentElement.classList.remove('dark');
         }
+
+        // Store the applied theme for debugging
+        window.__THEME_APPLIED = isDark ? 'dark' : 'light';
+
+        // Add a small delay and check again to ensure theme is applied
+        setTimeout(() => {
+          const storedThemeData = localStorage.getItem('theme-storage');
+          let shouldBeDark = false;
+          
+          if (storedThemeData) {
+            try {
+              const themeData = JSON.parse(storedThemeData);
+              shouldBeDark = themeData.state?.isDarkMode === true;
+            } catch (parseError) {
+              console.error('Error parsing theme data:', parseError);
+            }
+          } else {
+            // If no stored theme, check system preference
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            shouldBeDark = systemPrefersDark;
+          }
+          
+          if (shouldBeDark && !document.documentElement.classList.contains('dark')) {
+            document.documentElement.classList.add('dark');
+            console.log('Theme re-applied: dark');
+          } else if (!shouldBeDark && document.documentElement.classList.contains('dark')) {
+            document.documentElement.classList.remove('dark');
+            console.log('Theme re-applied: light');
+          }
+        }, 0);
       } catch (e) {
-        // Fallback if localStorage is not available
+        // Fallback to light mode if localStorage is not available
         console.error('Error applying theme:', e);
+        document.documentElement.classList.remove('dark');
       }
     })();
   `;
