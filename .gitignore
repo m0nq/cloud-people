@@ -94,6 +94,3 @@ services/browser-service/.pdm.toml
 services/browser-service/recordings/*
 services/browser-service/screenshots/*
 services/web-ui
-
-src
-app

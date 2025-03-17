@@ -81,17 +81,15 @@ import { utils } from '../utils';
    ```
 
 4. File and Code Style Conventions
-    - Follow the Airbnb Style Guide for code formatting as long as it doesn't conflict with JavaScript/TypeScript semi-standard style.
-    - Use lowercase with dashes for directories and file names (e.g., user-card.tsx, not UserCard.tsx).
+    - Follow the existing file naming conventions (e.g., kebab-case, PascalCase) and organization patterns.
     - Use consistent file extensions (.tsx, .ts).
     - Maintain consistent indentation and spacing across the project.
     - Use clear, descriptive naming conventions for variables, functions, and components.
-    - Prefer named exports for components.
     - Respect project-specific architectural decisions and established patterns for state management, data fetching,
       etc.
 
 5. Tailwind CSS Rules
-    1. Use Tailwind CSS for styling:
+    1. Write CSS using Tailwind classes unless otherwise specified:
         - Utilize styles in separate css files using the @apply rule.
         - Nested css selectors are prefered over global ones.
         - Maintain consistent class order:
@@ -111,7 +109,7 @@ import { utils } from '../utils';
            }
        ```
 
-    2. Follow mobile-first responsive design principles using Tailwind’s breakpoints (sm, md, lg, etc.) first before
+    2. Follow mobile-first responsive design principles using Tailwind's breakpoints (sm, md, lg, etc.) first before
        using custom breakpoint sizes.
 
 6. Always consider conventions used in a file or project, specifically:
@@ -130,7 +128,7 @@ import { utils } from '../utils';
 
 7. Hooks Guidelines
     - Follow the Rules of Hooks strictly.
-    - Use proper cleanup in useEffect.
+    - Use proper cleanup in useEffect, especially for subscriptions, timers, and event listeners.
     - Avoid unnecessary dependencies in useEffect. Use useMemo or useCallback to stabilize dependencies.
     - Write custom hooks for reusable logic.
 
@@ -168,6 +166,7 @@ import { utils } from '../utils';
         - Not for simple values or functions
     - Implement proper code splitting and lazy loading
     - Use proper key props for lists (avoid index when possible)
+    - Use appropriate list components for long lists
 
     e. State Management:
 
@@ -176,12 +175,14 @@ import { utils } from '../utils';
     - Use context carefully - consider context splitting
     - Implement proper state initialization patterns
     - Consider server state vs client state
+    - Use appropriate state management libraries for complex apps (Zustand, etc.)
 
     f. Advanced Patterns:
 
     - Embrace modern patterns like render props and custom hooks for sharing logic.
     - Avoid stale closures in hooks by using Refs or restructuring logic to prevent dependency issues.
     - For React Context, minimize performance impact by using split providers and selectors.
+    - Implement proper error boundaries for crash prevention and reporting.
 
     g. Hooks Best Practices:
 
@@ -197,6 +198,7 @@ import { utils } from '../utils';
       client components only for interactivity.
     - Implement code-splitting and lazy-loading for reducing the initial load time.
     - Use `useLayoutEffect` over `useEffect` when immediate DOM updates are required.
+    - Add testID or data-testid props to all interactive and important elements for easier testing and debugging.
 
     i. Next.js Specific:
 
@@ -314,11 +316,53 @@ import { utils } from '../utils';
         - Review performance implications
         - Validate changes against the bigger picture
 
-This methodical approach ensures thorough problem-solving and maintains code quality while preventing oversights in
-complex implementations. It emphasizes the importance of understanding the broader context and potential impacts of
-changes before implementing them.
+11. Code Formatting for Multi-line Expressions:
 
-11. Project Structure & Technology Stack
+    a. For ternary expressions and other multi-line conditional statements, place punctuation at the end of the line rather than the beginning of the next line for better readability:
+
+    ```typescript
+    // Preferred:
+    const prompt = type === 'Primary' ? 
+        'Main action' : 
+        type === 'Secondary' ? 
+            'Alternative action' : 
+            'Default action';
+
+    // Avoid:
+    const prompt = type === 'Primary' 
+        ? 'Main action' 
+        : type === 'Secondary' 
+            ? 'Alternative action' 
+            : 'Default action';
+    ```
+
+    b. However, for chained method calls, place the dot on a new line:
+
+    ```typescript
+    // Preferred:
+    someObject.method1()
+      .method2()
+      .method3();
+
+    // Avoid:
+    someObject.method1().
+      method2().
+      method3();
+    ```
+
+    c. For JSX attributes in multi-line components, align attributes and place closing brackets on the same line as the last attribute:
+
+    ```typescript
+    // Preferred:
+    <Component
+        prop1="value1"
+        prop2="value2"
+        prop3="value3">
+        {children}
+    </Component>
+    ```
+
+12. Project Structure & Technology Stack
 
     a. Next.js & React:
         - Follow Next.js patterns and use the App Router
@@ -333,3 +377,24 @@ changes before implementing them.
     c. State Management & Backend:
         - Use Zustand for state management
         - Use Supabase for database access
+
+13. Security Best Practices
+
+    a. Data Storage:
+        - Use secure storage for sensitive data
+        - Never store API keys or secrets in code or unencrypted storage
+        - Implement proper data encryption for local storage
+
+    b. Network Security:
+        - Use HTTPS for all network requests
+        - Implement certificate pinning for critical APIs
+        - Validate all server responses
+
+    c. Authentication:
+        - Implement proper token management
+        - Use biometric authentication when appropriate
+        - Handle session expiration gracefully
+
+This methodical approach ensures thorough problem-solving and maintains code quality while preventing oversights in
+complex implementations. It emphasizes the importance of understanding the broader context and potential impacts of
+changes before implementing them.
