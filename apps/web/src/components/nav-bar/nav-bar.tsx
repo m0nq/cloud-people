@@ -9,7 +9,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { PiShoppingCart } from 'react-icons/pi';
 import { PiSignOutLight } from 'react-icons/pi';
-import { FiBarChart2 } from 'react-icons/fi';
+import { RiBarChartLine } from 'react-icons/ri';
 import { FiDollarSign } from 'react-icons/fi';
 import { FiHome } from 'react-icons/fi';
 import { LuKey } from 'react-icons/lu';
@@ -44,7 +44,7 @@ const primaryLinks = [
     {
         name: 'Ranking',
         link: EndPoints.Community,
-        iconElement: (fillColor: string) => <FiBarChart2 color={fillColor} size={20} />
+        iconElement: (fillColor: string) => <RiBarChartLine color={fillColor} size={20} />
     },
     {
         name: 'Earn',
@@ -62,7 +62,7 @@ const secondaryLinks = [
     {
         name: 'Profile',
         link: EndPoints.Profile,
-        iconElement: () => <Image src={profileImage} alt="Profile picture" width={25} height={25} />
+        iconElement: () => <Image src={profileImage} alt="Profile picture" width={40} height={40} />
     }
 ];
 
