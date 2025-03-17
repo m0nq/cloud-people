@@ -1,17 +1,21 @@
 .dashboard-container {
-  @apply h-fit px-28 pt-12 bg-gray-50;
+  @apply h-fit px-28 pt-12 bg-[var(--background)];
 
   .dashboard-content {
     @apply space-y-8;
+  }
+}
 
-    .dashboard-section {
+.dashboard-section {
 
-      .section-header {
-        @apply py-2;
+  .dashboard-header-wrapper {
+    @apply px-2;
 
-        .section-title {
-          @apply text-2xl font-bold text-gray-900;
-        }
+    .section-header {
+      @apply py-2;
+
+      .section-title {
+        @apply text-2xl font-bold text-[var(--foreground)];
       }
     }
   }
@@ -31,20 +35,19 @@
     }
 
     .header-button {
-      @apply h-full gap-0 px-6 text-black bg-[#E5E7EB] font-semibold rounded-md shadow-xl outline-none
-      transition-all duration-200 hover:bg-gray-300 hover:shadow-xl
-      focus:bg-gray-300 focus:ring-2 focus:ring-gray-400 focus:ring-offset-2
-      active:bg-gray-400 active:shadow-xl;
+      @apply flex items-center justify-center gap-2 h-full px-6 rounded-md shadow-xl outline-none transition-all duration-200 text-[var(--foreground)]
+      bg-[var(--secondary)] hover:bg-[var(--accent)] hover:shadow-xl focus:bg-[var(--accent)] focus:ring-2 focus:ring-offset-2 active:shadow-xl active:bg-[var(--accent)];
     }
   }
 }
 
 .error-container {
-  @apply p-8 text-center text-red-600;
+  @apply p-8 text-center;
+  color: var(--destructive);
 }
 
 .loading-container {
-  @apply flex justify-center py-12;
+  @apply flex flex-col items-center justify-center py-12 min-h-[200px] w-full;
 }
 
 .categories-container {
@@ -55,167 +58,207 @@
   @apply mt-12;
 
   .draggable-category-container {
-    @apply space-y-4;
 
     &.is-dragging {
-      @apply bg-gray-100 rounded-lg;
+      @apply rounded-lg bg-[var(--secondary)];
+    }
+  }
+
+  .category-header {
+    @apply flex items-center justify-between py-2;
+  }
+
+  .title-container {
+    @apply flex items-center;
+  }
+
+  .drag-handle {
+    @apply cursor-grab mr-2 p-1 rounded-md active:cursor-grabbing text-[var(--muted-foreground)];
+
+    &:hover {
+      background-color: var(--secondary);
+    }
+  }
+
+  .category-title {
+    @apply text-xl font-semibold;
+    color: var(--foreground);
+  }
+
+  .scroll-controls {
+    @apply flex gap-2;
+  }
+
+  .scroll-left-button, .scroll-right-button {
+    @apply inline-flex items-center justify-between font-medium rounded-md transition-colors focus:outline-none
+    focus:ring-2 focus:ring-offset-2 text-sm px-3 py-1.5;
+    color: var(--foreground);
+    border: 1px solid var(--border);
+
+    &:hover {
+      background-color: var(--secondary);
     }
 
-    .category-header {
-      @apply flex items-center justify-between py-2;
-
-      .title-container {
-        @apply flex items-center;
-
-        .drag-handle {
-          @apply cursor-grab mr-2 p-1 rounded-md hover:bg-gray-100 active:cursor-grabbing;
-        }
-
-        .category-title {
-          @apply text-xl font-semibold text-gray-900;
-        }
-      }
-
-      .scroll-controls {
-        @apply flex gap-2;
-
-        .scroll-left-button {
-          @apply inline-flex items-center justify-between gap-1.5 font-medium rounded-md transition-colors focus:outline-none
-          focus:ring-2 focus:ring-offset-2 border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500 text-sm px-3 py-1.5;
-        }
-
-        .scroll-right-button {
-          @apply inline-flex items-center justify-between gap-0.5 font-medium rounded-md transition-colors focus:outline-none
-          focus:ring-2 focus:ring-offset-2 border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500 text-sm px-3 py-1.5;
-        }
-      }
+    &:focus {
+      @apply focus:ring-gray-500;
     }
+  }
 
-    .projects-container {
-      @apply flex gap-1 overflow-x-auto pb-4;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-      -webkit-overflow-scrolling: touch;
+  .scroll-left-button {
+    @apply gap-1.5;
+  }
 
-      &::-webkit-scrollbar {
-        @apply hidden;
-      }
+  .scroll-right-button {
+    @apply gap-0.5;
+  }
 
-      .project-card-container {
-        @apply flex-shrink-0 w-80 p-2 transform-gpu;
-      }
+  .projects-container {
+    @apply flex overflow-auto py-4 px-2;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      @apply hidden;
     }
+  }
+
+  /* Dashboard project card wrapper styles */
+
+  .dashboard-project-card-wrapper {
+    @apply w-80 min-w-80 transform-gpu;
   }
 }
 
 .dashboard-card {
-  @apply max-w-3xl bg-white;
+  @apply max-w-3xl rounded-lg shadow-md rounded-t-none;
+  background-color: var(--card);
+  border: 1px solid var(--border);
 
   .card-grid {
     @apply grid grid-cols-1 md:grid-cols-2 gap-6 p-6;
+    background-color: var(--card);
+  }
 
-    .profile-container {
-      @apply p-4 rounded-lg bg-gray-50;
+  .card-content {
+    @apply p-4 rounded-lg;
+    background-color: var(--card);
+  }
 
-      .profile-header {
-        @apply flex items-center space-x-3 mb-4;
+  .profile-container {
+    @apply p-4 rounded-lg bg-[var(--accent)];
 
-        .profile-image-container {
-          @apply w-10 h-10 rounded-full overflow-hidden;
+    .profile-header {
+      @apply flex items-center space-x-3 mb-4;
 
-          .profile-image {
-            @apply w-full h-full object-cover;
-          }
-        }
+      .profile-image-container {
+        @apply w-10 h-10 rounded-full overflow-hidden;
 
-        .profile-name {
-          @apply text-lg font-semibold text-gray-900;
-        }
-      }
-
-      .task-container {
-        @apply p-3 rounded-lg bg-white mb-4;
-
-        .task-label {
-          @apply text-sm text-gray-600;
-        }
-
-        .task-name {
-          @apply text-gray-900;
+        .profile-image {
+          @apply w-full h-full object-cover;
         }
       }
 
-      .action-buttons {
-        @apply flex gap-2 justify-between;
-
-        .action-button {
-          @apply flex-1 py-2 px-4 rounded-md transition-colors text-white font-semibold;
-        }
-
-        .watch-button {
-          @apply bg-gray-500 hover:bg-gray-600;
-        }
-
-        .meeting-button {
-          @apply bg-emerald-400 hover:bg-emerald-500;
-        }
+      .profile-name {
+        @apply text-lg font-semibold;
+        color: var(--foreground);
       }
     }
+  }
 
-    .stats-container {
-      @apply p-4 rounded-lg bg-gray-50;
+  .task-container {
+    @apply p-3 rounded-lg mb-4;
+    background-color: var(--secondary);
+    border: 1px solid var(--border);
 
-      .stats-header {
-        @apply flex items-center justify-between mb-4;
+    .task-label {
+      @apply text-sm;
+      color: var(--muted-foreground);
+    }
 
-        .stats-label {
-          @apply text-sm text-gray-600;
-        }
+    .task-name {
+      color: var(--foreground);
+    }
+  }
 
-        .stats-options-button {
-          @apply p-1 rounded-lg hover:bg-gray-100;
-        }
-      }
+  .dashboard-action-buttons {
+    @apply flex gap-2 justify-between;
 
-      .profit-display {
-        @apply p-4 rounded-lg bg-primary mb-4;
+    .dashboard-action-button {
+      @apply flex-1 p-2 rounded-lg font-semibold;
+    }
 
-        .profit-content {
-          @apply flex items-center justify-between;
+    .watch-button {
+      @apply bg-gray-500 hover:bg-gray-600 text-white;
+    }
 
-          .profit-amount {
-            @apply text-2xl font-bold text-white;
-          }
+    .meeting-button {
+      @apply bg-emerald-400 hover:bg-emerald-500 text-gray-800;
+    }
+  }
 
-          .profit-period {
-            @apply text-sm text-indigo-200;
-          }
-        }
-      }
+  .stats-container {
+    @apply p-4 rounded-lg;
+    background-color: var(--accent);
+    border: 1px solid var(--border);
 
-      .expense-list {
-        @apply space-y-3;
+    .stats-header {
+      @apply flex items-center justify-between mb-4;
+    }
 
-        .expense-item {
-          @apply flex items-center justify-between;
+    .stats-label {
+      @apply text-sm;
+      color: var(--muted-foreground);
+    }
 
-          .expense-label {
-            @apply flex items-center space-x-2;
+    .stats-options-button {
+      @apply p-1 rounded-lg;
 
-            .expense-icon {
-              @apply text-gray-600;
-            }
-
-            .expense-name {
-              @apply text-gray-900;
-            }
-          }
-
-          .expense-amount {
-            @apply text-red-500;
-          }
-        }
+      &:hover {
+        @apply bg-[var(--secondary)];
       }
     }
+  }
+
+  .profit-display {
+    @apply p-4 rounded-lg mb-4 bg-[#4F46E5];
+
+    .profit-content {
+      @apply flex items-center justify-between;
+    }
+
+    .profit-amount {
+      @apply text-2xl font-bold;
+      color: var(--primary-foreground);
+    }
+
+    .profit-period {
+      @apply text-sm;
+      color: var(--primary-foreground);
+    }
+  }
+
+  .expense-list {
+    @apply space-y-3;
+  }
+
+  .expense-item {
+    @apply flex items-center justify-between;
+  }
+
+  .expense-info {
+    @apply flex items-center gap-2 text-[var(--foreground)];
+  }
+
+  .expense-icon {
+    @apply p-1 rounded-md font-semibold;
+  }
+
+  .expense-name {
+    @apply text-[var(--foreground)];
+  }
+
+  .expense-amount {
+    @apply text-red-500;
   }
 }

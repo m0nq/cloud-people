@@ -1,59 +1,74 @@
 .nav-bar {
-  @apply fixed top-0 left-0 h-full w-24 z-50;
-}
+  @apply fixed top-0 left-0 h-full w-24 z-50 transition-all duration-300 ease-in-out;
 
-.navigation-area {
-  @apply h-full fixed top-0 left-0 py-4 mx-2 flex flex-col justify-between items-center transition-transform
-  duration-300 ease-in-out;
-}
+  .navigation-content {
+    @apply h-full fixed top-0 left-0 py-4 w-16 flex flex-col justify-between items-center transition-transform
+    duration-300 ease-in-out bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700;
 
-.navigation-area.hidden {
-  @apply opacity-0 -translate-x-28;
-}
+    &.hidden {
+      @apply opacity-0 -translate-x-28;
+    }
 
-.toggle-button {
-  @apply fixed top-4 left-3 w-16 h-16 rounded-[20px] border border-nav-border bg-dark shadow-default flex items-center
-  justify-center text-2xl text-nav-text hover:text-nav-text/80 active:brightness-90 transition-transform duration-300 ease-in-out
-  translate-x-0;
-}
+    .nav-header {
+      @apply flex-shrink-0 flex items-center justify-center h-auto pb-4 border-b border-gray-200 dark:border-gray-700;
+    }
 
-.toggle-button.hidden {
-  @apply opacity-0 -translate-x-28;
-}
+    .nav-primary {
+      @apply flex-1 flex flex-col items-center pt-5 space-y-6;
+    }
 
-.navigation-bar-top {
-  @apply w-16 rounded-[20px] border border-nav-border bg-dark shadow-default flex flex-col justify-between items-center
-  pt-2;
+    .nav-secondary {
+      @apply flex-shrink-0 flex flex-col items-center pb-5 space-y-6;
+    }
+  }
 
-  .navigation-primary {
-    @apply w-full flex flex-col justify-start items-center;
+  .toggle-button {
+    @apply fixed top-4 left-3 w-12 h-12 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-md flex items-center
+    justify-center text-2xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 active:brightness-90 transition-transform duration-300 ease-in-out
+    translate-x-0 z-50;
+
+    &.hidden {
+      @apply opacity-0 -translate-x-28;
+    }
   }
 }
 
-.navigation-bar-bottom {
-  @apply w-16 min-h-[177.471px] rounded-[20px] border border-nav-border bg-dark shadow-default flex flex-col
-  justify-between items-center py-4;
+.nav-item {
+  @apply relative flex items-center justify-center w-full;
 
-  .navigation-secondary {
-    @apply w-full flex flex-col justify-start items-center;
+  .nav-link {
+    @apply relative flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-200 overflow-visible;
+
+    &.nav-link-active {
+      @apply flex items-center justify-center text-blue-400 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400 relative;
+    }
+
+    &.nav-link-inactive {
+      @apply text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/30;
+    }
+
+    .nav-indicator {
+      @apply absolute right-0 top-0 h-full w-1.5 bg-blue-600 dark:bg-blue-400 rounded-md;
+    }
   }
-}
 
-.navigation-bar-top li,
-.navigation-bar-bottom li {
-  @apply w-full flex justify-center items-center px-1.5 py-4;
+  .nav-tooltip {
+    @apply absolute left-14 z-50 px-2 py-1 min-w-max rounded-md bg-gray-800 text-white text-xs font-medium shadow-lg;
 
-  a {
-    @apply w-full h-full flex justify-center items-center cursor-pointer;
+    .nav-tooltip-arrow {
+      @apply absolute top-1/2 -left-1 -translate-y-1/2 border-4 border-transparent border-r-gray-800;
+    }
   }
-}
 
-.nav-marker {
-  @apply after:absolute after:left-[calc(50%_-_-2rem)] after:h-9 after:w-[3px] after:rounded-md;
-}
+  .nav-logout-button {
+    @apply flex items-center justify-center w-12 h-12 rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200;
+  }
 
-.navigation-bar-top a,
-.navigation-bar-bottom a,
-.sign-out {
-  @apply text-2xl no-underline text-nav-text hover:text-nav-text/80 active:brightness-90;
+  .nav-logout-tooltip {
+    @apply absolute left-14 z-50 px-2 py-1 min-w-max rounded-md bg-red-600 text-white text-xs font-medium shadow-lg;
+
+    .nav-tooltip-arrow {
+      @apply absolute top-1/2 -left-1 -translate-y-1/2 border-4 border-transparent border-r-red-600;
+    }
+  }
 }

@@ -3,10 +3,13 @@
 import { motion } from 'framer-motion';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { RiDraggable } from 'react-icons/ri';
+import { FaChevronLeft } from 'react-icons/fa';
+import { FaChevronRight } from 'react-icons/fa';
+
+import '../dashboard.styles.css';
 import { ProjectCard } from '@components/cards/project-card/project-card';
 import type { Project } from '@stores/projects-store';
-import { RiDraggable } from 'react-icons/ri';
-import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 
 interface DraggableCategoryProps {
     id: number;
@@ -83,7 +86,7 @@ export const DraggableCategory = ({
                 role="list"
                 aria-label={`${title} Projects`}>
                 {projects.map(project => (
-                    <div key={project.id} className="project-card-container">
+                    <div key={project.id} className="dashboard-project-card-wrapper">
                         <ProjectCard key={project.id} project={project} />
                     </div>
                 ))}

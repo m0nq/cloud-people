@@ -21,7 +21,7 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "[typescript]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
+        "editor.defaultFormatter": "vscode.typescript-language-features"
     },
     "[javascriptreact]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -33,11 +33,11 @@
         "editor.defaultFormatter": "esbenp.prettier-vscode"
     },
     "[jsonc]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
+        "editor.defaultFormatter": "vscode.json-language-features"
     },
     "editor.fontFamily": "'Fira Code', Menlo, Monaco, 'Courier New', monospace",
     "editor.fontSize": 14,
     "files.autoSave": "onWindowChange",
     "terminal.integrated.fontSize": 14,
-    "terminal.integrated.fontFamily": "Menlo"
+    "terminal.integrated.fontFamily": "'MesloLGS NF',Menlo"
 }

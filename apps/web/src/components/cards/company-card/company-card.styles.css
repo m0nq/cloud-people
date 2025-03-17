@@ -1,8 +1,14 @@
+/* Company Card Container */
 .company-card-container {
-  @apply max-w-3xl bg-white shadow-sm rounded-lg overflow-hidden mt-7;
+  @apply max-w-3xl rounded-t-lg overflow-hidden mt-7 shadow-md bg-[var(--card)];
+  border: 1px solid var(--border);
+
+  /* Card Header */
 
   .card-header {
-    @apply flex items-center justify-between p-4 border-b border-gray-200;
+    @apply flex items-center justify-between p-4;
+
+    /* Company Info Section */
 
     .company-info {
       @apply flex items-center gap-3;
@@ -12,23 +18,26 @@
       }
 
       .company-name {
-        @apply text-gray-900 font-medium;
+        @apply font-medium;
+        color: var(--foreground);
       }
     }
 
-    .action-buttons {
+    /* Action Buttons Section */
+
+    .company-action-buttons {
       @apply flex items-center justify-end gap-2;
 
-      .action-button {
-        @apply flex items-center justify-center rounded-lg p-2 hover:bg-gray-100;
+      .company-action-button {
+        @apply flex items-center justify-center rounded-lg p-2 hover:bg-[var(--bg-gray)];
       }
 
-      .icon-button {
-        @apply text-gray-600 hover:text-gray-900;
+      .company-icon-button {
+        @apply text-[var(--text-gray)];
       }
 
-      .open-button {
-        @apply bg-blue-600 text-white py-1 px-2.5 rounded-md hover:bg-blue-700;
+      .company-open-button {
+        @apply py-1 px-2.5 rounded-md bg-blue-600 font-semibold text-[var(--primary-foreground)] hover:opacity-90;
       }
     }
   }
