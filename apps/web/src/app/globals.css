@@ -3,46 +3,54 @@
 @tailwind utilities;
 
 :root {
-  --background: #FFFFFF;
-  --foreground: #0F172A;
-  --card: #FFFFFF;
-  --card-foreground: #0F172A;
-  --border: #E2E8F0;
-  --input: #E2E8F0;
-  --primary-hover: #312ECB;
-  --primary: #2978F3;
-  --primary-foreground: #FFFFFF;
-  --secondary: #FFFFFF;
-  --secondary-foreground: #0F172A;
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --primary-hover: #312ecb;
+  --primary: #2978f3;
+  --cloud-people-primary: #56e8cd;
+  --cloud-people-secondary: #4630d4;
+  --text-gray: #4c5461;
+  --bg-gray: #f3f4f6;
+  --primary-foreground: #ffffff;
+  --secondary: #ffffff;
+  --secondary-foreground: #0f172a;
   --success: #10b981;
-  --accent: #F1F5F9;
-  --accent-foreground: #0F172A;
-  --destructive: #EF4444;
-  --destructive-foreground: #FFFFFF;
-  --muted: #F1F5F9;
-  --muted-foreground: #64748B;
-  --card-background: #FFFFFF;
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --card-background: #ffffff;
 }
 
 .dark {
-  --background: #0F172A;
-  --foreground: #E2E8F0;
-  --card: #1E293B;
-  --card-foreground: #E2E8F0;
+  --background: #0f172a;
+  --foreground: #e2e8f0;
+  --card: #1e293b;
+  --card-foreground: #e2e8f0;
   --border: #334155;
   --input: #334155;
-  --primary: #4F46E5;
-  --primary-hover: #312ECB;
-  --primary-foreground: #FFFFFF;
-  --secondary: #3D4552;
-  --secondary-foreground: #E2E8F0;
-  --success: #4ADE80;
-  --accent: #2D3543;
-  --accent-foreground: #E2E8F0;
-  --destructive: #EF4444;
-  --destructive-foreground: #FFFFFF;
-  --muted: #1E293B;
-  --muted-foreground: #94A3B8;
+  --primary: #4f46e5;
+  --primary-hover: #312ecb;
+  --primary-foreground: #ffffff;
+  --secondary: #3d4552;
+  --text-gray: #6c757d;
+  --bg-gray: #394150;
+  --cloud-people-primary: #56e8cd;
+  --cloud-people-secondary: #4630d4;
+  --secondary-foreground: #e2e8f0;
+  --success: #4ade80;
+  --accent: #2d3543;
+  --accent-foreground: #e2e8f0;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
   --card-background: #212936;
 }
 

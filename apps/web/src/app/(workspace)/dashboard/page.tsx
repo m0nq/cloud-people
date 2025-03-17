@@ -24,8 +24,6 @@ import './dashboard.styles.css';
 import { useProjectsStore } from '@stores/projects-store';
 import type { Project } from '@stores/projects-store';
 import { useCategoriesStore } from '@stores/categories-store';
-import type { Category } from '@stores/categories-store';
-import { Card } from '@components/card';
 import { CompanyCard } from '@components/cards/company-card/company-card';
 import { LoadingSpinner } from '@components/spinners/loading-spinner';
 import { DraggableCategory } from './components/draggable-category';
@@ -41,9 +39,14 @@ const Dashboard = () => {
     const { projects, loading, fetchProjects, error } = useProjectsStore();
     const { categories, reorderCategories } = useCategoriesStore();
     const scrollContainerRefs = useRef<ScrollRefs>({});
+    const hasInitialLoadRef = useRef(false);
 
+    // Handle initial data loading
     useEffect(() => {
-        void fetchProjects().catch(console.error);
+        if (!hasInitialLoadRef.current) {
+            hasInitialLoadRef.current = true;
+            void fetchProjects();
+        }
     }, [fetchProjects]);
 
     const handleScrollLeft = useCallback<ScrollHandler>((categoryId) => {
@@ -61,20 +64,20 @@ const Dashboard = () => {
     }, []);
 
     const getCategoryProjects = useMemo<CategoryProjectsGetter>(() => {
-        return (categoryType: string) => {
-            switch (categoryType) {
-                case 'recent':
-                    return projects.slice(0, 3);
-                case 'top':
-                    return [...projects].sort((a, b) => b.revenue - a.revenue).slice(0, 5);
-                case 'templates':
-                    return projects.filter(project => ['6', '7', '8', '9', '10'].includes(project.id));
-                case 'all':
-                default:
-                    return projects;
-            }
-        };
-    },
+            return (categoryType: string) => {
+                switch (categoryType) {
+                    case 'recent':
+                        return projects.slice(0, 3);
+                    case 'top':
+                        return [...projects].sort((a, b) => b.revenue - a.revenue).slice(0, 5);
+                    case 'templates':
+                        return projects.filter(project => ['6', '7', '8', '9', '10'].includes(project.id));
+                    case 'all':
+                    default:
+                        return projects;
+                }
+            };
+        },
         [projects]
     );
 
@@ -184,14 +187,16 @@ const Dashboard = () => {
                                     <div className="expense-list">
                                         <div className="expense-item">
                                             <div className="expense-info">
-                                                <FiBriefcase size={25} className="expense-icon text-[rgb(var(--foreground))]" />
+                                                <FiBriefcase size={25}
+                                                    className="expense-icon text-[rgb(var(--foreground))]" />
                                                 <span className="expense-name">Business Expenses</span>
                                             </div>
                                             <div className="expense-amount">-$5,154.50</div>
                                         </div>
                                         <div className="expense-item">
                                             <div className="expense-info">
-                                                <FiUsers size={25} className="expense-icon text-[rgb(var(--foreground))]" />
+                                                <FiUsers size={25}
+                                                    className="expense-icon text-[rgb(var(--foreground))]" />
                                                 <span className="expense-name">Taxes</span>
                                             </div>
                                             <div className="expense-amount">-$1,140.50</div>
@@ -202,9 +207,10 @@ const Dashboard = () => {
                         </div>
                     </div>
 
+                    {/* Show loading spinner whenever projects are loading */}
                     {loading ? (
                         <div className="loading-container">
-                            <LoadingSpinner />
+                            <LoadingSpinner size={32} color="text-blue-600" />
                         </div>
                     ) : (
                         <motion.div variants={container}

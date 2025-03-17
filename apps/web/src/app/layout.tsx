@@ -9,6 +9,7 @@ import { dmSans } from '@lib/fonts';
 import { lexend } from '@lib/fonts';
 import { inter } from '@lib/fonts';
 import { validateEnv } from '@lib/env';
+import { LoadingProvider } from '@contexts/loading-context';
 
 import './globals.css';
 
@@ -41,7 +42,9 @@ const RootLayout = ({ children }: LayoutProps) => {
             <body className={`${dmSans.variable} ${lexend.variable} ${inter.variable}`} suppressHydrationWarning>
                 <MantineProvider>
                     <ClientThemeProvider>
-                        {children}
+                        <LoadingProvider>
+                            {children}
+                        </LoadingProvider>
                     </ClientThemeProvider>
                 </MantineProvider>
             </body>

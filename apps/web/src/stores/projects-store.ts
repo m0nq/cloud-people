@@ -24,6 +24,9 @@ export const useProjectsStore = create<ProjectsState>((set) => ({
     fetchProjects: async () => {
         set({ loading: true });
         try {
+            // Simulate API call with a 3000ms delay to make loading spinner visible
+            await new Promise((resolve) => setTimeout(resolve, 600));
+
             // TODO: Replace with actual API call
             const mockProjects: Project[] = [
                 {

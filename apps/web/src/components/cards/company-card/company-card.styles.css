@@ -4,10 +4,12 @@
   border: 1px solid var(--border);
 
   /* Card Header */
+
   .card-header {
     @apply flex items-center justify-between p-4;
 
     /* Company Info Section */
+
     .company-info {
       @apply flex items-center gap-3;
 
@@ -22,31 +24,20 @@
     }
 
     /* Action Buttons Section */
+
     .action-buttons {
       @apply flex items-center justify-end gap-2;
 
       .action-button {
-        @apply flex items-center justify-center rounded-lg p-2;
-
-        &:hover {
-          background-color: var(--secondary);
-        }
+        @apply flex items-center justify-center rounded-lg p-2 hover:bg-[var(--bg-gray)];
       }
 
       .icon-button {
-        color: var(--primary);
-
-        &:hover {
-          color: var(--primary-hover);
-        }
+        @apply text-[var(--text-gray)];
       }
 
       .open-button {
-        @apply py-1 px-2.5 rounded-md bg-blue-600 font-semibold text-[var(--primary-foreground)];
-
-        &:hover {
-          @apply opacity-90;
-        }
+        @apply py-1 px-2.5 rounded-md bg-blue-600 font-semibold text-[var(--primary-foreground)] hover:opacity-90;
       }
     }
   }

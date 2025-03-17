@@ -8,17 +8,16 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { PiShoppingCartThin } from 'react-icons/pi';
-import { PiStackLight } from 'react-icons/pi';
 import { PiSignOutLight } from 'react-icons/pi';
-import { PiYoutubeLogoLight } from 'react-icons/pi';
-import { PiQuestionLight } from 'react-icons/pi';
-import { BiMenuAltLeft } from 'react-icons/bi';
+import { FiBarChart2 } from 'react-icons/fi';
+import { FiDollarSign } from 'react-icons/fi';
+import { FiHome } from 'react-icons/fi';
+import { LuKey } from 'react-icons/lu';
 
 import { signOut } from '@lib/actions/authentication-actions';
 import profileImage from '@public/example-avatar.png';
 import { Config } from '@config/constants';
 import { NetworkIcon } from '@components/icons/network-icon';
-import { MessageIcon } from '@components/icons/message-icon';
 import { LogoIcon } from '@components/icons/logo-icon';
 import { ThemeToggle } from '@components/theme/theme-toggle';
 
@@ -28,17 +27,12 @@ const { API: { EndPoints } } = Config;
 
 const primaryLinks = [
     {
-        name: 'Profile',
-        link: EndPoints.Profile,
-        iconElement: () => <Image src={profileImage} alt="Profile picture" width={25} />
-    },
-    {
         name: 'Dashboard',
         link: EndPoints.Dashboard,
-        iconElement: (fillColor: string) => <PiStackLight fill={fillColor} />
+        iconElement: (fillColor: string) => <FiHome fill={fillColor} />
     },
     {
-        name: 'Sandbox',
+        name: 'Canvas',
         link: EndPoints.Sandbox,
         iconElement: (fillColor: string) => <NetworkIcon fillColor={fillColor} />
     },
@@ -48,27 +42,43 @@ const primaryLinks = [
         iconElement: (fillColor: string) => <PiShoppingCartThin fill={fillColor} />
     },
     {
-        name: 'Community',
+        name: 'Ranking',
         link: EndPoints.Community,
-        iconElement: (fillColor: string) => <BiMenuAltLeft fill={fillColor} />
+        iconElement: (fillColor: string) => <FiBarChart2 fill={fillColor} />
+    },
+    {
+        name: 'Earn',
+        link: EndPoints.Community,
+        iconElement: (fillColor: string) => <FiDollarSign fill={fillColor} />
+    },
+    {
+        name: 'Keys',
+        link: EndPoints.Community,
+        iconElement: (fillColor: string) => <LuKey fill={fillColor} />
     }
 ];
 
 const secondaryLinks = [
+    // TODO: keep until we decide we don't need these
+    // {
+    //     name: 'Message',
+    //     link: EndPoints.Message,
+    //     iconElement: (fillColor: string) => <MessageIcon fillColor={fillColor} />
+    // },
+    // {
+    //     name: 'Forum',
+    //     link: EndPoints.Forum,
+    //     iconElement: (fillColor: string) => <PiYoutubeLogoLight fill={fillColor} />
+    // },
+    // {
+    //     name: 'Info',
+    //     link: EndPoints.Info,
+    //     iconElement: (fillColor: string) => <PiQuestionLight fill={fillColor} />
+    // },
     {
-        name: 'Message',
-        link: EndPoints.Message,
-        iconElement: (fillColor: string) => <MessageIcon fillColor={fillColor} />
-    },
-    {
-        name: 'Forum',
-        link: EndPoints.Forum,
-        iconElement: (fillColor: string) => <PiYoutubeLogoLight fill={fillColor} />
-    },
-    {
-        name: 'Info',
-        link: EndPoints.Info,
-        iconElement: (fillColor: string) => <PiQuestionLight fill={fillColor} />
+        name: 'Profile',
+        link: EndPoints.Profile,
+        iconElement: () => <Image src={profileImage} alt="Profile picture" width={25} />
     }
 ];
 
@@ -113,7 +123,7 @@ export const NavBar = () => {
                                 onMouseLeave={() => setHoveredItem(null)}>
                                 <Link href={link}
                                     className={`nav-link ${isActive ? 'nav-link-active' : 'nav-link-inactive'}`}>
-                                    {iconElement(isActive ? '#1E40AF' : 'currentColor')}
+                                    {iconElement(isActive ? '#1e40af' : 'currentColor')}
                                     {isActive && (
                                         <motion.div
                                             layoutId="navbar-indicator"
@@ -149,7 +159,7 @@ export const NavBar = () => {
                                 onMouseLeave={() => setHoveredItem(null)}>
                                 <Link href={link}
                                     className={`nav-link ${isActive ? 'nav-link-active' : 'nav-link-inactive'}`}>
-                                    {iconElement(isActive ? '#1E40AF' : 'currentColor')}
+                                    {iconElement(isActive ? '#1e40af' : 'currentColor')}
                                     {isActive && (
                                         <motion.div
                                             layoutId="navbar-indicator-secondary"

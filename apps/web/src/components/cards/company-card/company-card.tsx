@@ -1,12 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import { PiPause } from 'react-icons/pi';
-import { RiBookLine } from 'react-icons/ri';
-import { VscSettings } from 'react-icons/vsc';
+import { FiBook } from 'react-icons/fi';
+import { FiPause } from 'react-icons/fi';
+import { LuSettings2 } from 'react-icons/lu';
 
 import './company-card.styles.css';
-import { Card } from '@components/card';
 
 interface CompanyCardProps {
     name: string;
@@ -39,13 +38,13 @@ export const CompanyCard = ({
             </div>
             <div className="action-buttons">
                 <button onClick={onViewDocs} className="action-button" aria-label="View Documentation">
-                    <RiBookLine size={20} className="icon-button" />
+                    <FiBook size={20} className="icon-button" />
                 </button>
                 <button onClick={onPause} className="action-button" aria-label="Pause">
-                    <PiPause size={20} className="icon-button" />
+                    <FiPause size={20} className="icon-button" />
                 </button>
                 <button onClick={onSettings} className="action-button" aria-label="Settings">
-                    <VscSettings size={20} className="icon-button" />
+                    <LuSettings2 size={20} className="icon-button" />
                 </button>
                 <button className="open-button" onClick={onOpen}>
                     Open
