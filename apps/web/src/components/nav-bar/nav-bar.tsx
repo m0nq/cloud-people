@@ -7,7 +7,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { PiShoppingCartThin } from 'react-icons/pi';
+import { PiShoppingCart } from 'react-icons/pi';
 import { PiSignOutLight } from 'react-icons/pi';
 import { FiBarChart2 } from 'react-icons/fi';
 import { FiDollarSign } from 'react-icons/fi';
@@ -29,56 +29,40 @@ const primaryLinks = [
     {
         name: 'Dashboard',
         link: EndPoints.Dashboard,
-        iconElement: (fillColor: string) => <FiHome fill={fillColor} />
+        iconElement: (fillColor: string) => <FiHome color={fillColor} size={20} />
     },
     {
         name: 'Canvas',
         link: EndPoints.Sandbox,
-        iconElement: (fillColor: string) => <NetworkIcon fillColor={fillColor} />
+        iconElement: (fillColor: string) => <NetworkIcon fillColor={fillColor} size={20} />
     },
     {
         name: 'Store',
         link: EndPoints.Store,
-        iconElement: (fillColor: string) => <PiShoppingCartThin fill={fillColor} />
+        iconElement: (fillColor: string) => <PiShoppingCart color={fillColor} size={20} />
     },
     {
         name: 'Ranking',
         link: EndPoints.Community,
-        iconElement: (fillColor: string) => <FiBarChart2 fill={fillColor} />
+        iconElement: (fillColor: string) => <FiBarChart2 color={fillColor} size={20} />
     },
     {
         name: 'Earn',
         link: EndPoints.Community,
-        iconElement: (fillColor: string) => <FiDollarSign fill={fillColor} />
+        iconElement: (fillColor: string) => <FiDollarSign color={fillColor} size={20} />
     },
     {
         name: 'Keys',
         link: EndPoints.Community,
-        iconElement: (fillColor: string) => <LuKey fill={fillColor} />
+        iconElement: (fillColor: string) => <LuKey color={fillColor} size={20} />
     }
 ];
 
 const secondaryLinks = [
-    // TODO: keep until we decide we don't need these
-    // {
-    //     name: 'Message',
-    //     link: EndPoints.Message,
-    //     iconElement: (fillColor: string) => <MessageIcon fillColor={fillColor} />
-    // },
-    // {
-    //     name: 'Forum',
-    //     link: EndPoints.Forum,
-    //     iconElement: (fillColor: string) => <PiYoutubeLogoLight fill={fillColor} />
-    // },
-    // {
-    //     name: 'Info',
-    //     link: EndPoints.Info,
-    //     iconElement: (fillColor: string) => <PiQuestionLight fill={fillColor} />
-    // },
     {
         name: 'Profile',
         link: EndPoints.Profile,
-        iconElement: () => <Image src={profileImage} alt="Profile picture" width={25} />
+        iconElement: () => <Image src={profileImage} alt="Profile picture" width={25} height={25} />
     }
 ];
 
@@ -97,9 +81,7 @@ export const NavBar = () => {
     };
 
     return (
-        <div className="nav-bar"
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}>
+        <div className="nav-bar" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
             <div className={`toggle-button ${isNavVisible ? 'hidden' : ''}`}>
                 <LogoIcon width="30" height="20" />
             </div>
@@ -126,13 +108,13 @@ export const NavBar = () => {
                                     {iconElement(isActive ? '#1e40af' : 'currentColor')}
                                     {isActive && (
                                         <motion.div
-                                            layoutId="navbar-indicator"
+                                            layoutId="nav-indicator"
                                             className="nav-indicator"
-                                            initial={false} />
+                                            initial={false}
+                                            transition={{ type: 'spring', stiffness: 350, damping: 30 }} />
                                     )}
                                 </Link>
 
-                                {/* Tooltip that appears on hover */}
                                 {isHovered && (
                                     <motion.div
                                         initial={{ opacity: 0, x: -10 }}
@@ -159,16 +141,16 @@ export const NavBar = () => {
                                 onMouseLeave={() => setHoveredItem(null)}>
                                 <Link href={link}
                                     className={`nav-link ${isActive ? 'nav-link-active' : 'nav-link-inactive'}`}>
-                                    {iconElement(isActive ? '#1e40af' : 'currentColor')}
+                                    {iconElement()}
                                     {isActive && (
                                         <motion.div
-                                            layoutId="navbar-indicator-secondary"
+                                            layoutId="nav-indicator-secondary"
                                             className="nav-indicator"
-                                            initial={false} />
+                                            initial={false}
+                                            transition={{ type: 'spring', stiffness: 350, damping: 30 }} />
                                     )}
                                 </Link>
 
-                                {/* Tooltip that appears on hover */}
                                 {isHovered && (
                                     <motion.div
                                         initial={{ opacity: 0, x: -10 }}
@@ -188,10 +170,9 @@ export const NavBar = () => {
                         <button onClick={() => startTransition(async () => await signOut())}
                             disabled={isPending}
                             className="nav-logout-button">
-                            <PiSignOutLight />
+                            <PiSignOutLight size={24} />
                         </button>
 
-                        {/* Logout tooltip */}
                         {hoveredItem === 'logout' && (
                             <motion.div
                                 initial={{ opacity: 0, x: -10 }}

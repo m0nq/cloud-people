@@ -1,10 +1,6 @@
 .nav-bar {
   @apply fixed top-0 left-0 h-full w-24 z-50 transition-all duration-300 ease-in-out;
 
-  &:hover {
-    @apply w-24;
-  }
-
   .navigation-content {
     @apply h-full fixed top-0 left-0 py-4 w-16 flex flex-col justify-between items-center transition-transform
     duration-300 ease-in-out bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700;
@@ -15,10 +11,6 @@
 
     .nav-header {
       @apply flex-shrink-0 flex items-center justify-center h-auto pb-4 border-b border-gray-200 dark:border-gray-700;
-
-      .nav-logo {
-        @apply flex items-center justify-center;
-      }
     }
 
     .nav-primary {
@@ -45,10 +37,10 @@
   @apply relative flex items-center justify-center w-full;
 
   .nav-link {
-    @apply relative flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-200;
+    @apply relative flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-200 overflow-visible;
 
     &.nav-link-active {
-      @apply text-blue-700 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400;
+      @apply flex items-center justify-center text-blue-700 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400 relative;
     }
 
     &.nav-link-inactive {
@@ -56,7 +48,7 @@
     }
 
     .nav-indicator {
-      @apply absolute -right-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-600 dark:bg-blue-400 rounded-l-md;
+      @apply absolute right-0 top-0 h-full w-1.5 bg-blue-600 dark:bg-blue-400 rounded-md;
     }
   }
 
@@ -79,61 +71,4 @@
       @apply absolute top-1/2 -left-1 -translate-y-1/2 border-4 border-transparent border-r-red-600;
     }
   }
-}
-
-/* Keep existing styles for backward compatibility */
-.navigation-area {
-  @apply h-full fixed top-0 left-0 py-4 mx-2 flex flex-col justify-between items-center transition-transform
-  duration-300 ease-in-out;
-}
-
-.navigation-area.hidden {
-  @apply opacity-0 -translate-x-28;
-}
-
-.toggle-button {
-  @apply fixed top-4 left-3 w-16 h-16 rounded-[20px] border border-nav-border bg-dark shadow-default flex items-center
-  justify-center text-2xl text-nav-text hover:text-nav-text/80 active:brightness-90 transition-transform duration-300 ease-in-out
-  translate-x-0;
-}
-
-.toggle-button.hidden {
-  @apply opacity-0 -translate-x-28;
-}
-
-.navigation-bar-top {
-  @apply w-16 rounded-[20px] border border-nav-border bg-dark shadow-default flex flex-col justify-between items-center
-  pt-2;
-
-  .navigation-primary {
-    @apply w-full flex flex-col justify-start items-center;
-  }
-}
-
-.navigation-bar-bottom {
-  @apply w-16 min-h-[177.471px] rounded-[20px] border border-nav-border bg-dark shadow-default flex flex-col
-  justify-between items-center py-4;
-
-  .navigation-secondary {
-    @apply w-full flex flex-col justify-start items-center;
-  }
-}
-
-.navigation-bar-top li,
-.navigation-bar-bottom li {
-  @apply w-full flex justify-center items-center px-1.5 py-4;
-
-  a {
-    @apply w-full h-full flex justify-center items-center cursor-pointer;
-  }
-}
-
-.nav-marker {
-  @apply after:absolute after:left-[calc(50%_-_-2rem)] after:h-9 after:w-[3px] after:rounded-md;
-}
-
-.navigation-bar-top a,
-.navigation-bar-bottom a,
-.sign-out {
-  @apply text-2xl no-underline text-nav-text hover:text-nav-text/80 active:brightness-90;
 }

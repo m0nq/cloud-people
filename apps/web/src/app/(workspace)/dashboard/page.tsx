@@ -159,11 +159,11 @@ const Dashboard = () => {
                                             Name of task
                                         </div>
                                     </div>
-                                    <div className="action-buttons">
-                                        <button className="action-button watch-button">
+                                    <div className="dashboard-action-buttons">
+                                        <button className="dashboard-action-button watch-button">
                                             Watch
                                         </button>
-                                        <button className="action-button meeting-button">
+                                        <button className="dashboard-action-button meeting-button">
                                             Meeting
                                         </button>
                                     </div>

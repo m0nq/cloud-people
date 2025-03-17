@@ -25,18 +25,18 @@
 
     /* Action Buttons Section */
 
-    .action-buttons {
+    .company-action-buttons {
       @apply flex items-center justify-end gap-2;
 
-      .action-button {
+      .company-action-button {
         @apply flex items-center justify-center rounded-lg p-2 hover:bg-[var(--bg-gray)];
       }
 
-      .icon-button {
+      .company-icon-button {
         @apply text-[var(--text-gray)];
       }
 
-      .open-button {
+      .company-open-button {
         @apply py-1 px-2.5 rounded-md bg-blue-600 font-semibold text-[var(--primary-foreground)] hover:opacity-90;
       }
     }

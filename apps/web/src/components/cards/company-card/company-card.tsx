@@ -36,17 +36,17 @@ export const CompanyCard = ({
                     {name}
                 </span>
             </div>
-            <div className="action-buttons">
-                <button onClick={onViewDocs} className="action-button" aria-label="View Documentation">
-                    <FiBook size={20} className="icon-button" />
+            <div className="company-action-buttons">
+                <button onClick={onViewDocs} className="company-action-button" aria-label="View Documentation">
+                    <FiBook size={20} className="company-icon-button" />
                 </button>
-                <button onClick={onPause} className="action-button" aria-label="Pause">
-                    <FiPause size={20} className="icon-button" />
+                <button onClick={onPause} className="company-action-button" aria-label="Pause">
+                    <FiPause size={20} className="company-icon-button" />
                 </button>
-                <button onClick={onSettings} className="action-button" aria-label="Settings">
-                    <LuSettings2 size={20} className="icon-button" />
+                <button onClick={onSettings} className="company-action-button" aria-label="Settings">
+                    <LuSettings2 size={20} className="company-icon-button" />
                 </button>
-                <button className="open-button" onClick={onOpen}>
+                <button className="company-open-button" onClick={onOpen}>
                     Open
                 </button>
             </div>

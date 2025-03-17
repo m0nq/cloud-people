@@ -181,10 +181,10 @@
     }
   }
 
-  .action-buttons {
+  .dashboard-action-buttons {
     @apply flex gap-2 justify-between;
 
-    .action-button {
+    .dashboard-action-button {
       @apply flex-1 p-2 rounded-lg font-semibold;
     }
 
