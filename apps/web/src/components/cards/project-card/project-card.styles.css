@@ -1,0 +1,106 @@
+/* Project Card Wrapper */
+.project-card-wrapper {
+  @apply h-full w-full p-1;
+}
+
+/* Project Card Motion Container */
+.project-card-motion-container {
+  @apply flex justify-center items-center p-3 h-full w-full rounded-lg cursor-pointer relative z-0 hover:z-10 overflow-visible;
+  transform-origin: center center;
+}
+
+/* Project Card Container */
+.project-card-container {
+  @apply h-full w-full rounded-lg transition-all duration-300 shadow-md transform-gpu;
+}
+
+/* Project Card Inner - matches the first div inside Card */
+.project-card-inner {
+  @apply flex flex-col h-full w-full;
+  
+  /* Project Card Image Section - child of inner container */
+  .project-card-image {
+    @apply relative h-36 w-full;
+    
+    /* Image thumbnail - child of image section */
+    .project-card-thumbnail {
+      @apply object-cover w-full h-full rounded-t-lg;
+    }
+  }
+  
+  /* Project Card Content - child of inner container */
+  .project-card-content {
+    @apply p-3 transform-gpu bg-[var(--card-background)] rounded-b-lg;
+    
+    /* Project Card Header - child of content */
+    .project-card-header {
+      @apply flex items-center justify-between mb-1;
+      
+      /* Project Card Title - child of header */
+      .project-card-title {
+        @apply text-base font-semibold truncate;
+        color: var(--foreground);
+      }
+    }
+    
+    /* Project Card Description - child of content */
+    .project-card-description {
+      @apply text-xs line-clamp-2 mb-2 h-8;
+      color: var(--muted-foreground);
+    }
+    
+    /* Project Card Footer - child of content */
+    .project-card-footer {
+      @apply flex justify-between items-center mt-auto pt-2;
+      border-top: 1px solid var(--border);
+      
+      /* Revenue Section - child of footer */
+      .project-card-revenue {
+        @apply flex items-center text-sm transition-all duration-300;
+        color: var(--success, 22 163 74);
+        
+        /* Revenue Icon - child of revenue section */
+        .project-card-revenue-icon {
+          @apply mr-1;
+        }
+        
+        /* Revenue Amount - child of revenue section */
+        .project-card-revenue-amount {
+          @apply font-medium;
+          /* color: var(--success, 22 163 74); */
+        }
+      }
+      
+      /* Action Buttons - child of footer */
+      .project-card-actions {
+        @apply flex space-x-2;
+        
+        /* Action Button - child of actions */
+        .project-card-action-button {
+          @apply py-1.5 px-2.5 text-xs font-semibold rounded-md;
+          background-color: var(--primary, 37 99 235);
+          color: var(--primary-foreground, 255 255 255);
+          
+          &:hover {
+            background-color: var(--primary-hover);
+          }
+        }
+        
+        /* Action Link - child of actions */
+        .project-card-action-link {
+          @apply py-1.5 px-2.5 text-xs font-semibold rounded-md border border-solid;
+          color: var(--muted-foreground);
+          border-color: var(--border);
+          
+          &:hover {
+            background-color: var(--secondary, 243 244 246);
+            color: var(--secondary-foreground, 15 23 42);
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Hover styles for the card - applied to the container */
+

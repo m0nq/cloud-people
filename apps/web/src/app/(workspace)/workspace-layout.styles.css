@@ -1,5 +1,5 @@
 main {
-  @apply w-screen h-screen bg-color-dark-gray;
+  @apply w-screen h-screen bg-[var(--background)];
 }
 
 .error-container {

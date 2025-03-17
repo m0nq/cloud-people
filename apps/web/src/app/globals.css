@@ -2,8 +2,110 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  /* Base colors */
+  --color-white: #ffffff;
+  --color-black: #0f172a;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e2e8f0;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #94a3b8;
+  --color-gray-500: #64748b;
+  --color-gray-600: #4c5461;
+  --color-gray-700: #334155;
+  --color-gray-800: #1e293b;
+  --color-gray-900: #0f172a;
+
+  /* Brand colors */
+  --color-blue-400: #70a3f3;
+  --color-blue-500: #2978f3;
+  --color-blue-600: #4f46e5;
+  --color-blue-700: #312ecb;
+  --color-teal-400: #56e8cd;
+  --color-indigo-700: #4630d4;
+  --color-red-500: #ef4444;
+  --color-green-500: #10b981;
+  --color-green-600: #4ade80;
+
+  /* Semantic tokens - Light theme */
+  --background: var(--color-white);
+  --foreground: var(--color-gray-900);
+
+  --card: var(--color-white);
+  --card-foreground: var(--color-gray-900);
+  --card-background: var(--color-white);
+
+  --border: var(--color-gray-200);
+  --input: var(--color-gray-200);
+
+  --perry-blue: var(--color-blue-400);
+  --primary: var(--color-blue-500);
+  --primary-hover: var(--color-blue-700);
+  --primary-foreground: var(--color-white);
+
+  --secondary: var(--color-white);
+  --secondary-foreground: var(--color-gray-900);
+
+  --accent: var(--color-gray-100);
+  --accent-foreground: var(--color-gray-900);
+
+  --text-gray: var(--color-gray-600);
+  --bg-gray: var(--color-gray-100);
+
+  --destructive: var(--color-red-500);
+  --destructive-foreground: var(--color-white);
+
+  --success: var(--color-green-500);
+
+  --muted: var(--color-gray-100);
+  --muted-foreground: var(--color-gray-500);
+
+  /* Brand-specific colors */
+  --cloud-people-primary: var(--color-teal-400);
+  --cloud-people-secondary: var(--color-indigo-700);
+}
+
+.dark {
+  /* Semantic tokens - Dark theme */
+  --background: var(--color-gray-900);
+  --foreground: var(--color-gray-200);
+
+  --card: var(--color-gray-800);
+  --card-foreground: var(--color-gray-200);
+  --card-background: var(--color-gray-800);
+
+  --border: var(--color-gray-700);
+  --input: var(--color-gray-700);
+
+  --perry-blue: var(--color-blue-400);
+  --primary: var(--color-blue-600);
+  --primary-hover: var(--color-blue-700);
+  --primary-foreground: var(--color-white);
+
+  --secondary: var(--color-gray-600);
+  --secondary-foreground: var(--color-gray-200);
+
+  --accent: var(--color-gray-700);
+  --accent-foreground: var(--color-gray-200);
+
+  --text-gray: var(--color-gray-400);
+  --bg-gray: var(--color-gray-700);
+
+  --destructive: var(--color-red-500);
+  --destructive-foreground: var(--color-white);
+
+  --success: var(--color-green-600);
+
+  --muted: var(--color-gray-800);
+  --muted-foreground: var(--color-gray-400);
+
+  /* Brand-specific colors - unchanged in dark mode */
+  --cloud-people-primary: var(--color-teal-400);
+  --cloud-people-secondary: var(--color-indigo-700);
+}
+
 body {
-  @apply antialiased w-screen;
+  @apply antialiased w-screen bg-[var(--background)] text-[var(--foreground)];
 }
 
 div {
@@ -19,7 +121,7 @@ h2 {
 }
 
 a {
-  @apply text-[#312ECB] hover:underline;
+  @apply text-[#312ECB] dark:text-[#6366f1] hover:underline;
 }
 
 @layer utilities {

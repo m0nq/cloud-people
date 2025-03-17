@@ -19,7 +19,7 @@ export const DraggableCategory: React.FC<DraggableCategoryProps> = ({
   onScrollRight,
 }) => {
   const { isDarkMode } = useThemeStore();
-  
+
   const {
     attributes,
     listeners,
@@ -37,44 +37,33 @@ export const DraggableCategory: React.FC<DraggableCategoryProps> = ({
   };
 
   return (
-    <div
-      ref={setNodeRef}
+    <div ref={setNodeRef}
       style={style}
-      className={`flex justify-between items-center py-2 ${
-        isDragging 
-          ? isDarkMode ? 'bg-gray-700 rounded-lg' : 'bg-gray-100 rounded-lg' 
-          : ''
-      }`}
-      id={id === 'all' ? 'all-projects-section' : undefined}
-    >
+      className={`flex justify-between items-center py-2 ${isDragging ? (isDarkMode ? 'bg-gray-700 rounded-lg' : 'bg-gray-100 rounded-lg') : ''}`}
+      id={id === 'all' ? 'all-projects-section' : undefined} >
       <div className="flex items-center">
         <div
           {...attributes}
           {...listeners}
-          className={`cursor-grab mr-2 p-1 rounded-md ${
-            isDarkMode ? 'hover:bg-gray-700 active:cursor-grabbing' : 'hover:bg-gray-100 active:cursor-grabbing'
-          }`}
-          title="Drag to reorder"
-        >
+          className={`cursor-grab mr-2 p-1 rounded-md ${isDarkMode ? 'hover:bg-gray-700 active:cursor-grabbing' : 'hover:bg-gray-100 active:cursor-grabbing'}`}
+          title="Drag to reorder">
           <GripVertical size={18} className={isDarkMode ? 'text-gray-400' : 'text-gray-400'} />
         </div>
         <h2 className={`text-xl font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>{title}</h2>
       </div>
       <div className="flex space-x-2">
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onScrollLeft}
-          leftIcon={<ChevronLeft size={16} />}
-        >
+          leftIcon={<ChevronLeft size={16} />}>
           Prev
         </Button>
-        <Button 
-          variant="outline" 
-          size="sm" 
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onScrollRight}
-          rightIcon={<ChevronRight size={16} />}
-        >
+          rightIcon={<ChevronRight size={16} />}>
           Next
         </Button>
       </div>

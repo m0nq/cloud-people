@@ -20,7 +20,7 @@
 }
 
 .button-gradient {
-  background: linear-gradient(89deg, var(--gradient-from, theme('colors.gradient-dark.from')) 14.21%, var(--gradient-to, theme('colors.gradient-dark.to')) 101.01%);
+  background: linear-gradient(89deg, var(--gradient-from) 14.21%, var(--gradient-to) 101.01%);
   @apply hover:brightness-110 active:brightness-90 font-bold;
 }
 

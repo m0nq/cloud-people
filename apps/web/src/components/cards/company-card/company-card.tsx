@@ -1,12 +1,11 @@
 'use client';
 
 import Image from 'next/image';
-import { PiPause } from 'react-icons/pi';
-import { RiBookLine } from 'react-icons/ri';
-import { VscSettings } from 'react-icons/vsc';
+import { FiBook } from 'react-icons/fi';
+import { FiPause } from 'react-icons/fi';
+import { LuSettings2 } from 'react-icons/lu';
 
 import './company-card.styles.css';
-import { Card } from '@components/card';
 
 interface CompanyCardProps {
     name: string;
@@ -25,7 +24,7 @@ export const CompanyCard = ({
     onPause,
     onSettings
 }: CompanyCardProps) => (
-    <Card className="company-card-container">
+    <div className="company-card-container">
         <div className="card-header">
             <div className="company-info">
                 <Image src={logoUrl}
@@ -37,20 +36,20 @@ export const CompanyCard = ({
                     {name}
                 </span>
             </div>
-            <div className="action-buttons">
-                <button onClick={onViewDocs} className="action-button" aria-label="View Documentation">
-                    <RiBookLine size={20} className="text-gray-500 hover:text-gray-900" />
+            <div className="company-action-buttons">
+                <button onClick={onViewDocs} className="company-action-button" aria-label="View Documentation">
+                    <FiBook size={20} className="company-icon-button" />
                 </button>
-                <button onClick={onPause} className="action-button" aria-label="Pause">
-                    <PiPause size={20} className="icon-button" />
+                <button onClick={onPause} className="company-action-button" aria-label="Pause">
+                    <FiPause size={20} className="company-icon-button" />
                 </button>
-                <button onClick={onSettings} className="action-button" aria-label="Settings">
-                    <VscSettings size={20} className="icon-button" />
+                <button onClick={onSettings} className="company-action-button" aria-label="Settings">
+                    <LuSettings2 size={20} className="company-icon-button" />
                 </button>
-                <button className="open-button" onClick={onOpen}>
+                <button className="company-open-button" onClick={onOpen}>
                     Open
                 </button>
             </div>
         </div>
-    </Card>
+    </div>
 );
