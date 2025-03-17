@@ -105,7 +105,7 @@ export const NavBar = () => {
                                 onMouseLeave={() => setHoveredItem(null)}>
                                 <Link href={link}
                                     className={`nav-link ${isActive ? 'nav-link-active' : 'nav-link-inactive'}`}>
-                                    {iconElement(isActive ? '#1e40af' : 'currentColor')}
+                                    {iconElement(isActive ? 'var(--perry-blue)' : 'currentColor')}
                                     {isActive && (
                                         <motion.div
                                             layoutId="nav-indicator"
