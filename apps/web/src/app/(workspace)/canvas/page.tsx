@@ -43,7 +43,7 @@ const onRenderCallback = (
 };
 
 // Conditional Profiler component that only profiles in development
-const ConditionalProfiler = ({ id, children }: { id: string; children: ReactNode }): ReactNode => {
+const ConditionalProfiler = ({ id, children }: { id: string; children: ReactNode; }): ReactNode => {
     if (process.env.NODE_ENV === 'development') {
         return <Profiler id={id} onRender={onRenderCallback}>{children}</Profiler>;
     }
@@ -113,7 +113,9 @@ const Canvas = (): ReactNode => {
                             </Panel>
                             {isCalendarOpen && (
                                 <Panel className="calendar-panel">
-                                    <DatePicker isOpen={isCalendarOpen} onClose={() => setIsCalendarOpen(false)} onDateSelect={handleDateSelect} />
+                                    <DatePicker isOpen={isCalendarOpen}
+                                        onClose={() => setIsCalendarOpen(false)}
+                                        onDateSelect={handleDateSelect} />
                                 </Panel>
                             )}
                         </ReactFlow>

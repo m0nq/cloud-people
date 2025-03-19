@@ -18,17 +18,18 @@ import { useRef } from 'react';
 import { useTransition } from 'react';
 import { useCallback } from 'react';
 import dynamic from 'next/dynamic';
+import { useShallow } from 'zustand/react/shallow';
 
 import { type InitialStateNodeData } from '@app-types/workflow';
 import { type NodeData } from '@app-types/workflow';
 import type { WorkflowStore } from '@app-types/workflow';
 import { useWorkflowStore } from '@stores/workflow';
-import { useShallow } from 'zustand/react/shallow';
-
-import { InitialStateNode, RootNode, AgentNode } from '@components/canvas-nodes';
+import { AgentNode } from '@components/canvas-nodes';
+import { InitialStateNode } from '@components/canvas-nodes';
+import { RootNode } from '@components/canvas-nodes';
 import { layoutElements } from '@lib/dagre/dagre';
-import { NodeType } from '@app-types/workflow/node-types';
 import { EdgeType } from '@app-types/workflow/node-types';
+import { NodeType } from '@app-types/workflow/node-types';
 
 const Modal = dynamic(() => import('@components/modals/modal'), { ssr: false });
 const ApprovalNode = dynamic(() => import('@components/canvas-nodes').then(mod => mod.ApprovalNode), { ssr: false });
@@ -133,7 +134,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
     if (process.env.NODE_ENV === 'development') {
         console.log('WorkflowRenderer rendering');
     }
-    
+
     // Load with initial state nodes
     // when a node is clicked, corresponding nodes will be updated by our graph store
     const {
@@ -180,7 +181,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
 
         const updateLayout = (newNodes: Node<NodeData | InitialStateNodeData>[], newEdges: Edge[]) => {
             if (!isSubscribed) return;
-            
+
             // Use startTransition to batch updates and reduce render priority
             startTransition(() => {
                 setLayout({ nodes: newNodes, edges: newEdges });
@@ -233,6 +234,11 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         [layout.nodes, layout.edges, onNodesChange, onEdgesChange, onNodesDelete, onBeforeDelete, onConnect, onNodeClick]
     );
 
-    // Return the children with the props
-    return children(props);
+    // Return the children with the props and the Modal component
+    return children ? (
+        <>
+            {children(props)}
+            <Modal />
+        </>
+    ) : null;
 };
