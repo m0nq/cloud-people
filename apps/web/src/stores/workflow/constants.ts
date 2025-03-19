@@ -11,9 +11,12 @@ export const initialStateNodes = [
         type: NodeType.Initial,
         data: {
             id: 'SFS',
-            label: 'Start from Scratch',
-            background: 'white',
-            color: '#1b2559',
+            label: 'From Scratch',
+            background: '#1E2A3B',
+            color: 'white',
+            iconBackground: '#16653d4d', // green-900 with 30% opacity
+            iconColor: '#4ade80', // green-400
+            description: 'Build your flow from scratch with complete creative freedom.',
             type: NodeType.Initial
         },
         position: INITIAL_NODE_POSITION
@@ -23,9 +26,12 @@ export const initialStateNodes = [
         type: NodeType.Initial,
         data: {
             id: 'SFT',
-            label: 'Start from a Template',
-            background: 'linear-gradient(to bottom right, #86FFE2, #18FFD5)',
-            color: '#1b2559',
+            label: 'From Template',
+            background: '#1E2A3B',
+            color: 'white',
+            iconBackground: '#581c874d', // purple-900 with 30% opacity
+            iconColor: '#c084fc', // purple-400
+            description: 'Start with a pre-built template to save time.',
             type: NodeType.Initial
         },
         position: INITIAL_NODE_POSITION
@@ -35,9 +41,12 @@ export const initialStateNodes = [
         type: NodeType.Initial,
         data: {
             id: 'SFA',
-            label: 'Start from AI Prompt',
-            background: 'linear-gradient(to bottom right, #868CFF, #4318FF)',
-            color: '#1b2559',
+            label: 'From AI',
+            background: '#1E2A3B',
+            color: 'white',
+            iconBackground: '#1e3a8a4d', // blue-900 with 30% opacity
+            iconColor: '#60a5fa', // blue-400
+            description: 'Let AI help you build your workflow.',
             type: NodeType.Initial
         },
         position: INITIAL_NODE_POSITION

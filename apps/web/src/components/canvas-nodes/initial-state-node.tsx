@@ -3,6 +3,9 @@ import { ReactNode } from 'react';
 import './node.styles.css';
 import { useWorkflowStore } from '@stores/workflow';
 import type { WorkflowActions } from '@app-types/workflow';
+import { FileCodeIcon } from '@components/icons/file-code-icon';
+import { CopyIcon } from '@components/icons/copy-icon';
+import { MessageSquareIcon } from '@components/icons/message-square-icon';
 
 type InitialStateNodeProps = {
     data: {
@@ -10,6 +13,9 @@ type InitialStateNodeProps = {
         label: string;
         background?: string;
         color?: string;
+        iconBackground?: string;
+        iconColor?: string;
+        description?: string;
     };
 };
 
@@ -38,11 +44,31 @@ const InitialStateNode = ({ data }: InitialStateNodeProps): ReactNode => {
         // otherwise pop up for specific label with details and actions
     };
 
+    const renderIcon = () => {
+        switch (data.id) {
+            case 'SFT':
+                return <CopyIcon width={80} height={80} stroke={data.iconColor} />;
+            case 'SFA':
+                return <MessageSquareIcon width={80} height={80} stroke={data.iconColor} />;
+            case 'SFS':
+            default:
+                return <FileCodeIcon width={80} height={80} stroke={data.iconColor} />;
+        }
+    };
+
     return (
         <button className="init-node nodrag"
             style={{ background: data?.background, color: data?.color }}
             onClick={handleClick}>
-            <div className="init-node-label">{data.label}</div>
+            <div className="init-node-icon-container" style={{ backgroundColor: data.iconBackground }}>
+                {renderIcon()}
+            </div>
+            <div className="init-node-content">
+                <h3 className="init-node-title">{data.label}</h3>
+                {data.description && (
+                    <p className="init-node-description">{data.description}</p>
+                )}
+            </div>
         </button>
     );
 };

@@ -20,4 +20,7 @@ export type InitialStateNodeData = NodeData & {
     type: NodeType.Initial;
     background: string;
     color: string;
+    iconBackground?: string;
+    iconColor?: string;
+    description?: string;
 };
