@@ -1,0 +1,7 @@
+.test-button {
+  @apply flex items-center justify-center gap-2 h-full px-5 text-base font-medium;
+
+  .test-button-label {
+    @apply text-lg font-medium;
+  }
+}

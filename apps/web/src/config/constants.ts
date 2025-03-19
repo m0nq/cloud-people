@@ -12,6 +12,7 @@ export const Config = {
             Profile: '/profile',
             Dashboard: '/dashboard',
             Sandbox: '/sandbox',
+            Canvas: '/canvas',
             Store: '/store',
             Community: '/community',
             Task: '/api/agent/task',

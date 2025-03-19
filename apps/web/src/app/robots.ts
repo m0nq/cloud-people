@@ -29,7 +29,7 @@ const robots = (): MetadataRoute.Robots => ({
                 'yandex'
             ],
             allow: '/',
-            disallow: ['/community', '/dashboard', '/profile', '/sandbox', '/store']
+            disallow: ['/community', '/dashboard', '/profile', '/sandbox', '/canvas', '/store']
         }
     ]
 });

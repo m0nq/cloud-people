@@ -1,0 +1,77 @@
+/* Researcher Card Styles */
+
+.researcher-card {
+  @apply flex flex-col bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-transform hover:scale-105;
+}
+
+.researcher-card-content {
+  @apply p-4 flex flex-col space-y-3;
+}
+
+.researcher-header {
+  @apply flex items-center space-x-4;
+}
+
+.researcher-avatar-container {
+  @apply w-16 h-16 rounded-full overflow-hidden bg-gray-700 flex items-center justify-center;
+}
+
+.researcher-avatar {
+  @apply w-full h-full object-cover;
+}
+
+.researcher-avatar-fallback {
+  @apply text-2xl font-bold text-white;
+}
+
+.researcher-info {
+  @apply flex flex-col;
+}
+
+.researcher-name {
+  @apply text-xl font-bold text-white;
+}
+
+.researcher-role {
+  @apply text-gray-400;
+}
+
+.researcher-skill-section {
+  @apply mt-2;
+}
+
+.researcher-skill-label {
+  @apply text-sm text-gray-400;
+}
+
+.researcher-skill-value {
+  @apply text-lg font-semibold text-white;
+}
+
+.researcher-tools {
+  @apply flex space-x-2 mt-2;
+}
+
+.researcher-tool {
+  @apply w-8 h-8 bg-gray-700 rounded-md flex items-center justify-center;
+}
+
+.researcher-stats {
+  @apply grid grid-cols-2 gap-2 mt-2;
+}
+
+.researcher-stat {
+  @apply flex flex-col;
+}
+
+.researcher-stat-label {
+  @apply text-xs text-gray-400;
+}
+
+.researcher-stat-value {
+  @apply text-white font-semibold;
+}
+
+.researcher-add-button {
+  @apply mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md transition-colors;
+}

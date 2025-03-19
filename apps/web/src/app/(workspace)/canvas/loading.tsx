@@ -1,7 +1,7 @@
 import { CanvasSkeleton } from '@components/skeletons/skeletons';
 
-const SandboxLoading = () => {
+const CanvasLoading = () => {
     return <CanvasSkeleton />;
 };
 
-export default SandboxLoading;
+export default CanvasLoading;

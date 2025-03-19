@@ -50,7 +50,7 @@ const ProjectCardComponent = ({ project }: ProjectCardProps) => {
                 hidden: { opacity: 0, y: 20 },
                 show: { opacity: 1, y: 0 }
             }}>
-            <div onClick={() => router.push('/sandbox')}
+            <div onClick={() => router.push('/canvas')}
                 className="project-card-container">
                 <div className="project-card-inner">
                     <div className="project-card-image">
@@ -78,7 +78,7 @@ const ProjectCardComponent = ({ project }: ProjectCardProps) => {
                                     aria-label="Clone Project">
                                     Clone
                                 </button>
-                                <Link href="/sandbox"
+                                <Link href="/canvas"
                                     className="project-card-action-link"
                                     onClick={(e) => e.stopPropagation()}>
                                     Details

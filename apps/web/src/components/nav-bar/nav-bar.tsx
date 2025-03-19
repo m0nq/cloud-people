@@ -33,7 +33,7 @@ const primaryLinks = [
     },
     {
         name: 'Canvas',
-        link: EndPoints.Sandbox,
+        link: EndPoints.Canvas,
         iconElement: (fillColor: string) => <NetworkIcon fillColor={fillColor} size={20} />
     },
     {
