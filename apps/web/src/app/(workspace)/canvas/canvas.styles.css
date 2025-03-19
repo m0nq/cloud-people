@@ -1,47 +1,47 @@
 .flow-container {
-  @apply w-full h-full bg-dark;
+    @apply w-full h-full bg-[var(--background)];
 
-  .flow-panel {
-    @apply flex items-center justify-between gap-5 w-[22rem] h-16 left-28 top-4 font-sans font-bold text-5xl leading-8
-    text-gray-300 m-0;
-  }
+    .flow-panel {
+        @apply flex items-center justify-between gap-5 w-[22rem] h-16 left-28 top-4 font-sans font-bold text-5xl leading-8
+        text-[var(--foreground)] m-0;
+    }
 
-  .flow-controls {
-    @apply flex items-center justify-around w-[38.375rem] h-16 left-[35%] top-4 bg-dark rounded-[1.25rem]
-    shadow-default border border-nav-border;
-  }
+    .flow-controls {
+        @apply flex items-center justify-around w-[38.375rem] h-16 left-1/2 bottom-4 -translate-x-1/2 bg-[var(--card)] rounded-[1.25rem]
+        shadow-default border border-[var(--border)];
+    }
 
-  .timing-controls {
-    @apply flex items-center justify-center w-16 h-16 left-[95%] top-4 bg-dark rounded-[1.25rem] shadow-default border
-    border-nav-border;
-  }
+    .timing-controls {
+        @apply flex items-center justify-center w-16 h-16 left-[95%] top-4 bg-[var(--background)] rounded-[1.25rem] shadow-default border
+        border-[var(--border)];
+    }
 }
 
 .react-flow__panel {
-  @apply m-0;
+    @apply m-0;
 }
 
 .timing-controls button {
-  @apply flex justify-center items-center w-full h-full text-white/60 hover:text-white active:brightness-90 transition-all duration-300 ease-in-out;
+    @apply flex justify-center items-center w-full h-full text-[var(--muted-foreground)] hover:text-[var(--foreground)] active:brightness-90 transition-all duration-300 ease-in-out;
 }
 
 .flow-controls button {
-  @apply flex items-center justify-around w-full h-full border-x border-solid border-[#3D3D3D]
-  text-white/60 hover:text-white active:brightness-90 transition-all duration-300 ease-in-out;
+    @apply flex items-center justify-around w-full h-full border-x border-[var(--border)]
+    text-[var(--muted-foreground)] hover:text-[var(--foreground)] active:brightness-90 transition-all duration-300 ease-in-out;
 
-  &:first-child {
-    @apply border-l-0 rounded-l-[1.25rem];
-  }
+    &:first-child {
+        @apply border-l-0 rounded-l-[1.25rem];
+    }
 
-  &:last-child {
-    @apply border-r-0 rounded-r-[1.25rem];
-  }
+    &:last-child {
+        @apply border-r-0 rounded-r-[1.25rem];
+    }
 }
 
 .icon-button {
-  @apply size-7 flex items-center justify-center;
+    @apply size-7 flex items-center justify-center;
 
-  &.branches-icon {
-    @apply fill-transparent;
-  }
+    &.branches-icon {
+        @apply fill-transparent;
+    }
 }

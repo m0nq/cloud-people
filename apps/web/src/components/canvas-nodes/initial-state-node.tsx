@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 
 import './node.styles.css';
 import { useWorkflowStore } from '@stores/workflow';
+import { useThemeStore } from '@stores/theme-store';
 import type { WorkflowActions } from '@app-types/workflow';
 import { FileCodeIcon } from '@components/icons/file-code-icon';
 import { CopyIcon } from '@components/icons/copy-icon';
@@ -20,6 +21,9 @@ type InitialStateNodeProps = {
 };
 
 const InitialStateNode = ({ data }: InitialStateNodeProps): ReactNode => {
+    // Get the current theme state
+    const { isDarkMode } = useThemeStore();
+    
     // when a node is clicked, corresponding nodes will be updated by zustand
     // this needs to be a link or button to update node state with passed in setNodes
     // which, depending on which initial node it is will update to the appropriate state
@@ -56,11 +60,34 @@ const InitialStateNode = ({ data }: InitialStateNodeProps): ReactNode => {
         }
     };
 
+    // Determine background and text colors based on theme
+    const background = isDarkMode ? '#1E2A3B' : '#FFFFFF';
+    const textColor = isDarkMode ? 'white' : '#0f172a';
+    
+    // Determine icon background based on node type and theme
+    let iconBackground;
+    switch (data.id) {
+        case 'SFS':
+            iconBackground = isDarkMode ? '#16653d4d' : '#dcfce74d'; // green with opacity
+            break;
+        case 'SFT':
+            iconBackground = isDarkMode ? '#581c874d' : '#f3e8ff4d'; // purple with opacity
+            break;
+        case 'SFA':
+            iconBackground = isDarkMode ? '#1e3a8a4d' : '#dbeafe4d'; // blue with opacity
+            break;
+        default:
+            iconBackground = data.iconBackground;
+    }
+
     return (
         <button className="init-node nodrag"
-            style={{ background: data?.background, color: data?.color }}
+            style={{ 
+                background: background || data.background, 
+                color: textColor || data.color 
+            }}
             onClick={handleClick}>
-            <div className="init-node-icon-container" style={{ backgroundColor: data.iconBackground }}>
+            <div className="init-node-icon-container" style={{ backgroundColor: iconBackground || data.iconBackground }}>
                 {renderIcon()}
             </div>
             <div className="init-node-content">
