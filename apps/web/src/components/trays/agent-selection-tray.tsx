@@ -1,128 +1,156 @@
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { useCallback } from 'react';
+import { useRef } from 'react';
+import { useMemo } from 'react';
 import { ReactNode } from 'react';
 
+import { AgentCard } from '@components/agents/agent-card';
+import { AgentData } from '@app-types/agent';
+import { DEFAULT_AGENT_STATE } from '@stores/agent-store';
+import { useAgentStore } from '@stores/agent-store';
+import { useTrayStore } from '@stores/tray-store';
+import { useAgentCacheStore } from '@stores/agent-cache-store';
+import { fetchAgents } from '@lib/actions/agent-actions';
+import { CloseIcon } from '@components/icons';
+import { LoadingSpinner } from '@components/spinners/loading-spinner';
+
 import './agent-selection-tray.styles.css';
-
-// Placeholder for icons
-const CloseIcon = (): ReactNode => (
-    <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-        <path fillRule="evenodd"
-            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-            clipRule="evenodd" />
-    </svg>
-);
-
-const UserIcon = (): ReactNode => (
-    <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-        <path fillRule="evenodd"
-            d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
-            clipRule="evenodd" />
-    </svg>
-);
-
-const LoadingSpinner = (): ReactNode => (
-        <svg className="animate-spin" viewBox="0 0 24 24" fill="none">
-            <circle className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4" />
-            <path className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-        </svg>
-    )
-;
 
 type AgentSelectionTrayProps = {
     onClose: () => void;
     parentNodeId?: string;
 };
 
-export const AgentSelectionTray = ({
-    onClose,
-    parentNodeId
-}: AgentSelectionTrayProps): ReactNode => {
-    // Placeholder for state
-    const [isLoading, setIsLoading] = useState(false);
-    const [agents, setAgents] = useState<any[]>([]);
+export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTrayProps): ReactNode => {
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState('agents');
 
-    // Placeholder for agent loading logic
+    const { agents, lastFetchTime, setAgents } = useAgentCacheStore();
+    const { setAgentData } = useAgentStore();
+    const { closeTray } = useTrayStore();
+    const isInitialMount = useRef(true);
+
+    // Load agents from cache or fetch new ones
     useEffect(() => {
-        const loadAgents = async () => {
-            setIsLoading(true);
+        let isMounted = true;
+
+        (async () => {
             try {
-                // This will be replaced with actual API call
-                setTimeout(() => {
-                    setAgents([
-                        {
-                            id: '1',
-                            name: 'Agent 1',
-                            description: 'Description for Agent 1'
-                        },
-                        {
-                            id: '2',
-                            name: 'Agent 2',
-                            description: 'Description for Agent 2'
-                        }
-                    ]);
-                    setIsLoading(false);
-                }, 1000);
-            } catch (error) {
-                console.error('Error loading agents:', error);
-                setIsLoading(false);
+                // Only check cache on initial mount or when lastFetchTime is 0 (cache invalidated)
+                if (!isInitialMount.current && lastFetchTime !== 0) {
+                    setLoading(false);
+                    return;
+                }
+
+                // Cache is invalid or it's initial mount, fetch new data
+                const newAgents = await fetchAgents();
+                if (isMounted) {
+                    setAgents(newAgents);
+                }
+            } catch (err) {
+                if (isMounted) {
+                    setError('Failed to load agents');
+                    console.error('Error loading agents:', err);
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                    isInitialMount.current = false;
+                }
             }
+        })();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [lastFetchTime, setAgents]);
+
+    const initialAgentState = useMemo(() => ({
+        ...DEFAULT_AGENT_STATE
+    }), []);
+
+    // Handle agent selection
+    const handleAgentSelect = useCallback((agent: AgentData) => {
+        // Create a unique ID for this instance of the agent
+        const uniqueAgentId = `${agent.id}-${Date.now()}`;
+
+        // Create a new agent instance with the unique ID
+        const newAgent = {
+            ...agent,
+            id: uniqueAgentId,
+            parentNodeId
         };
 
-        loadAgents();
-    }, [parentNodeId]);
+        // Synchronize with AgentStore before proceeding
+        setAgentData(uniqueAgentId, newAgent);
 
-    // Placeholder for agent selection handler
-    const handleAgentSelect = useCallback((agent: any) => {
-            console.log('Selected agent:', agent);
-            onClose();
-        },
-        [onClose]
-    );
+        // Close the tray first to prevent UI jank
+        closeTray();
+
+        // Then select the agent (which will trigger addNode)
+        setTimeout(() => {
+            // Here we would trigger the same action as in the modal
+            // For now, just log the selection
+            console.log('Selected agent:', newAgent);
+        }, 0);
+    }, [closeTray, parentNodeId, setAgentData]);
 
     return (
-        <div className="agent-tray">
+        <div className="agent-tray" role="dialog" aria-labelledby="tray-title">
             <div className="agent-tray-header">
-                <h2 className="agent-tray-title">Select Agent</h2>
-                <button onClick={onClose} className="agent-tray-close-button">
-                    <CloseIcon />
+                <h2 id="tray-title" className="agent-tray-title">Select Agent</h2>
+                <button onClick={onClose}
+                    className="agent-tray-close-button"
+                    aria-label="Close agent selection tray">
+                    <CloseIcon width={20} height={20} />
                 </button>
             </div>
 
             <div className="agent-tray-body">
-                {isLoading ? (
+                {/* Tabs */}
+                <div className="agent-tray-tabs">
+                    <button className={`agent-tray-tab ${activeTab === 'agents' ? 'agent-tray-tab-active' : ''}`}
+                        onClick={() => setActiveTab('agents')}>
+                        My Agents
+                    </button>
+                    <button className={`agent-tray-tab ${activeTab === 'store' ? 'agent-tray-tab-active' : ''}`}
+                        onClick={() => setActiveTab('store')}>
+                        Agent Store
+                    </button>
+                </div>
+
+                {/* Agent Content */}
+                {error ? (
+                    <div className="agent-tray-error">
+                        Failed to load agents. Please try again or contact support if the issue persists.
+                    </div>
+                ) : loading ? (
                     <div className="agent-tray-loading">
-                        <LoadingSpinner />
+                        <LoadingSpinner size={32} color="text-blue-500" />
+                        <span className="agent-tray-loading-text">Loading agents...</span>
                     </div>
                 ) : (
-                    <ul className="agent-tray-list">
-                        {agents.map((agent) => (
-                            <li
-                                key={agent.id}
-                                className="agent-tray-list-item"
-                                onClick={() => handleAgentSelect(agent)}>
-                                <div className="agent-tray-agent">
-                                    <div className="agent-tray-agent-icon-container">
-                                        <UserIcon />
-                                    </div>
-                                    <div className="agent-tray-agent-details">
-                                        <h3 className="agent-tray-agent-name">{agent.name}</h3>
-                                        <p className="agent-tray-agent-description">
-                                            {agent.description}
-                                        </p>
-                                    </div>
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
+                    <>
+                        {!agents.length ? (
+                            <div className="agent-tray-empty">
+                                You currently have no agents. Build some in the Agent Builder or buy one in our Store.
+                            </div>
+                        ) : (
+                            <ul className="agent-tray-list">
+                                {agents.map((agent) => (
+                                    <li key={agent.id}
+                                        className="agent-tray-list-item"
+                                        onClick={() => handleAgentSelect(agent)}>
+                                        <AgentCard agentId={agent.id}
+                                            agentData={agent}
+                                            state={DEFAULT_AGENT_STATE.state} />
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </>
                 )}
             </div>
         </div>

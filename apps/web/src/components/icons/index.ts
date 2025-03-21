@@ -4,6 +4,7 @@ export * from './chat-icon';
 export * from './check-mark-icon';
 export * from './chevron-icon';
 export * from './circular-progress-icon';
+export * from './close-icon';
 export * from './closed-box-icon';
 export * from './copy-icon';
 export * from './document-icon';
