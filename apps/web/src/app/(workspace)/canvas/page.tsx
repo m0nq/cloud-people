@@ -22,6 +22,8 @@ import { WorkflowRenderer } from './workflow-renderer';
 import { BranchesIcon } from '@components/icons/branches-icon';
 import { DatePicker } from '@components/calendar/date-picker';
 import { useThemeStore } from '@stores/theme-store';
+import { useTrayStore } from '@stores/tray-store';
+import { Tray } from '@components/trays/tray';
 
 // Profiler callback function to measure render performance
 // Only active in development mode
@@ -54,6 +56,12 @@ const ConditionalProfiler = ({ id, children }: { id: string; children: ReactNode
 const Canvas = (): ReactNode => {
     const { isDarkMode } = useThemeStore();
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+    const { openTray } = useTrayStore();
+
+    // Function to handle opening the agent selection tray
+    const handleOpenAgentTray = () => {
+        openTray({ type: 'agentSelection' });
+    };
 
     const handleDateSelect = (date: Date) => {
         console.log('Selected date:', date);
@@ -86,7 +94,7 @@ const Canvas = (): ReactNode => {
                                 <button onClick={() => alert('Something magical just happened. ✨')}>
                                     <IoHandRightOutline className="icon-button" strokeWidth={1.5} />
                                 </button>
-                                <button onClick={() => alert('Something magical just happened. ✨')}>
+                                <button onClick={handleOpenAgentTray}>
                                     <FiUserPlus className="icon-button" strokeWidth={1.5} />
                                 </button>
                                 <button onClick={() => setIsCalendarOpen(true)}>
@@ -124,6 +132,7 @@ const Canvas = (): ReactNode => {
                                 </div>
                             </div>
                         )}
+                        <Tray />
                     </div>
                 )}
             </WorkflowRenderer>
