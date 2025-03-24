@@ -1,3 +1,14 @@
+import { AgentState } from '@app-types/agent';
+import { AgentData } from '@app-types/agent';
+
+import { AgentCard } from '@components/agents/agent-card';
+import { CloseIcon } from '@components/icons/close-icon';
+import { SearchIcon } from '@components/icons/search-icon';
+import { LoadingSpinner } from '@components/spinners/loading-spinner';
+import { fetchAgents } from '@lib/actions/agent-actions';
+import { useAgentCacheStore } from '@stores/agent-cache-store';
+import { useAgentStore } from '@stores/agent-store';
+import { useTrayStore } from '@stores/tray-store';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { useCallback } from 'react';
@@ -5,17 +16,6 @@ import { useRef } from 'react';
 import { useMemo } from 'react';
 import { ReactNode } from 'react';
 import { FiUsers } from 'react-icons/fi';
-
-import { AgentCard } from '@components/agents/agent-card';
-import { AgentData } from '@app-types/agent';
-import { DEFAULT_AGENT_STATE } from '@stores/agent-store';
-import { useAgentStore } from '@stores/agent-store';
-import { useTrayStore } from '@stores/tray-store';
-import { useAgentCacheStore } from '@stores/agent-cache-store';
-import { fetchAgents } from '@lib/actions/agent-actions';
-import { CloseIcon } from '@components/icons/close-icon';
-import { SearchIcon } from '@components/icons/search-icon';
-import { LoadingSpinner } from '@components/spinners/loading-spinner';
 
 import './agent-selection-tray.styles.css';
 
@@ -70,10 +70,6 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
             isMounted = false;
         };
     }, [lastFetchTime, setAgents]);
-
-    const initialAgentState = useMemo(() => ({
-        ...DEFAULT_AGENT_STATE
-    }), []);
 
     // Filter agents based on search query and selected skill
     const filteredAgents = useMemo(() => {
@@ -185,30 +181,13 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
                             </div>
                         ) : (
                             <ul className="agent-tray-list">
-                                {filteredAgents.map((agent) => (
+                                {filteredAgents.map((agent: AgentData) => (
                                     <li key={agent.id}
                                         className="agent-tray-list-item"
                                         onClick={() => handleAgentSelect(agent)}>
                                         <AgentCard agentId={agent.id}
                                             agentData={agent}
-                                            state={DEFAULT_AGENT_STATE.state} />
-                                        {/*{agent.accuracy && (*/}
-                                        {/*    <div className="agent-tray-accuracy mt-2">*/}
-                                        {/*        <svg xmlns="http://www.w3.org/2000/svg"*/}
-                                        {/*            width="16"*/}
-                                        {/*            height="16"*/}
-                                        {/*            viewBox="0 0 24 24"*/}
-                                        {/*            fill="currentColor"*/}
-                                        {/*            stroke="currentColor"*/}
-                                        {/*            strokeWidth="0"*/}
-                                        {/*            strokeLinecap="round"*/}
-                                        {/*            strokeLinejoin="round"*/}
-                                        {/*            className="mr-1">*/}
-                                        {/*            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>*/}
-                                        {/*        </svg>*/}
-                                        {/*        <span>{agent.accuracy}% accuracy</span>*/}
-                                        {/*    </div>*/}
-                                        {/*)}*/}
+                                            state={AgentState.Initial} />
                                     </li>
                                 ))}
                             </ul>
