@@ -91,13 +91,13 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
     }, [agents, searchQuery, selectedSkill]);
 
     // Get unique skills from all agents
-    // const availableSkills = useMemo(() => {
-    //     const skillSet = new Set<string>();
-    //     agents.forEach(agent => {
-    //         agent.skills?.forEach(skill => skillSet.add(skill));
-    //     });
-    //     return ['All Skills', ...Array.from(skillSet)];
-    // }, [agents]);
+    const availableSkills = useMemo(() => {
+        const skillSet = new Set<string>();
+        agents.forEach(agent => {
+            agent.skills?.forEach(skill => skillSet.add(skill));
+        });
+        return ['All Skills', ...Array.from(skillSet)];
+    }, [agents]);
 
     // Handle agent selection
     const handleAgentSelect = useCallback((agent: AgentData) => {
@@ -141,7 +141,7 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
 
             <div className="agent-tray-body">
                 {/* Search Input */}
-                <div className="agent-tray-search relative">
+                <div className="agent-tray-search">
                     <input type="text"
                         placeholder="Search agents..."
                         className="agent-tray-search-input"
@@ -156,26 +156,14 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
                 {/* Filter Dropdown */}
                 <div className="agent-tray-filter">
                     <div className="agent-tray-filter-dropdown">
-                        <span>{selectedSkill}</span>
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round">
-                            <polyline points="6 9 12 15 18 9" />
-                        </svg>
-                        {/*<select className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"*/}
-                        {/*    value={selectedSkill}*/}
-                        {/*    onChange={(e) => setSelectedSkill(e.target.value)}*/}
-                        {/*    aria-label="Filter by skill">*/}
-                        {/*    {availableSkills.map(skill => (*/}
-                        {/*        <option key={skill} value={skill}>{skill}</option>*/}
-                        {/*    ))}*/}
-                        {/*</select>*/}
+                        <select className="agent-skills-select"
+                            value={selectedSkill}
+                            onChange={(e) => setSelectedSkill(e.target.value)}
+                            aria-label="Filter by skill">
+                            {availableSkills.map(skill => (
+                                <option key={skill} value={skill}>{skill}</option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 

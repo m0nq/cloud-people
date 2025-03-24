@@ -30,10 +30,10 @@
     }
 
     .agent-tray-body {
-        @apply flex-1 overflow-y-auto;
+        @apply flex flex-col gap-4 flex-1 overflow-y-auto;
 
         .agent-tray-search {
-            @apply mb-4;
+            @apply relative;
 
             .agent-tray-search-input {
                 @apply w-full rounded-md border-gray-600 bg-gray-700 text-gray-100 shadow-sm focus:border-blue-500
@@ -47,11 +47,15 @@
     }
 
     .agent-tray-filter {
-        @apply flex items-center justify-between mb-4;
-    }
+        @apply flex items-center justify-between;
 
-    .agent-tray-filter-dropdown {
-        @apply flex items-center space-x-1 p-2 rounded bg-gray-800 border border-gray-700 text-gray-300 cursor-pointer;
+        .agent-tray-filter-dropdown {
+            @apply flex items-center cursor-pointer w-full;
+
+            .agent-skills-select {
+                @apply  w-full pl-3 pr-10 py-2 text-xs bg-gray-700 border-gray-600 text-gray-200 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md;
+            }
+        }
     }
 
     .agent-tray-tabs {
