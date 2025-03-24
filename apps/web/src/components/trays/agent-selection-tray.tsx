@@ -1,6 +1,14 @@
+import { useState } from 'react';
+import { useEffect } from 'react';
+import { useCallback } from 'react';
+import { useRef } from 'react';
+import { useMemo } from 'react';
+import { ReactNode } from 'react';
+import { FiUsers } from 'react-icons/fi';
+
 import { AgentState } from '@app-types/agent';
 import { AgentData } from '@app-types/agent';
-
+import { AGENT_SKILLS } from '@app-types/agent/skills';
 import { AgentCard } from '@components/agents/agent-card';
 import { CloseIcon } from '@components/icons/close-icon';
 import { SearchIcon } from '@components/icons/search-icon';
@@ -9,13 +17,6 @@ import { fetchAgents } from '@lib/actions/agent-actions';
 import { useAgentCacheStore } from '@stores/agent-cache-store';
 import { useAgentStore } from '@stores/agent-store';
 import { useTrayStore } from '@stores/tray-store';
-import { useState } from 'react';
-import { useEffect } from 'react';
-import { useCallback } from 'react';
-import { useRef } from 'react';
-import { useMemo } from 'react';
-import { ReactNode } from 'react';
-import { FiUsers } from 'react-icons/fi';
 
 import './agent-selection-tray.styles.css';
 
@@ -27,9 +28,8 @@ type AgentSelectionTrayProps = {
 export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTrayProps): ReactNode => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState('agents');
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedSkill, setSelectedSkill] = useState('All Skills');
+    const [selectedSkill, setSelectedSkill] = useState<string>(AGENT_SKILLS[0]);
 
     const { agents, lastFetchTime, setAgents } = useAgentCacheStore();
     const { setAgentData } = useAgentStore();
@@ -79,7 +79,7 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
                 agent.description?.toLowerCase().includes(searchQuery.toLowerCase());
             // || agent.skills?.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()));
 
-            const matchesSkill = selectedSkill === 'All Skills';
+            const matchesSkill = selectedSkill === AGENT_SKILLS[0];
             // || agent.skills?.some(skill => skill === selectedSkill);
 
             return matchesSearch && matchesSkill;
@@ -87,13 +87,13 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
     }, [agents, searchQuery, selectedSkill]);
 
     // Get unique skills from all agents
-    const availableSkills = useMemo(() => {
-        const skillSet = new Set<string>();
-        agents.forEach(agent => {
-            agent.skills?.forEach(skill => skillSet.add(skill));
-        });
-        return ['All Skills', ...Array.from(skillSet)];
-    }, [agents]);
+    // const availableSkills = useMemo(() => {
+    //     const skillSet = new Set<string>();
+    //     agents.forEach(agent => {
+    //         agent.skills?.forEach(skill => skillSet.add(skill));
+    //     });
+    //     return ['All Skills', ...Array.from(skillSet)];
+    // }, [agents]);
 
     // Handle agent selection
     const handleAgentSelect = useCallback((agent: AgentData) => {
@@ -156,7 +156,7 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
                             value={selectedSkill}
                             onChange={(e) => setSelectedSkill(e.target.value)}
                             aria-label="Filter by skill">
-                            {availableSkills.map(skill => (
+                            {AGENT_SKILLS.map(skill => (
                                 <option key={skill} value={skill}>{skill}</option>
                             ))}
                         </select>
