@@ -4,6 +4,7 @@ import { useCallback } from 'react';
 import { useRef } from 'react';
 import { useMemo } from 'react';
 import { ReactNode } from 'react';
+import { FiUsers } from 'react-icons/fi';
 
 import { AgentCard } from '@components/agents/agent-card';
 import { AgentData } from '@app-types/agent';
@@ -26,6 +27,8 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState('agents');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedSkill, setSelectedSkill] = useState('All Skills');
 
     const { agents, lastFetchTime, setAgents } = useAgentCacheStore();
     const { setAgentData } = useAgentStore();
@@ -71,6 +74,30 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
         ...DEFAULT_AGENT_STATE
     }), []);
 
+    // Filter agents based on search query and selected skill
+    const filteredAgents = useMemo(() => {
+        return agents.filter(agent => {
+            const matchesSearch = searchQuery.trim() === '' ||
+                agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                agent.description?.toLowerCase().includes(searchQuery.toLowerCase());
+            // || agent.skills?.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()));
+
+            const matchesSkill = selectedSkill === 'All Skills';
+            // || agent.skills?.some(skill => skill === selectedSkill);
+
+            return matchesSearch && matchesSkill;
+        });
+    }, [agents, searchQuery, selectedSkill]);
+
+    // Get unique skills from all agents
+    // const availableSkills = useMemo(() => {
+    //     const skillSet = new Set<string>();
+    //     agents.forEach(agent => {
+    //         agent.skills?.forEach(skill => skillSet.add(skill));
+    //     });
+    //     return ['All Skills', ...Array.from(skillSet)];
+    // }, [agents]);
+
     // Handle agent selection
     const handleAgentSelect = useCallback((agent: AgentData) => {
         // Create a unique ID for this instance of the agent
@@ -100,7 +127,10 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
     return (
         <div className="agent-tray" role="dialog" aria-labelledby="tray-title">
             <div className="agent-tray-header">
-                <h2 id="tray-title" className="agent-tray-title">Select Agent</h2>
+                <div className="agent-tray-title-container">
+                    <FiUsers size={18} className="agent-tray-user-icon" />
+                    <h2 id="tray-title" className="agent-tray-title">Agents</h2>
+                </div>
                 <button onClick={onClose}
                     className="agent-tray-close-button"
                     aria-label="Close agent selection tray">
@@ -109,16 +139,54 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
             </div>
 
             <div className="agent-tray-body">
-                {/* Tabs */}
-                <div className="agent-tray-tabs">
-                    <button className={`agent-tray-tab ${activeTab === 'agents' ? 'agent-tray-tab-active' : ''}`}
-                        onClick={() => setActiveTab('agents')}>
-                        My Agents
-                    </button>
-                    <button className={`agent-tray-tab ${activeTab === 'store' ? 'agent-tray-tab-active' : ''}`}
-                        onClick={() => setActiveTab('store')}>
-                        Agent Store
-                    </button>
+                {/* Search Input */}
+                <div className="agent-tray-search relative">
+                    <input type="text"
+                        placeholder="Search agents..."
+                        className="agent-tray-search-input"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        aria-label="Search agents" />
+                    <span className="agent-tray-search-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                    </span>
+                </div>
+
+                {/* Filter Dropdown */}
+                <div className="agent-tray-filter">
+                    <div className="agent-tray-filter-dropdown">
+                        <span>{selectedSkill}</span>
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            width="16"
+                            height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round">
+                            <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                        {/*<select className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"*/}
+                        {/*    value={selectedSkill}*/}
+                        {/*    onChange={(e) => setSelectedSkill(e.target.value)}*/}
+                        {/*    aria-label="Filter by skill">*/}
+                        {/*    {availableSkills.map(skill => (*/}
+                        {/*        <option key={skill} value={skill}>{skill}</option>*/}
+                        {/*    ))}*/}
+                        {/*</select>*/}
+                    </div>
                 </div>
 
                 {/* Agent Content */}
@@ -128,24 +196,41 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
                     </div>
                 ) : loading ? (
                     <div className="agent-tray-loading">
-                        <LoadingSpinner size={32} color="text-blue-500" />
+                        <LoadingSpinner size={32} color="text-blue-400" />
                         <span className="agent-tray-loading-text">Loading agents...</span>
                     </div>
                 ) : (
                     <>
-                        {!agents.length ? (
+                        {!filteredAgents.length ? (
                             <div className="agent-tray-empty">
-                                You currently have no agents. Build some in the Agent Builder or buy one in our Store.
+                                No agents found matching your search criteria.
                             </div>
                         ) : (
                             <ul className="agent-tray-list">
-                                {agents.map((agent) => (
+                                {filteredAgents.map((agent) => (
                                     <li key={agent.id}
                                         className="agent-tray-list-item"
                                         onClick={() => handleAgentSelect(agent)}>
                                         <AgentCard agentId={agent.id}
                                             agentData={agent}
                                             state={DEFAULT_AGENT_STATE.state} />
+                                        {/*{agent.accuracy && (*/}
+                                        {/*    <div className="agent-tray-accuracy mt-2">*/}
+                                        {/*        <svg xmlns="http://www.w3.org/2000/svg"*/}
+                                        {/*            width="16"*/}
+                                        {/*            height="16"*/}
+                                        {/*            viewBox="0 0 24 24"*/}
+                                        {/*            fill="currentColor"*/}
+                                        {/*            stroke="currentColor"*/}
+                                        {/*            strokeWidth="0"*/}
+                                        {/*            strokeLinecap="round"*/}
+                                        {/*            strokeLinejoin="round"*/}
+                                        {/*            className="mr-1">*/}
+                                        {/*            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>*/}
+                                        {/*        </svg>*/}
+                                        {/*        <span>{agent.accuracy}% accuracy</span>*/}
+                                        {/*    </div>*/}
+                                        {/*)}*/}
                                     </li>
                                 ))}
                             </ul>

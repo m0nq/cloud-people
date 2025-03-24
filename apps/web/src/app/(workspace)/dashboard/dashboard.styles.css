@@ -1,264 +1,264 @@
 .dashboard-container {
-  @apply h-fit px-28 pt-12 bg-[var(--background)];
+    @apply h-fit px-28 pt-12 bg-[var(--background)];
 
-  .dashboard-content {
-    @apply space-y-8;
-  }
+    .dashboard-content {
+        @apply space-y-8;
+    }
 }
 
 .dashboard-section {
 
-  .dashboard-header-wrapper {
-    @apply px-2;
+    .dashboard-header-wrapper {
+        @apply px-2;
 
-    .section-header {
-      @apply py-2;
+        .section-header {
+            @apply py-2;
 
-      .section-title {
-        @apply text-2xl font-bold text-[var(--foreground)];
-      }
+            .section-title {
+                @apply text-2xl font-bold text-[var(--foreground)];
+            }
+        }
     }
-  }
 }
 
 .interactive-header-container {
-  @apply fixed top-0 right-0 w-full py-4 px-8 bg-transparent z-40;
+    @apply fixed top-0 right-0 w-full py-4 px-8 bg-transparent z-40;
 
-  .header-buttons {
-    @apply flex justify-end h-16 gap-4 font-medium text-xl;
+    .header-buttons {
+        @apply flex justify-end h-16 gap-4 font-medium text-xl;
 
-    .header-link {
-      @apply h-full gap-2 px-6 py-2 flex items-center justify-center text-white no-underline
-      bg-blue-600 rounded-md shadow-xl outline-none transition-all duration-200 hover:bg-[#2A4DD0]
-      hover:no-underline hover:shadow-xl focus:bg-blue-700 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2
-      active:bg-blue-800 active:shadow-xl;
+        .header-link {
+            @apply h-full gap-2 px-6 py-2 flex items-center justify-center text-white no-underline
+            bg-blue-600 rounded-md shadow-xl outline-none transition-all duration-200 hover:bg-[#2A4DD0]
+            hover:no-underline hover:shadow-xl focus:bg-blue-700 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2
+            active:bg-blue-800 active:shadow-xl;
+        }
+
+        .header-button {
+            @apply flex items-center justify-center gap-2 h-full px-6 rounded-md shadow-xl outline-none transition-all duration-200 text-[var(--foreground)]
+            bg-[var(--secondary)] hover:bg-[var(--accent)] hover:shadow-xl focus:bg-[var(--accent)] focus:ring-2 focus:ring-offset-2 active:shadow-xl active:bg-[var(--accent)];
+        }
     }
-
-    .header-button {
-      @apply flex items-center justify-center gap-2 h-full px-6 rounded-md shadow-xl outline-none transition-all duration-200 text-[var(--foreground)]
-      bg-[var(--secondary)] hover:bg-[var(--accent)] hover:shadow-xl focus:bg-[var(--accent)] focus:ring-2 focus:ring-offset-2 active:shadow-xl active:bg-[var(--accent)];
-    }
-  }
 }
 
 .error-container {
-  @apply p-8 text-center;
-  color: var(--destructive);
+    @apply p-8 text-center;
+    color: var(--destructive);
 }
 
 .loading-container {
-  @apply flex flex-col items-center justify-center py-12 min-h-[200px] w-full;
+    @apply flex flex-col items-center justify-center py-12 min-h-[200px] w-full;
 }
 
 .categories-container {
-  @apply space-y-12;
+    @apply space-y-12;
 }
 
 .draggable-category {
-  @apply mt-12;
+    @apply mt-12;
 
-  .draggable-category-container {
+    .draggable-category-container {
 
-    &.is-dragging {
-      @apply rounded-lg bg-[var(--secondary)];
-    }
-  }
-
-  .category-header {
-    @apply flex items-center justify-between py-2;
-  }
-
-  .title-container {
-    @apply flex items-center;
-  }
-
-  .drag-handle {
-    @apply cursor-grab mr-2 p-1 rounded-md active:cursor-grabbing text-[var(--muted-foreground)];
-
-    &:hover {
-      background-color: var(--secondary);
-    }
-  }
-
-  .category-title {
-    @apply text-xl font-semibold;
-    color: var(--foreground);
-  }
-
-  .scroll-controls {
-    @apply flex gap-2;
-  }
-
-  .scroll-left-button, .scroll-right-button {
-    @apply inline-flex items-center justify-between font-medium rounded-md transition-colors focus:outline-none
-    focus:ring-2 focus:ring-offset-2 text-sm px-3 py-1.5;
-    color: var(--foreground);
-    border: 1px solid var(--border);
-
-    &:hover {
-      background-color: var(--secondary);
+        &.is-dragging {
+            @apply rounded-lg bg-[var(--secondary)];
+        }
     }
 
-    &:focus {
-      @apply focus:ring-gray-500;
+    .category-header {
+        @apply flex items-center justify-between py-2;
     }
-  }
 
-  .scroll-left-button {
-    @apply gap-1.5;
-  }
-
-  .scroll-right-button {
-    @apply gap-0.5;
-  }
-
-  .projects-container {
-    @apply flex overflow-auto py-4 px-2;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    -webkit-overflow-scrolling: touch;
-
-    &::-webkit-scrollbar {
-      @apply hidden;
+    .title-container {
+        @apply flex items-center;
     }
-  }
 
-  /* Dashboard project card wrapper styles */
+    .drag-handle {
+        @apply cursor-grab mr-2 p-1 rounded-md active:cursor-grabbing text-[var(--muted-foreground)];
 
-  .dashboard-project-card-wrapper {
-    @apply w-80 min-w-80 transform-gpu;
-  }
+        &:hover {
+            background-color: var(--secondary);
+        }
+    }
+
+    .category-title {
+        @apply text-xl font-semibold;
+        color: var(--foreground);
+    }
+
+    .scroll-controls {
+        @apply flex gap-2;
+    }
+
+    .scroll-left-button, .scroll-right-button {
+        @apply inline-flex items-center justify-between font-medium rounded-md transition-colors focus:outline-none
+        focus:ring-2 focus:ring-offset-2 text-sm px-3 py-1.5;
+        color: var(--foreground);
+        border: 1px solid var(--border);
+
+        &:hover {
+            background-color: var(--secondary);
+        }
+
+        &:focus {
+            @apply focus:ring-gray-500;
+        }
+    }
+
+    .scroll-left-button {
+        @apply gap-1.5;
+    }
+
+    .scroll-right-button {
+        @apply gap-0.5;
+    }
+
+    .projects-container {
+        @apply flex overflow-auto py-4 px-2;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        -webkit-overflow-scrolling: touch;
+
+        &::-webkit-scrollbar {
+            @apply hidden;
+        }
+    }
+
+    /* Dashboard project card wrapper styles */
+
+    .dashboard-project-card-wrapper {
+        @apply w-80 min-w-80 transform-gpu;
+    }
 }
 
 .dashboard-card {
-  @apply max-w-3xl rounded-lg shadow-md rounded-t-none;
-  background-color: var(--card);
-  border: 1px solid var(--border);
-
-  .card-grid {
-    @apply grid grid-cols-1 md:grid-cols-2 gap-6 p-6;
+    @apply max-w-3xl rounded-lg shadow-md rounded-t-none;
     background-color: var(--card);
-  }
+    border: 1px solid var(--border);
 
-  .card-content {
-    @apply p-4 rounded-lg;
-    background-color: var(--card);
-  }
+    .card-grid {
+        @apply grid grid-cols-1 md:grid-cols-2 gap-6 p-6;
+        background-color: var(--card);
+    }
 
-  .profile-container {
-    @apply p-4 rounded-lg bg-[var(--accent)];
+    .card-content {
+        @apply p-4 rounded-lg;
+        background-color: var(--card);
+    }
 
-    .profile-header {
-      @apply flex items-center space-x-3 mb-4;
+    .profile-container {
+        @apply p-4 rounded-lg bg-[var(--accent)];
 
-      .profile-image-container {
-        @apply w-10 h-10 rounded-full overflow-hidden;
+        .profile-header {
+            @apply flex items-center space-x-3 mb-4;
 
-        .profile-image {
-          @apply w-full h-full object-cover;
+            .profile-image-container {
+                @apply w-10 h-10 rounded-full overflow-hidden;
+
+                .profile-image {
+                    @apply w-full h-full object-cover;
+                }
+            }
+
+            .profile-name {
+                @apply text-lg font-semibold;
+                color: var(--foreground);
+            }
         }
-      }
-
-      .profile-name {
-        @apply text-lg font-semibold;
-        color: var(--foreground);
-      }
-    }
-  }
-
-  .task-container {
-    @apply p-3 rounded-lg mb-4;
-    background-color: var(--secondary);
-    border: 1px solid var(--border);
-
-    .task-label {
-      @apply text-sm;
-      color: var(--muted-foreground);
     }
 
-    .task-name {
-      color: var(--foreground);
-    }
-  }
+    .task-container {
+        @apply p-3 rounded-lg mb-4;
+        background-color: var(--secondary);
+        border: 1px solid var(--border);
 
-  .dashboard-action-buttons {
-    @apply flex gap-2 justify-between;
+        .task-label {
+            @apply text-sm;
+            color: var(--muted-foreground);
+        }
 
-    .dashboard-action-button {
-      @apply flex-1 p-2 rounded-lg font-semibold;
-    }
-
-    .watch-button {
-      @apply bg-gray-500 hover:bg-gray-600 text-white;
-    }
-
-    .meeting-button {
-      @apply bg-emerald-400 hover:bg-emerald-500 text-gray-800;
-    }
-  }
-
-  .stats-container {
-    @apply p-4 rounded-lg;
-    background-color: var(--accent);
-    border: 1px solid var(--border);
-
-    .stats-header {
-      @apply flex items-center justify-between mb-4;
+        .task-name {
+            color: var(--foreground);
+        }
     }
 
-    .stats-label {
-      @apply text-sm;
-      color: var(--muted-foreground);
+    .dashboard-action-buttons {
+        @apply flex gap-2 justify-between;
+
+        .dashboard-action-button {
+            @apply flex-1 p-2 rounded-lg font-semibold;
+        }
+
+        .watch-button {
+            @apply bg-gray-500 hover:bg-gray-600 text-white;
+        }
+
+        .meeting-button {
+            @apply bg-emerald-400 hover:bg-emerald-500 text-gray-800;
+        }
     }
 
-    .stats-options-button {
-      @apply p-1 rounded-lg;
+    .stats-container {
+        @apply p-4 rounded-lg;
+        background-color: var(--accent);
+        border: 1px solid var(--border);
 
-      &:hover {
-        @apply bg-[var(--secondary)];
-      }
+        .stats-header {
+            @apply flex items-center justify-between mb-4;
+        }
+
+        .stats-label {
+            @apply text-sm;
+            color: var(--muted-foreground);
+        }
+
+        .stats-options-button {
+            @apply p-1 rounded-lg;
+
+            &:hover {
+                @apply bg-[var(--secondary)];
+            }
+        }
     }
-  }
 
-  .profit-display {
-    @apply p-4 rounded-lg mb-4 bg-[#4F46E5];
+    .profit-display {
+        @apply p-4 rounded-lg mb-4 bg-[#4F46E5];
 
-    .profit-content {
-      @apply flex items-center justify-between;
+        .profit-content {
+            @apply flex items-center justify-between;
+        }
+
+        .profit-amount {
+            @apply text-2xl font-bold;
+            color: var(--primary-foreground);
+        }
+
+        .profit-period {
+            @apply text-sm;
+            color: var(--primary-foreground);
+        }
     }
 
-    .profit-amount {
-      @apply text-2xl font-bold;
-      color: var(--primary-foreground);
+    .expense-list {
+        @apply space-y-3;
     }
 
-    .profit-period {
-      @apply text-sm;
-      color: var(--primary-foreground);
+    .expense-item {
+        @apply flex items-center justify-between;
     }
-  }
 
-  .expense-list {
-    @apply space-y-3;
-  }
+    .expense-info {
+        @apply flex items-center gap-2 text-[var(--foreground)];
+    }
 
-  .expense-item {
-    @apply flex items-center justify-between;
-  }
+    .expense-icon {
+        @apply p-1 rounded-md font-semibold;
+    }
 
-  .expense-info {
-    @apply flex items-center gap-2 text-[var(--foreground)];
-  }
+    .expense-name {
+        @apply text-[var(--foreground)];
+    }
 
-  .expense-icon {
-    @apply p-1 rounded-md font-semibold;
-  }
-
-  .expense-name {
-    @apply text-[var(--foreground)];
-  }
-
-  .expense-amount {
-    @apply text-red-500;
-  }
+    .expense-amount {
+        @apply text-red-500;
+    }
 }

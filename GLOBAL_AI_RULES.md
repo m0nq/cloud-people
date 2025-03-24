@@ -91,7 +91,27 @@ import { utils } from '../utils';
 5. Tailwind CSS Rules
     1. Write CSS using Tailwind classes unless otherwise specified:
         - Utilize styles in separate css files using the @apply rule.
-        - Nested css selectors are prefered over global ones.
+        - Nested css selectors are preferred over global ones.
+        - When using nested selectors with PostCSS, always include the parent class name:
+          ```css
+          /* Correct */
+          .selector {
+            @apply some-styles;
+            
+            .selector-open {
+              @apply more-styles;
+            }
+          }
+          
+          /* Incorrect */
+          .selector {
+            @apply some-styles;
+            
+            &-open {
+              @apply more-styles;
+            }
+          }
+          ```
         - Maintain consistent class order:
             - Layout & Position (e.g., flex, grid)
             - Spacing (e.g., m-4, p-2)

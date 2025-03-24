@@ -1,17 +1,18 @@
+import { ComponentType } from 'react';
 import { ReactNode } from 'react';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { useCallback } from 'react';
 import { useRef } from 'react';
 
+import './tray.styles.css';
 import { useTrayStore } from '@stores/tray-store';
 import { TrayType } from '@stores/tray-store';
 import { AgentSelectionTray } from './agent-selection-tray';
 
-import './tray.styles.css';
 
 type TrayComponentsType = {
-    [key in NonNullable<TrayType>]: React.ComponentType<any>;
+    [key in NonNullable<TrayType>]: ComponentType<any>;
 };
 
 const TrayComponents: TrayComponentsType = {
@@ -22,7 +23,7 @@ export const Tray = (): ReactNode => {
     const { isOpen, trayType, closeTray, parentNodeId } = useTrayStore();
     const [isVisible, setIsVisible] = useState(false);
     const bodyRef = useRef<HTMLElement | null>(null);
-    
+
     // Initialize bodyRef in an effect to ensure it's only accessed in browser environment
     useEffect(() => {
         if (typeof document !== 'undefined') {
