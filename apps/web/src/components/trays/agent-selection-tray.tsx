@@ -13,7 +13,8 @@ import { useAgentStore } from '@stores/agent-store';
 import { useTrayStore } from '@stores/tray-store';
 import { useAgentCacheStore } from '@stores/agent-cache-store';
 import { fetchAgents } from '@lib/actions/agent-actions';
-import { CloseIcon } from '@components/icons';
+import { CloseIcon } from '@components/icons/close-icon';
+import { SearchIcon } from '@components/icons/search-icon';
 import { LoadingSpinner } from '@components/spinners/loading-spinner';
 
 import './agent-selection-tray.styles.css';
@@ -148,18 +149,7 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
                         onChange={(e) => setSearchQuery(e.target.value)}
                         aria-label="Search agents" />
                     <span className="agent-tray-search-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round">
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        </svg>
+                        <SearchIcon width={16} height={16} color="#9DA3AE" />
                     </span>
                 </div>
 
