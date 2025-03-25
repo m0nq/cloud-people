@@ -44,60 +44,35 @@ export const BaseAgentLayout = ({
                     className="avatar" />
                 <div className="agent-name">
                     <h3>{data?.name}</h3>
+                    <p>Research Specialist</p>
                 </div>
-                <div className="info-icon-button">
-                    <InfoIcon color="#575D69" strokeWidth={2} />
-                </div>
+                {/*<div className="info-icon-button">*/}
+                {/*    <InfoIcon color="#575D69" strokeWidth={2} />*/}
+                {/*</div>*/}
             </div>
 
             <div className="core-skills-section">
-                <p className="skill-label">Core Skills</p>
-                <div className="skill-value">Making Interface</div>
+                {/* list of skills will go here */}
+                <div className="skill-value">Data Analysis</div>
+                <div className="skill-value">Research</div>
+                <div className="skill-value">Report Writing</div>
             </div>
 
             <div className="stats-section">
-                <p className="stat-label">Stats</p>
-                <div className="stat-item-container">
-                    <div className="stat-item">
-                        <RefreshIcon width={19} height={19} />
-                        342
-                    </div>
-                    <div className="stat-item">
-                        <TargetIcon width={19} height={19} />
-                        83%
-                    </div>
-                    <div className="stat-item">
-                        <DocumentIcon width={20} height={21} />
-                        1.3k
-                    </div>
-                </div>
-            </div>
-
-            <div className="agent-tools-section">
-                <p className="tool-label">Tools</p>
-                <div className="tool-item-container">
-                    {tools.slice(0, 2).map(tool => (
-                        <div key={tool.id} className="tool-item" title={tool.name}>
-                            {/* Placeholder circle - will be replaced with actual tool icon */}
-                            <div className="w-4 h-4 rounded-full bg-gray-500" />
-                        </div>
-                    ))}
-                    {tools.length > 2 && <div className="more-tools">+{tools.length - 2}</div>}
-                    {/* Show empty circles if no tools provided */}
-                    {tools.length === 0 && (
-                        <>
-                            <div className="tool-item">
-                                <div className="tool-item-placeholder" />
-                                <p>Figma</p>
-                            </div>
-                            <div className="tool-item">
-                                <div className="tool-item-placeholder" />
-                                <p>Dribble</p>
-                            </div>
-                            <div className="more-tools">+2</div>
-                        </>
-                    )}
-                </div>
+                <div className="flex items-center mt-2">
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-star text-yellow-500 mr-1">
+                        <path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path>
+                    </svg>
+                    <span className="text-xs text-gray-400">92% accuracy</span></div>
             </div>
         </div>
     );
