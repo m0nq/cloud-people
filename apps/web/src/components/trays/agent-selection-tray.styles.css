@@ -36,8 +36,8 @@
             @apply relative;
 
             .agent-tray-search-input {
-                @apply w-full rounded-md border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)] shadow-sm focus:border-blue-500
-                focus:ring-blue-500 sm:text-sm pl-10;
+                @apply w-full rounded-md border-[var(--border)] bg-[var(--secondary)] text-[var(--foreground)]
+                shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm pl-10;
             }
         }
 
@@ -53,7 +53,8 @@
             @apply flex items-center cursor-pointer w-full;
 
             .agent-skills-select {
-                @apply w-full pl-3 pr-10 py-2 text-xs bg-[var(--secondary)] border-[var(--border)] text-[var(--foreground)] focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md;
+                @apply w-full pl-3 pr-10 py-2 text-xs bg-[var(--secondary)] border-[var(--border)]
+                text-[var(--foreground)] focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md;
             }
         }
     }
@@ -63,7 +64,8 @@
     }
 
     .agent-tray-tab {
-        @apply px-4 py-2 text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)] border-b-2 border-transparent;
+        @apply px-4 py-2 text-sm font-medium text-[var(--muted-foreground)] hover:text-[var(--foreground)]
+        border-b-2 border-transparent;
     }
 
     .agent-tray-tab-active {
@@ -87,7 +89,6 @@
     }
 
     .agent-tray-list {
-
         .agent-tray-list-item {
             @apply cursor-pointer;
         }

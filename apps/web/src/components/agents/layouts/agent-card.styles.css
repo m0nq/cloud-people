@@ -1,6 +1,8 @@
-.agent-card-base {
-    @apply flex gap-2 flex-col w-full h-full p-4  items-start justify-between rounded-md border border-gray-600 font-inter
-    cursor-grab text-sm bg-gray-700 shadow-sm hover:shadow-md transition-shadow;
+/* Base agent card styling with theme support using CSS variables and data-theme attributes */
+
+.agent-card-base-theme {
+    @apply flex flex-col w-full h-full p-4 items-start justify-between rounded-md font-inter cursor-grab text-sm
+    shadow-md hover:shadow-lg transition-shadow border border-solid border-[var(--border)] bg-[var(--card)];
 
     .agent-title-section {
         @apply flex gap-x-3 items-center w-full;
@@ -13,34 +15,33 @@
             @apply flex-grow min-w-0;
 
             h3 {
-                @apply text-sm font-medium text-gray-200;
+                @apply text-sm font-medium text-[var(--foreground)];
             }
 
             p {
-                @apply text-gray-400 text-sm truncate;
+                @apply text-sm truncate text-[var(--muted-foreground)];
             }
         }
 
         .info-icon-button {
-            @apply w-6 h-6 border-none self-start;
+            @apply w-6 h-6 border-none self-start text-[var(--muted-foreground)];
         }
     }
 
     .core-skills-section {
-        @apply flex gap-1 flex-wrap w-full text-color-light;
+        @apply flex gap-1 flex-wrap w-full;
 
         .skill-label {
-            @apply font-medium pl-2 w-full;
+            @apply font-medium pl-2 w-full text-[var(--foreground)];
         }
 
         .skill-value {
-            /*@apply bg-[#3C464F] text-color-light py-1.5 px-2 rounded-md w-fit truncate;*/
-            @apply text-xs px-1.5 py-0.5 rounded-full bg-gray-600 text-gray-300;
+            @apply text-xs px-1.5 py-0.5 rounded-full bg-[var(--secondary)] text-[var(--foreground)];
         }
     }
 
     .stats-section {
-        @apply flex flex-col w-full text-color-light;
+        @apply flex flex-col w-full text-[var(--muted-foreground)];
 
         .stat-label {
             @apply font-medium pl-2 w-full;
@@ -50,7 +51,7 @@
             @apply flex w-full justify-between items-center;
 
             .stat-item {
-                @apply flex items-center justify-center gap-1 w-20 h-8 bg-[#45505A] rounded-lg py-1 px-1;
+                @apply flex items-center justify-center gap-1 w-20 h-8 rounded-lg py-1 px-1 bg-[var(--secondary)];
 
                 svg {
                     @apply w-4 h-4 flex-shrink-0;
@@ -60,20 +61,21 @@
     }
 
     .agent-tools-section {
-        @apply flex flex-col w-full text-color-light;
+        @apply flex flex-col w-full;
 
         .tool-label {
-            @apply font-medium pl-2 w-full;
+            @apply font-medium pl-2 w-full text-[var(--foreground)];
         }
 
         .tool-item-container {
             @apply flex justify-between w-full h-full font-semibold;
 
             .tool-item {
-                @apply flex items-center gap-1 w-2/5 h-8 rounded-lg bg-[#39434B] py-2 px-2;
+                @apply flex items-center gap-1 w-2/5 h-8 rounded-lg py-2 px-2 bg-[var(--secondary)]
+                text-[var(--foreground)];
 
                 .tool-item-placeholder {
-                    @apply flex-shrink-0 w-6 h-6 rounded-full bg-dark;
+                    @apply flex-shrink-0 w-6 h-6 rounded-full bg-[var(--muted)];
                 }
 
                 p {
@@ -82,15 +84,50 @@
             }
 
             .more-tools {
-                @apply flex items-center justify-center w-8 h-8 rounded-full bg-[#39434B] text-sm py-1 px-2 flex-shrink-0;
+                @apply flex items-center justify-center w-8 h-8 rounded-full text-sm py-1 px-2 flex-shrink-0
+                bg-[var(--secondary)] text-[var(--foreground)];
             }
         }
     }
 }
 
+/* Apply legacy dark styles when data-theme="dark" is present */
+.agent-card-base-theme[data-theme='dark'] {
+    @apply border-gray-600 bg-gray-700;
+
+    .agent-name {
+        h3 {
+            @apply text-gray-200;
+        }
+
+        p {
+            @apply text-gray-400;
+        }
+    }
+
+    .core-skills-section {
+        @apply text-color-light;
+
+        .skill-value {
+            @apply bg-gray-600 text-gray-300;
+        }
+    }
+
+    .agent-tools-section {
+        @apply text-color-light;
+
+        .tool-item {
+            @apply bg-[#39434B];
+        }
+
+        .more-tools {
+            @apply bg-[#39434B];
+        }
+    }
+}
+
 .activating-agent-card {
-    @apply flex w-72 h-52 p-2.5 flex-col justify-center items-center gap-2.5 rounded-lg border border-[#414141]
-    bg-gradient-to-br from-[#2d2e32] via-[#4b4d54] to-[#2d2e32] text-white;
+    @apply flex w-72 h-52 p-2.5 flex-col justify-center items-center gap-2.5 rounded-lg border border-[#414141] bg-gradient-to-br from-[#2d2e32] via-[#4b4d54] to-[#2d2e32] text-white;
 
     .avatar {
         @apply rounded-3xl border border-white w-12 h-12;
@@ -106,8 +143,7 @@
 }
 
 .idle-agent-card {
-    @apply w-72 h-fit py-5 px-6 border border-[#414141] rounded-lg bg-gradient-to-r from-[#333C44] to-[#2D2F32]
-    shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)] text-white font-inter;
+    @apply w-72 h-fit py-5 px-6 border border-[#414141] rounded-lg bg-gradient-to-r from-[#333C44] to-[#2D2F32] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)_inset,0px_1.221px_4.885px_0px_rgba(0,0,0,0.15)] text-white font-inter;
 
     .agent-name {
         @apply font-bold text-lg leading-6 self-center;
@@ -125,9 +161,11 @@
         @apply flex flex-col text-[#BEC1CE];
 
         .status-label {
+            @apply text-sm;
         }
 
         .status-value {
+            @apply text-base;
         }
     }
 
@@ -149,8 +187,7 @@
 }
 
 .working-agent-card {
-    @apply w-72 h-fit flex items-center justify-center relative bg-gradient-to-b from-slate-700 to-slate-800
-    rounded-lg p-0.5 overflow-hidden;
+    @apply w-72 h-fit flex items-center justify-center relative bg-gradient-to-b from-slate-700 to-slate-800 rounded-lg p-0.5 overflow-hidden;
 
     &::before {
         background: conic-gradient(transparent 240deg, #fff 280deg, #e1e1e1 360deg);
@@ -158,8 +195,7 @@
     }
 
     .working-agent-wrapper {
-        @apply w-full h-fit py-4 px-6 relative flex flex-col gap-2.5 items-start justify-between rounded-lg
-        bg-gradient-to-r from-[#333C44] to-[#2D2F32] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)] font-inter text-white overflow-hidden;
+        @apply w-full h-fit py-4 px-6 relative flex flex-col gap-2.5 items-start justify-between rounded-lg bg-gradient-to-r from-[#333C44] to-[#2D2F32] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)] font-inter text-white overflow-hidden;
 
         .agent-info-section {
             .agent-name {
@@ -175,6 +211,7 @@
             }
 
             .agent-tasks-container {
+                @apply flex flex-col gap-1;
             }
         }
 
@@ -194,10 +231,9 @@
 }
 
 .assistance-card {
-    @apply w-full h-full rounded-lg border-2 border-[#DCE0F4]
-    bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)]
-    shadow-[0px_4.885px_51.294px_0px_rgba(255,255,255,0.25)_inset,0px_1.221px_4.885px_0px_rgba(0,0,0,0.15)]
-    p-6 flex flex-col gap-1 relative overflow-visible;
+    @apply w-full h-full rounded-lg border-2 border-[#DCE0F4] bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)]
+    shadow-[0px_4.885px_51.294px_0px_rgba(255,255,255,0.25)_inset,0px_1.221px_4.885px_0px_rgba(0,0,0,0.15)] p-6 flex
+    flex-col gap-1 relative overflow-visible;
 }
 
 .agent-header {
@@ -248,7 +284,7 @@
     }
 
     .help-button {
-        @apply bg-[#232629]  text-[#7D829A] gap-1;
+        @apply bg-[#232629] text-[#7D829A] gap-1;
     }
 
     .action-button {
@@ -290,7 +326,7 @@
     }
 
     .review-button {
-        @apply w-full flex-1 bg-[linear-gradient(89deg,#8FA3B5_14.21%,#376995_101.01%)] hover:bg-gray-600
-        text-white rounded-b-lg flex flex-col items-center justify-center gap-2 transition-colors;
+        @apply w-full flex-1 bg-[linear-gradient(89deg,#8FA3B5_14.21%,#376995_101.01%)] hover:bg-gray-600 text-white
+        rounded-b-lg flex flex-col items-center justify-center gap-2 transition-colors;
     }
 }

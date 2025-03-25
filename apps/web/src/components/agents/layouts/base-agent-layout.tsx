@@ -4,11 +4,8 @@ import { CSSProperties } from 'react';
 
 import './agent-card.styles.css';
 import cloudHeadImage from '@public/pink-cloud-head.png';
-import { InfoIcon } from '@components/icons/info-icon';
-import { RefreshIcon } from '@components/icons/refresh-icon';
-import { TargetIcon } from '@components/icons/target-icon';
-import { DocumentIcon } from '@components/icons/document-icon';
 import { useAgentStore } from '@stores/agent-store';
+import { useThemeStore } from '@stores/theme-store';
 import type { AgentData } from '@app-types/agent';
 
 export type BaseAgentLayoutProps = {
@@ -33,11 +30,12 @@ export const BaseAgentLayout = ({
     tools = []
 }: BaseAgentLayoutProps): ReactNode => {
     const { getAgentData } = useAgentStore();
+    const { isDarkMode } = useThemeStore();
     // Use provided data or fall back to store data
     const data = agentData || getAgentData(agentId);
 
     return (
-        <div className={`agent-card-base ${className}`} style={style}>
+        <div className={`agent-card-base-theme ${className}`} data-theme={isDarkMode ? 'dark' : 'light'} style={style}>
             <div className="agent-title-section">
                 <Image src={data?.image || cloudHeadImage}
                     alt={`Profile avatar of ${data?.name || 'Agent'}`}
