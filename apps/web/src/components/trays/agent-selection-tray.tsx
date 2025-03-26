@@ -15,14 +15,14 @@ import { SearchIcon } from '@components/icons/search-icon';
 import { LoadingSpinner } from '@components/spinners/loading-spinner';
 import { fetchAgents } from '@lib/actions/agent-actions';
 import { useAgentCacheStore } from '@stores/agent-cache-store';
-import { useAgentStore } from '@stores/agent-store';
+import { useWorkflowStore } from '@stores/workflow';
 import { useTrayStore } from '@stores/tray-store';
 
 import './agent-selection-tray.styles.css';
 
 type AgentSelectionTrayProps = {
     onClose: () => void;
-    parentNodeId?: string;
+    parentNodeId?: string | null;
 };
 
 export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTrayProps): ReactNode => {
@@ -32,7 +32,6 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
     const [selectedSkill, setSelectedSkill] = useState<string>(AGENT_SKILLS[0]);
 
     const { agents, lastFetchTime, setAgents } = useAgentCacheStore();
-    const { setAgentData } = useAgentStore();
     const { closeTray } = useTrayStore();
     const isInitialMount = useRef(true);
 
@@ -86,40 +85,26 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
         });
     }, [agents, searchQuery, selectedSkill]);
 
-    // Get unique skills from all agents
-    // const availableSkills = useMemo(() => {
-    //     const skillSet = new Set<string>();
-    //     agents.forEach(agent => {
-    //         agent.skills?.forEach(skill => skillSet.add(skill));
-    //     });
-    //     return ['All Skills', ...Array.from(skillSet)];
-    // }, [agents]);
-
     // Handle agent selection
     const handleAgentSelect = useCallback((agent: AgentData) => {
-        // Create a unique ID for this instance of the agent
-        const uniqueAgentId = `${agent.id}-${Date.now()}`;
+            // Close the tray first to prevent UI jank
+            closeTray();
 
-        // Create a new agent instance with the unique ID
-        const newAgent = {
-            ...agent,
-            id: uniqueAgentId,
-            parentNodeId
-        };
-
-        // Synchronize with AgentStore before proceeding
-        setAgentData(uniqueAgentId, newAgent);
-
-        // Close the tray first to prevent UI jank
-        closeTray();
-
-        // Then select the agent (which will trigger addNode)
-        setTimeout(() => {
-            // Here we would trigger the same action as in the modal
-            // For now, just log the selection
-            console.log('Selected agent:', newAgent);
-        }, 0);
-    }, [closeTray, parentNodeId, setAgentData]);
+            // Let the workflow store handle the logic of creating a workflow if needed
+            try {
+                const workflowStore = useWorkflowStore.getState();
+                workflowStore.addAgentToWorkflow({
+                    ...agent,
+                    parentNodeId // This might be undefined or null if no workflow exists
+                });
+            } catch (error) {
+                console.error('Failed to add agent to workflow:', error);
+                // Show error to user
+                // TODO: Add proper error handling UI
+            }
+        },
+        [closeTray, parentNodeId]
+    );
 
     return (
         <div className="agent-tray" role="dialog" aria-labelledby="tray-title">
@@ -156,7 +141,7 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
                             value={selectedSkill}
                             onChange={(e) => setSelectedSkill(e.target.value)}
                             aria-label="Filter by skill">
-                            {AGENT_SKILLS.map(skill => (
+                            {AGENT_SKILLS.map((skill) => (
                                 <option key={skill} value={skill}>{skill}</option>
                             ))}
                         </select>

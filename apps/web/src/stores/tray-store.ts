@@ -6,8 +6,8 @@ export type TrayType = 'agentSelection' | null;
 type TrayStore = {
     isOpen: boolean;
     trayType: TrayType;
-    parentNodeId?: string;
-    openTray: (params: { type: TrayType; parentNodeId?: string }) => void;
+    sourceNodeId?: string | null;
+    openTray: (params: { type: TrayType; sourceNodeId?: string | null }) => void;
     closeTray: () => void;
 };
 
@@ -16,12 +16,12 @@ export const useTrayStore = create<TrayStore>()(
         (set) => ({
             isOpen: false,
             trayType: null,
-            parentNodeId: undefined,
-            openTray: ({ type, parentNodeId }) => {
-                set({ isOpen: true, trayType: type, parentNodeId });
+            sourceNodeId: undefined,
+            openTray: ({ type, sourceNodeId }) => {
+                set({ isOpen: true, trayType: type, sourceNodeId });
             },
             closeTray: () => {
-                set({ isOpen: false, trayType: null, parentNodeId: undefined });
+                set({ isOpen: false, trayType: null, sourceNodeId: undefined });
             }
         })
     )

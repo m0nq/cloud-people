@@ -60,7 +60,7 @@ const Canvas = (): ReactNode => {
 
     // Function to handle opening the agent selection tray
     const handleOpenAgentTray = () => {
-        openTray({ type: 'agentSelection' });
+        openTray({ type: 'agentSelection', sourceNodeId: null });
     };
 
     const handleDateSelect = (date: Date) => {

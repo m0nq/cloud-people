@@ -20,7 +20,7 @@ const TrayComponents: TrayComponentsType = {
 };
 
 export const Tray = (): ReactNode => {
-    const { isOpen, trayType, closeTray, parentNodeId } = useTrayStore();
+    const { isOpen, trayType, closeTray, sourceNodeId } = useTrayStore();
     const [isVisible, setIsVisible] = useState(false);
     const bodyRef = useRef<HTMLElement | null>(null);
 
@@ -88,7 +88,11 @@ export const Tray = (): ReactNode => {
 
             <div className={`tray-content ${isOpen ? 'tray-content-open' : 'tray-content-closed'}`}
                 aria-live="polite">
-                {TrayComponent && <TrayComponent onClose={closeTray} parentNodeId={parentNodeId} />}
+                {trayType === 'agentSelection' && (
+                    <AgentSelectionTray 
+                        onClose={closeTray} 
+                        parentNodeId={sourceNodeId} />
+                )}
             </div>
         </div>
     );

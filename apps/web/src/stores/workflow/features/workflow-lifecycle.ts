@@ -1,8 +1,9 @@
 import { type Node } from '@xyflow/react';
 
+import { findRootNode } from '@stores/workflow';
+import { updateState } from '@stores/workflow';
 import { createWorkflow } from '@lib/actions/workflow-actions';
 import { initialState } from '../constants';
-import { updateState } from '@stores/workflow';
 import { WorkflowState } from '@app-types/workflow';
 import type { NodeData } from '@app-types/workflow';
 import { fetchWorkflowNodes } from '@lib/actions/canvas-actions';
@@ -11,6 +12,7 @@ import { createNodes } from '@lib/actions/node-actions';
 import { updateNodes } from '@lib/actions/node-actions';
 import { ROOT_NODE_POSITION } from '@config/layout.const';
 import { NodeType } from '@app-types/workflow/node-types';
+import type { AgentData } from '@app-types/agent';
 
 export function createWorkflowLifecycle(set: Function, get: Function) {
     return {
@@ -73,6 +75,50 @@ export function createWorkflowLifecycle(set: Function, get: Function) {
             } catch (error) {
                 console.error('Failed to create workflow:', error);
                 throw error; // Re-throw to let UI handle the error
+            }
+        },
+
+        addAgentToWorkflow: async (agent: AgentData) => {
+            const { nodes } = get();
+            let parentNodeId = agent.parentNodeId;
+
+            // Check if we need to create a new workflow
+            if (!parentNodeId || !nodes.find(node => node.id === parentNodeId)) {
+                try {
+                    // Create a new workflow with root node
+                    const workflowId = await get().createNewWorkflow();
+
+                    // Get the updated nodes after workflow creation
+                    const updatedNodes = get().nodes;
+
+                    // Get the root node that was just created
+                    const rootNode = findRootNode(updatedNodes);
+
+                    if (!rootNode) {
+                        throw new Error('Failed to find root node after workflow creation');
+                    }
+
+                    // Use the root node as parent
+                    parentNodeId = rootNode.id;
+                } catch (error) {
+                    console.error('Failed to create workflow:', error);
+                    throw error;
+                }
+            }
+
+            // Now add the agent to the workflow (existing or new)
+            try {
+                // Update agent with correct parent node
+                const updatedAgent = {
+                    ...agent,
+                    parentNodeId
+                };
+
+                // Add the node to the workflow using the existing addNode method
+                return await get().addNode(updatedAgent);
+            } catch (error) {
+                console.error('Failed to add agent to workflow:', error);
+                throw error;
             }
         },
 
