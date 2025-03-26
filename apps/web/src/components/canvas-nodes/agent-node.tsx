@@ -18,7 +18,7 @@ import type { NodeData } from '@app-types/workflow';
 import { fetchAgent } from '@lib/actions/agent-actions';
 
 const DEFAULT_AGENT_STATE = {
-    state: AgentState.Working,
+    state: AgentState.Initial,
     isEditable: false,
     isLoading: false,
     error: null,
@@ -160,27 +160,27 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
 
     // Memoize complex class names
     const containerClassName = useMemo(() =>
-            `agent-node-container`,
+        `agent-node-container`,
         []
     );
 
     const contentClassName = useMemo(() =>
-            `w-full h-full ${isEditable ? 'cursor-pointer' : 'cursor-default'}`,
+        `w-full h-full ${isEditable ? 'cursor-pointer' : 'cursor-default'}`,
         [isEditable]
     );
 
     const handleClassName = useMemo(() =>
-            workflowExecution?.state === WorkflowState.Initial ||
+        workflowExecution?.state === WorkflowState.Initial ||
             workflowExecution?.state === WorkflowState.Paused ?
-                'cursor-not-allowed opacity-50' : 'cursor-pointer',
+            'cursor-not-allowed opacity-50' : 'cursor-pointer',
         [workflowExecution?.state]
     );
 
     // Memoize handle connectable state
     const isHandleConnectable = useMemo(() =>
-            isConnectable ||
-            workflowExecution?.state === WorkflowState.Initial ||
-            workflowExecution?.state === WorkflowState.Paused,
+        isConnectable ||
+        workflowExecution?.state === WorkflowState.Initial ||
+        workflowExecution?.state === WorkflowState.Paused,
         [isConnectable, workflowExecution?.state]
     );
 
