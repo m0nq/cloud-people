@@ -1,4 +1,3 @@
-import { ComponentType } from 'react';
 import { ReactNode } from 'react';
 import { useState } from 'react';
 import { useEffect } from 'react';
@@ -7,17 +6,8 @@ import { useRef } from 'react';
 
 import './tray.styles.css';
 import { useTrayStore } from '@stores/tray-store';
-import { TrayType } from '@stores/tray-store';
 import { AgentSelectionTray } from './agent-selection-tray';
 
-
-type TrayComponentsType = {
-    [key in NonNullable<TrayType>]: ComponentType<any>;
-};
-
-const TrayComponents: TrayComponentsType = {
-    'agent-selection': AgentSelectionTray
-};
 
 export const Tray = (): ReactNode => {
     const { isOpen, trayType, closeTray, sourceNodeId } = useTrayStore();
@@ -76,9 +66,6 @@ export const Tray = (): ReactNode => {
     if (!isVisible && !isOpen) {
         return null;
     }
-
-    // Determine which tray component to render
-    const TrayComponent = trayType ? TrayComponents[trayType] : null;
 
     return (
         <div className="tray-container" role="dialog" aria-modal="true" aria-labelledby="tray-title">

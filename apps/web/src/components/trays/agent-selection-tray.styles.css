@@ -89,6 +89,8 @@
     }
 
     .agent-tray-list {
+        @apply h-fit;
+
         .agent-tray-list-item {
             @apply cursor-pointer;
         }

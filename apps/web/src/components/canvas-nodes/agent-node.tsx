@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { Position } from '@xyflow/react';
 import { useShallow } from 'zustand/react/shallow';
 
+import './node.styles.css';
 import { AgentCard } from '@components/agents/agent-card';
 import { NodeComponent } from '@components/utils/node-component/node-component';
 import { useModalStore } from '@stores/modal-store';
@@ -12,7 +13,6 @@ import { useAgentStore } from '@stores/agent-store';
 import { useWorkflowStore } from '@stores/workflow';
 import { AgentState } from '@app-types/agent';
 import { HandleType } from './types.enum';
-import './node.styles.css';
 import { WorkflowState } from '@app-types/workflow';
 import type { NodeData } from '@app-types/workflow';
 import { fetchAgent } from '@lib/actions/agent-actions';
@@ -189,10 +189,11 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     return (
         <NodeComponent.Root className="agent-node">
             <NodeComponent.Content className={containerClassName}>
-                <div className={contentClassName} onClick={handleAgentDetails}>
+                <div className={`${contentClassName} flex items-center justify-center`} onClick={handleAgentDetails}>
                     <AgentCard agentId={agentId}
                         agentData={agentData}
-                        state={state}
+                        // state={state}
+                        state={AgentState.Assistance}
                         onEdit={isEditable ? handleAgentDetails : undefined}
                         onAssistanceRequest={handleAssistanceRequest}
                         onRestart={handleRestart} />

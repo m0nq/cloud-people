@@ -9,13 +9,13 @@ import { FaPause } from 'react-icons/fa';
 
 import { NodeComponent } from '@components/utils/node-component/node-component';
 import { HandleType } from './types.enum';
-import { useModalStore } from '@stores/modal-store';
 import { useWorkflowStore } from '@stores/workflow';
 import { hasAgentNodes } from '@stores/workflow';
 import { WorkflowState } from '@app-types/workflow';
 import { Tooltip } from '@components/utils/tooltip';
 
 import './node.styles.css';
+import { useTrayStore } from '@stores/tray-store';
 
 type RootNodeProps = {
     id: string;
@@ -26,7 +26,7 @@ type RootNodeProps = {
 };
 
 const RootNode = ({ id, isConnectable, sourcePosition, targetPosition }: RootNodeProps): ReactNode => {
-    const { openModal } = useModalStore();
+    const { openTray } = useTrayStore();
     const { startWorkflow, pauseWorkflow, resumeWorkflow, workflowExecution, edges, nodes } = useWorkflowStore();
     const [hasAgents, setHasAgents] = useState<boolean>(false);
     const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -88,8 +88,8 @@ const RootNode = ({ id, isConnectable, sourcePosition, targetPosition }: RootNod
             return;
         }
 
-        openModal({ type: 'agent-selection', parentNodeId: id });
-    }, [id, openModal, edges]);
+        openTray({ type: 'agent-selection', sourceNodeId: id });
+    }, [id, openTray, edges]);
 
     // Determine if the play button should be disabled
     const isPlayButtonDisabled = (!hasAgents && !workflowExecution) || isProcessing;

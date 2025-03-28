@@ -55,6 +55,7 @@
                 @apply text-xs text-gray-400;
 
             }
+
             svg {
                 @apply w-3 h-3 flex-shrink-0 text-yellow-500;
             }
@@ -128,7 +129,7 @@
 }
 
 .activating-agent-card {
-    @apply flex w-72 h-52 p-2.5 flex-col justify-center items-center gap-2.5 rounded-lg border border-[#414141] bg-gradient-to-br from-[#2d2e32] via-[#4b4d54] to-[#2d2e32] text-white;
+    @apply flex w-full h-full p-2.5 flex-col justify-center items-center gap-2.5 rounded-lg border border-[#414141] bg-gradient-to-br from-[#2d2e32] via-[#4b4d54] to-[#2d2e32] text-white;
 
     .avatar {
         @apply rounded-3xl border border-white w-12 h-12;
@@ -191,7 +192,7 @@
     @apply w-72 h-fit flex items-center justify-center relative bg-gradient-to-b from-slate-700 to-slate-800 rounded-lg p-0.5 overflow-hidden;
 
     &::before {
-        background: conic-gradient(transparent 240deg, #fff 280deg, #e1e1e1 360deg);
+        background: conic-gradient(transparent 240deg, #ffffff 280deg, #e1e1e1 360deg);
         @apply absolute h-[200%] w-[200%] -left-1/2 -top-1/2 rounded-lg animate-border-spin content-[''];
     }
 
@@ -232,23 +233,23 @@
 }
 
 .assistance-card {
-    @apply w-full h-full rounded-lg border-2 border-[#DCE0F4] bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)]
-    shadow-[0px_4.885px_51.294px_0px_rgba(255,255,255,0.25)_inset,0px_1.221px_4.885px_0px_rgba(0,0,0,0.15)] p-6 flex
-    flex-col gap-1 relative overflow-visible;
+    @apply w-full max-h-full rounded-lg border-2 border-[#DCE0F4] bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)]
+    shadow-[0px_4.885px_51.294px_0px_rgba(255,255,255,0.25)_inset,0px_1.221px_4.885px_0px_rgba(0,0,0,0.15)] p-4 flex
+    flex-col gap-1.5 relative overflow-visible self-center;
 }
 
 .agent-header {
     @apply flex items-center gap-3;
 
     .agent-avatar {
-        @apply rounded-full bg-[#F4F4F4] flex items-center justify-center;
+        @apply rounded-full bg-[#F4F4F4] flex items-center justify-center w-8 h-8;
     }
 
     .agent-title {
         @apply text-white font-inter font-bold;
 
         h3 {
-            @apply text-lg font-semibold;
+            @apply text-sm font-medium text-[var(--foreground)];
         }
     }
 }
@@ -265,9 +266,9 @@
     }
 }
 
-.assistance-message-container {
-    @apply w-full h-16 bg-[#3E4A55] rounded-lg overflow-hidden px-2 flex items-center justify-center relative;
-}
+/*.assistance-message-container {*/
+/*    @apply w-full h-16 bg-[#3E4A55] rounded-lg overflow-hidden px-2 flex items-center justify-center relative;*/
+/*}*/
 
 .message-box {
     @apply text-[#BEC1CE] text-sm;
