@@ -15,29 +15,22 @@ export const IdleAgentLayout = ({ agentId, agentData }: BaseAgentLayoutProps) =>
     return (
         <div className="idle-agent-card">
             <div className="content-container">
-                <div className="idle-agentState-info-section">
+                <div className="idle-agent-info-section">
                     <Image src={data?.image || cloudHeadImage}
                         alt={`Profile avatar of ${data?.name}`}
                         className="rounded-full"
-                        width={48}
-                        height={48} />
-                    <div className="agentState-name">
+                        width={32}
+                        height={32} />
+                    <div className="agent-name">
                         <p>{data?.name}</p>
                     </div>
                 </div>
-                <div className="idle-agentState-status-section">
+                <div className="idle-agent-status-section">
                     <div className="status-label">
                         Status:
                     </div>
                     <div className="status-value">
                         Standing by...
-                    </div>
-                </div>
-                <div className="idle-agentState-tools-section">
-                    <div className="tools-indicator-container">
-                        <div className="indicator" />
-                        <div className="indicator" />
-                        <div className="indicator" />
                     </div>
                 </div>
                 <div className="buttons-container">
