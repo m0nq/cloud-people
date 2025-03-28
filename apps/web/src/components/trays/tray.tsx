@@ -16,7 +16,7 @@ type TrayComponentsType = {
 };
 
 const TrayComponents: TrayComponentsType = {
-    agentSelection: AgentSelectionTray
+    'agent-selection': AgentSelectionTray
 };
 
 export const Tray = (): ReactNode => {
@@ -88,9 +88,9 @@ export const Tray = (): ReactNode => {
 
             <div className={`tray-content ${isOpen ? 'tray-content-open' : 'tray-content-closed'}`}
                 aria-live="polite">
-                {trayType === 'agentSelection' && (
-                    <AgentSelectionTray 
-                        onClose={closeTray} 
+                {trayType === 'agent-selection' && (
+                    <AgentSelectionTray
+                        onClose={closeTray}
                         parentNodeId={sourceNodeId} />
                 )}
             </div>

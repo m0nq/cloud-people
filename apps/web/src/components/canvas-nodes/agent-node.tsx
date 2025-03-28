@@ -16,6 +16,7 @@ import './node.styles.css';
 import { WorkflowState } from '@app-types/workflow';
 import type { NodeData } from '@app-types/workflow';
 import { fetchAgent } from '@lib/actions/agent-actions';
+import { useTrayStore } from '@stores/tray-store';
 
 const DEFAULT_AGENT_STATE = {
     state: AgentState.Initial,
@@ -48,6 +49,7 @@ const getPosition = (position?: string): Position => {
 
 const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: AgentNodeProps) => {
     const { openModal } = useModalStore();
+    const { openTray } = useTrayStore();
     const {
         removeAgent,
         transition,
@@ -145,8 +147,8 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
             return;
         }
 
-        openModal({ type: 'agent-selection', parentNodeId: id });
-    }, [id, openModal, edges]);
+        openTray({ type: 'agent-selection', sourceNodeId: id });
+    }, [id, openTray, edges]);
 
     const handleAssistanceRequest = useCallback(() => {
         transition(id, AgentState.Assistance, {
@@ -160,27 +162,27 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
 
     // Memoize complex class names
     const containerClassName = useMemo(() =>
-        `agent-node-container`,
+            `agent-node-container`,
         []
     );
 
     const contentClassName = useMemo(() =>
-        `w-full h-full ${isEditable ? 'cursor-pointer' : 'cursor-default'}`,
+            `w-full h-full ${isEditable ? 'cursor-pointer' : 'cursor-default'}`,
         [isEditable]
     );
 
     const handleClassName = useMemo(() =>
-        workflowExecution?.state === WorkflowState.Initial ||
+            workflowExecution?.state === WorkflowState.Initial ||
             workflowExecution?.state === WorkflowState.Paused ?
-            'cursor-not-allowed opacity-50' : 'cursor-pointer',
+                'cursor-not-allowed opacity-50' : 'cursor-pointer',
         [workflowExecution?.state]
     );
 
     // Memoize handle connectable state
     const isHandleConnectable = useMemo(() =>
-        isConnectable ||
-        workflowExecution?.state === WorkflowState.Initial ||
-        workflowExecution?.state === WorkflowState.Paused,
+            isConnectable ||
+            workflowExecution?.state === WorkflowState.Initial ||
+            workflowExecution?.state === WorkflowState.Paused,
         [isConnectable, workflowExecution?.state]
     );
 

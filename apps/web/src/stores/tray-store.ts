@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-export type TrayType = 'agentSelection' | null;
+export type TrayType = 'agent-selection' | null;
 
 type TrayStore = {
     isOpen: boolean;
