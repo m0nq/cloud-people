@@ -95,10 +95,10 @@ const RootNode = ({ id, isConnectable, sourcePosition, targetPosition }: RootNod
     const isPlayButtonDisabled = (!hasAgents && !workflowExecution) || isProcessing;
 
     // Tooltip content
-    const tooltipContent = isProcessing
-        ? 'Processing... Please wait.'
-        : !hasAgents && !workflowExecution
-            ? 'Add at least one agent to start a workflow.'
+    const tooltipContent = isProcessing ?
+        'Processing... Please wait.' :
+        !hasAgents && !workflowExecution ?
+            'Add at least one agent to start a workflow.'
             : '';
 
     return (
