@@ -43,14 +43,6 @@ export const AssistanceAgentLayout = ({ agentId, agentData, onAssistanceRequest 
                 <span className="status-value">Stuck, please help</span>
             </div>
 
-            {/*<div className="assistance-message-container">*/}
-            {/*{data?.assistanceMessage && (*/}
-            {/*<div className="message-box">*/}
-            {/*<p>{data.assistanceMessage}</p>*/}
-            {/*<p>Can&apos;t find a button. Something is blocking progression.</p>*/}
-            {/*</div>*/}
-            {/*</div>*/}
-
             <div className="action-buttons">
                 <button className="button help-button">
                     <WatchIcon width={15} height={15} strokeColor="#7D829A" />

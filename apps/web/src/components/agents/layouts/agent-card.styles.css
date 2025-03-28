@@ -298,14 +298,14 @@
     @apply w-full h-full bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] rounded-lg flex flex-col;
 
     .header-section {
-        @apply flex items-center gap-3 p-4;
+        @apply flex items-center gap-3 p-2;
 
         .avatar-container {
             @apply relative w-10 h-10;
         }
 
         .info-container {
-            @apply flex items-center justify-between gap-6;
+            @apply flex flex-col items-start justify-start gap-0.5;
 
             .name-section {
                 h3 {
@@ -314,7 +314,7 @@
             }
 
             .status-section {
-                @apply flex flex-col items-start justify-start;
+                @apply flex items-center justify-start;
 
                 .status-label {
                     @apply text-gray-400 text-sm;
