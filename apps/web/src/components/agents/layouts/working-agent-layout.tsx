@@ -16,6 +16,10 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
     const agentStore = useAgentStore();
     const agentData = agentStore.getAgentData(agentId);
 
+    if (!agentData || !agentData.id) {
+        return <div>Loading...</div>;
+    }
+
     const {
         isProcessing,
         executeTask,

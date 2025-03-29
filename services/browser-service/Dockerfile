@@ -86,6 +86,11 @@ RUN pip install --no-cache-dir browser-use==0.1.40 && \
     PLAYWRIGHT_BROWSERS_PATH=/home/pwuser/.cache/ms-playwright playwright install chromium && \
     playwright install-deps chromium
 
+## After copying the application files, add a command to fix permissions for the .env file
+RUN chmod 644 /home/pwuser/app/.env
+
+RUN mkdir -p /tmp/x11vnc && chown pwuser:pwuser /tmp/x11vnc && touch /tmp/x11vnc/x11vnc.log && chown pwuser:pwuser /tmp/x11vnc/x11vnc.log && chmod 666 /tmp/x11vnc/x11vnc.log
+
 # Copy supervisord configuration
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN chmod 644 /etc/supervisor/conf.d/supervisord.conf
