@@ -162,27 +162,27 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
 
     // Memoize complex class names
     const containerClassName = useMemo(() =>
-            `agent-node-container`,
+        `agent-node-container`,
         []
     );
 
     const contentClassName = useMemo(() =>
-            `w-full h-full ${isEditable ? 'cursor-pointer' : 'cursor-default'}`,
+        `w-full h-full ${isEditable ? 'cursor-pointer' : 'cursor-default'}`,
         [isEditable]
     );
 
     const handleClassName = useMemo(() =>
-            workflowExecution?.state === WorkflowState.Initial ||
+        workflowExecution?.state === WorkflowState.Initial ||
             workflowExecution?.state === WorkflowState.Paused ?
-                'cursor-not-allowed opacity-50' : 'cursor-pointer',
+            'cursor-not-allowed opacity-50' : 'cursor-pointer',
         [workflowExecution?.state]
     );
 
     // Memoize handle connectable state
     const isHandleConnectable = useMemo(() =>
-            isConnectable ||
-            workflowExecution?.state === WorkflowState.Initial ||
-            workflowExecution?.state === WorkflowState.Paused,
+        isConnectable ||
+        workflowExecution?.state === WorkflowState.Initial ||
+        workflowExecution?.state === WorkflowState.Paused,
         [isConnectable, workflowExecution?.state]
     );
 
@@ -192,8 +192,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                 <div className={`${contentClassName} flex items-center justify-center`} onClick={handleAgentDetails}>
                     <AgentCard agentId={agentId}
                         agentData={agentData}
-                        // state={state}
-                        state={AgentState.Assistance}
+                        state={state}
                         onEdit={isEditable ? handleAgentDetails : undefined}
                         onAssistanceRequest={handleAssistanceRequest}
                         onRestart={handleRestart} />
