@@ -9,8 +9,8 @@
     "lint": "eslint src --ext .ts"
   },
   "devDependencies": {
-    "typescript": "^5.3.3",
+    "@cloud-people/eslint-config": "workspace:*",
     "@cloud-people/tsconfig": "workspace:*",
-    "@cloud-people/eslint-config": "workspace:*"
+    "typescript": "^5.8.2"
   }
 }
