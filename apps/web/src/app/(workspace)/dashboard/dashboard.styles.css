@@ -1,3 +1,5 @@
+@reference "../../globals.css";
+
 .dashboard-container {
     @apply h-fit px-28 pt-12 bg-[var(--background)];
 

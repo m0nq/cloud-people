@@ -1,3 +1,5 @@
+@reference "../../app/globals.css";
+
 /* Base Card Styles */
 .card {
   @apply rounded-lg shadow-md overflow-hidden;

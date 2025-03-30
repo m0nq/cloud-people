@@ -1,3 +1,5 @@
+@reference "../../../app/globals.css";
+
 /* Project Card Wrapper */
 .project-card-wrapper {
   @apply h-full w-full p-1;
@@ -103,4 +105,3 @@
 }
 
 /* Hover styles for the card - applied to the container */
-

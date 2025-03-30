@@ -1,3 +1,5 @@
+@reference "../../app/globals.css";
+
 .nav-bar {
   @apply fixed top-0 left-0 h-full w-24 z-50 transition-all duration-300 ease-in-out;
 

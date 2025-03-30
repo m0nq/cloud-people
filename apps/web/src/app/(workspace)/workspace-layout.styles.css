@@ -1,3 +1,5 @@
+@reference "../globals.css";
+
 main {
   @apply w-screen h-screen bg-[var(--background)];
 }

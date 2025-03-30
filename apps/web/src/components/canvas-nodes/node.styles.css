@@ -1,3 +1,5 @@
+@reference "../../app/globals.css";
+
 .agent-node {
     @apply w-64 h-44 rounded-lg flex items-center justify-center;
 

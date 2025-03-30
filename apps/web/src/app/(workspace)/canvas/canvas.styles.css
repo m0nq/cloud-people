@@ -1,3 +1,5 @@
+@reference "../../globals.css";
+
 .flow-container {
     @apply w-full h-full bg-[var(--background)];
 
