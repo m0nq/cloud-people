@@ -1,6 +1,12 @@
 import { ReactElement } from 'react';
+import Image from 'next/image';
 
-import { FaChartBar, FaFileAlt, FaFilePowerpoint, FaTiktok, FaVolumeUp, FaBell } from 'react-icons/fa';
+import { FaBell } from 'react-icons/fa';
+import { FaChartBar } from 'react-icons/fa';
+import { FaFileAlt } from 'react-icons/fa';
+import { FaFilePowerpoint } from 'react-icons/fa';
+import { FaTiktok } from 'react-icons/fa';
+import { FaVolumeUp } from 'react-icons/fa';
 
 import { useMarketplaceStore } from '@stores/marketplace-store';
 import type { Researcher } from '@stores/marketplace-store';
@@ -13,7 +19,7 @@ interface ResearcherCardProps {
 
 const ResearcherCard = ({ researcher }: ResearcherCardProps): ReactElement => {
     const { addToCart } = useMarketplaceStore();
-    
+
     const getToolIcon = (tool: string): ReactElement => {
         switch (tool) {
             case 'tiktok':
@@ -38,10 +44,12 @@ const ResearcherCard = ({ researcher }: ResearcherCardProps): ReactElement => {
             <div className="researcher-card-content">
                 <div className="researcher-header">
                     <div className="researcher-avatar-container">
-                        <img 
-                            src={researcher.avatar} 
+                        <Image
+                            src={researcher.avatar}
                             alt={researcher.name}
                             className="researcher-avatar"
+                            width={48}
+                            height={48}
                             onError={(e) => {
                                 // Fallback to first letter of name if image fails to load
                                 const target = e.target as HTMLImageElement;
@@ -56,12 +64,12 @@ const ResearcherCard = ({ researcher }: ResearcherCardProps): ReactElement => {
                         <p className="researcher-role">{researcher.role}</p>
                     </div>
                 </div>
-                
+
                 <div className="researcher-skill-section">
                     <p className="researcher-skill-label">Core Skill:</p>
                     <p className="researcher-skill-value">{researcher.coreSkill}</p>
                 </div>
-                
+
                 <div className="researcher-tools">
                     {researcher.tools.map((tool, index) => (
                         <div key={index} className="researcher-tool">
@@ -69,7 +77,7 @@ const ResearcherCard = ({ researcher }: ResearcherCardProps): ReactElement => {
                         </div>
                     ))}
                 </div>
-                
+
                 <div className="researcher-stats">
                     <div className="researcher-stat">
                         <p className="researcher-stat-label">Training Hours</p>
@@ -80,11 +88,8 @@ const ResearcherCard = ({ researcher }: ResearcherCardProps): ReactElement => {
                         <p className="researcher-stat-value">{researcher.accuracy}%</p>
                     </div>
                 </div>
-                
-                <button 
-                    onClick={() => addToCart(researcher)}
-                    className="researcher-add-button"
-                >
+
+                <button onClick={() => addToCart(researcher)} className="researcher-add-button">
                     Add
                 </button>
             </div>

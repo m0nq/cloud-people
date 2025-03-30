@@ -21,7 +21,11 @@ const agentNodes = [
         position,
         data: {
             id: 'horizontal-1',
-            type: NodeType.Agent
+            type: NodeType.Agent,
+            workflowId: 'default-workflow',
+            agentRef: {
+                agentId: 'agent-1'
+            }
         }
     },
     {
@@ -31,7 +35,11 @@ const agentNodes = [
         type: NodeType.Agent,
         data: {
             id: 'horizontal-1',
-            type: NodeType.Agent
+            type: NodeType.Agent,
+            workflowId: 'default-workflow',
+            agentRef: {
+                agentId: 'agent-2'
+            }
         },
         position
     },
@@ -42,7 +50,11 @@ const agentNodes = [
         type: NodeType.Agent,
         data: {
             id: 'horizontal-1',
-            type: NodeType.Agent
+            type: NodeType.Agent,
+            workflowId: 'default-workflow',
+            agentRef: {
+                agentId: 'agent-3'
+            }
         },
         position
     },
@@ -53,7 +65,11 @@ const agentNodes = [
         type: NodeType.Agent,
         data: {
             id: 'horizontal-1',
-            type: NodeType.Agent
+            type: NodeType.Agent,
+            workflowId: 'default-workflow',
+            agentRef: {
+                agentId: 'agent-4'
+            }
         },
         position
     },
@@ -63,7 +79,11 @@ const agentNodes = [
         type: NodeType.Agent,
         data: {
             id: 'horizontal-1',
-            type: NodeType.Agent
+            type: NodeType.Agent,
+            workflowId: 'default-workflow',
+            agentRef: {
+                agentId: 'agent-5'
+            }
         },
         position
     }
@@ -78,7 +98,12 @@ const initialNodes = [
             id: 'SFS',
             label: 'Start from Scratch',
             background: 'linear-gradient(89deg, #5F42F1 14.21%, #502DFF 101.01%)',
-            color: '#ffffff'
+            color: '#ffffff',
+            type: NodeType.Initial,
+            workflowId: 'default-workflow',
+            agentRef: {
+                agentId: 'initial-agent'
+            }
         }
     },
     {
@@ -89,7 +114,12 @@ const initialNodes = [
             id: 'SFT',
             label: 'Start from Template',
             background: '#ffffff',
-            color: '#000000'
+            color: '#000000',
+            type: NodeType.Initial,
+            workflowId: 'default-workflow',
+            agentRef: {
+                agentId: 'initial-agent'
+            }
         }
     },
     {
@@ -100,7 +130,12 @@ const initialNodes = [
             id: 'SFA',
             label: 'Start from AI',
             background: '#ffffff',
-            color: '#000000'
+            color: '#000000',
+            type: NodeType.Initial,
+            workflowId: 'default-workflow',
+            agentRef: {
+                agentId: 'initial-agent'
+            }
         }
     }
 ];
@@ -111,7 +146,11 @@ const rootNode = {
     position: { x: 300, y: 100 },
     data: {
         id: 'root',
-        type: NodeType.Root
+        type: NodeType.Root,
+        workflowId: 'default-workflow',
+        agentRef: {
+            agentId: 'root-agent'
+        }
     }
 };
 
@@ -123,7 +162,11 @@ const approvalNode = {
         id: 'approval-1',
         type: NodeType.Approval,
         name: 'Archimedes',
-        role: 'Product Manager'
+        role: 'Product Manager',
+        workflowId: 'default-workflow',
+        agentRef: {
+            agentId: 'approval-agent'
+        }
     }
 };
 
@@ -133,7 +176,11 @@ const deliveryNode = {
     position: { x: 900, y: 100 },
     data: {
         id: 'delivery-1',
-        type: NodeType.Delivery
+        type: NodeType.Delivery,
+        workflowId: 'default-workflow',
+        agentRef: {
+            agentId: 'delivery-agent'
+        }
     }
 };
 
