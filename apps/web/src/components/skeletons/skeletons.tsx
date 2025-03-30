@@ -84,7 +84,7 @@ export function LatestInvoicesSkeleton() {
 
 export default function DashboardSkeleton() {
     return (
-        <div className="flex flex-row items-center justify-center w-full h-full bg-dark text-color-light">
+        <div className="flex flex-row items-center justify-center w-full h-full bg-dark text-white">
             <div className={`${shimmer} relative mb-4 h-8 w-36 overflow-hidden rounded-md bg-gray-100`} />
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <CardSkeleton />
@@ -214,7 +214,7 @@ export function InvoicesTableSkeleton() {
 
 export const CanvasSkeleton = () => {
     return (
-        <div className="flex flex-row items-center justify-center w-full h-full bg-dark text-color-light">
+        <div className="flex flex-row items-center justify-center w-full h-full bg-dark text-white">
             <ReactFlow proOptions={{ hideAttribution: true }}>
                 <Panel
                     className={`${shimmer} relative left-20 top-3.5 font-sans font-bold text-5xl leading-8 text-gray-300`}>
@@ -237,7 +237,7 @@ export const CanvasSkeleton = () => {
 
 export const SandboxSkeleton = () => {
     return (
-        <div className="flex flex-row items-center justify-center w-full h-full bg-dark text-color-light">
+        <div className="flex flex-row items-center justify-center w-full h-full bg-dark text-white">
             <ReactFlow proOptions={{ hideAttribution: true }}>
                 <Panel
                     className={`${shimmer} relative left-20 top-3.5 font-sans font-bold text-5xl leading-8 text-gray-300`}>

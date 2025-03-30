@@ -1,7 +1,18 @@
+@reference "../../../app/globals.css";
+
+@keyframes border-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* Base agent card styling with theme support using CSS variables and data-theme attributes */
 
 .agent-card-base-theme {
-    @apply flex flex-col gap-3 w-full h-full p-4 items-start justify-between rounded-md font-inter cursor-grab text-sm
+    @apply flex flex-col gap-3 w-full h-full p-4 items-start justify-between rounded-md font-sans cursor-grab text-sm
     shadow-md hover:shadow-lg transition-shadow border border-solid border-[var(--border)] bg-[var(--card)];
 
     .agent-title-section {
@@ -108,7 +119,7 @@
     }
 
     .core-skills-section {
-        @apply text-color-light;
+        @apply text-white;
 
         .skill-value {
             @apply bg-gray-600 text-gray-300;
@@ -116,7 +127,7 @@
     }
 
     .agent-tools-section {
-        @apply text-color-light;
+        @apply text-white;
 
         .tool-item {
             @apply bg-[#39434B];
@@ -136,111 +147,17 @@
     }
 
     .agent-info-section {
-        @apply flex flex-col items-center justify-center gap-1 w-1/2 p-2 text-[#9BA0B8] font-inter;
+        @apply flex flex-col items-center justify-center gap-1 w-1/2 p-2 text-[#9BA0B8] font-sans;
 
         .agent-name {
-            @apply flex items-center justify-center gap-1 w-full text-[#DCE0F4] font-inter text-xl font-bold leading-8;
+            @apply flex items-center justify-center gap-1 w-full text-[#DCE0F4] font-sans text-xl font-bold leading-8;
         }
     }
 }
 
 .idle-agent-card {
     @apply w-full h-full p-3.5 border border-[#414141] rounded-lg bg-gradient-to-r from-[#333C44]
-    to-[#2D2F32] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)_inset,0px_1.221px_4.885px_0px_rgba(0,0,0,0.15)]
-    text-white font-inter;
-
-    .agent-name {
-        @apply w-full h-fit;
-
-        p {
-            @apply leading-tight w-full text-sm;
-        }
-    }
-
-    .content-container {
-        @apply flex flex-col justify-between w-full h-full;
-    }
-
-    .idle-agent-info-section {
-        @apply flex items-center justify-start gap-3 w-full h-fit;
-    }
-
-    .idle-agent-status-section {
-        @apply flex flex-col text-[#BEC1CE];
-
-        .status-label {
-            @apply text-sm;
-        }
-
-        .status-value {
-            @apply text-sm;
-        }
-    }
-
-    .idle-agent-tools-section {
-        @apply flex gap-2;
-
-        .tools-indicator-container {
-            @apply flex gap-1;
-
-            .indicator {
-                @apply w-9 h-9 rounded-lg bg-[#141517] overflow-x-auto;
-            }
-        }
-    }
-
-    .buttons-container {
-        @apply flex items-center gap-2 font-sans font-bold text-[#7d829a];
-    }
-}
-
-.working-agent-card {
-    @apply w-72 h-fit flex items-center justify-center relative bg-gradient-to-b from-slate-700 to-slate-800 rounded-lg p-0.5 overflow-hidden;
-
-    &::before {
-        background: conic-gradient(transparent 240deg, #ffffff 280deg, #e1e1e1 360deg);
-        @apply absolute h-[200%] w-[200%] -left-1/2 -top-1/2 rounded-lg animate-border-spin content-[''];
-    }
-
-    .working-agent-wrapper {
-        @apply w-full h-fit py-4 px-6 relative flex flex-col gap-2.5 items-start justify-between rounded-lg bg-gradient-to-r from-[#333C44] to-[#2D2F32] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)] font-inter text-white overflow-hidden;
-
-        .agent-info-section {
-            .agent-name {
-                @apply font-bold text-lg leading-6 self-center;
-            }
-        }
-
-        .agent-tasks-section {
-            @apply bg-[#232629] w-full h-24 rounded-lg p-2 overflow-y-auto text-sm text-[#BEC1CF];
-
-            .agent-tasks-title {
-                @apply flex items-center justify-start gap-2;
-            }
-
-            .agent-tasks-container {
-                @apply flex flex-col gap-1;
-            }
-        }
-
-        .buttons-container {
-            @apply flex items-center gap-2 w-full font-sans font-bold;
-        }
-    }
-}
-
-@keyframes border-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-.assistance-card {
-    @apply w-full max-h-full rounded-lg border-2 border-[#DCE0F4] bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)]
-    shadow-[0px_4.885px_51.294px_0px_rgba(255,255,255,0.25)_inset,0px_1.221px_4.885px_0px_rgba(0,0,0,0.15)] p-4 flex
+    to-[#2D2F32] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)_inset,0px_1.221px_4.885px_0px_rgba(0,0,0,0.15)] flex
     flex-col gap-1.5 relative overflow-visible self-center;
 }
 
@@ -252,7 +169,7 @@
     }
 
     .agent-title {
-        @apply text-white font-inter font-bold;
+        @apply text-white font-sans font-bold;
 
         h3 {
             @apply text-sm font-medium text-[var(--foreground)];
@@ -271,10 +188,6 @@
         @apply text-[#BEC1CE] font-medium;
     }
 }
-
-/*.assistance-message-container {*/
-/*    @apply w-full h-16 bg-[#3E4A55] rounded-lg overflow-hidden px-2 flex items-center justify-center relative;*/
-/*}*/
 
 .message-box {
     @apply text-[#BEC1CE] text-sm;
@@ -296,7 +209,7 @@
     }
 
     .action-button {
-        @apply w-fit h-fit bg-secondary;
+        @apply w-fit h-fit bg-[var(--secondary)];
     }
 }
 
@@ -336,5 +249,47 @@
     .review-button {
         @apply w-full flex-1 bg-[linear-gradient(89deg,#8FA3B5_14.21%,#376995_101.01%)] hover:bg-gray-600 text-white
         rounded-b-lg flex flex-col items-center justify-center gap-2 transition-colors;
+    }
+}
+
+.assistance-card {
+    @apply w-full max-h-full rounded-lg border-2 border-[#DCE0F4] bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)]
+    shadow-[0px_4.885px_51.294px_0px_rgba(255,255,255,0.25)_inset,0px_1.221px_4.885px_0px_rgba(0,0,0,0.15)] p-4 flex
+    flex-col gap-1.5 relative overflow-visible self-center;
+}
+
+.working-agent-card {
+    @apply w-72 h-fit flex items-center justify-center relative bg-gradient-to-b from-slate-700 to-slate-800 rounded-lg p-0.5 overflow-hidden;
+
+    &::before {
+        background: conic-gradient(transparent 240deg, #ffffff 280deg, #e1e1e1 360deg);
+        @apply absolute h-[200%] w-[200%] -left-1/2 -top-1/2 rounded-lg content-[''];
+        animation: border-spin 2s linear infinite;
+    }
+
+    .working-agent-wrapper {
+        @apply w-full h-fit py-4 px-6 relative flex flex-col gap-2.5 items-start justify-between rounded-lg bg-gradient-to-r from-[#333C44] to-[#2D2F32] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)] font-sans text-white overflow-hidden;
+
+        .agent-info-section {
+            .agent-name {
+                @apply font-bold text-lg leading-6 self-center;
+            }
+        }
+
+        .agent-tasks-section {
+            @apply bg-[#232629] w-full h-24 rounded-lg p-2 overflow-y-auto text-sm text-[#BEC1CF];
+
+            .agent-tasks-title {
+                @apply flex items-center justify-start gap-2;
+            }
+
+            .agent-tasks-container {
+                @apply flex flex-col gap-1;
+            }
+        }
+
+        .buttons-container {
+            @apply flex items-center gap-2 w-full font-sans font-bold;
+        }
     }
 }

@@ -1,45 +1,46 @@
+@reference "../../../app/globals.css";
+
 .tooltip-container {
-  @apply relative inline-block;
+    @apply relative inline-block;
 
-  .tooltip-content {
-    @apply absolute z-50 px-3 py-2 text-sm text-white bg-gray-800 rounded-md shadow-lg whitespace-normal max-w-xs;
-    width: max-content;
-  }
+    .tooltip-content {
+        @apply absolute z-50 px-3 py-2 text-sm text-white bg-gray-800 rounded-md shadow-lg whitespace-normal max-w-xs;
+        width: max-content;
+    }
 
-  .tooltip-top {
-    @apply bottom-full left-1/2 transform -translate-x-1/2 mb-2;
-  }
+    .tooltip-top {
+        @apply bottom-full left-1/2 transform -translate-x-1/2 mb-2;
+    }
 
-  .tooltip-top::after {
-    content: '';
-    @apply absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800;
-  }
+    .tooltip-top::after {
+        content: '';
+        @apply absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800;
+    }
 
-  .tooltip-bottom {
-    @apply top-full left-1/2 transform -translate-x-1/2 mt-2;
-  }
+    .tooltip-bottom {
+        @apply top-full left-1/2 transform -translate-x-1/2 mt-2;
+    }
 
-  .tooltip-bottom::after {
-    content: '';
-    @apply absolute bottom-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-gray-800;
-  }
+    .tooltip-bottom::after {
+        content: '';
+        @apply absolute bottom-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-b-gray-800;
+    }
 
-  .tooltip-left {
-    @apply right-full top-1/2 transform -translate-y-1/2 mr-2;
-  }
+    .tooltip-left {
+        @apply right-full top-1/2 transform -translate-y-1/2 mr-2;
+    }
 
-  .tooltip-left::after {
-    content: '';
-    @apply absolute left-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-l-gray-800;
-  }
+    .tooltip-left::after {
+        content: '';
+        @apply absolute left-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-l-gray-800;
+    }
 
-  .tooltip-right {
-    @apply left-full top-1/2 transform -translate-y-1/2 ml-2;
-  }
+    .tooltip-right {
+        @apply left-full top-1/2 transform -translate-y-1/2 ml-2;
+    }
 
-  .tooltip-right::after {
-    content: '';
-    @apply absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-800;
-  }
+    .tooltip-right::after {
+        content: '';
+        @apply absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-800;
+    }
 }
-

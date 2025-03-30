@@ -1,106 +1,108 @@
+@reference "../../app/globals.css";
+
 .mantine-Paper-root,
 .mantine-Modal-content {
-  @apply w-[300px] h-fit flex rounded-lg text-white;
+    @apply w-[300px] h-fit flex rounded-lg text-white;
 }
 
 .mantine-Modal-body {
-  @apply w-full h-fit rounded-lg;
+    @apply w-full h-fit rounded-lg;
 }
 
 .calendar-container {
-  @apply w-full h-full inline-flex flex-col justify-center items-center rounded-lg py-1.5;
+    @apply w-full h-full inline-flex flex-col justify-center items-center rounded-lg py-1.5;
 }
 
 .mantine-InputWrapper-root {
-  @apply w-full h-fit rounded-lg;
+    @apply w-full h-fit rounded-lg;
 }
 
 /* Style the DatePickerInput to match container width */
 .mantine-DateTimePicker-input {
-  @apply w-full h-fit rounded-lg border-2 border-[#1F5EFF] bg-[#2A2F3B] text-white flex items-center
-  justify-between py-1;
+    @apply w-full h-fit rounded-lg border-2 border-[#1F5EFF] bg-[#2A2F3B] text-white flex items-center
+    justify-between py-1;
 }
 
 .mantine-Popover-dropdown {
-  @apply w-auto h-auto inline-flex flex-col justify-center items-center p-5 gap-5 rounded-lg bg-[#323741] text-white
-  border border-[#3B414A];
+    @apply w-auto h-auto inline-flex flex-col justify-center items-center p-5 gap-5 rounded-lg bg-[#323741] text-white
+    border border-[#3B414A];
 }
 
 .button-container {
-  @apply flex items-center justify-center p-4 gap-2 border-t border-white/10;
+    @apply flex items-center justify-center p-4 gap-2 border-t border-white/10;
 }
 
 .cancel-button {
-  @apply flex-1 bg-[#1f242d] text-[#C4C4C4] border-none text-lg hover:text-white;
+    @apply flex-1 bg-[#1f242d] text-[#C4C4C4] border-none text-lg hover:text-white;
 }
 
 .submit-button {
-  @apply flex-1 text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply flex-1 text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 .time-input-container {
-  @apply p-4 bg-[#2a2f3b];
+    @apply p-4 bg-[#2a2f3b];
 }
 
 .time-input-container :global(.mantine-TimeInput-input) {
-  @apply bg-[#2a2f3b] text-white border-gray-600;
+    @apply bg-[#2a2f3b] text-white border-gray-600;
 }
 
 .time-toggle-button {
-  @apply w-full p-4 text-white hover:bg-gray-700 transition-colors duration-200;
+    @apply w-full p-4 text-white hover:bg-gray-700 transition-colors duration-200;
 }
 
 .time-toggle-content {
-  @apply flex items-center justify-between;
+    @apply flex items-center justify-between;
 }
 
 .chevron-rotated {
-  @apply transform rotate-180 transition-transform duration-200;
+    @apply transform rotate-180 transition-transform duration-200;
 }
 
 /* Calendar day cells */
 .mantine-Calendar-day {
-  @apply text-white bg-transparent transition-colors duration-200 !important;
+    @apply text-white bg-transparent transition-colors duration-200;
 }
 
 .mantine-Calendar-day:not([data-outside='true']) {
-  @apply bg-[#3B414A] rounded-lg !important;
+    @apply bg-[#3B414A] rounded-lg;
 }
 
 .mantine-Calendar-day:hover {
-  @apply bg-[#474B52] text-white !important;
+    @apply bg-[#474B52] text-white;
 }
 
 .mantine-Calendar-day[data-selected='true'] {
-  @apply bg-[#3BC9AF] text-white !important;
+    @apply bg-[#3BC9AF] text-white;
 }
 
 .mantine-Calendar-day[data-selected='true']:hover {
-  @apply bg-[#3BC9AF]/90 text-white !important;
+    @apply bg-[#3BC9AF]/90 text-white;
 }
 
 /* Outside month days */
 .mantine-Calendar-day[data-outside='true'] {
-  @apply text-white/30 !important;
+    @apply text-white/30;
 }
 
 /* Calendar heading controls */
 .mantine-Calendar-calendarHeaderControl,
 .mantine-Calendar-calendarHeaderLevel {
-  @apply bg-transparent text-white !important;
+    @apply bg-transparent text-white;
 }
 
 .mantine-Calendar-calendarHeaderControl:hover,
 .mantine-Calendar-calendarHeaderLevel:hover {
-  @apply bg-[#474B52] text-white !important;
+    @apply bg-[#474B52] text-white;
 }
 
 /* Make weekday labels white */
 .mantine-Calendar-weekdayCell {
-  @apply text-white/60 !important;
+    @apply text-white/60;
 }
 
 .mantine-TimeInput-input,
 .time-input-container {
-  @apply bg-[#2a2f3b] w-full px-4 py-2 text-white;
+    @apply bg-[#2a2f3b] w-full px-4 py-2 text-white;
 }

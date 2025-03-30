@@ -11,6 +11,15 @@ export default {
       colors: {
         'gray-750': '#2d3748',
       },
+      animation: {
+        'border-spin': 'border-spin 2s linear infinite',
+      },
+      keyframes: {
+        'border-spin': {
+          'from': { transform: 'rotate(0deg)' },
+          'to': { transform: 'rotate(360deg)' },
+        },
+      },
       spacing: {
         '0': '0',
         '0.5': '0.125rem',

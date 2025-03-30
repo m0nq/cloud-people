@@ -1,3 +1,5 @@
+@reference "../../app/globals.css";
+
 .agent-tray {
     @apply flex flex-col gap-2 h-full w-full bg-[var(--card)] border-[var(--border)] border-l p-4 overflow-y-auto z-10;
 
@@ -85,7 +87,7 @@
     }
 
     .agent-tray-empty {
-        @apply p-4 text-[var(--muted-foreground)] bg-[var(--secondary)] bg-opacity-50 rounded-md text-center;
+        @apply p-4 text-[var(--muted-foreground)] bg-[var(--secondary)]/50 rounded-md text-center;
     }
 
     .agent-tray-list {

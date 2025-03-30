@@ -1,3 +1,5 @@
+@reference "../globals.css";
+
 .login-container {
   @apply flex min-h-screen dark:bg-gray-900;
 }

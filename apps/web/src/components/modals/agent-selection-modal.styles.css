@@ -1,57 +1,59 @@
+@reference "../../app/globals.css";
+
 .agent-selector-container {
-  @apply p-6 w-[38.8125rem] h-fit max-h-[90vh] flex flex-col;
+    @apply p-6 w-[38.8125rem] h-fit max-h-[90vh] flex flex-col;
 
-  .agent-selector-header {
-    @apply flex justify-between items-center w-full flex-shrink-0;
-  }
-
-  .selector-actions {
-    @apply flex items-center gap-4;
-
-    .agent-builder-button {
-      @apply px-4 py-2 bg-primary text-white rounded-lg font-medium font-sans hover:bg-primary/60;
+    .agent-selector-header {
+        @apply flex justify-between items-center w-full flex-shrink-0;
     }
-  }
+
+    .selector-actions {
+        @apply flex items-center gap-4;
+
+        .agent-builder-button {
+            @apply px-4 py-2 bg-blue-600 text-white rounded-lg font-medium font-sans hover:bg-blue-600/60;
+        }
+    }
 }
 
 [type='text'] {
-  @apply border-none border-0;
+    @apply border-none border-0;
 }
 
 .agent-selector {
-  @apply w-full flex-1 flex flex-col overflow-hidden;
+    @apply w-full flex-1 flex flex-col overflow-hidden;
 
-  .modal-tabs {
-    @apply flex items-center justify-center w-full gap-[0.1rem] py-6 flex-shrink-0;
+    .modal-tabs {
+        @apply flex items-center justify-center w-full gap-[0.1rem] py-6 flex-shrink-0;
 
-    .tab {
-      @apply w-full h-full py-4 px-7 text-white bg-color-dark-gray hover:bg-color-dark-gray/80 hover:text-white/60
-      transition-all duration-200 first:rounded-l-lg last:rounded-r-lg;
+        .tab {
+            @apply w-full h-full py-4 px-7 text-white bg-[#2A2F3B] hover:bg-[#2A2F3B]/80 hover:text-white/60
+            transition-all duration-200 first:rounded-l-lg last:rounded-r-lg;
 
-      &.active-state {
-        @apply w-full h-full py-4 px-7 bg-color-light-gray text-white hover:bg-color-light-gray hover:text-white
-        first:rounded-l-lg last:rounded-r-lg;
-      }
+            &.active-state {
+                @apply w-full h-full py-4 px-7 bg-[#3E4A55] text-white hover:bg-[#3E4A55] hover:text-white
+                first:rounded-l-lg last:rounded-r-lg;
+            }
+        }
     }
-  }
 }
 
 .agents-grid {
-  @apply grid grid-cols-2 gap-2 py-6 overflow-y-auto justify-items-center flex-1;
+    @apply grid grid-cols-2 gap-2 py-6 overflow-y-auto justify-items-center flex-1;
 
-  .agent-card-container {
-    @apply w-full h-64 cursor-pointer rounded-lg;
-  }
+    .agent-card-container {
+        @apply w-full h-64 cursor-pointer rounded-lg;
+    }
 }
 
 .error-message {
-  @apply w-full h-fit text-center p-8 text-white my-4 mx-auto;
+    @apply w-full h-fit text-center p-8 text-white my-4 mx-auto;
 }
 
 .loading {
-  @apply w-full h-fit flex items-center justify-center p-8 text-white;
+    @apply w-full h-fit flex items-center justify-center p-8 text-white;
 }
 
 .no-agents-message {
-  @apply w-full h-fit text-center p-8 text-white my-4 mx-auto max-w-2xl;
+    @apply w-full h-fit text-center p-8 text-white my-4 mx-auto max-w-2xl;
 }

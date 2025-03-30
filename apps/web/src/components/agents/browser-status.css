@@ -1,3 +1,5 @@
+@reference "../../app/globals.css";
+
 .browser-status {
     @apply flex flex-col gap-2;
 }

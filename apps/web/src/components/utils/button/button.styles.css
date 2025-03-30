@@ -1,100 +1,158 @@
 @reference "../../../app/globals.css";
 
 .button-base {
-  @apply flex items-center justify-center gap-2 font-sans transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply flex items-center justify-center gap-2 font-sans transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 /* Variants */
 .button-primary {
-  @apply bg-btn-gray text-white hover:bg-btn-gray/60 active:bg-btn-gray/40 font-bold;
+    @apply bg-[#2A2F3B] text-white font-bold;
+}
+
+.button-primary:hover {
+    background-color: rgba(42, 47, 59, 0.6);
+}
+
+.button-primary:active {
+    background-color: rgba(42, 47, 59, 0.4);
 }
 
 .button-secondary {
-  @apply bg-secondary text-[#2F3338] hover:bg-secondary/80 active:bg-secondary/60 font-bold;
+    @apply bg-[var(--secondary)] text-[#2F3338] font-bold;
+}
+
+.button-secondary:hover {
+    opacity: 0.8;
+}
+
+.button-secondary:active {
+    opacity: 0.6;
 }
 
 .button-muted {
-  @apply bg-btn-muted text-white hover:bg-btn-muted/60 active:bg-btn-muted/40 font-bold;
+    @apply bg-[#4A5056] text-white font-bold;
+}
+
+.button-muted:hover {
+    background-color: rgba(74, 80, 86, 0.6);
+}
+
+.button-muted:active {
+    background-color: rgba(74, 80, 86, 0.4);
 }
 
 .button-dark {
-  @apply bg-dark text-white/60 hover:text-white hover:bg-dark/80 active:bg-dark/60 font-bold;
+    @apply bg-[#1E1E1E] text-white/60 font-bold;
+}
+
+.button-dark:hover {
+    @apply text-white;
+    background-color: rgba(30, 30, 30, 0.8);
+}
+
+.button-dark:active {
+    @apply text-white;
+    background-color: rgba(30, 30, 30, 0.6);
 }
 
 .button-gradient {
-  background: linear-gradient(89deg, var(--gradient-from) 14.21%, var(--gradient-to) 101.01%);
-  @apply hover:brightness-110 active:brightness-90 font-bold;
+    background: linear-gradient(89deg, #333C44 14.21%, #2D2F32 101.01%);
+    @apply font-bold;
+}
+
+.button-gradient:hover {
+    filter: brightness(1.1);
+}
+
+.button-gradient:active {
+    filter: brightness(0.9);
 }
 
 /* Bare variant with minimal styling */
 .button-bare {
-  @apply bg-transparent hover:bg-gray-100/50 active:bg-gray-200/50;
+    @apply bg-transparent;
+}
+
+.button-bare:hover {
+    background-color: rgba(229, 231, 235, 0.5); /* gray-100/50 */
+}
+
+.button-bare:active {
+    background-color: rgba(229, 231, 235, 0.5); /* gray-200/50 */
 }
 
 /* Custom styled button */
 .button-custom {
-  background-color: var(--bg-color);
-  color: var(--text-color);
-  border-color: var(--border-color);
+    background-color: #2A2F3B;
+    color: white;
+    border-color: #4A5056;
 }
 
 .button-custom:hover {
-  background-color: var(--hover-bg);
+    background-color: rgba(42, 47, 59, 0.6);
 }
 
 .button-custom:active {
-  background-color: var(--active-bg);
+    background-color: rgba(42, 47, 59, 0.4);
 }
 
 /* Active state */
 .button-secondary-active {
-  @apply bg-secondary text-white hover:bg-secondary/80 active:bg-secondary/40 font-bold;
+    @apply bg-[var(--secondary)] text-white font-bold;
+}
+
+.button-secondary-active:hover {
+    opacity: 0.8;
+}
+
+.button-secondary-active:active {
+    opacity: 0.4;
 }
 
 /* Sizes */
 .button-sm {
-  @apply h-8 px-3 text-sm;
+    @apply h-8 px-3 text-sm;
 }
 
 .button-md {
-  @apply h-11 px-4 text-lg leading-8 tracking-[-0.015rem];
+    @apply h-11 px-4 text-lg leading-8 tracking-[-0.015rem];
 }
 
 .button-lg {
-  @apply h-14 px-6 text-xl;
+    @apply h-14 px-6 text-xl;
 }
 
 /* Border Radius */
 .button-radius-none {
-  @apply rounded-none;
+    @apply rounded-none;
 }
 
 .button-radius-sm {
-  @apply rounded;
+    @apply rounded;
 }
 
 .button-radius-md {
-  @apply rounded-md;
+    @apply rounded-md;
 }
 
 .button-radius-lg {
-  @apply rounded-lg;
+    @apply rounded-lg;
 }
 
 .button-radius-xl {
-  @apply rounded-[1.25rem];
+    @apply rounded-[1.25rem];
 }
 
 .button-radius-full {
-  @apply rounded-full;
+    @apply rounded-full;
 }
 
 /* Shadow */
 .button-shadow {
-  @apply shadow-default;
+    @apply shadow-md;
 }
 
 /* Icon */
 .button-icon {
-  @apply flex items-center justify-center mr-2;
+    @apply flex items-center justify-center mr-2;
 }

@@ -1,3 +1,5 @@
+@reference "../../app/globals.css";
+
 .log-card {
   @apply flex w-[22.875rem] p-2 px-3 items-center justify-between gap-2 rounded-lg bg-[#31373E];
 }

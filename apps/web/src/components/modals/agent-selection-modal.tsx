@@ -114,7 +114,7 @@ export const AgentSelectionModal = ({ onClose, onSelect, parentNodeId, children 
     return (
         <div className="agent-selector-container">
             <div className="agent-selector-header">
-                <h2 className="text-xl font-semibold text-color-light">Add Agent</h2>
+                <h2 className="text-xl font-semibold text-white">Add Agent</h2>
                 <div className="selector-actions">
                     <button className="agent-builder-button" onClick={handleBuildAgentClick}>
                         Agent Builder
