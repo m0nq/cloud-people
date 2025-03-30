@@ -18,24 +18,23 @@ import { useRef } from 'react';
 import { useTransition } from 'react';
 import { useCallback } from 'react';
 import dynamic from 'next/dynamic';
+import { useShallow } from 'zustand/react/shallow';
 
 import { type InitialStateNodeData } from '@app-types/workflow';
 import { type NodeData } from '@app-types/workflow';
 import type { WorkflowStore } from '@app-types/workflow';
 import { useWorkflowStore } from '@stores/workflow';
-import { useShallow } from 'zustand/react/shallow';
-
-import InitialStateNode from '@components/sandbox-nodes/initial-state-node';
-import RootNode from '@components/sandbox-nodes/root-node';
-import AgentNode from '@components/sandbox-nodes/agent-node';
+import { AgentNode } from '@components/canvas-nodes';
+import { InitialStateNode } from '@components/canvas-nodes';
+import { RootNode } from '@components/canvas-nodes';
 import { layoutElements } from '@lib/dagre/dagre';
-import { NodeType } from '@app-types/workflow/node-types';
 import { EdgeType } from '@app-types/workflow/node-types';
+import { NodeType } from '@app-types/workflow/node-types';
 
 const Modal = dynamic(() => import('@components/modals/modal'), { ssr: false });
-const ApprovalNode = dynamic(() => import('@components/sandbox-nodes/approval-node'), { ssr: false });
-const DeliveryNode = dynamic(() => import('@components/sandbox-nodes/delivery-node'), { ssr: false });
-const AutomationEdge = dynamic(() => import('@components/sandbox-nodes/automation-edge'), { ssr: false });
+const ApprovalNode = dynamic(() => import('@components/canvas-nodes').then(mod => mod.ApprovalNode), { ssr: false });
+const DeliveryNode = dynamic(() => import('@components/canvas-nodes').then(mod => mod.DeliveryNode), { ssr: false });
+const AutomationEdge = dynamic(() => import('@components/canvas-nodes').then(mod => mod.AutomationEdge), { ssr: false });
 
 type WorkflowRendererProps = {
     children: (props: {
@@ -104,7 +103,7 @@ const nodeStateSelector = (state: WorkflowStore) => ({
  *   behavior if the node is an initial state node.
  *
  * @example
- * import { WorkflowRenderer } from '@app/(workspace)/sandbox/workflow-renderer';
+ * import { WorkflowRenderer } from '@app/(workspace)/canvas/workflow-renderer';
  *
  * const MyWorkflow = () => {
  *   return (
@@ -135,7 +134,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
     if (process.env.NODE_ENV === 'development') {
         console.log('WorkflowRenderer rendering');
     }
-    
+
     // Load with initial state nodes
     // when a node is clicked, corresponding nodes will be updated by our graph store
     const {
@@ -182,7 +181,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
 
         const updateLayout = (newNodes: Node<NodeData | InitialStateNodeData>[], newEdges: Edge[]) => {
             if (!isSubscribed) return;
-            
+
             // Use startTransition to batch updates and reduce render priority
             startTransition(() => {
                 setLayout({ nodes: newNodes, edges: newEdges });
@@ -205,65 +204,41 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
         };
     }, [nodesWithModals, edges, startTransition]);
 
-    // Wrap node changes to track positioning and batch updates
-    const wrappedOnNodesChange = useCallback(
-        (changes: NodeChange[]) => {
-            // Track which nodes are being positioned
-            changes.forEach(change => {
-                if (change.type === 'position') {
-                    if (change.dragging) {
-                        positioningNodesRef.current.add(change.id);
-                    } else {
-                        positioningNodesRef.current.delete(change.id);
-                    }
-                }
-            });
-
-            // Use startTransition to batch updates
-            startTransition(() => {
-                onNodesChange?.(changes);
-            });
+    // Memoize the node click handler to avoid unnecessary re-renders
+    const onNodeClick = useCallback<NodeMouseHandler>(
+        (event, node) => {
+            // Prevent default behavior
+            event.preventDefault();
+            // Only log in development mode
+            if (process.env.NODE_ENV === 'development') {
+                console.log('Node clicked:', node);
+            }
         },
-        [onNodesChange, startTransition]
+        []
     );
 
-    // Cleanup memoized handlers when component unmounts
-    useEffect(() => {
-        return () => {
-            // Clean up any stored node handlers
-            nodesWithModals?.forEach((node: Node<NodeData>) => {
-                if (node.data?.onOpenModal) {
-                    node.data.onOpenModal = undefined;
-                }
-            });
-        };
-    }, [nodesWithModals]);
+    // Memoize the props to avoid unnecessary re-renders
+    const props = useMemo(
+        () => ({
+            nodes: layout.nodes,
+            edges: layout.edges,
+            edgeTypes,
+            nodeTypes,
+            onNodesChange,
+            onEdgesChange,
+            onNodesDelete,
+            onBeforeDelete,
+            onConnect,
+            onNodeClick
+        }),
+        [layout.nodes, layout.edges, onNodesChange, onEdgesChange, onNodesDelete, onBeforeDelete, onConnect, onNodeClick]
+    );
 
-    // Memoize the props object to prevent unnecessary rerenders
-    const flowProps = useMemo(() => ({
-        nodes: layout.nodes,
-        edges: layout.edges,
-        edgeTypes,
-        nodeTypes,
-        onNodesChange: wrappedOnNodesChange,
-        onEdgesChange,
-        onBeforeDelete,
-        onNodesDelete,
-        onConnect
-    }), [
-        layout.nodes, 
-        layout.edges, 
-        wrappedOnNodesChange, 
-        onEdgesChange, 
-        onBeforeDelete, 
-        onNodesDelete, 
-        onConnect
-    ]);
-
-    return (
+    // Return the children with the props and the Modal component
+    return children ? (
         <>
-            {children(flowProps)}
+            {children(props)}
             <Modal />
         </>
-    );
+    ) : null;
 };

@@ -1,162 +1,166 @@
-/* Common input style */
+@reference "../../app/globals.css";
+
+/* Common input style - define as a regular class */
 .config-input {
-  @apply w-full px-3 py-2 bg-gray-800 rounded text-sm text-gray-300 border border-gray-700
-  focus:border-emerald-500 focus:outline-none;
+    @apply w-full px-3 py-2 bg-gray-800 rounded text-sm text-gray-300 border border-gray-700
+    focus:border-emerald-500 focus:outline-none;
 }
 
 .currency-input {
-  @apply pl-6;
+    @apply pl-6;
 }
 
 .label-details {
-  @apply flex items-center gap-2 text-color-slate;
+    @apply flex items-center gap-2 text-slate-400;
 }
 
 /* Main panel container */
 .agent-config-panel {
-  @apply h-fit w-[34rem] bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] text-white
-  overflow-y-auto font-inter;
+    @apply h-fit w-[34rem] bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)] text-white
+    overflow-y-auto font-sans;
 
-  .agent-config-content {
-    @apply p-6 h-full w-full flex flex-col gap-2;
+    .agent-config-content {
+        @apply p-6 h-full w-full flex flex-col gap-2;
 
-    /* Header styles */
+        /* Header styles */
 
-    .config-header-section {
-      @apply flex items-center justify-between;
+        .config-header-section {
+            @apply flex items-center justify-between;
 
-      .config-header-container {
-        @apply flex flex-col gap-2;
+            .config-header-container {
+                @apply flex flex-col gap-2;
 
-        .config-header-top {
-          @apply flex items-center gap-2;
+                .config-header-top {
+                    @apply flex items-center gap-2;
 
-          .config-header-avatar {
-            @apply w-fit h-fit rounded-full bg-color-dark-gray;
-          }
+                    .config-header-avatar {
+                        @apply w-fit h-fit rounded-full bg-[#2A2F3B];
+                    }
 
-          .config-agent-title {
-            @apply flex items-center justify-center;
+                    .config-agent-title {
+                        @apply flex items-center justify-center;
 
-            h2 {
-              @apply text-white font-bold;
+                        h2 {
+                            @apply text-white font-bold;
+                        }
+                    }
+                }
+
+                .name-input {
+                    @apply px-3 py-2 bg-transparent text-lg font-semibold text-white border-b border-gray-700
+                    focus:border-emerald-500 focus:outline-none;
+                }
             }
-          }
-        }
 
-        .name-input {
-          @apply px-3 py-2 bg-transparent text-lg font-semibold text-white border-b border-gray-700
-          focus:border-emerald-500 focus:outline-none;
-        }
-      }
-
-      .minimize-button {
-        @apply p-3 flex items-center justify-center hover:bg-gray-800 hover:rounded-lg;
-      }
-    }
-
-    /* Description section */
-
-    .config-description-section {
-      @apply h-full flex flex-col gap-2 py-3;
-
-      .agent-description-container {
-        @apply flex flex-col w-full h-full gap-2;
-
-        .description-input {
-          @apply h-16 resize-none overflow-auto;
-
-          &::placeholder {
-            @apply overflow-ellipsis;
-          }
-        }
-      }
-    }
-
-    /* Adjustments section */
-
-    .config-adjustments-section {
-      @apply flex flex-col gap-6 py-3;
-
-      /* Speed section */
-
-      .config-speed-section {
-        @apply flex flex-col gap-2;
-
-        .config-speed-container {
-          @apply flex gap-4 justify-between;
-
-          .speed-button {
-            @apply w-full p-2 flex justify-start items-center gap-2 rounded bg-color-muted-gray text-sm text-gray-300
-            hover:bg-color-muted-gray/40 transition-colors;
-
-            input[type='radio'] {
-              background-image: none !important;
-              -webkit-appearance: none;
-              -moz-appearance: none;
-              appearance: none;
-              @apply w-5 h-5 rounded border-2 border-gray-700 bg-gray-600 checked:border-emerald-500
-              checked:bg-secondary checked:appearance-none checked:content-[''] transition-all duration-300 ease-linear;
+            .minimize-button {
+                @apply p-3 flex items-center justify-center hover:bg-gray-800 hover:rounded-lg;
             }
-          }
-        }
-      }
-
-      /* Context section */
-
-      .config-context-section {
-        @apply flex flex-col gap-2;
-
-        .context-input {
-          @apply config-input;
-        }
-      }
-
-      /* Memory and budget section */
-
-      .memory-budget-section {
-        @apply flex gap-2;
-
-        .memory-container {
-          @apply h-full w-full flex flex-col gap-2;
-
-          .config-select {
-            @apply w-full px-3 py-2 bg-gray-800 rounded text-sm text-gray-300 border border-gray-700
-            focus:border-secondary focus:outline-none appearance-none;
-          }
         }
 
-        .budget-container {
-          @apply h-full w-full flex flex-col gap-2;
-        }
-      }
+        /* Description section */
 
-      /* Models and tools section */
+        .config-description-section {
+            @apply h-full flex flex-col gap-2 py-3;
 
-      .models-tools-section {
-        @apply flex gap-2;
+            .agent-description-container {
+                @apply flex flex-col w-full h-full gap-2;
 
-        .models-section,
-        .tools-section {
-          @apply h-full w-full flex flex-col gap-2;
+                .description-input {
+                    @apply h-16 resize-none overflow-auto w-full px-3 py-2 bg-gray-800 rounded text-sm text-gray-300 border border-gray-700
+                    focus:border-emerald-500 focus:outline-none;
 
-          .models-container,
-          .tools-container {
-            @apply flex gap-2;
-
-            .model-icon,
-            .tool-icon {
-              @apply w-8 h-8 rounded-lg;
+                    &::placeholder {
+                        @apply overflow-ellipsis;
+                    }
+                }
             }
-          }
         }
-      }
 
-      /* Action buttons */
+        /* Adjustments section */
 
-      .action-buttons-section {
-        @apply flex gap-4 mt-4;
-      }
+        .config-adjustments-section {
+            @apply flex flex-col gap-6 py-3;
+
+            /* Speed section */
+
+            .config-speed-section {
+                @apply flex flex-col gap-2;
+
+                .config-speed-container {
+                    @apply flex gap-4 justify-between;
+
+                    .speed-button {
+                        @apply w-full p-2 flex justify-start items-center gap-2 rounded bg-[#2A2F3B] text-sm text-gray-300
+                        hover:bg-[#2A2F3B]/40 transition-colors;
+
+                        input[type='radio'] {
+                            background-image: none !important;
+                            -webkit-appearance: none;
+                            -moz-appearance: none;
+                            appearance: none;
+                            @apply w-5 h-5 rounded border-2 border-gray-700 bg-gray-600 checked:border-emerald-500
+                            checked:bg-[var(--secondary)] checked:appearance-none checked:content-[''] transition-all duration-300 ease-linear;
+                        }
+                    }
+                }
+            }
+
+            /* Context section */
+
+            .config-context-section {
+                @apply flex flex-col gap-2;
+
+                .context-input {
+                    @apply w-full px-3 py-2 bg-gray-800 rounded text-sm text-gray-300 border border-gray-700
+                    focus:border-emerald-500 focus:outline-none;
+                }
+            }
+
+            /* Memory and budget section */
+
+            .memory-budget-section {
+                @apply flex gap-2;
+
+                .memory-container {
+                    @apply h-full w-full flex flex-col gap-2;
+
+                    .config-select {
+                        @apply w-full px-3 py-2 bg-gray-800 rounded text-sm text-gray-300 border border-gray-700
+                        focus:border-emerald-500 focus:outline-none appearance-none;
+                    }
+                }
+
+                .budget-container {
+                    @apply h-full w-full flex flex-col gap-2;
+                }
+            }
+
+            /* Models and tools section */
+
+            .models-tools-section {
+                @apply flex gap-2;
+
+                .models-section,
+                .tools-section {
+                    @apply h-full w-full flex flex-col gap-2;
+
+                    .models-container,
+                    .tools-container {
+                        @apply flex gap-2;
+
+                        .model-icon,
+                        .tool-icon {
+                            @apply w-8 h-8 rounded-lg;
+                        }
+                    }
+                }
+            }
+
+            /* Action buttons */
+
+            .action-buttons-section {
+                @apply flex gap-4 mt-4;
+            }
+        }
     }
-  }
 }

@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { Position } from '@xyflow/react';
 import { useShallow } from 'zustand/react/shallow';
 
+import './node.styles.css';
 import { AgentCard } from '@components/agents/agent-card';
 import { NodeComponent } from '@components/utils/node-component/node-component';
 import { useModalStore } from '@stores/modal-store';
@@ -12,13 +13,13 @@ import { useAgentStore } from '@stores/agent-store';
 import { useWorkflowStore } from '@stores/workflow';
 import { AgentState } from '@app-types/agent';
 import { HandleType } from './types.enum';
-import './node.styles.css';
 import { WorkflowState } from '@app-types/workflow';
 import type { NodeData } from '@app-types/workflow';
 import { fetchAgent } from '@lib/actions/agent-actions';
+import { useTrayStore } from '@stores/tray-store';
 
 const DEFAULT_AGENT_STATE = {
-    state: AgentState.Working,
+    state: AgentState.Initial,
     isEditable: false,
     isLoading: false,
     error: null,
@@ -48,6 +49,7 @@ const getPosition = (position?: string): Position => {
 
 const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: AgentNodeProps) => {
     const { openModal } = useModalStore();
+    const { openTray } = useTrayStore();
     const {
         removeAgent,
         transition,
@@ -145,8 +147,8 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
             return;
         }
 
-        openModal({ type: 'agent-selection', parentNodeId: id });
-    }, [id, openModal, edges]);
+        openTray({ type: 'agent-selection', sourceNodeId: id });
+    }, [id, openTray, edges]);
 
     const handleAssistanceRequest = useCallback(() => {
         transition(id, AgentState.Assistance, {
@@ -160,34 +162,34 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
 
     // Memoize complex class names
     const containerClassName = useMemo(() =>
-            `agent-node-container`,
+        `agent-node-container`,
         []
     );
 
     const contentClassName = useMemo(() =>
-            `w-full h-full ${isEditable ? 'cursor-pointer' : 'cursor-default'}`,
+        `w-full h-full ${isEditable ? 'cursor-pointer' : 'cursor-default'}`,
         [isEditable]
     );
 
     const handleClassName = useMemo(() =>
-            workflowExecution?.state === WorkflowState.Initial ||
+        workflowExecution?.state === WorkflowState.Initial ||
             workflowExecution?.state === WorkflowState.Paused ?
-                'cursor-not-allowed opacity-50' : 'cursor-pointer',
+            'cursor-not-allowed opacity-50' : 'cursor-pointer',
         [workflowExecution?.state]
     );
 
     // Memoize handle connectable state
     const isHandleConnectable = useMemo(() =>
-            isConnectable ||
-            workflowExecution?.state === WorkflowState.Initial ||
-            workflowExecution?.state === WorkflowState.Paused,
+        isConnectable ||
+        workflowExecution?.state === WorkflowState.Initial ||
+        workflowExecution?.state === WorkflowState.Paused,
         [isConnectable, workflowExecution?.state]
     );
 
     return (
         <NodeComponent.Root className="agent-node">
             <NodeComponent.Content className={containerClassName}>
-                <div className={contentClassName} onClick={handleAgentDetails}>
+                <div className={`${contentClassName} flex items-center justify-center`} onClick={handleAgentDetails}>
                     <AgentCard agentId={agentId}
                         agentData={agentData}
                         state={state}

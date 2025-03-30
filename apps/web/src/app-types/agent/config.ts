@@ -29,7 +29,7 @@ export type AgentData = {
     model: string;
     tools?: string[];
     createdBy: string;
-    parentNodeId?: string;
+    parentNodeId?: string | null;
     isResuming?: boolean;
     nodeId?: string;
     activeTaskId?: string;

@@ -1,7 +1,13 @@
-const StoreLoading = () => {
+import { ReactElement } from 'react';
+
+import './store.styles.css';
+
+const StoreLoading = (): ReactElement => {
     return (
-        <div className="flex flex-col items-center justify-center w-full h-full bg-dark text-color-light">
-            Loading...
+        <div className="store-container">
+            <div className="loading-container">
+                <div className="loading-text">Loading...</div>
+            </div>
         </div>
     );
 };

@@ -1,11 +1,9 @@
-const Store = () => {
-    return (
-        <>
-            <div className="flex flex-col items-center justify-center w-full h-full bg-dark text-color-light">
-                Store Page
-            </div>
-        </>
-    );
+import { ReactElement } from 'react';
+
+import ClientStore from './client-store';
+
+const Store = (): ReactElement => {
+    return <ClientStore />;
 };
 
 export default Store;

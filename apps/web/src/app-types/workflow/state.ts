@@ -1,4 +1,9 @@
-import { Connection, type Node, OnBeforeDelete, OnConnect, OnEdgesChange, OnNodesChange } from '@xyflow/react';
+import { Connection } from '@xyflow/react';
+import type { Node } from '@xyflow/react';
+import type { OnBeforeDelete } from '@xyflow/react';
+import type { OnConnect } from '@xyflow/react';
+import type { OnEdgesChange } from '@xyflow/react';
+import type { OnNodesChange } from '@xyflow/react';
 import { type Edge } from '@xyflow/react';
 
 import { type NodeData } from './nodes';
@@ -45,6 +50,7 @@ export interface WorkflowActions {
     createNewWorkflow: () => Promise<void>;
     fetchGraph: (workflowId: string) => Promise<void>;
     reset: () => void;
+    addAgentToWorkflow: (agent: AgentData) => Promise<void>;
 
     // Workflow execution
     startWorkflow: () => Promise<void>;

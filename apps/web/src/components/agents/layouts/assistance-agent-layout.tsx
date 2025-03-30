@@ -26,29 +26,21 @@ export const AssistanceAgentLayout = ({ agentId, agentData, onAssistanceRequest 
                 </div>
             )}
 
-            <div className="agentState-header">
-                <div className="agentState-avatar">
+            <div className="agent-header">
+                <div className="agent-avatar">
                     <Image src={data?.image || cloudHeadImage} alt="Cloud head avatar" width={48} height={48} />
                 </div>
-                <div className="agentState-title">
+                <div className="agent-title">
                     <h3>{data?.name}</h3>
                 </div>
             </div>
 
-            <div className="agentState-status">
+            <div className="agent-status">
                 <span className="status-label">
                     <NotificationBellIcon width={15} height={15} color="#BEC1CE" />
                     Status:
                 </span>
                 <span className="status-value">Stuck, please help</span>
-            </div>
-
-            <div className="assistance-message-container">
-                {/*{data?.assistanceMessage && (*/}
-                <div className="message-box">
-                    {/*<p>{data.assistanceMessage}</p>*/}
-                    <p>Can&apos;t find a button. Something is blocking progression.</p>
-                </div>
             </div>
 
             <div className="action-buttons">

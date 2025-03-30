@@ -247,9 +247,10 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
             const agentStore = useAgentStore.getState();
             const updatedAgentData = {
                 ...agent,
+                id: newNodeId,
                 nodeId: newNodeId
             };
-            agentStore.setAgentData(agent.id, updatedAgentData);
+            agentStore.setAgentData(newNodeId, updatedAgentData);
 
             // Get position for new node
             const newNodePosition = allNodePositions.find(pos => pos.id === 'new-node')?.position;

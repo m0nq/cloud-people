@@ -4,48 +4,79 @@ import { INITIAL_NODE_POSITION } from '@config/layout.const';
 import type { GraphState } from '@app-types/workflow';
 import { InitialStateNodeData } from '@app-types/workflow';
 import { NodeType } from '@app-types/workflow/node-types';
+import { useThemeStore } from '@stores/theme-store';
 
-export const initialStateNodes = [
-    {
-        id: 'SFS',
-        type: NodeType.Initial,
-        data: {
+export const getInitialStateNodes = (): Node<InitialStateNodeData>[] => {
+    const isDarkMode = useThemeStore.getState().isDarkMode;
+
+    return [
+        {
             id: 'SFS',
-            label: 'Start from Scratch',
-            background: 'white',
-            color: '#1b2559',
-            type: NodeType.Initial
+            type: NodeType.Initial,
+            data: {
+                id: 'SFS',
+                label: 'From Scratch',
+                background: isDarkMode ? '#1E2A3B' : '#FFFFFF',
+                color: isDarkMode ? 'white' : '#0f172a',
+                iconBackground: isDarkMode ? '#16653d4d' : '#dcfce74d', // green with opacity
+                iconColor: '#4ade80', // green-400
+                description: 'Build your flow from scratch with complete creative freedom.',
+                type: NodeType.Initial,
+                workflowId: '',
+                agentRef: {
+                    agentId: ''
+                }
+            },
+            position: INITIAL_NODE_POSITION
         },
-        position: INITIAL_NODE_POSITION
-    },
-    {
-        id: 'SFT',
-        type: NodeType.Initial,
-        data: {
+        {
             id: 'SFT',
-            label: 'Start from a Template',
-            background: 'linear-gradient(to bottom right, #86FFE2, #18FFD5)',
-            color: '#1b2559',
-            type: NodeType.Initial
+            type: NodeType.Initial,
+            data: {
+                id: 'SFT',
+                label: 'From Template',
+                background: isDarkMode ? '#1E2A3B' : '#FFFFFF',
+                color: isDarkMode ? 'white' : '#0f172a',
+                iconBackground: isDarkMode ? '#581c874d' : '#f3e8ff4d', // purple with opacity
+                iconColor: '#c084fc', // purple-400
+                description: 'Start with a pre-built template to save time.',
+                type: NodeType.Initial,
+                workflowId: '',
+                agentRef: {
+                    agentId: ''
+                }
+            },
+            position: INITIAL_NODE_POSITION
         },
-        position: INITIAL_NODE_POSITION
-    },
-    {
-        id: 'SFA',
-        type: NodeType.Initial,
-        data: {
+        {
             id: 'SFA',
-            label: 'Start from AI Prompt',
-            background: 'linear-gradient(to bottom right, #868CFF, #4318FF)',
-            color: '#1b2559',
-            type: NodeType.Initial
-        },
-        position: INITIAL_NODE_POSITION
-    }
-] as Node<InitialStateNodeData>[];
+            type: NodeType.Initial,
+            data: {
+                id: 'SFA',
+                label: 'From AI',
+                background: isDarkMode ? '#1E2A3B' : '#FFFFFF',
+                color: isDarkMode ? 'white' : '#0f172a',
+                iconBackground: isDarkMode ? '#1e3a8a4d' : '#dbeafe4d', // blue with opacity
+                iconColor: '#60a5fa', // blue-400
+                description: 'Let AI help you build your workflow.',
+                type: NodeType.Initial,
+                workflowId: '',
+                agentRef: {
+                    agentId: ''
+                }
+            },
+            position: INITIAL_NODE_POSITION
+        }
+    ] as Node<InitialStateNodeData>[];
+};
 
-export const initialState: GraphState = {
-    nodes: initialStateNodes,
+// For backward compatibility
+export const initialStateNodes = getInitialStateNodes();
+
+export const getInitialState = (): GraphState => ({
+    nodes: getInitialStateNodes(),
     edges: [],
     workflowExecution: null
-};
+});
+
+export const initialState: GraphState = getInitialState();

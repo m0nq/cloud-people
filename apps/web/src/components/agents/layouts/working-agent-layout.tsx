@@ -7,9 +7,9 @@ import { BaseAgentLayoutProps } from './base-agent-layout';
 import { Button } from '@components/utils/button/button';
 import { ChatIcon } from '@components/icons/chat-icon';
 import { TaskStatusIcon } from '@components/icons/task-status-icon';
-import { WatchIcon } from '@components/icons/watch-icon';
 import { useAgent } from '@hooks/use-agent';
 import { useAgentStore } from '@stores/agent-store';
+import { PauseIcon } from '@components/icons';
 
 export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
     const { transition } = useAgentStore();
@@ -27,6 +27,11 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
 
     // Start execution when component mounts
     useEffect(() => {
+        // Early return if no agent data
+        if (!agentData || !agentData.id) {
+            return;
+        }
+
         let isMounted = true;
 
         (async () => {
@@ -61,6 +66,11 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
         });
     };
 
+    // Render loading state if no agent data
+    if (!agentData || !agentData.id) {
+        return <div>Loading...</div>;
+    }
+
     return (
         <div className="working-agent-card">
             <div className="working-agent-wrapper">
@@ -92,8 +102,8 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
                         size="sm"
                         radius="lg"
                         fullWidth
-                        // onClick={handlePause}
-                        icon={<WatchIcon width={15} height={15} />}>
+                        onClick={handlePause}
+                        icon={<PauseIcon width={15} height={15} />}>
                         Watch
                     </Button>
                     <Button variant="secondary"

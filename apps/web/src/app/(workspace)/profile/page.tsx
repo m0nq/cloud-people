@@ -11,13 +11,13 @@ const Profile = async () => {
     if (error || !data?.length) {
         return (
             <>
-                <div className="bg-dark text-color-light">{error?.message}</div>
+                <div className="bg-dark text-white">{error?.message}</div>
             </>
         );
     }
 
     return (
-        <div className="flex flex-col items-center justify-center w-full h-full bg-dark text-color-light">
+        <div className="flex flex-col items-center justify-center w-full h-full bg-dark text-white">
             <div>Welcome!{first_name ?? ''}</div>
             <div>Your email: {email}</div>
         </div>

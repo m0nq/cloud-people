@@ -1,74 +1,76 @@
+@reference "../../app/globals.css";
+
 .nav-bar {
-  @apply fixed top-0 left-0 h-full w-24 z-50 transition-all duration-300 ease-in-out;
+    @apply fixed top-0 left-0 h-full w-24 z-50 transition-all duration-300 ease-in-out;
 
-  .navigation-content {
-    @apply h-full fixed top-0 left-0 py-4 w-16 flex flex-col justify-between items-center transition-transform
-    duration-300 ease-in-out bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700;
+    .navigation-content {
+        @apply h-full fixed top-0 left-0 py-4 w-16 flex flex-col justify-between items-center transition-transform
+        duration-300 ease-in-out bg-[var(--background)] border-r border-[var(--border)];
 
-    &.hidden {
-      @apply opacity-0 -translate-x-28;
+        &.hidden {
+            @apply opacity-0 -translate-x-28;
+        }
+
+        .nav-header {
+            @apply flex-shrink-0 flex items-center justify-center h-auto pb-4 border-b border-[var(--border)];
+        }
+
+        .nav-primary {
+            @apply flex-1 flex flex-col items-center pt-5 space-y-6;
+        }
+
+        .nav-secondary {
+            @apply flex-shrink-0 flex flex-col items-center pb-5 space-y-6;
+        }
     }
 
-    .nav-header {
-      @apply flex-shrink-0 flex items-center justify-center h-auto pb-4 border-b border-gray-200 dark:border-gray-700;
-    }
+    .toggle-button {
+        @apply fixed top-4 left-3 w-12 h-12 rounded-xl border border-[var(--border)] bg-[var(--background)] shadow-md flex
+        items-center justify-center text-2xl text-[var(--muted-foreground)] hover:text-[var(--foreground)]
+        active:brightness-90 transition-transform duration-300 ease-in-out translate-x-0 z-50;
 
-    .nav-primary {
-      @apply flex-1 flex flex-col items-center pt-5 space-y-6;
+        &.hidden {
+            @apply opacity-0 -translate-x-28;
+        }
     }
-
-    .nav-secondary {
-      @apply flex-shrink-0 flex flex-col items-center pb-5 space-y-6;
-    }
-  }
-
-  .toggle-button {
-    @apply fixed top-4 left-3 w-12 h-12 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-md flex items-center
-    justify-center text-2xl text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 active:brightness-90 transition-transform duration-300 ease-in-out
-    translate-x-0 z-50;
-
-    &.hidden {
-      @apply opacity-0 -translate-x-28;
-    }
-  }
 }
 
 .nav-item {
-  @apply relative flex items-center justify-center w-full;
+    @apply relative flex items-center justify-center w-full;
 
-  .nav-link {
-    @apply relative flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-200 overflow-visible;
+    .nav-link {
+        @apply relative flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-200 overflow-visible;
 
-    &.nav-link-active {
-      @apply flex items-center justify-center text-blue-400 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400 relative;
+        &.nav-link-active {
+            @apply flex items-center justify-center text-blue-400 bg-blue-50/50 dark:bg-blue-900/20 dark:text-blue-400 relative;
+        }
+
+        &.nav-link-inactive {
+            @apply text-[var(--muted-foreground)] hover:text-[var(--foreground)] hover:bg-[var(--accent)];
+        }
+
+        .nav-indicator {
+            @apply absolute right-0 top-0 h-full w-1.5 bg-blue-600 dark:bg-blue-400 rounded-md;
+        }
     }
 
-    &.nav-link-inactive {
-      @apply text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/30;
+    .nav-tooltip {
+        @apply absolute left-14 z-50 px-2 py-1 min-w-max rounded-md bg-[var(--popover)] text-[var(--popover-foreground)] text-xs font-medium shadow-lg;
+
+        .nav-tooltip-arrow {
+            @apply absolute top-1/2 -left-1 -translate-y-1/2 border-4 border-transparent border-r-[var(--popover)];
+        }
     }
 
-    .nav-indicator {
-      @apply absolute right-0 top-0 h-full w-1.5 bg-blue-600 dark:bg-blue-400 rounded-md;
+    .nav-logout-button {
+        @apply flex items-center justify-center w-12 h-12 rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50/50 dark:hover:bg-red-900/20 transition-colors duration-200;
     }
-  }
 
-  .nav-tooltip {
-    @apply absolute left-14 z-50 px-2 py-1 min-w-max rounded-md bg-gray-800 text-white text-xs font-medium shadow-lg;
+    .nav-logout-tooltip {
+        @apply absolute left-14 z-50 px-2 py-1 min-w-max rounded-md bg-red-600 text-white text-xs font-medium shadow-lg;
 
-    .nav-tooltip-arrow {
-      @apply absolute top-1/2 -left-1 -translate-y-1/2 border-4 border-transparent border-r-gray-800;
+        .nav-tooltip-arrow {
+            @apply absolute top-1/2 -left-1 -translate-y-1/2 border-4 border-transparent border-r-red-600;
+        }
     }
-  }
-
-  .nav-logout-button {
-    @apply flex items-center justify-center w-12 h-12 rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200;
-  }
-
-  .nav-logout-tooltip {
-    @apply absolute left-14 z-50 px-2 py-1 min-w-max rounded-md bg-red-600 text-white text-xs font-medium shadow-lg;
-
-    .nav-tooltip-arrow {
-      @apply absolute top-1/2 -left-1 -translate-y-1/2 border-4 border-transparent border-r-red-600;
-    }
-  }
 }

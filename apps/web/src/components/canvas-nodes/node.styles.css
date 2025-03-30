@@ -1,0 +1,135 @@
+@reference "../../app/globals.css";
+
+.agent-node {
+    @apply w-64 h-44 rounded-lg flex items-center justify-center;
+
+    .agent-node-container {
+        @apply w-full h-full rounded-lg flex items-center justify-center;
+    }
+}
+
+.react-flow__handle {
+    @apply rounded-full p-2.5;
+
+    &.react-flow__handle-right {
+        @apply -right-6 bg-[var(--primary-foreground)];
+    }
+
+    &.react-flow__handle-left {
+        @apply -left-6 bg-[var(--primary-foreground)];
+    }
+
+    &.react-flow__handle-top {
+        @apply -top-6 bg-[var(--primary-foreground)];
+    }
+
+    &.react-flow__handle-bottom {
+        @apply -bottom-6 bg-[var(--primary-foreground)];
+    }
+}
+
+.react-flow__edge * {
+    @apply stroke-[var(--primary)] stroke-[0.3rem];
+}
+
+.init-node {
+    @apply w-72 rounded-xl shadow-xl overflow-hidden cursor-pointer transition-all duration-300
+    hover:shadow-2xl bg-[var(--card)] text-[var(--card-foreground)] flex flex-col;
+
+    .init-node-icon-container {
+        @apply h-48 flex items-center justify-center p-8;
+    }
+
+    .init-node-content {
+        @apply p-6 flex flex-col gap-2;
+
+        .init-node-title {
+            @apply text-2xl font-bold self-start;
+        }
+
+        .init-node-description {
+            @apply text-base text-[var(--muted-foreground)] font-normal text-left;
+        }
+    }
+}
+
+.approval-node {
+    @apply w-72 h-32 rounded-xl border border-[var(--border)] bg-[var(--card)] shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)] relative;
+
+    .approval-details-container {
+        @apply w-full h-full flex flex-col items-center justify-around p-4 rounded-xl;
+
+        .approval-header {
+            @apply w-full h-full flex items-center justify-start gap-2;
+
+            .pencil-icon {
+                @apply text-[var(--foreground)] self-start content-end stroke-1 ml-auto cursor-pointer;
+            }
+        }
+
+        .approval-body {
+            @apply w-full h-full flex flex-col items-start justify-start;
+        }
+    }
+
+    .approval-buttons {
+        @apply absolute -right-16 top-1/2 -translate-y-1/2 flex flex-col gap-2;
+
+        .approval-button {
+            @apply w-14 h-[3.8125rem] rounded-lg border border-[var(--border)]
+            bg-[var(--card)]
+            shadow-[0px_1px_4px_0px_rgba(0,0,0,0.15)]
+            flex items-center justify-center transition-all duration-200
+            hover:brightness-110 active:brightness-90;
+
+            &.approval-button-approved,
+            &.approval-button-rejected {
+                @apply bg-[var(--accent)];
+            }
+        }
+    }
+
+    .react-flow__handle-right {
+        @apply -right-24;
+    }
+}
+
+.root-node {
+    @apply w-32 h-32 rounded-full bg-white stroke-1 stroke-zinc-500 drop-shadow-[0_1px_4px_rgba(0,0,0,0.15)]
+    flex items-center justify-center cursor-pointer;
+
+    .inner-circle {
+        @apply w-24 h-24 rounded-full bg-[linear-gradient(270deg,#A852FF_11.51%,#6A52FF_92.43%)] flex items-center
+        justify-center;
+
+        &.disabled {
+            @apply bg-gray-400 cursor-not-allowed opacity-70;
+        }
+    }
+}
+
+.delivery-node {
+    @apply flex w-20 h-20 justify-center items-center rounded-[1.25rem] border border-[var(--border)] bg-[var(--muted)]
+    transition-all duration-300;
+
+    .delivery-icon {
+        @apply w-full h-full text-[var(--muted-foreground)];
+    }
+
+    &.delivery-node-open {
+        @apply relative;
+
+        .delivery-icon {
+            @apply w-[160%] h-[160%] absolute -translate-x-[53%] -translate-y-[53%] left-1/2 top-1/2;
+        }
+    }
+}
+
+.delivery-node-ready,
+.delivery-node-open {
+    @apply bg-[var(--success)] border-none;
+
+    .delivery-icon {
+        @apply text-[var(--foreground)];
+    }
+}

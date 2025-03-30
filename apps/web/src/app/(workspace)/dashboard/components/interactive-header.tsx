@@ -10,7 +10,7 @@ export const InteractiveHeader = () => {
     return (
         <div className="interactive-header-container">
             <div className="header-buttons">
-                <Link href="/sandbox" className="header-link">
+                <Link href="/canvas" className="header-link">
                     Start New Project
                     <FaArrowRight size={16} />
                 </Link>

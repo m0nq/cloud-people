@@ -1,3 +1,5 @@
+@reference "../../../app/globals.css";
+
 /* Company Card Container */
 .company-card-container {
   @apply max-w-3xl rounded-t-lg overflow-hidden mt-7 shadow-md bg-[var(--card)];

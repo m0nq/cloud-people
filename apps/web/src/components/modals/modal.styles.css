@@ -1,90 +1,92 @@
+@reference "../../app/globals.css";
+
 .modal-overlay {
-  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 bg-black/50;
-  backdrop-filter: blur(4px);
+    @apply fixed inset-0 bg-black/50 flex items-center justify-center z-50;
+    backdrop-filter: blur(4px);
 }
 
 .modal-container {
-  @apply relative bg-dark rounded-lg shadow-xl max-h-[90vh] max-w-[90vw] overflow-hidden;
-  min-width: 24rem;
+    @apply relative bg-[#1E1E1E] rounded-lg shadow-xl max-h-[90vh] max-w-[90vw] overflow-hidden;
+    min-width: 24rem;
 }
 
 .close-button {
-  @apply text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800;
+    @apply text-gray-400 hover:text-white transition-colors rounded-full hover:bg-gray-800;
 }
 
 .agent-details-modal {
-  @apply w-[70.9375rem] h-[55.5625rem] bg-[#25292D] max-h-[90vh] p-4 text-sm font-bold;
+    @apply w-[70.9375rem] h-[55.5625rem] bg-[#25292D] max-h-[90vh] p-4 text-sm font-bold;
 
-  .agent-details-container {
-    @apply flex gap-4 w-full h-full;
+    .agent-details-container {
+        @apply flex gap-4 w-full h-full;
 
-    .agent-details-left-column {
-      @apply flex-1 rounded-lg overflow-auto min-h-0 flex flex-col gap-2.5;
+        .agent-details-left-column {
+            @apply flex-1 rounded-lg overflow-auto min-h-0 flex flex-col gap-2.5;
 
-      .left-column-top-section {
-        @apply w-full h-full flex gap-2.5;
+            .left-column-top-section {
+                @apply w-full h-full flex gap-2.5;
 
-        .top-section-area {
-          @apply w-full h-full rounded-lg justify-between items-center text-white flex flex-col gap-2;
+                .top-section-area {
+                    @apply w-full h-full rounded-lg justify-between items-center text-white flex flex-col gap-2;
 
-          .agent-details-section {
-            @apply flex flex-col justify-between items-center w-full h-4/5;
+                    .agent-details-section {
+                        @apply flex flex-col justify-between items-center w-full h-4/5;
 
-            .avatar {
-              @apply w-16 h-12 rounded-full;
+                        .avatar {
+                            @apply w-16 h-12 rounded-full;
+                        }
+
+                        .agent-name {
+                            @apply flex flex-col items-start gap-0;
+                        }
+
+                        div {
+                            @apply flex w-full justify-between items-center;
+
+                            .agent-stat-title {
+                                @apply text-[#BEC1CF];
+                            }
+
+                            .agent-stat {
+                                @apply w-20 h-10 bg-[#111212] rounded-full flex items-center justify-center;
+                            }
+                        }
+                    }
+                }
             }
 
-            .agent-name {
-              @apply flex flex-col items-start gap-0;
+            .left-column-bottom-section {
+                @apply w-full h-full bg-[#111212] rounded-lg;
             }
-
-            div {
-              @apply flex w-full justify-between items-center;
-
-              .agent-stat-title {
-                @apply text-[#BEC1CF];
-              }
-
-              .agent-stat {
-                @apply w-20 h-10 bg-[#111212] rounded-full flex items-center justify-center;
-              }
-            }
-          }
         }
-      }
 
-      .left-column-bottom-section {
-        @apply w-full h-full bg-[#111212] rounded-lg;
-      }
-    }
+        .agent-details-right-column {
+            @apply flex flex-col items-start w-96 px-[0.0625rem] rounded-lg gap-4 min-h-0;
 
-    .agent-details-right-column {
-      @apply flex flex-col items-start w-96 px-[0.0625rem] rounded-lg gap-4 min-h-0;
+            .agent-details-search {
+                @apply w-full flex items-center justify-between gap-4 shrink-0;
 
-      .agent-details-search {
-        @apply w-full flex items-center justify-between gap-4 shrink-0;
+                .search-container {
+                    @apply flex-1 relative;
 
-        .search-container {
-          @apply flex-1 relative;
+                    .search-icon {
+                        @apply absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none;
+                    }
 
-          .search-icon {
-            @apply absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none;
-          }
+                    .search-input {
+                        @apply w-full py-2 px-4 pl-10 rounded-[0.3125rem] bg-[#111212] text-white placeholder-gray-500 focus:outline-none;
+                    }
+                }
+            }
 
-          .search-input {
-            @apply w-full py-2 px-4 pl-10 rounded-[0.3125rem] bg-[#111212] text-white placeholder-gray-500 focus:outline-none;
-          }
+            .agent-details-content-section {
+                @apply flex flex-col items-center w-full flex-1 py-2 px-4 gap-2.5 self-stretch rounded-[0.3125rem] bg-[#111212]
+                overflow-auto min-h-0;
+            }
+
+            .agent-details-buttons {
+                @apply w-full flex gap-5 shrink-0;
+            }
         }
-      }
-
-      .agent-details-content-section {
-        @apply flex flex-col items-center w-full flex-1 py-2 px-4 gap-2.5 self-stretch rounded-[0.3125rem] bg-[#111212]
-        overflow-auto min-h-0;
-      }
-
-      .agent-details-buttons {
-        @apply w-full flex gap-5 shrink-0;
-      }
     }
-  }
 }

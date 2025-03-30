@@ -91,7 +91,27 @@ import { utils } from '../utils';
 5. Tailwind CSS Rules
     1. Write CSS using Tailwind classes unless otherwise specified:
         - Utilize styles in separate css files using the @apply rule.
-        - Nested css selectors are prefered over global ones.
+        - Nested css selectors are preferred over global ones.
+        - When using nested selectors with PostCSS, always include the parent class name:
+          ```css
+          /* Correct */
+          .selector {
+            @apply some-styles;
+            
+            .selector-open {
+              @apply more-styles;
+            }
+          }
+          
+          /* Incorrect */
+          .selector {
+            @apply some-styles;
+            
+            &-open {
+              @apply more-styles;
+            }
+          }
+          ```
         - Maintain consistent class order:
             - Layout & Position (e.g., flex, grid)
             - Spacing (e.g., m-4, p-2)
@@ -398,3 +418,47 @@ import { utils } from '../utils';
 This methodical approach ensures thorough problem-solving and maintains code quality while preventing oversights in
 complex implementations. It emphasizes the importance of understanding the broader context and potential impacts of
 changes before implementing them.
+
+14. Package Management Best Practices:
+
+    a. Before Installing New Packages:
+        - Check package.json for existing packages that might provide the needed functionality
+        - Perform web search to research latest packages and best practices
+        - Compare alternative packages considering:
+            * Active maintenance and community support
+            * Bundle size and performance impact
+            * Compatibility with existing dependencies
+            * TypeScript support
+            * Documentation quality
+            * Security considerations
+            * License compatibility
+        - Present research findings to user, including:
+            * Why a particular package is recommended over alternatives
+            * Specific features that make it the best choice
+            * Any potential drawbacks or considerations
+            * Version compatibility with existing packages
+        - Get user approval before proceeding with installation
+
+    b. When Installing Packages:
+        - Use exact versions to ensure reproducible builds
+        - Document any required peer dependencies
+        - Consider the impact on bundle size
+        - Verify compatibility with existing packages
+        - Follow the principle of least privilege
+        - Consider security implications
+        - Test the package in a development environment first
+
+    c. Package Version Management:
+        - Use semantic versioning appropriately
+        - Lock dependencies to specific versions
+        - Regularly update dependencies for security fixes
+        - Test thoroughly after dependency updates
+        - Document breaking changes when upgrading major versions
+
+    d. Security Considerations:
+        - Check package reputation and download statistics
+        - Review security advisories and vulnerability reports
+        - Verify package authenticity and publisher
+        - Assess package dependencies for security risks
+        - Consider data privacy implications
+        - Review package permissions and access requirements[]
