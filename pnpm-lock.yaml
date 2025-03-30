@@ -81,9 +81,6 @@ importers:
       '@playwright/test':
         specifier: ^1.51.1
         version: 1.51.1
-      '@tailwindcss/postcss':
-        specifier: ^4.0.17
-        version: 4.0.17
       '@testing-library/dom':
         specifier: ^10.4.0
         version: 10.4.0

@@ -60,7 +60,6 @@ jobs:
               uses: wyvox/action-setup-pnpm@v3
               with:
                   node-version: 'lts/*'
-                  package_json_directory: '.'
 
             - name: Install dependencies
               run: |
