@@ -12,6 +12,12 @@ const hasUserOrLoginPath = (user: User | null, request: NextRequest) => {
 };
 
 export const updateSession = async (request: NextRequest) => {
+    // Skip authentication in development mode
+    if (process.env.NODE_ENV === 'development') {
+        // Return a NextResponse that allows access to all routes
+        return NextResponse.next();
+    }
+
     let supabaseResponse = NextResponse.next({
         request
     });

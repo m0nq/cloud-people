@@ -11,7 +11,32 @@ import { Config } from '@config/constants';
 
 const { API: { EndPoints } } = Config;
 
+// Mock user for development mode
+const DEV_USER: User = {
+    id: 'dev-user-id',
+    email: 'dev@example.com',
+    user_metadata: {
+        full_name: 'Development User',
+        avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80'
+    },
+    app_metadata: {
+        provider: 'development',
+        role: 'admin'
+    },
+    aud: 'authenticated',
+    created_at: new Date().toISOString(),
+    confirmed_at: new Date().toISOString(),
+    last_sign_in_at: new Date().toISOString(),
+    role: 'authenticated',
+    updated_at: new Date().toISOString()
+};
+
 export const isLoggedIn = async () => {
+    // Skip authentication check in development mode
+    if (process.env.NODE_ENV === 'development') {
+        return;
+    }
+
     const supabase = await createClient();
 
     const { data, error } = await supabase.auth.getUser();
@@ -21,6 +46,11 @@ export const isLoggedIn = async () => {
 };
 
 export const loginWithOAuth = async (provider: Provider) => {
+    // In development mode, redirect to home page
+    if (process.env.NODE_ENV === 'development') {
+        redirect(EndPoints.Home);
+    }
+
     const redirectTo = `${(await headers()).get('origin') ?? 'http://localhost:3000'}/auth/callback`;
     const supabase = await createClient();
     // const agreement = DOMPurify.sanitize(formData.get('agreement') as string);
@@ -43,6 +73,11 @@ export const loginWithOAuth = async (provider: Provider) => {
 };
 
 export const loginOrSignUp = async (formData: FormData) => {
+    // In development mode, redirect to home page
+    if (process.env.NODE_ENV === 'development') {
+        redirect(EndPoints.Home);
+    }
+
     const emailRedirectTo = (await headers()).get('origin') ?? 'http://localhost:3000';
     const supabase = await createClient();
     const email = DOMPurify.sanitize(formData.get('email') as string);
@@ -65,6 +100,11 @@ export const loginOrSignUp = async (formData: FormData) => {
 };
 
 export const signOut = async () => {
+    // In development mode, redirect to login page
+    if (process.env.NODE_ENV === 'development') {
+        redirect(EndPoints.Login);
+    }
+
     const supabase = await createClient();
     await supabase.auth.signOut({ scope: 'local' });
     revalidatePath(EndPoints.Home, 'layout');
@@ -72,6 +112,11 @@ export const signOut = async () => {
 };
 
 export const authCheck = async (): Promise<User> => {
+    // Return mock user in development mode
+    if (process.env.NODE_ENV === 'development') {
+        return DEV_USER;
+    }
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -83,6 +128,16 @@ export const authCheck = async (): Promise<User> => {
 };
 
 export const refreshSession = async () => {
+    // Skip in development mode
+    if (process.env.NODE_ENV === 'development') {
+        return {
+            access_token: 'dev-access-token',
+            refresh_token: 'dev-refresh-token',
+            expires_at: Date.now() + 3600 * 1000,
+            user: DEV_USER
+        };
+    }
+
     const supabase = await createClient();
     const { data: { session }, error } = await supabase.auth.getSession();
 

@@ -10,6 +10,13 @@ const nextConfig = {
     '@dnd-kit/utilities',
     'framer-motion'
   ],
+  // Allow cross-origin requests from Windsurf browser preview
+  experimental: {
+    allowedDevOrigins: ['127.0.0.1'],
+    serverActions: {
+      allowedOrigins: ['localhost:3000', '127.0.0.1:52543']
+    }
+  },
   // Webpack configuration for handling CSS modules and dependencies
   webpack: (config, { isServer }) => {
     if (!isServer) {
