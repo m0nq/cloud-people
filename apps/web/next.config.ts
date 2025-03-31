@@ -20,6 +20,11 @@ const config: NextConfig = {
             rules: {
                 // Your Turbopack-specific rules here
             }
+        },
+        // Allow cross-origin requests from Windsurf browser preview
+        allowedDevOrigins: ['127.0.0.1'],
+        serverActions: {
+            allowedOrigins: ['localhost:3000', '127.0.0.1:52543']
         }
     },
     // Configure route segment config

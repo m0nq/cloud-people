@@ -1,0 +1,35 @@
+# Git / Version Control
+.git
+.gitignore
+
+# Dependencies / Cache
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+**/__pycache__
+.venv
+
+# Build artifacts (adjust if your build output directory is different)
+dist
+build
+out
+
+# Environment variables / Secrets
+.env*
+*.env
+!/.env.example
+
+# OS / IDE specific files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Test / Coverage reports
+coverage/
+.nyc_output/
