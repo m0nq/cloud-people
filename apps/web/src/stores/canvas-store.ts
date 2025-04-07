@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-type CanvasMode = 'canvas' | 'live';
+type CanvasMode = 'canvas' | 'dataflow';
 
 interface CanvasState {
     mode: CanvasMode;

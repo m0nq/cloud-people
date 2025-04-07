@@ -93,65 +93,74 @@ export const fetchNodes = async (config: QueryConfig = {}): Promise<Node[]> => {
 };
 
 export const updateNodes = async (config: QueryConfig = {}) => {
-    await authCheck();
+    try {
+        await authCheck();
 
-    const updateNodeMutation = `
-        mutation UpdateNodeMutation(
-            $set: NodesUpdateInput!,
-            $workflowId: UUID!,
-            $nodeId: UUID!,
-            $atMost: Int! = 1
-        ) {
-            collection: updateNodesCollection(
-                set: $set
-                filter: {
-                    workflow_id: { eq: $workflowId }
-                    id: { eq: $nodeId }
-                }
-                atMost: $atMost
+        const updateNodeMutation = `
+            mutation UpdateNodeMutation(
+                $set: NodesUpdateInput!,
+                $workflowId: UUID!,
+                $nodeId: UUID!,
+                $atMost: Int! = 1
             ) {
-                records {
-                    id
-                    workflow_id
-                    state
-                    current_step
-                    updated_at
+                collection: updateNodesCollection(
+                    set: $set
+                    filter: {
+                        workflow_id: { eq: $workflowId }
+                        id: { eq: $nodeId }
+                    }
+                    atMost: $atMost
+                ) {
+                    records {
+                        id
+                        workflow_id
+                        state
+                        current_step
+                        updated_at
+                    }
                 }
             }
-        }
-    `;
+        `;
 
-    if (!config.data?.workflowId || !config.data?.nodeId) {
-        throw new Error('Both workflowId and nodeId are required for updating a node');
-    }
-
-    const variables = {
-        set: {
-            state: config.data?.set?.state || WorkflowState.Initial,
-            current_step: config.data?.set?.current_step || '0',
-            updated_at: new Date().toISOString()  // Convert to ISO string format
-        },
-        workflowId: config.data?.workflowId,
-        nodeId: config.data?.nodeId,
-        atMost: 1
-    };
-
-    try {
-        const [node] = await connectToDB(updateNodeMutation, variables);
-
-        if (!node) {
-            throw new Error(`No node found with id ${config.data?.nodeId}`);
+        if (!config.data?.workflowId || !config.data?.nodeId) {
+            console.warn('Missing required parameters for updateNodes:', { config });
+            // Return empty object instead of throwing error to prevent console spam
+            return {};
         }
 
-        return {
-            ...node,
-            workflowId: node.workflow_id,
-            currentStep: node.current_step,
-            updatedAt: node.updated_at
-        } as Node<NodeData>;
+        const variables = {
+            set: {
+                state: config.data?.set?.state || WorkflowState.Initial,
+                current_step: config.data?.set?.current_step || '0',
+                updated_at: new Date().toISOString()  // Convert to ISO string format
+            },
+            workflowId: config.data?.workflowId,
+            nodeId: config.data?.nodeId,
+            atMost: 1
+        };
+
+        try {
+            const [node] = await connectToDB(updateNodeMutation, variables);
+
+            if (!node) {
+                console.warn(`No node found with id ${config.data?.nodeId}`);
+                return {};
+            }
+
+            return {
+                ...node,
+                workflowId: node.workflow_id,
+                currentStep: node.current_step,
+                updatedAt: node.updated_at
+            } as Node<NodeData>;
+        } catch (error) {
+            console.error('Failed to update node:', error);
+            // Return empty object instead of throwing error to prevent console spam
+            return {};
+        }
     } catch (error) {
-        console.error('Failed to update node:', error);
-        throw error;
+        console.error('Error in updateNodes:', error);
+        return {};
     }
 };
 

@@ -9,6 +9,8 @@ export enum AgentState {
     Paused = 'PAUSED'
 }
 
+import { AgentResult } from './result';
+
 export type AgentRuntimeState = {
     state: AgentState;
     isEditable: boolean;
@@ -18,4 +20,5 @@ export type AgentRuntimeState = {
     error?: string;
     assistanceMessage?: string;
     metadata?: Record<string, any>; // Store pause-related info here
+    result?: AgentResult | null;
 };

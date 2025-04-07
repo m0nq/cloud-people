@@ -465,11 +465,14 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                 }
 
                 // Set isResuming flag with node ID as the key for resumption
-                agentStore.setAgentData(agentId, {
-                    ...agentStore.getAgentData(agentId),
-                    isResuming: true,
-                    nodeId: nodeId // Store the node ID for reference
-                });
+                const currentAgentData = agentStore.getAgentData(agentId);
+                if (currentAgentData) {
+                    agentStore.setAgentData(agentId, {
+                        ...currentAgentData,
+                        isResuming: true,
+                        nodeId: nodeId // Store the node ID for reference
+                    });
+                }
 
                 transitionNode(set, nodes, nodeId, AgentState.Activating);
             } else {
@@ -501,7 +504,7 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
     };
 
     const progressWorkflow = async (nodeId: string, status: AgentState) => {
-        const { nodes, edges, workflowExecution } = get();
+        const { nodes, edges, workflowExecution, updateWorkflowContext } = get();
         const node = nodes.find(n => n.id === nodeId);
         if (!node || !isWorkflowNode(node)) return;
 
@@ -514,6 +517,23 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
             });
 
             if (status === AgentState.Complete) {
+                // Get the completed agent's result with validation
+                const completedAgentId = node.data.agentRef.agentId;
+                const completedAgentResult = useAgentStore.getState().getAgentResult(completedAgentId);
+                
+                if (completedAgentResult) {
+                    // Track successful data retrieval
+                    console.log(`[Telemetry] Data passing retrieve_result from ${completedAgentId}: Success`);
+                    
+                    // Update workflow context with the result
+                    updateWorkflowContext(completedAgentId, completedAgentResult);
+                    console.log(`[DEBUG] Updated workflow context with result from agent ${completedAgentId}`);
+                } else {
+                    // Track failed data retrieval
+                    console.log(`[Telemetry] Data passing retrieve_result from ${completedAgentId}: Failure`);
+                    console.warn(`[DEBUG] No result found for completed agent ${completedAgentId}`);
+                }
+                
                 // Check if the workflow is paused before proceeding to the next node
                 if (workflowExecution.state === WorkflowState.Paused) {
                     console.log(`[DEBUG] Workflow is paused, not activating next node after completion of ${nodeId}`);
@@ -531,6 +551,25 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                 const nextNode = findNextNode(nodes, edges, nodeId);
                 if (nextNode && isWorkflowNode(nextNode)) {
                     console.log(`[DEBUG] Activating next node ${nextNode.id} after completion of ${nodeId}`);
+
+                    // Get the next agent ID
+                    const nextAgentId = nextNode.data.agentRef.agentId;
+                    
+                    // Pass the previous agent's result to the next agent
+                    if (completedAgentResult) {
+                        // Update the agent data to include the previous agent output
+                        const nextAgentData = useAgentStore.getState().getAgentData(nextAgentId);
+                        if (nextAgentData) {
+                            useAgentStore.getState().setAgentData(nextAgentId, {
+                                ...nextAgentData,
+                                previousAgentOutput: completedAgentResult
+                            });
+                            
+                            // Track successful data passing
+                            console.log(`[Telemetry] Data passing pass_to_next from ${completedAgentId} to ${nextAgentId}: Success`);
+                            console.log(`[DEBUG] Passed result from agent ${completedAgentId} to agent ${nextAgentId}`);
+                        }
+                    }
 
                     // Start next node
                     useAgentStore.getState().transition(nextNode.id, AgentState.Activating);

@@ -50,30 +50,52 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
         const originalNodes = [...nodes];
 
         try {
-            const updatedNodes = applyNodeChanges(changes, nodes) as (Node<NodeData> | Node<InitialStateNodeData>)[];
+            // Create a deep copy of nodes to avoid read-only property issues
+            const nodesCopy = nodes.map(node => ({
+                ...node,
+                // Ensure position is a new object to avoid read-only issues
+                position: { ...node.position },
+                // Create new data object to avoid read-only issues
+                data: { ...node.data }
+            }));
+            
+            // Apply changes to the copied nodes
+            const updatedNodes = applyNodeChanges(changes, nodesCopy) as (Node<NodeData> | Node<InitialStateNodeData>)[];
             updateState(set, { nodes: updatedNodes });
 
-            // Update database for each changed node
-            await Promise.all(
-                updatedNodes.filter(isValidWorkflowNode)
-                    .map(async node => {
-                        await updateNodes({
-                            data: {
-                                workflowId: node.data.workflowId,
-                                nodeId: node.id,
-                                set: {
-                                    state: node.data.state,
-                                    updated_at: new Date()
-                                }
-                            }
-                        });
-                    })
+            // Only update database for position changes to reduce unnecessary calls
+            const positionChanges = changes.filter(
+                (change): change is PositionNodeChange => change.type === 'position'
             );
+
+            if (positionChanges.length > 0) {
+                await Promise.all(
+                    positionChanges.map(async change => {
+                        const node = updatedNodes.find(n => n.id === change.id);
+                        if (node && isValidWorkflowNode(node)) {
+                            await updateNodes({
+                                data: {
+                                    workflowId: node.data.workflowId,
+                                    nodeId: node.id,
+                                    set: {
+                                        state: node.data.state,
+                                        updated_at: new Date()
+                                    }
+                                }
+                            }).catch(err => {
+                                console.warn('Node update warning (non-critical):', err);
+                                // Don't throw here to prevent UI disruption
+                            });
+                        }
+                    })
+                );
+            }
         } catch (error) {
             console.error('Failed to update nodes:', error);
             // Rollback on error
             updateState(set, { nodes: originalNodes });
-            throw new Error('Failed to update nodes. Changes have been reverted.');
+            // Don't throw error to prevent UI disruption
+            console.warn('Failed to update nodes. Changes have been reverted.');
         }
     },
 
@@ -86,6 +108,12 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
         const originalEdges = get().edges;
 
         try {
+            // Create deep copies of edges to avoid read-only property issues
+            const edgesCopy = originalEdges.map(edge => ({
+                ...edge,
+                data: edge.data ? { ...edge.data } : undefined
+            }));
+
             // Group changes by type for atomic operations
             const deleteChanges = changes.filter(
                 (
@@ -98,51 +126,59 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
             const updateChanges = changes.filter(change => change.type !== 'remove');
 
             // Handle deletions first
-            if (deleteChanges.length) {
+            if (deleteChanges.length > 0) {
                 // Delete edges from database
                 await Promise.all(
-                    deleteChanges.map(async change => {
-                        const edge = originalEdges.find(e => e.id === change.id);
-                        if (edge) {
-                            // Get workflowId from source node since edge data might not have it
-                            const sourceNode = get().nodes.find(n => n.id === edge.source);
-                            const workflowId = sourceNode?.data?.workflowId;
-
-                            if (workflowId) {
-                                await deleteEdges({
-                                    edgeId: edge.id,
-                                    workflowId
-                                });
-                            }
+                    deleteChanges.map(async (change: DeleteEdgeChange) => {
+                        try {
+                            await deleteEdges({ edgeId: change.id });
+                        } catch (error) {
+                            console.warn(`Failed to delete edge ${change.id}:`, error);
+                            // Continue with UI updates even if DB delete fails
                         }
                     })
                 );
             }
 
-            // Apply changes to UI state
-            const updatedEdges = applyEdgeChanges<Edge<EdgeData>>(changes, originalEdges);
+            // Apply updates to the UI state
+            const updatedEdges = applyEdgeChanges(changes, edgesCopy) as Edge<EdgeData>[];
             updateState(set, { edges: updatedEdges });
 
-            // Handle updates (source/target changes)
-            if (updateChanges.length) {
+            // Handle updates
+            if (updateChanges.length > 0) {
+                // Update edges in database
                 await Promise.all(
-                    updatedEdges.map(async edge => {
-                        const sourceNode = get().nodes.find(n => n.id === edge.source);
-                        if (!sourceNode?.data?.workflowId) return;
-
-                        await updateEdges({
-                            edgeId: edge.id,
-                            workflowId: sourceNode.data.workflowId,
-                            source: edge.source,
-                            target: edge.target
-                        });
+                    updateChanges.map(async change => {
+                        // Safely check for ID property
+                        const changeId = 'id' in change ? change.id : undefined;
+                        if (!changeId) return;
+                        
+                        const edge = updatedEdges.find(e => e.id === changeId);
+                        if (edge?.data) {
+                            try {
+                                await updateEdges({
+                                    data: {
+                                        edgeId: edge.id,
+                                        workflowId: edge.data.workflowId,
+                                        set: {
+                                            updated_at: new Date()
+                                        }
+                                    }
+                                });
+                            } catch (error) {
+                                console.warn(`Failed to update edge ${edge.id}:`, error);
+                                // Continue with UI updates even if DB update fails
+                            }
+                        }
                     })
                 );
             }
         } catch (error) {
             console.error('Failed to update edges:', error);
-            // Rollback UI state on error
+            // Rollback on error
             updateState(set, { edges: originalEdges });
+            // Don't throw to prevent UI disruption
+            console.warn('Failed to update edges. Changes have been reverted.');
         }
     },
 
