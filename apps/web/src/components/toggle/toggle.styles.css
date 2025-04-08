@@ -1,0 +1,91 @@
+/* Toggle button styles */
+.toggle-button-cover {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.toggle-label {
+  margin-bottom: 5px;
+  font-size: 12px;
+  color: var(--text-primary);
+  opacity: 0.8;
+}
+
+.button {
+  position: relative;
+  width: 120px;
+  height: 32px;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+}
+
+.checkbox {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 3;
+}
+
+.knobs,
+.layer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.knobs {
+  z-index: 2;
+}
+
+.layer {
+  background-color: var(--background);
+  border-radius: 16px;
+  transition: 0.3s ease all;
+  z-index: 1;
+}
+
+#button-3 .knobs:before {
+  content: "SANDBOX";
+  position: absolute;
+  top: 2px;
+  left: 4px;
+  width: 70px;
+  height: 28px;
+  color: #333333;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  line-height: 28px;
+  background-color: #a5d6a7;
+  border-radius: 14px;
+  transition: 0.3s ease all, left 0.3s cubic-bezier(0.18, 0.89, 0.35, 1.15);
+}
+
+#button-3 .checkbox:active + .knobs:before {
+  width: 70px;
+}
+
+#button-3 .checkbox:checked:active + .knobs:before {
+  margin-left: -70px;
+}
+
+#button-3 .checkbox:checked + .knobs:before {
+  content: "LIVE";
+  left: 46px;
+  background-color: #f44336;
+  color: white;
+}

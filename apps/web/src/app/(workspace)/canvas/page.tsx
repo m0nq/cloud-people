@@ -12,6 +12,7 @@ import { CiSearch } from 'react-icons/ci';
 import { TbCalendarTime } from 'react-icons/tb';
 import { HiOutlinePencilAlt } from 'react-icons/hi';
 import { LinkNodeIcon } from '@components/icons/link-node-icon';
+import { Toggle } from '@components/toggle/toggle';
 
 import './canvas.styles.css';
 import { WorkflowRenderer } from './workflow-renderer';
@@ -57,6 +58,7 @@ const Canvas = (): ReactNode => {
     const { openTray } = useTrayStore();
     const addNode = useWorkflowStore((state) => state.addNode);
     const { currentWorkspace } = useWorkspaceStore();
+    const [featureEnabled, setFeatureEnabled] = useState(true);
 
     // Function to handle opening the agent selection tray
     const handleOpenAgentTray = () => {
@@ -117,6 +119,11 @@ const Canvas = (): ReactNode => {
                         <div className="flow-header">
                             <h1>{currentWorkspace?.name || 'Untitled Project'}</h1>
                         </div>
+                        <Toggle 
+                            initialState={featureEnabled}
+                            onChange={(isOn) => setFeatureEnabled(isOn)}
+                            label="Environment"
+                        />
                         <ReactFlow
                             nodeOrigin={[0.5, 0.5]}
                             nodesDraggable
