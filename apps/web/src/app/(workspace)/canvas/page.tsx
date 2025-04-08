@@ -93,6 +93,22 @@ const Canvas = (): ReactNode => {
         addNode(newNode);
     };
 
+    const handleAddCondition = () => {
+        const newNode: Node<NodeData> = {
+            id: `condition-${Date.now()}`,
+            type: NodeType.Condition,
+            data: {
+                id: `condition-${Date.now()}`,
+                type: NodeType.Condition,
+                label: 'Condition',
+                ifCondition: '',
+                thenAction: ''
+            },
+            position: { x: Math.random() * 500, y: Math.random() * 300 }
+        };
+        addNode(newNode);
+    };
+
     return (
         <ConditionalProfiler id="WorkflowContainer">
             <WorkflowRenderer>
@@ -130,7 +146,12 @@ const Canvas = (): ReactNode => {
                                 >
                                     <PiClipboardLight className="icon-button" strokeWidth={1.5} />
                                 </button>
-                                <button onClick={() => alert('Something magical just happened. ✨')}>
+                                <button 
+                                    onClick={handleAddCondition}
+                                    title="Add Condition"
+                                    aria-label="Add Condition"
+                                    data-component-name="WorkflowRenderer"
+                                >
                                     <LinkNodeIcon className="icon-button" />
                                 </button>
                                 <button onClick={() => alert('Something magical just happened. ✨')}>

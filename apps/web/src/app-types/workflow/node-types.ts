@@ -2,11 +2,12 @@ export enum NodeType {
     Initial = 'initial',
     Root = 'root',
     Agent = 'agent',
+    Approval = 'approval',
+    Delivery = 'delivery',
     CloudJesus = 'cloud-jesus',
-    Approval = 'approval-node',
-    Delivery = 'delivery-node',
     DatePicker = 'date-picker',
-    StickyNote = 'sticky-note'
+    StickyNote = 'sticky-note',
+    Condition = 'condition'
 }
 
 export enum EdgeType {

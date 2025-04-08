@@ -6,5 +6,6 @@ export { default as DeliveryNode } from './delivery-node';
 export { default as CloudJesusNode } from './cloud-jesus-node';
 export { default as DatePickerNode } from './date-picker-node';
 export { default as StickyNoteNode } from './sticky-note-node';
+export { ConditionNode } from './condition-node';
 export { default as AutomationEdge } from './automation-edge';
 export { HandleType } from './types.enum';

@@ -30,6 +30,7 @@ import { RootNode } from '@components/canvas-nodes';
 import { CloudJesusNode } from '@components/canvas-nodes';
 import { DatePickerNode } from '@components/canvas-nodes';
 import { StickyNoteNode } from '@components/canvas-nodes';
+import { ConditionNode } from '@components/canvas-nodes';
 import { layoutElements } from '@lib/dagre/dagre';
 import { EdgeType } from '@app-types/workflow/node-types';
 import { NodeType } from '@app-types/workflow/node-types';
@@ -62,7 +63,8 @@ const nodeTypes = {
     [NodeType.Delivery]: DeliveryNode,
     [NodeType.CloudJesus]: CloudJesusNode,
     [NodeType.DatePicker]: DatePickerNode,
-    [NodeType.StickyNote]: StickyNoteNode
+    [NodeType.StickyNote]: StickyNoteNode,
+    [NodeType.Condition]: ConditionNode
 } as NodeTypes;
 
 const edgeTypes = {
