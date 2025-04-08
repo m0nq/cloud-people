@@ -5,25 +5,23 @@ import { Profiler } from 'react';
 import '@xyflow/react/dist/style.css';
 import { Panel } from '@xyflow/react';
 import { ReactFlow } from '@xyflow/react';
-import { LuMousePointer } from 'react-icons/lu';
-// import { LuClock4 } from 'react-icons/lu';
-import { IoHandRightOutline } from 'react-icons/io5';
+import { Node } from '@xyflow/react';
 import { FiUserPlus } from 'react-icons/fi';
 import { PiClipboardLight } from 'react-icons/pi';
-import { CiCircleCheck } from 'react-icons/ci';
 import { CiSearch } from 'react-icons/ci';
 import { TbCalendarTime } from 'react-icons/tb';
 import { HiOutlinePencilAlt } from 'react-icons/hi';
+import { LinkNodeIcon } from '@components/icons/link-node-icon';
 
 import './canvas.styles.css';
 import { WorkflowRenderer } from './workflow-renderer';
-// import { CanvasController } from '@components/canvas-controller/canvas-controller';
-// import { CanvasRunButton } from '@components/canvas-run-button/canvas-run-button';
-import { BranchesIcon } from '@components/icons/branches-icon';
-import { DatePicker } from '@components/calendar/date-picker';
 import { useThemeStore } from '@stores/theme-store';
 import { useTrayStore } from '@stores/tray-store';
 import { Tray } from '@components/trays/tray';
+import { useWorkflowStore } from '@stores/workflow';
+import { useWorkspaceStore } from '@stores/workspace-store';
+import { NodeType } from '@app-types/workflow/node-types';
+import { NodeData } from '@app-types/workflow';
 
 // Profiler callback function to measure render performance
 // Only active in development mode
@@ -57,15 +55,42 @@ const Canvas = (): ReactNode => {
     const { isDarkMode } = useThemeStore();
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const { openTray } = useTrayStore();
+    const addNode = useWorkflowStore((state) => state.addNode);
+    const { currentWorkspace } = useWorkspaceStore();
 
     // Function to handle opening the agent selection tray
     const handleOpenAgentTray = () => {
         openTray({ type: 'agent-selection', sourceNodeId: null });
     };
 
-    const handleDateSelect = (date: Date) => {
-        console.log('Selected date:', date);
-        // Add your date handling logic here
+    const handleAddDatePicker = () => {
+        const newNode = {
+            id: `date-${Date.now()}`,
+            type: NodeType.DatePicker,
+            data: {
+                id: `date-${Date.now()}`,
+                type: NodeType.DatePicker,
+                label: 'Schedule',
+                selectedDate: undefined
+            },
+            position: { x: Math.random() * 500, y: Math.random() * 300 }
+        } as Node<NodeData>;
+        addNode(newNode);
+    };
+
+    const handleAddStickyNote = () => {
+        const newNode: Node<NodeData> = {
+            id: `note-${Date.now()}`,
+            type: NodeType.StickyNote,
+            data: {
+                id: `note-${Date.now()}`,
+                type: NodeType.StickyNote,
+                label: 'Note',
+                content: ''
+            },
+            position: { x: Math.random() * 500, y: Math.random() * 300 }
+        };
+        addNode(newNode);
     };
 
     return (
@@ -73,6 +98,9 @@ const Canvas = (): ReactNode => {
             <WorkflowRenderer>
                 {({ ...props }): ReactNode => (
                     <div className={`flow-container ${isDarkMode ? 'dark' : 'light'}`}>
+                        <div className="flow-header">
+                            <h1>{currentWorkspace?.name || 'Untitled Project'}</h1>
+                        </div>
                         <ReactFlow
                             nodeOrigin={[0.5, 0.5]}
                             nodesDraggable
@@ -83,31 +111,27 @@ const Canvas = (): ReactNode => {
                             panOnDrag
                             proOptions={{ hideAttribution: true }}
                             {...props}>
-                            {/*<Panel position="top-left" className="flow-panel">*/}
-                            {/*    <CanvasController />*/}
-                            {/*    <CanvasRunButton />*/}
-                            {/*</Panel>*/}
                             <Panel position="bottom-center" className="flow-controls">
-                                <button onClick={() => alert('Something magical just happened. ✨')}>
-                                    <LuMousePointer className="icon-button" strokeWidth={1.5} />
-                                </button>
-                                <button onClick={() => alert('Something magical just happened. ✨')}>
-                                    <IoHandRightOutline className="icon-button" strokeWidth={1.5} />
-                                </button>
                                 <button onClick={handleOpenAgentTray}>
                                     <FiUserPlus className="icon-button" strokeWidth={1.5} />
                                 </button>
-                                <button onClick={() => setIsCalendarOpen(true)}>
+                                <button 
+                                    onClick={handleAddDatePicker}
+                                    title="Add Schedule"
+                                    aria-label="Add Schedule"
+                                >
                                     <TbCalendarTime className="icon-button" strokeWidth={1.5} />
                                 </button>
-                                <button onClick={() => alert('Something magical just happened. ✨')}>
-                                    <BranchesIcon className="icon-button" />
-                                </button>
-                                <button onClick={() => alert('Something magical just happened. ✨')}>
+                                <button 
+                                    onClick={handleAddStickyNote}
+                                    title="Add Note"
+                                    aria-label="Add Note"
+                                    data-component-name="WorkflowRenderer"
+                                >
                                     <PiClipboardLight className="icon-button" strokeWidth={1.5} />
                                 </button>
                                 <button onClick={() => alert('Something magical just happened. ✨')}>
-                                    <CiCircleCheck className="icon-button" strokeWidth={0.5} />
+                                    <LinkNodeIcon className="icon-button" />
                                 </button>
                                 <button onClick={() => alert('Something magical just happened. ✨')}>
                                     <HiOutlinePencilAlt className="icon-button" strokeWidth={1.5} />
@@ -116,22 +140,7 @@ const Canvas = (): ReactNode => {
                                     <CiSearch className="icon-button" strokeWidth={0.5} />
                                 </button>
                             </Panel>
-                            {/*<Panel position="top-right" className="timing-controls">*/}
-                            {/*    <button onClick={() => alert('Search functionality coming soon!')}>*/}
-                            {/*        <CiSearch className="icon-button" strokeWidth={0.5} />*/}
-                            {/*    </button>*/}
-                            {/*</Panel>*/}
                         </ReactFlow>
-                        {isCalendarOpen && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-                                <div className="bg-white p-4 rounded-lg shadow-lg">
-                                    <DatePicker
-                                        isOpen={isCalendarOpen}
-                                        onClose={() => setIsCalendarOpen(false)}
-                                        onDateSelect={handleDateSelect} />
-                                </div>
-                            </div>
-                        )}
                         <Tray />
                     </div>
                 )}

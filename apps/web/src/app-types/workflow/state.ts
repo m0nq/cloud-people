@@ -42,7 +42,7 @@ export interface WorkflowActions {
     onEdgesChange: OnEdgesChange;
     onConnect: OnConnect;
     onBeforeDelete: OnBeforeDelete;
-    addNode: (agent: AgentData) => Promise<void>;
+    addNode: (node: Node<NodeData>) => Promise<Node<NodeData> | null>;
     onNodesDelete: (deletedNodes: Node[]) => Promise<void>;
     validateConnection: (connection: Connection) => boolean;
 

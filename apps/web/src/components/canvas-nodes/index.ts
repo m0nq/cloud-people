@@ -1,7 +1,10 @@
+export { default as AgentNode } from './agent-node';
 export { default as InitialStateNode } from './initial-state-node';
 export { default as RootNode } from './root-node';
-export { default as AgentNode } from './agent-node';
 export { default as ApprovalNode } from './approval-node';
 export { default as DeliveryNode } from './delivery-node';
+export { default as CloudJesusNode } from './cloud-jesus-node';
+export { default as DatePickerNode } from './date-picker-node';
+export { default as StickyNoteNode } from './sticky-note-node';
 export { default as AutomationEdge } from './automation-edge';
 export { HandleType } from './types.enum';

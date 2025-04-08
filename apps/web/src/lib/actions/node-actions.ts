@@ -4,10 +4,9 @@ import { type Node } from '@xyflow/react';
 import { authCheck } from '@lib/actions/authentication-actions';
 import type { QueryConfig } from '@app-types/api';
 import { WorkflowState } from '@app-types/workflow';
-import type { NodeData } from '@app-types/workflow';
 import { connectToDB } from '@lib/utils';
 
-export const createNodes = async (config: QueryConfig = {}): Promise<Node<NodeData>> => {
+export const createNodes = async (config: QueryConfig = {}): Promise<Node<Record<string, unknown>>> => {
     await authCheck();
 
     if (!config.data?.workflowId) {
@@ -15,16 +14,18 @@ export const createNodes = async (config: QueryConfig = {}): Promise<Node<NodeDa
     }
 
     const insertNodeMutation = `
-        mutation CreateNewNode($workflowId: UUID!, $nodeType: String!, $agentId: UUID) {
+        mutation CreateNewNode($workflowId: UUID!, $nodeType: String!, $agentId: UUID, $content: String) {
             collection: insertIntoNodesCollection(objects: [{
                 workflow_id: $workflowId,
                 current_step: "0",
                 node_type: $nodeType,
-                agent_id: $agentId
+                agent_id: $agentId,
+                content: $content
             }]) {
                 records {
                     id
                     agent_id
+                    content
                 }
             }
         } 
@@ -35,7 +36,8 @@ export const createNodes = async (config: QueryConfig = {}): Promise<Node<NodeDa
             ...config.data,
             workflowId: config.data?.workflowId,
             nodeType: config.data?.nodeType || 'agent',
-            agentId: config.data?.agentId
+            agentId: config.data?.agentId,
+            content: config.data?.content
         });
         if (!node?.id) {
             throw new Error('No ID returned');
@@ -148,7 +150,7 @@ export const updateNodes = async (config: QueryConfig = {}) => {
             workflowId: node.workflow_id,
             currentStep: node.current_step,
             updatedAt: node.updated_at
-        } as Node<NodeData>;
+        } as Node<Record<string, unknown>>;
     } catch (error) {
         console.error('Failed to update node:', error);
         throw error;

@@ -192,141 +192,44 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
         }
     },
 
-    addNode: async (agent: AgentData) => {
-        // Only log in development mode
-        if (process.env.NODE_ENV === 'development') {
-            console.log('addNode called with agent:', agent.id);
-        }
+    addNode: async (node: Node<NodeData>) => {
+        const state = get();
+        const { nodes } = state;
 
         try {
-            const { nodes, edges } = get();
-            const parentNode = nodes.find(node => node.id === agent.parentNodeId);
-
-            if (!parentNode?.data?.workflowId) {
-                throw new Error('Parent node not found or missing workflowId');
-            }
-
-            // Get existing children of the parent node
-            const existingChildren = getSiblings(parentNode, edges);
-            
-            // TODO: Parallel node execution will be implemented in a future update.
-            // For now, we restrict each node to having at most one child to maintain
-            // a simple linear workflow structure.
-            if (existingChildren.length >= 1) {
-                alert('Node already has a child. Parallel execution is not yet supported.');
-                return;
-            }
-
-            // TODO: ensure that an agent and it's tools are associated with this node
-            const agentRecord = await fetchAgent({ agentId: agent.id });
-            if (!agentRecord?.id) {
-                throw new Error('Failed to fetch agent record');
-            }
-
-            // Get siblings and calculate positions
-            const siblings = getSiblings(parentNode, edges);
-            const allNodePositions = calculateNodePositions(parentNode, siblings, edges);
-
-            // Prepare all changes to be applied in a single batch update
-            let newNodeId = '';
-            let newEdgeId = '';
-            
-            // Create the new node in the database
-            const node = await createNodes({
+            // Create node in database
+            const dbNode = await createNodes({
                 data: {
-                    agentId: agentRecord.id,
-                    workflowId: parentNode.data.workflowId,
-                    name: agentRecord.name,
-                    description: agentRecord.description,
-                    tools: agentRecord.tools?.length && agentRecord.tools || []
+                    workflowId: state.workflowExecution?.workflowId,
+                    nodeType: node.type
                 }
             });
-            newNodeId = node.id;
 
-            // Update the agent data with the node ID
-            const agentStore = useAgentStore.getState();
-            const updatedAgentData = {
-                ...agent,
-                id: newNodeId,
-                nodeId: newNodeId
-            };
-            agentStore.setAgentData(newNodeId, updatedAgentData);
+            if (!dbNode || !dbNode?.id) {
+                throw new Error('Failed to create node');
+            }
 
-            // Get position for new node
-            const newNodePosition = allNodePositions.find(pos => pos.id === 'new-node')?.position;
-
-            // Create edge connecting to parent in the database
-            const edgeId = await createEdge({
+            // Map database node to UI node
+            const newNode = {
+                ...node,
+                id: dbNode.id,
                 data: {
-                    workflowId: parentNode.data.workflowId,
-                    toNodeId: newNodeId,
-                    fromNodeId: parentNode.id
-                }
-            });
-            newEdgeId = edgeId;
-
-            // Prepare the new node with calculated position
-            const newNode: Node<NodeData> = {
-                id: newNodeId,
-                type: NodeType.Agent,
-                position: newNodePosition || { x: 0, y: 0 },
-                sourcePosition: Position.Right,
-                targetPosition: Position.Left,
-                data: {
-                    id: newNodeId,
-                    type: NodeType.Agent,
-                    workflowId: parentNode.data.workflowId,
-                    agentRef: { agentId: agent.id },
-                    state: AgentState.Initial
+                    ...node.data,
+                    id: dbNode.id,
+                    workflowId: state.workflowExecution?.workflowId
                 }
             };
 
-            // Create edge with unique ID and proper data
-            const newEdge: Edge<EdgeData> = {
-                id: newEdgeId,
-                source: parentNode.id,
-                target: newNodeId,
-                type: EdgeType.Automation,
-                animated: true,
-                data: {
-                    id: newEdgeId,
-                    workflowId: parentNode.data.workflowId,
-                    toNodeId: newNodeId,
-                    fromNodeId: parentNode.id
-                }
-            };
-
-            // Apply all changes in a single update to reduce rerenders
-            if (process.env.NODE_ENV === 'development') {
-                console.log('Updating state with new node and edge');
-            }
-            updateState(set, {
-                nodes: [
-                    ...nodes,
-                    newNode
-                ],
-                edges: [
-                    ...edges,
-                    newEdge
-                ]
+            // Update state with new node
+            set({
+                ...state,
+                nodes: [...nodes, newNode]
             });
-
-            // Update positions of existing siblings if needed
-            if (siblings.length > 0) {
-                const nodeChanges = allNodePositions
-                    .filter(pos => pos.id !== 'new-node')
-                    .map(pos => ({
-                        type: 'position' as const,
-                        id: pos.id,
-                        position: pos.position
-                    }));
-                get().onNodesChange?.(nodeChanges);
-            }
 
             return newNode;
         } catch (error) {
             console.error('Failed to add node:', error);
-            throw error;
+            return null;
         }
     },
 
