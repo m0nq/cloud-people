@@ -2,12 +2,9 @@ import { useCallback } from 'react';
 import { useState } from 'react';
 
 import { AgentState } from '@app-types/agent';
-import { AgentData } from '@app-types/agent/config';
 import { AgentResult } from '@app-types/agent';
-
+import { AgentData } from '@app-types/agent/config';
 import { useAgentStore } from '@stores/agent-store';
-import { useWorkflowStore } from '@stores/workflow';
-import { updateState } from '@stores/workflow';
 import { pauseAgentExecution } from '@lib/agent-operations';
 
 interface AgentHookResponse {
@@ -22,7 +19,7 @@ interface AgentHookResponse {
 const trackDataPassingEvent = (taskId: string, operation: string, success: boolean) => {
     // Implementation would depend on your analytics system
     console.log(`[Telemetry] Data passing ${operation} for task ${taskId}: ${success ? 'Success' : 'Failure'}`);
-    
+
     // In a real implementation, you would send this to your analytics system
     // analyticsClient.track('workflow_data_passing', { taskId, operation, success });
 };
@@ -179,7 +176,7 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
                                         trackDataPassingEvent(taskId, 'store_result', true);
                                         console.log(`[DEBUG] Stored result for agent ${agentData.id}:`, statusData.result);
                                     }
-                                    
+
                                     onStatusChange?.(AgentState.Complete);
                                     setResult(statusData.result);
                                 } else {
@@ -223,10 +220,10 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
             } catch (error) {
                 retryCount++;
                 console.error(`Error executing task (attempt ${retryCount}/${maxRetries}):`, error);
-                
+
                 // Track failed data passing
                 trackDataPassingEvent(agentData.id, 'execute', false);
-                
+
                 if (retryCount >= maxRetries) {
                     console.error('Error executing action:', error);
                     setError(error instanceof Error ? error.message : 'An unknown error occurred');
@@ -256,7 +253,7 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
 
                     return error instanceof Error ? error.message : 'An unknown error occurred';
                 }
-                
+
                 // Exponential backoff
                 await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
             } finally {
@@ -264,14 +261,14 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
                 setIsProcessing(false);
             }
         }
-        
+
         return 'Task completed with retries';
     }, [agentData, isProcessing, onStatusChange, setAgentResult]);
 
     // Create a new task
     const createTask = async (currentTaskId: string, retryCount = 0): Promise<any> => {
         const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
-        
+
         try {
             // Serialize previous output for transmission if available
             let previousOutput: AgentResult | undefined = undefined;
@@ -285,23 +282,23 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
                     trackDataPassingEvent(currentTaskId, 'include_previous_output', false);
                 }
             }
-            
+
             // Create task request with previous agent output
             const taskRequest: any = {
                 task: agentData?.description,
                 task_id: currentTaskId,
                 operation_timeout: 300,
                 headless: true,
-                persistent_session: true,
+                persistent_session: true
             };
-            
-            // Only add previous_output if it exists
+
+            // Only add previous_agent_output if it exists
             if (previousOutput) {
-                taskRequest.previous_output = previousOutput;
+                taskRequest.previous_agent_output = previousOutput;
             }
-            
+
             console.log(`Creating task with request:`, taskRequest);
-            
+
             const response = await fetch(`${browserUseEndpoint}/execute`, {
                 method: 'POST',
                 headers: {
@@ -316,17 +313,17 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
 
             const responseData = await response.json();
             console.log(`Successfully created task ${currentTaskId}:`, responseData);
-            
+
             // Track successful task creation
             trackDataPassingEvent(currentTaskId, 'create_task', true);
-            
+
             return responseData;
         } catch (error) {
             console.error(`Error creating task (attempt ${retryCount + 1}):`, error);
-            
+
             // Track failed task creation
             trackDataPassingEvent(currentTaskId, 'create_task', false);
-            
+
             // Retry a few times with exponential backoff
             if (retryCount < 2) {
                 const backoffTime = Math.pow(2, retryCount) * 1000;
@@ -334,7 +331,7 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
                 await new Promise(resolve => setTimeout(resolve, backoffTime));
                 return createTask(currentTaskId, retryCount + 1);
             }
-            
+
             throw error;
         }
     };

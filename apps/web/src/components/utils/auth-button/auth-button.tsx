@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 
 import { createClient } from '@lib/supabase/client';
 import { signOut } from '@lib/actions/authentication-actions';
+import { useUser } from '@contexts/user-context';
 
 type AuthButtonProps = {
     formAction: string | ((formData: FormData) => void) | undefined;
@@ -14,18 +15,26 @@ type AuthButtonProps = {
 };
 
 export const AuthenticationButton = ({ formAction, buttonType, className }: AuthButtonProps) => {
-    const [user, setUser] = useState<any>(null);
+    const { user, isLoading, usingMockService } = useUser();
+    const [supabaseUser, setSupabaseUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const supabase = createClient();
 
     // Memoize the supabase auth object to prevent infinite rerenders
     const supabaseAuth = useMemo(() => supabase.auth, [supabase]);
 
+    // Only fetch from Supabase if we're not using the mock service
     useEffect(() => {
+        // Skip Supabase auth if we're using mock service
+        if (usingMockService) {
+            setLoading(false);
+            return;
+        }
+
         const getUser = async () => {
             try {
                 const { data: { user } } = await supabaseAuth.getUser();
-                setUser(user);
+                setSupabaseUser(user);
             } catch (error) {
                 console.error('Error fetching user:', error);
             } finally {
@@ -36,21 +45,25 @@ export const AuthenticationButton = ({ formAction, buttonType, className }: Auth
         getUser();
 
         const { data: { subscription } } = supabaseAuth.onAuthStateChange((_event, session) => {
-            setUser(session?.user ?? null);
+            setSupabaseUser(session?.user ?? null);
         });
 
         return () => {
             subscription.unsubscribe();
         };
-    }, [supabaseAuth]);
+    }, [supabaseAuth, usingMockService]);
 
-    if (loading) {
+    // Use either the user from context (for mock) or from Supabase (for real auth)
+    const currentUser = usingMockService ? user : supabaseUser;
+    const isUserLoading = usingMockService ? isLoading : loading;
+
+    if (isUserLoading) {
         return null; // Or a loading spinner
     }
 
-    return user ? (
+    return currentUser ? (
         <div className="flex items-center gap-4">
-            Hey, {user.email}!
+            Hey, {currentUser.email}!
             <button formAction={signOut} className={className}>
                 Logout
             </button>

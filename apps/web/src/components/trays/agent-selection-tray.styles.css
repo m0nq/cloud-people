@@ -91,7 +91,7 @@
     }
 
     .agent-tray-list {
-        @apply h-fit;
+        @apply h-fit flex flex-col gap-3;
 
         .agent-tray-list-item {
             @apply cursor-pointer;

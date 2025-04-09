@@ -203,15 +203,15 @@ CREATE OR REPLACE FUNCTION "public"."update_tool_usage"() RETURNS "trigger"
     AS $$
 BEGIN
     UPDATE "public"."Tools"
-    SET 
+    SET
         last_used_at = NOW(),
         usage_count = usage_count + 1
     WHERE id = NEW.tool_id;
-    
+
     -- Also update the AgentTools usage statistics
     NEW.last_used_at = NOW();
     NEW.usage_count = COALESCE(NEW.usage_count, 0) + 1;
-    
+
     RETURN NEW;
 END;
 $$;
@@ -248,7 +248,7 @@ CREATE TABLE IF NOT EXISTS "public"."Agents" (
     "context_window" "text",
     "memory_limit" "text" NOT NULL,
     "budget" numeric DEFAULT 0.00 NOT NULL,
-    "models" "text"[] DEFAULT '{}'::"text"[]
+    "models" "text" DEFAULT 'gemini-2.0-flash'::"text" NOT NULL
 );
 
 

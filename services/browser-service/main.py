@@ -21,6 +21,7 @@ from fastapi import WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pydantic import Field
+from pydantic import validator
 import gradio as gr
 
 from core.agent_adapter import AgentAdapter
@@ -302,6 +303,17 @@ class TaskRequest(BaseModel):
     headless: Optional[bool] = False
     persistent_session: Optional[bool] = False
     options: Optional[Dict[str, Any]] = None
+    previous_agent_output: Optional[Dict[str, Any]] = None
+    
+    @validator('previous_agent_output')
+    def validate_previous_output(cls, v):
+        if v is not None:
+            # Ensure it has the expected structure
+            if not isinstance(v, dict):
+                raise ValueError('Previous agent output must be a dictionary')
+            if 'data' not in v:
+                raise ValueError('Previous agent output must contain a data field')
+        return v
 
 # Execute a browser task
 @app.post("/execute", response_model=TaskStatus)
@@ -322,21 +334,14 @@ async def execute_task(request: TaskRequest):
     task_status = TaskStatus(
         task_id=task_id,
         status="pending",
-        metadata={
-            "task": request.task,
-            "llm_provider": request.llm_provider.type if request.llm_provider else get_default_provider(),
-            "headless": request.headless,
-            "persistent_session": request.persistent_session or False,
-        }
+        start_time=datetime.now()
     )
     
-    # Store task status
+    # Store task status and request
     active_tasks[task_id] = task_status
-    
-    # Store the original request for potential resume operations
     task_requests[task_id] = request
     
-    # Start task in background
+    # Start the task in a background task
     asyncio.create_task(run_task(task_id, request, task_status))
     
     return task_status
@@ -345,89 +350,66 @@ async def execute_task(request: TaskRequest):
 async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
     """Run a task in the background"""
     try:
-        # Update task status to running
+        # Update task status
         task_status.status = "running"
-        task_status.start_time = datetime.now()
+        
+        # Broadcast update
         await broadcast_task_update(task_id, task_status)
         
-        # Configure the LLM provider
-        llm_provider = None
-        if request.llm_provider:
-            llm_provider = request.llm_provider
-        else:
-            # Use default provider
-            default_provider = get_default_provider()
-            if default_provider:
-                llm_provider = ProviderConfig(
-                    type=default_provider,
-                    model=get_default_model_for_provider(default_provider),
-                    api_key=get_api_key_for_provider(default_provider)
-                )
-        
-        # Check if we're resuming from a saved state
-        resume_options = None
-        if request.options and "resume_from" in request.options:
-            resume_options = request.options["resume_from"]
-            logger.info(f"Resuming task {task_id} from saved state: {resume_options}")
-        
-        # Execute the task
-        result = await agent_adapter.execute_task(
-            task=request.task,
-            task_id=task_id,
-            headless=request.headless if request.headless is not None else True,
-            llm_provider=llm_provider,
-            operation_timeout=request.operation_timeout or DEFAULT_OPERATION_TIMEOUT,
-            options=request.options
+        # Get LLM provider
+        llm_provider = request.llm_provider or ProviderConfig(
+            type=get_default_provider(),
+            model=get_default_model_for_provider(get_default_provider()),
+            api_key=get_api_key_for_provider(get_default_provider())
         )
         
-        # Check if the task was paused during execution
-        # If it was paused, we don't want to update its status or move it to history
-        if task_id in active_tasks and active_tasks[task_id].status == "paused":
-            logger.info(f"Task {task_id} was paused during execution, not updating status")
-            return
+        # Extract previous agent output if available
+        previous_agent_output = request.previous_agent_output
+        if previous_agent_output:
+            logger.info(f"Task {task_id} includes previous agent output")
         
-        # Update task status based on result
+        # Execute task using the agent adapter
+        response = await agent_adapter.execute_task(
+            task=request.task,
+            task_id=task_id,
+            headless=request.headless or True,
+            llm_provider=llm_provider,
+            operation_timeout=request.operation_timeout or DEFAULT_OPERATION_TIMEOUT,
+            options=request.options,
+            previous_output=previous_agent_output  # Pass previous agent output
+        )
+        
+        # Update task status
+        task_status.status = response.get("status", "error")
+        task_status.result = response.get("result")
+        task_status.error = response.get("error")
         task_status.end_time = datetime.now()
-        task_status.progress = 1.0
         
-        if result.get("status") == "success":
-            task_status.status = "completed"
-            task_status.result = result
-        elif result.get("status") == "needs_assistance":
-            task_status.status = "needs_assistance"
-            task_status.assistance_message = result.get("message", "Assistance needed")
-            task_status.result = result
-        else:
-            task_status.status = "failed"
-            task_status.error = result.get("message", "Unknown error")
-        
-        # Broadcast the update
-        await broadcast_task_update(task_id, task_status)
-        
-        # Move task to history
-        if task_status.status in ["completed", "failed"]:
+        # Move to history if complete
+        if task_status.status in ["success", "error"]:
             task_history[task_id] = task_status
-            if task_id in active_tasks:
-                del active_tasks[task_id]
+            del active_tasks[task_id]
         
-        logger.info(f"Task {task_id} completed with status: {task_status.status}")
-        
-    except Exception as e:
-        # Check if the task was paused during execution
-        if task_id in active_tasks and active_tasks[task_id].status == "paused":
-            logger.info(f"Task {task_id} was paused during execution, not updating status")
-            return
-            
-        logger.exception(f"Error executing task {task_id}: {str(e)}")
-        task_status.status = "failed"
-        task_status.end_time = datetime.now()
-        task_status.error = str(e)
+        # Broadcast update
         await broadcast_task_update(task_id, task_status)
         
-        # Move task to history
+        return response
+    except Exception as e:
+        logger.exception(f"Error running task {task_id}: {str(e)}")
+        
+        # Update task status
+        task_status.status = "error"
+        task_status.error = str(e)
+        task_status.end_time = datetime.now()
+        
+        # Move to history
         task_history[task_id] = task_status
-        if task_id in active_tasks:
-            del active_tasks[task_id]
+        del active_tasks[task_id]
+        
+        # Broadcast update
+        await broadcast_task_update(task_id, task_status)
+        
+        return {"status": "error", "error": str(e)}
 
 # WebSocket for real-time updates
 @app.websocket("/ws/{client_id}")
