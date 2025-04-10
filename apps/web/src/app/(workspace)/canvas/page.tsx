@@ -14,15 +14,16 @@ import { CiCircleCheck } from 'react-icons/ci';
 import { CiSearch } from 'react-icons/ci';
 import { TbCalendarTime } from 'react-icons/tb';
 import { HiOutlinePencilAlt } from 'react-icons/hi';
-
-import './canvas.styles.css';
-import { WorkflowRenderer } from './workflow-renderer';
-import { CanvasView } from '@components/canvas-view/canvas-view';
 import { BranchesIcon } from '@components/icons/branches-icon';
 import { DatePicker } from '@components/calendar/date-picker';
 import { useThemeStore } from '@stores/theme-store';
 import { useTrayStore } from '@stores/tray-store';
+import { useModalStore } from '@stores/modal-store';
 import { Tray } from '@components/trays/tray';
+
+import './canvas.styles.css';
+import { WorkflowRenderer } from './workflow-renderer';
+import { CanvasView } from '@components/canvas-view/canvas-view';
 
 // Profiler callback function to measure render performance
 // Only active in development mode
@@ -56,6 +57,7 @@ const Canvas = (): ReactNode => {
     const { isDarkMode } = useThemeStore();
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const { openTray } = useTrayStore();
+    const { openModal } = useModalStore();
 
     // Function to handle opening the agent selection tray
     const handleOpenAgentTray = () => {
@@ -95,7 +97,7 @@ const Canvas = (): ReactNode => {
                                     <button onClick={() => alert('Something magical just happened. ✨')}>
                                         <IoHandRightOutline className="icon-button" strokeWidth={1.5} />
                                     </button>
-                                    <button onClick={handleOpenAgentTray}>
+                                    <button onClick={() => openModal({ type: 'agent-config', parentNodeId: '' })}>
                                         <FiUserPlus className="icon-button" strokeWidth={1.5} />
                                     </button>
                                     <button onClick={() => setIsCalendarOpen(true)}>

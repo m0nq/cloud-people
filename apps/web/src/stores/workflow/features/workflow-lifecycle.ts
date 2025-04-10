@@ -15,6 +15,7 @@ import { updateNodes } from '@lib/actions/node-actions';
 import { ROOT_NODE_POSITION } from '@config/layout.const';
 import { NodeType } from '@app-types/workflow/node-types';
 import type { AgentData } from '@app-types/agent';
+import { v4 as uuidv4 } from 'uuid';
 
 export function createWorkflowLifecycle(set: Function, get: Function) {
     return {
@@ -77,6 +78,45 @@ export function createWorkflowLifecycle(set: Function, get: Function) {
             } catch (error) {
                 console.error('Failed to create workflow:', error);
                 throw error; // Re-throw to let UI handle the error
+            }
+        },
+
+        createMockWorkflow: () => {
+            console.log('Workflow Store: Creating MOCK workflow');
+            try {
+                // Generate mock IDs
+                const mockWorkflowId = `mock-wf-${uuidv4()}`;
+                const mockNodeId = `mock-root-${uuidv4()}`;
+
+                // Create mock root node for UI state
+                const mockNode = {
+                    id: mockNodeId,
+                    type: NodeType.Root,
+                    data: {
+                        id: mockNodeId,
+                        type: NodeType.Root,
+                        workflowId: mockWorkflowId, // Set mock workflowId
+                        // Add any other default data needed for a root node
+                        label: 'Workflow Root',
+                        state: undefined, // Changed from WorkflowState.Initial
+                        current_step: '0',
+                        agentRef: { agentId: '' } // Changed to placeholder object
+                    },
+                    position: ROOT_NODE_POSITION
+                } as Node<NodeData>;
+
+                // Update UI state directly
+                updateState(set, {
+                    nodes: [mockNode],
+                    edges: []
+                    // Removed workflowId: mockWorkflowId from here
+                });
+
+                console.log('Mock workflow created locally with root node:', mockNode);
+                return mockWorkflowId; // Return mock ID for potential use
+            } catch (error) {
+                console.error('Failed to create mock workflow:', error);
+                // Handle potential state update errors if necessary
             }
         },
 
@@ -186,8 +226,8 @@ export function createWorkflowLifecycle(set: Function, get: Function) {
                 // will need to parse graph into singular lists of nodes and edges
                 // then update zustand state
                 updateState(set, {
-                    nodes: fetchWorkflowNodes(),
-                    edges: fetchWorkflowEdges()
+                    nodes: await fetchWorkflowNodes(), // Added await
+                    edges: await fetchWorkflowEdges()  // Added await
                 });
             } catch (error) {
                 console.error('Failed to fetch graph from database:', error);

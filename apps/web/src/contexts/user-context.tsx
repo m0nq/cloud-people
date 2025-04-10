@@ -31,7 +31,7 @@ const UserContext = createContext<UserContextType>({
   getAgents: () => Promise.resolve([]),
   getUserWorkflows: () => Promise.resolve([]),
   signOut: () => Promise.resolve(),
-  usingMockService: false,
+  usingMockService: false, // Default initial value
   toggleServiceMode: () => { }
 });
 
@@ -40,18 +40,35 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // Check if we're using the mock service
-  const usingMockService = userService._mode === 'mock';
+  // State for service mode, initialized based on server default, but updated client-side
+  const [usingMockService, setUsingMockService] = useState(() => {
+    // Initial value respects server-determined mode if available, else defaults
+    return userService._mode === 'mock';
+  });
 
   // Function to toggle between real and mock service modes
   const toggleServiceMode = () => {
     if (typeof window !== 'undefined') {
-      const newMode = userService._mode === 'real' ? 'mock' : 'real';
+      const currentMode = localStorage.getItem('serviceProviderMode') || userService._mode;
+      const newMode = currentMode === 'real' ? 'mock' : 'real';
       localStorage.setItem('serviceProviderMode', newMode);
-      // Force a page refresh to apply the new mode
+      // Force a page refresh to apply the new mode globally
       window.location.reload();
     }
   };
+
+  // Effect to synchronize state with localStorage on client-side load
+  useEffect(() => {
+    const storedMode = localStorage.getItem('serviceProviderMode');
+    if (storedMode === 'real' || storedMode === 'mock') {
+        console.log('[Client] Updating service mode from localStorage:', storedMode);
+        setUsingMockService(storedMode === 'mock');
+    } else {
+        // If nothing in localStorage, ensure state matches the initial userService mode
+        // This handles the very first load before localStorage is set.
+        setUsingMockService(userService._mode === 'mock');
+    }
+  }, []); // Empty dependency array: runs only once on client mount
 
   // Load user on initial mount
   useEffect(() => {

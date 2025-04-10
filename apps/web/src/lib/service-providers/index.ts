@@ -55,26 +55,34 @@ export function createServiceProvider<T>(
  * Determines which provider mode to use based on configuration and environment
  */
 function determineProviderMode(config: ServiceProviderConfig): ProviderMode {
+    const context = typeof window !== 'undefined' ? 'Client' : 'Server';
+    console.log(`[${context}] Determining provider mode...`, config);
+
     // Check for explicit override mode in config
     if (config.overrideMode) {
+        console.log(`[${context}] Using config.overrideMode: ${config.overrideMode}`);
         return config.overrideMode;
     }
 
     // Check for environment variable override
     const env = getEnvConfig();
     if (env.NEXT_PUBLIC_SERVICE_MODE === 'mock' || env.NEXT_PUBLIC_SERVICE_MODE === 'real') {
+        console.log(`[${context}] Using env.NEXT_PUBLIC_SERVICE_MODE: ${env.NEXT_PUBLIC_SERVICE_MODE}`);
         return env.NEXT_PUBLIC_SERVICE_MODE;
     }
 
     // Check for localStorage override (client-side only)
     if (typeof window !== 'undefined') {
         const localStorageMode = localStorage.getItem('serviceProviderMode') as ProviderMode | null;
+        console.log(`[${context}] localStorage serviceProviderMode:`, localStorageMode);
         if (localStorageMode === 'mock' || localStorageMode === 'real') {
+            console.log(`[${context}] Using localStorageMode: ${localStorageMode}`);
             return localStorageMode;
         }
     }
 
     // Fall back to default mode
+    console.log(`[${context}] Falling back to config.defaultMode: ${config.defaultMode}`);
     return config.defaultMode;
 }
 
