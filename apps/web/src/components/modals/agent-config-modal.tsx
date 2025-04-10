@@ -123,14 +123,14 @@ export const AgentConfigModal = () => {
                 });
 
                 // 2. Prepare data structure (match AgentData where possible, use snake_case if createAgent needs it)
-                // Assuming createAgent might expect snake_case for DB columns
+                // Assuming createAgent might expect snake_case for DB columns (Correction: It expects vars matching GraphQL defs)
                 const agentDataForAction = {
                     name: validatedData.name,
                     description: validatedData.description,
                     speed: validatedData.speed,
-                    context_window: validatedData.contextWindow || null, // snake_case for action
-                    memory_limit: validatedData.memoryLimit, // snake_case for action
-                    budget: validatedData.budget,
+                    contextWindow: validatedData.contextWindow || null, // Use camelCase to match GraphQL var $contextWindow
+                    memoryLimit: validatedData.memoryLimit,       // Use camelCase to match GraphQL var $memoryLimit
+                    budget: validatedData.budget.toString(), // Convert number to string for BigFloat
                     model: validatedData.model,
                     tools: validatedData.tools ? validatedData.tools.split(',').map(t => t.trim()).filter(t => t) : [],
                     // Other fields might be set by the server action (like owner_id, status, timestamps)
@@ -140,7 +140,8 @@ export const AgentConfigModal = () => {
                     // === REAL MODE: Call Server Action ===
                     console.log('Agent Config: Using REAL service - calling createAgent');
                     try {
-                        const createdAgent = await createAgent(agentDataForAction); // Assume returns AgentData or throws
+                        // Wrap the data in the expected { data: ... } structure
+                        const createdAgent = await createAgent({ data: agentDataForAction }); // Correctly wrapped
 
                         if (createdAgent?.id) {
                             console.log('Agent created successfully via Supabase:', createdAgent);

@@ -81,7 +81,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     try {
       return await userService.getAgents();
     } catch (error) {
-      console.error('Error getting agents:', error);
+      console.error('Error getting agents:', error instanceof Error ? error.message : JSON.stringify(error));
       return [];
     }
   };

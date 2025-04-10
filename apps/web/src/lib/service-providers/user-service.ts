@@ -113,7 +113,7 @@ class RealUserService implements UserService {
 
     async getAgents(): Promise<any[]> {
         const { data, error } = await this.supabase
-            .from('agents')
+            .from('Agents')
             .select('*')
             .order('created_at', { ascending: false });
 
