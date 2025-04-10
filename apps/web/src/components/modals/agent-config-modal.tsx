@@ -95,7 +95,7 @@ export const AgentConfigModal = () => {
             contextWindow: '',
             memoryLimit: MemoryLimit.Small,
             budget: '0.00',
-            model: 'gemini-2.0-flash',
+            model: 'gemini-2.5-pro',
             tools: ''
         },
         validate: async values => {
@@ -153,8 +153,8 @@ export const AgentConfigModal = () => {
                             setError('Failed to create agent via Supabase (unexpected result).');
                         }
                     } catch (actionError) {
-                         console.error('Error calling createAgent action:', actionError);
-                         setError(actionError instanceof Error ? actionError.message : 'Failed to create agent via Supabase.');
+                        console.error('Error calling createAgent action:', actionError);
+                        setError(actionError instanceof Error ? actionError.message : 'Failed to create agent via Supabase.');
                     }
                 } else {
                     // === MOCK MODE: Update Local Store ===
@@ -229,7 +229,7 @@ export const AgentConfigModal = () => {
                                 placeholder="Give your agent a name..."
                                 className="name-input" {...formik.getFieldProps('name')} />
                             {formik.touched.name && formik.errors.name &&
-                              <div className="w-full h-fit text-white">{formik.errors.name}</div>}
+                                <div className="w-full h-fit text-white">{formik.errors.name}</div>}
                         </div>
                         <button type="button" className="minimize-button" onClick={handleClick}>
                             <MinimizeIcon color="white" width={24} height={24} />
@@ -250,7 +250,7 @@ export const AgentConfigModal = () => {
                                 placeholder="Does research on historical data and current trends to identify trends and holes in the market for the company to fill."
                             />
                             {formik.touched.description && formik.errors.description &&
-                              <div className="w-full h-fit text-white">{formik.errors.description}</div>}
+                                <div className="w-full h-fit text-white">{formik.errors.description}</div>}
                         </div>
                     </div>
 
@@ -326,7 +326,7 @@ export const AgentConfigModal = () => {
                                     />
                                 </div>
                                 {formik.touched.budget && formik.errors.budget &&
-                                  <div className="text-white w-full h-fit">{formik.errors.budget}</div>}
+                                    <div className="text-white w-full h-fit">{formik.errors.budget}</div>}
                             </div>
                         </div>
 

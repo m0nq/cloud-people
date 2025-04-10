@@ -9,12 +9,6 @@ import { ModalComponents } from './modal-component.type';
 import { useShallow } from 'zustand/react/shallow';
 
 const Modal = () => {
-    // Only log in development mode
-    if (process.env.NODE_ENV === 'development') {
-        console.log('Modal component rendering');
-    }
-    
-    // Use shallow comparison to prevent unnecessary rerenders
     const { isOpen, modalType, closeModal, parentNodeId } = useModalStore(
         useShallow(state => ({
             isOpen: state.isOpen,
@@ -23,14 +17,12 @@ const Modal = () => {
             parentNodeId: state.parentNodeId
         }))
     );
-    
-    // Memoize the addNode function to prevent unnecessary rerenders
+
     const { addNode } = useWorkflowStore(useShallow(state => ({ addNode: state.addNode })));
 
-    // Memoize the handleSelect callback
     const handleSelect = useCallback((agentData) => {
-            addNode(agentData);
-        },
+        addNode(agentData);
+    },
         [addNode]
     );
 
@@ -45,10 +37,15 @@ const Modal = () => {
         return () => window.removeEventListener('keydown', handleEscape);
     }, [closeModal]);
 
-    if (!isOpen || !modalType) return null;
+    if (!isOpen || !modalType) {
+        return null;
+    }
 
     const ModalComponent = ModalComponents[modalType];
-    if (!ModalComponent) return null;
+    if (!ModalComponent) {
+        console.error(`[Modal Component] Modal type "${modalType}" not found in ModalComponents.`);
+        return null;
+    }
 
     return (
         <div className="modal-overlay" onClick={closeModal}>

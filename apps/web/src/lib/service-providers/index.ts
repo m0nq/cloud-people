@@ -25,23 +25,22 @@ function initializeGlobalMode(): ProviderMode {
     const context = typeof window !== 'undefined' ? 'Client' : 'Server';
     console.log(`[${context}] Initializing global service provider mode...`);
 
-    // Priority: Env override -> localStorage (client) -> Default ('mock' dev, 'real' prod)
+    // Priority: Env override -> localStorage (client) -> Default ('real' dev, 'real' prod)
     const env = getEnvConfig();
     if (env.NEXT_PUBLIC_SERVICE_MODE === 'mock' || env.NEXT_PUBLIC_SERVICE_MODE === 'real') {
-        console.log(`[${context}] Using env.NEXT_PUBLIC_SERVICE_MODE: ${env.NEXT_PUBLIC_SERVICE_MODE}`);
+        console.log(`[${context}] Using env override: ${env.NEXT_PUBLIC_SERVICE_MODE}`);
         currentGlobalMode = env.NEXT_PUBLIC_SERVICE_MODE;
-    } else if (typeof window !== 'undefined') {
-        const localStorageMode = localStorage.getItem('serviceProviderMode') as ProviderMode | null;
-        console.log(`[${context}] localStorage serviceProviderMode:`, localStorageMode);
+    } else if (context === 'Client') {
+        const localStorageMode = localStorage.getItem('serviceProviderMode');
         if (localStorageMode === 'mock' || localStorageMode === 'real') {
             console.log(`[${context}] Using localStorageMode: ${localStorageMode}`);
             currentGlobalMode = localStorageMode;
         }
     }
 
-    // Fallback to default
+    // Fallback to default (Now defaults to 'real' for development too)
     if (currentGlobalMode === null) {
-        const defaultMode = process.env.NODE_ENV === 'development' ? 'mock' : 'real';
+        const defaultMode = 'real'; // New logic: Default to real unless overridden
         console.log(`[${context}] Falling back to default mode: ${defaultMode}`);
         currentGlobalMode = defaultMode;
     }

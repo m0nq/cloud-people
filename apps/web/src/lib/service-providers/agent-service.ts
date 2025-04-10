@@ -4,11 +4,17 @@
  * This module provides real and mock implementations for agent operations.
  */
 
-import { createServiceProvider } from '.';
-import { AgentData, AgentSpeed, MemoryLimit } from '@app-types/agent';
+import { AgentConfig } from '@app-types/agent';
+import { AgentData } from '@app-types/agent';
+import { AgentSpeed } from '@app-types/agent';
+import { MemoryLimit } from '@app-types/agent';
+import { createServiceProvider } from '@lib/service-providers';
+import { getGlobalServiceProviderMode } from '@lib/service-providers';
 import { authCheck } from '@lib/actions/authentication-actions';
 import { connectToDB } from '@lib/utils';
 import type { QueryConfig } from '@app-types/api';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@lib/supabase/client';
 
 // Define the interface for our agent service
 export interface AgentService {
@@ -24,6 +30,13 @@ export interface AgentService {
  * Real agent service implementation that connects to the database
  */
 class RealAgentService implements AgentService {
+    private supabase: SupabaseClient;
+
+    constructor() {
+        console.log('[AgentService] Initializing RealAgentService');
+        this.supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_KEY!);
+    }
+
     async createAgent(config: QueryConfig = {}): Promise<AgentData> {
         const user = await authCheck();
 
@@ -224,7 +237,7 @@ class MockAgentService implements AgentService {
     ];
 
     constructor() {
-        console.log('[MockAgentService] Initialized with mock agents');
+        console.log('[AgentService] Initializing MockAgentService');
     }
 
     async createAgent(config: QueryConfig = {}): Promise<AgentData> {
@@ -279,6 +292,10 @@ class MockAgentService implements AgentService {
 }
 
 // Create and export the agent service with automatic mode switching
+console.log('[AgentService] Initializing Agent Service Provider...');
+const mode = getGlobalServiceProviderMode();
+console.log(`[AgentService] Determined mode: ${mode}`);
+
 export const agentService = createServiceProvider<AgentService>(
     new RealAgentService(),
     new MockAgentService(),
