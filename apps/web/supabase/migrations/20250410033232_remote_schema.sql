@@ -203,15 +203,15 @@ CREATE OR REPLACE FUNCTION "public"."update_tool_usage"() RETURNS "trigger"
     AS $$
 BEGIN
     UPDATE "public"."Tools"
-    SET
+    SET 
         last_used_at = NOW(),
         usage_count = usage_count + 1
     WHERE id = NEW.tool_id;
-
+    
     -- Also update the AgentTools usage statistics
     NEW.last_used_at = NOW();
     NEW.usage_count = COALESCE(NEW.usage_count, 0) + 1;
-
+    
     RETURN NEW;
 END;
 $$;
@@ -724,7 +724,7 @@ CREATE POLICY "Agents Owner Access" ON "public"."Agents" TO "authenticated" USIN
 
 
 
-CREATE POLICY "Allows users to operate on their own workflows" ON "public"."Workflows" TO "authenticated", "anon" USING (("auth"."uid"() = "user_id"));
+CREATE POLICY "Allows users to operate on their own workflows" ON "public"."Workflows" TO "authenticated", "anon" USING (("auth"."uid"() = "user_id")) WITH CHECK (("auth"."uid"() = "user_id"));
 
 
 

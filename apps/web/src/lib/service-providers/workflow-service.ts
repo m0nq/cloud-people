@@ -4,12 +4,19 @@
  * This module provides real and mock implementations for workflow operations.
  */
 
+
+import { createClient } from '@lib/supabase/client';
+import { SupabaseClient } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js'; // Moved Supabase types together
+
 import { createServiceProvider } from '.';
-import { type WorkflowType } from '@app-types/workflow';
+import type { ProviderMode } from '.';
 import { authCheck } from '@lib/actions/authentication-actions';
 import { connectToDB } from '@lib/utils';
+import { getEnvConfig } from '@lib/env'; // Re-added missing import
 import type { QueryConfig } from '@app-types/api';
-import { getEnvConfig } from '@lib/env';
+import type { WorkflowType } from '@app-types/workflow'; // Changed back to WorkflowType
+import { WorkflowState } from '@app-types/workflow';
 
 // Get service mode from environment
 const getServiceMode = () => {
@@ -37,8 +44,18 @@ export interface WorkflowService {
  * Real workflow service implementation that connects to the database
  */
 class RealWorkflowService implements WorkflowService {
+    private supabase: SupabaseClient;
+    private _mode: ProviderMode = 'real'; // Added mode tracking
+
+    constructor() {
+        // createClient internally handles Supabase URL and Key from env vars
+        this.supabase = createClient();
+    }
+
     async createWorkflow(): Promise<string> {
+        console.log("[RealWorkflowService] createWorkflow called"); // Verify execution
         const user = await authCheck();
+        console.log("[RealWorkflowService] Authenticated user ID:", user.id); // Log the user ID
 
         const createWorkflowMutation = `
         mutation CreateWorkflowMutation($userId: UUID!, $data: JSON!) {
@@ -118,10 +135,12 @@ class RealWorkflowService implements WorkflowService {
 
         const workflows = await connectToDB(findWorkflowsQuery, variables);
         return workflows.map((workflow: any) => ({
-            ...workflow.node,
-            currentStep: workflow.current_step,
-            userId: workflow.user_id
-        })) as WorkflowType[];
+            id: workflow.id,
+            userId: workflow.user_id, // Assuming user_id exists if needed, adjust based on schema
+            data: workflow.data,
+            state: workflow.state as WorkflowState,
+            currentStep: workflow.current_step
+        })) as WorkflowType[]; // Ensure mapping matches WorkflowType
     }
 
     async updateWorkflow(config: QueryConfig = {}): Promise<WorkflowType> {
@@ -171,14 +190,19 @@ class RealWorkflowService implements WorkflowService {
         const [workflow] = await connectToDB(updateWorkflowsMutation, variables);
 
         if (!workflow) {
-            throw new Error('No workflow found with the provided ID');
+            console.error('Update workflow mutation did not return expected data');
+            throw new Error('Failed to update workflow');
         }
 
+        // Map the raw result to WorkflowType
         return {
-            ...workflow,
-            userId: workflow.user_id,
+            id: workflow.id,
+            userId: workflow.user_id, // Adjust as needed
+            data: workflow.data,
+            state: workflow.state as WorkflowState,
             currentStep: workflow.current_step
         } as WorkflowType;
+
     }
 
     async deleteWorkflow(config: QueryConfig): Promise<string> {
@@ -219,6 +243,7 @@ class MockWorkflowService implements WorkflowService {
     // Mock workflows data
     private mockWorkflows: WorkflowType[] = [];
     private nextId = 1;
+    private _mode: ProviderMode = 'mock'; // Added mode tracking
 
     constructor() {
         console.log('[MockWorkflowService] Initialized');
@@ -233,11 +258,9 @@ class MockWorkflowService implements WorkflowService {
         this.mockWorkflows.push({
             id: workflowId,
             userId: '00000000-0000-0000-0000-000000000000',
-            data: { label: 'New Workflow' },
-            state: 'initial',
-            currentStep: '0',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
+            data: JSON.stringify({ label: 'New Workflow' }),
+            state: WorkflowState.Initial,
+            currentStep: '0'
         });
 
         console.log(`[MockWorkflowService] Created workflow with ID: ${workflowId}`);
@@ -280,10 +303,9 @@ class MockWorkflowService implements WorkflowService {
         // Update the workflow
         const updatedWorkflow = {
             ...this.mockWorkflows[workflowIndex],
-            state: config.set?.state || this.mockWorkflows[workflowIndex].state,
+            state: config.set?.state as WorkflowState || this.mockWorkflows[workflowIndex].state,
             currentStep: config.set?.current_step || this.mockWorkflows[workflowIndex].currentStep,
-            data: config.set?.data || this.mockWorkflows[workflowIndex].data,
-            updatedAt: new Date().toISOString()
+            data: config.set?.data as string || this.mockWorkflows[workflowIndex].data
         };
 
         this.mockWorkflows[workflowIndex] = updatedWorkflow;

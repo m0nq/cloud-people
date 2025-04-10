@@ -5,8 +5,14 @@ import { useContext } from 'react';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import type { ReactNode } from 'react';
+
 import { useRouter } from 'next/navigation';
+
 import { User } from '@supabase/supabase-js';
+
+import { getGlobalServiceProviderMode } from '@lib/service-providers';
+import { setGlobalServiceProviderMode } from '@lib/service-providers';
+import type { ProviderMode } from '@lib/service-providers';
 import { userService } from '@lib/service-providers/user-service';
 
 // Define the context type
@@ -17,9 +23,7 @@ type UserContextType = {
   getAgents: () => Promise<any[]>;
   getUserWorkflows: () => Promise<any[]>;
   signOut: () => Promise<void>;
-  // Add a property to indicate if we're using mock or real service
   usingMockService: boolean;
-  // Add a method to toggle between real and mock services
   toggleServiceMode: () => void;
 };
 
@@ -31,7 +35,7 @@ const UserContext = createContext<UserContextType>({
   getAgents: () => Promise.resolve([]),
   getUserWorkflows: () => Promise.resolve([]),
   signOut: () => Promise.resolve(),
-  usingMockService: false, // Default initial value
+  usingMockService: false,
   toggleServiceMode: () => { }
 });
 
@@ -40,35 +44,20 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // State for service mode, initialized based on server default, but updated client-side
+  // State for service mode, initialized from the global state
   const [usingMockService, setUsingMockService] = useState(() => {
-    // Initial value respects server-determined mode if available, else defaults
-    return userService._mode === 'mock';
+    // Read the initial mode determined by the service provider logic
+    return getGlobalServiceProviderMode() === 'mock';
   });
 
-  // Function to toggle between real and mock service modes
+  // Function to toggle the global service mode and update local state
   const toggleServiceMode = () => {
-    if (typeof window !== 'undefined') {
-      const currentMode = localStorage.getItem('serviceProviderMode') || userService._mode;
-      const newMode = currentMode === 'real' ? 'mock' : 'real';
-      localStorage.setItem('serviceProviderMode', newMode);
-      // Force a page refresh to apply the new mode globally
-      window.location.reload();
-    }
+    const newMode: ProviderMode = usingMockService ? 'real' : 'mock';
+    // Update the global state (this also updates localStorage and notifies proxies)
+    setGlobalServiceProviderMode(newMode);
+    // Update the local React state to trigger re-render of consumers
+    setUsingMockService(newMode === 'mock');
   };
-
-  // Effect to synchronize state with localStorage on client-side load
-  useEffect(() => {
-    const storedMode = localStorage.getItem('serviceProviderMode');
-    if (storedMode === 'real' || storedMode === 'mock') {
-        console.log('[Client] Updating service mode from localStorage:', storedMode);
-        setUsingMockService(storedMode === 'mock');
-    } else {
-        // If nothing in localStorage, ensure state matches the initial userService mode
-        // This handles the very first load before localStorage is set.
-        setUsingMockService(userService._mode === 'mock');
-    }
-  }, []); // Empty dependency array: runs only once on client mount
 
   // Load user on initial mount
   useEffect(() => {

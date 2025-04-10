@@ -1,14 +1,22 @@
 'use server';
+
+/**
+ * Supabase Authentication Action
+ *
+{{ ... }}
+ */
+
 import { redirect } from 'next/navigation';
-import DOMPurify from 'isomorphic-dompurify';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import { User } from '@supabase/supabase-js';
-import { type Provider } from '@supabase/supabase-js';
 
-import { createClient } from '@lib/supabase/server';
+import DOMPurify from 'isomorphic-dompurify';
+import { User } from '@supabase/supabase-js';
+import { Provider } from '@supabase/supabase-js';
+
 import { Config } from '@config/constants';
 import { getEnvConfig } from '@lib/env';
+import { createClient } from '@lib/supabase/server';
 
 const { API: { EndPoints } } = Config;
 
@@ -124,11 +132,6 @@ export const signOut = async () => {
 };
 
 export const authCheck = async (): Promise<User> => {
-    // Return mock user in mock mode
-    if (getServiceMode() === 'mock') {
-        return DEV_USER;
-    }
-
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 

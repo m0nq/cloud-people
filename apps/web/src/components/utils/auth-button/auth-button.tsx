@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useMemo } from 'react';
 
 import { createClient } from '@lib/supabase/client';
-import { signOut } from '@lib/actions/authentication-actions';
+import { signOut } from '@lib/actions/authentication-client-actions';
 import { useUser } from '@contexts/user-context';
 
 type AuthButtonProps = {
