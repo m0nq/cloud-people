@@ -8,6 +8,7 @@ It handles the conversion between our request/response formats and the browser-u
 import logging
 import os
 import uuid
+import traceback
 from typing import Any, Dict, Optional
 import asyncio
 
@@ -162,7 +163,6 @@ class AgentAdapter:
                 # Pass browser configuration
                 browser=None,  # Will be created by the Agent
                 browser_context=None,  # Will be created by the Agent
-                browser_context_config=context_config,  # Pass context config
                 # Additional settings
                 generate_gif=True,  # Generate GIF recordings
                 save_conversation_path=os.path.join(os.getcwd(), "recordings", f"{task_id}.json"),
@@ -233,7 +233,7 @@ class AgentAdapter:
             return response
         except Exception as e:
             logger.exception(f"Error executing task {task_id}: {str(e)}")
-            
+
             # Clean up resources
             await self.cleanup_task(task_id)
             

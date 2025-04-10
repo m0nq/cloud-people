@@ -81,7 +81,8 @@ COPY . .
 # Install browser-use first to ensure it's not overridden by the local package
 RUN pip install --no-cache-dir browser-use==0.1.40 && \
     pip install --no-cache-dir -r requirements-lock.txt && \
-    pip install -e .
+    pip install -e . && \
+    playwright install --with-deps
 
 RUN mkdir -p /tmp/x11vnc && chown pwuser:pwuser /tmp/x11vnc && touch /tmp/x11vnc/x11vnc.log && chown pwuser:pwuser /tmp/x11vnc/x11vnc.log && chmod 666 /tmp/x11vnc/x11vnc.log
 

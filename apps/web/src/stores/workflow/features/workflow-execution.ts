@@ -199,6 +199,8 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
             throw new Error('Root node has no workflow ID');
         }
 
+        const agentStore = useAgentStore.getState();
+
         try {
             // Find the first node connected to root
             const firstNode = findNextNode(nodes, edges, rootNode.id);
@@ -206,14 +208,29 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
                 throw new Error('No valid starting node found');
             }
 
-            // Initialize all non-root nodes to Idle state
-            nodes.filter(node => node.id !== rootNode.id)
+            // Initialize non-root nodes: Set to Idle ONLY if not already INITIAL
+            nodes.filter(node => node.id !== rootNode.id && isWorkflowNode(node))
                 .forEach(node => {
-                    transitionNode(set, nodes, node.id, AgentState.Idle);
+                    if (node.data.type === NodeType.Agent) {
+                        const { agentId } = node.data.agentRef;
+                        const currentAgent = agentStore.getAgentState(agentId);
+
+                        // Only transition to IDLE if agent exists and its current state is NOT INITIAL
+                        if (currentAgent && currentAgent.state !== AgentState.Initial) {
+                            console.log(`[DEBUG] Setting node ${node.id} (Agent ${agentId}) state to IDLE from ${currentAgent.state}`);
+                            transitionNode(set, nodes, node.id, AgentState.Idle);
+                        } else if (currentAgent && currentAgent.state === AgentState.Initial) {
+                            console.log(`[DEBUG] Skipping transition for node ${node.id} (Agent ${agentId}) as it is already in INITIAL state.`);
+                        } else if (!currentAgent) {
+                            console.warn(`[DEBUG] Agent ${agentId} not found for node ${node.id} during startWorkflow initialization.`);
+                        }
+                    }
+                    // Optionally handle other node types if needed for initialization
                 });
 
-            // Start with first node
-            transitionNode(set, nodes, firstNode.id, AgentState.Activating);
+            // Start with first node - Ensure 'nodes' reflects any updates from the loop above
+            const updatedNodes = nodes; // Get potentially updated nodes
+            transitionNode(set, updatedNodes, firstNode.id, AgentState.Activating); // Pass setState correctly and use updatedNodes
 
             // Create execution record in database with workflow ID from root node
             const workflowExecution = await createExecution({
@@ -223,7 +240,7 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
             });
 
             // Update workflow state with execution record
-            updateState(set, { workflowExecution });
+            updateState(set, { workflowExecution }); // Pass setState correctly
         } catch (error) {
             console.error('Failed to start workflow:', error);
             throw error;
