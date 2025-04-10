@@ -1,10 +1,12 @@
 import { type Node } from '@xyflow/react';
-
+import { Position } from '@xyflow/react';
+import { Edge } from '@xyflow/react';
 import { v4 as uuidv4 } from 'uuid';
-
 import type { AgentData } from '@app-types/agent';
+import { EdgeData } from '@app-types/workflow';
 import { WorkflowState } from '@app-types/workflow';
 import { NodeData } from '@app-types/workflow';
+import { EdgeType } from '@app-types/workflow/node-types';
 import { NodeType } from '@app-types/workflow/node-types';
 import { ROOT_NODE_POSITION } from '@config/layout.const';
 
@@ -187,14 +189,23 @@ export function createWorkflowLifecycle(set: Function, get: Function) {
                     workflowId: workflowId,
                     agentRef: { agentId: agent.id }
                 },
-                position: { x: 0, y: 0 }
+                position: { x: 0, y: 0 },
+                sourcePosition: Position.Right,
+                targetPosition: Position.Left
             } as Node<NodeData>;
 
-            const newEdge = {
+            const newEdge: Edge<EdgeData> = {
                 id: `e-${parentNodeId}-${newNode.id}`,
                 source: parentNodeId,
                 target: newNode.id,
-                type: 'smoothstep'
+                type: EdgeType.Automation,
+                animated: true,
+                data: {
+                    id: `e-${parentNodeId}-${newNode.id}`,
+                    workflowId: workflowId,
+                    toNodeId: newNode.id,
+                    fromNodeId: parentNodeId
+                }
             };
 
             const parentNode = nodes.find(n => n.id === parentNodeId);
