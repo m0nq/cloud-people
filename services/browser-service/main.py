@@ -44,12 +44,14 @@ from core.agent_adapter import agent_adapter
 # Load environment variables
 load_dotenv()
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+# Configure logging - REMOVED to let Uvicorn handle logging
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+# )
+
 logger = logging.getLogger(__name__)
+logger.propagate = False  # Prevent logs from reaching the root logger configured by Uvicorn
 
 # Global variables for tracking application state
 startup_time = None
@@ -379,16 +381,30 @@ async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
             previous_output=previous_agent_output  # Pass previous agent output
         )
         
-        # Update task status
-        task_status.status = response.get("status", "error")
+        # Update task status based on adapter response
+        adapter_status = response.get("status")
+        if adapter_status == "success":
+            task_status.status = "completed" # Map success to completed
+        elif adapter_status in ["pending", "running", "completed", "failed", "needs_assistance", "paused"]:
+             task_status.status = adapter_status # Use valid status directly
+        else:
+            task_status.status = "failed" # Default to failed for unknown/missing status
+            task_status.error = f"Unknown status from adapter: {adapter_status}"
+            logger.warning(f"Task {task_id} received unknown status from adapter: {adapter_status}")
+            
         task_status.result = response.get("result")
-        task_status.error = response.get("error")
+        # Ensure error from adapter response is captured if status is failed
+        if task_status.status == "failed" and not task_status.error:
+             task_status.error = response.get("error", "Error details not provided by adapter.")
+        else:
+             task_status.error = response.get("error") # Or keep existing error if adapter provided one
         task_status.end_time = datetime.now()
         
-        # Move to history if complete
-        if task_status.status in ["success", "error"]:
+        # Move to history if in a terminal state
+        if task_status.status in ["completed", "failed"]:
             task_history[task_id] = task_status
-            del active_tasks[task_id]
+            if task_id in active_tasks: # Avoid KeyError if already moved
+                del active_tasks[task_id]
         
         # Broadcast update
         await broadcast_task_update(task_id, task_status)
@@ -398,18 +414,19 @@ async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
         logger.exception(f"Error running task {task_id}: {str(e)}")
         
         # Update task status
-        task_status.status = "error"
+        task_status.status = "failed" # Use 'failed' status
         task_status.error = str(e)
         task_status.end_time = datetime.now()
         
         # Move to history
         task_history[task_id] = task_status
-        del active_tasks[task_id]
+        if task_id in active_tasks: # Avoid KeyError
+            del active_tasks[task_id]
         
         # Broadcast update
         await broadcast_task_update(task_id, task_status)
         
-        return {"status": "error", "error": str(e)}
+        return {"status": "failed", "error": str(e)}
 
 # WebSocket for real-time updates
 @app.websocket("/ws/{client_id}")

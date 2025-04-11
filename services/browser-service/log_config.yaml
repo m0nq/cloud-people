@@ -1,0 +1,27 @@
+version: 1
+disable_existing_loggers: false
+formatters:
+  default:
+    fmt: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    datefmt: "%Y-%m-%d %H:%M:%S"
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: default
+    stream: ext://sys.stdout
+loggers:
+  uvicorn.error:
+    level: INFO
+    handlers: [console]
+    propagate: no
+  uvicorn.access:
+    level: WARNING # Suppress standard access logs unless warning/error
+    handlers: [console]
+    propagate: no
+  __main__: # Corresponds to logger = logging.getLogger(__name__) in main.py
+    level: INFO
+    handlers: [console]
+    propagate: no # Explicitly disable propagation here too
+root:
+  level: INFO
+  handlers: [console]

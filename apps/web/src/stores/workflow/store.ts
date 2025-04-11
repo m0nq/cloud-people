@@ -5,6 +5,7 @@ import { initialState } from './constants';
 import { createGraphManipulation } from './features/graph-manipulation';
 import { createWorkflowExecution } from './features/workflow-execution';
 import { createWorkflowLifecycle } from './features/workflow-lifecycle';
+import { createWorkflowContext } from './features/workflow-context';
 import { findRootNode } from './utils/state-helpers';
 import { findNextNode } from './utils/state-helpers';
 import { getConnectedNodes } from './utils/state-helpers';
@@ -20,6 +21,7 @@ export const useWorkflowStore = create<WorkflowStore>()(
         ...createGraphManipulation(set, get),
         ...createWorkflowExecution(set, get),
         ...createWorkflowLifecycle(set, get),
+        ...createWorkflowContext(set, get),
 
         // Helper functions
         findRootNode,

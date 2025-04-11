@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 
 import './agent-card.styles.css';
@@ -15,6 +15,7 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
     const { transition } = useAgentStore();
     const agentStore = useAgentStore();
     const agentData = agentStore.getAgentData(agentId);
+    const hasExecutedRef = useRef(false);
 
     const {
         isProcessing,
@@ -25,18 +26,19 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
         transition(agentId, status);
     });
 
-    // Start execution when component mounts
+    // Start execution when component mounts and agentData is available
     useEffect(() => {
-        // Early return if no agent data
-        if (!agentData || !agentData.id) {
+        // Early return if no agent data or already executed
+        if (!agentData || !agentData.id || hasExecutedRef.current) {
             return;
         }
 
         let isMounted = true;
+        hasExecutedRef.current = true;
 
         (async () => {
             try {
-                // executeAction now handles both new tasks and resuming
+                // executeTask now handles both new tasks and resuming
                 await executeTask();
 
                 // If successful and we were resuming, reset the flag
@@ -56,11 +58,13 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
             isMounted = false;
         };
 
-        // This needs to run only once
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [agentData, agentId, executeTask]);
 
     const handlePause = async () => {
+        if (!agentData) {
+             console.error("Cannot pause: Agent data not available.");
+             return;
+        }
         await pauseAgentExecution(agentId, agentData, (status) => {
             transition(agentId, status);
         });
@@ -94,6 +98,7 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
                     </div>
                     <div className="agent-tasks-container">
                         <p>{isProcessing && 'Processing...'}</p>
+                        {error && <p className="error-message">Error: {error}</p>}
                     </div>
                 </div>
                 <div className="buttons-container">

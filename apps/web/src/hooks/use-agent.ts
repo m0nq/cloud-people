@@ -2,9 +2,11 @@ import { useCallback } from 'react';
 import { useState } from 'react';
 
 import { AgentState } from '@app-types/agent';
-import { AgentResult } from '@app-types/agent';
 import { AgentData } from '@app-types/agent/config';
+
 import { useAgentStore } from '@stores/agent-store';
+import { useWorkflowStore } from '@stores/workflow';
+import { updateState } from '@stores/workflow';
 import { pauseAgentExecution } from '@lib/agent-operations';
 
 interface AgentHookResponse {
@@ -13,30 +15,27 @@ interface AgentHookResponse {
     pauseAgentExecution: (agentId: string, agentData: AgentData, onStatusChange?: (status: AgentState) => void) => Promise<boolean>;
     result: string | null;
     error: string | null;
+    state: AgentState;
+    provideAssistance: (assistanceData: any) => Promise<void>;
+    pauseExecution: () => Promise<void>;
+    resumeExecution: () => Promise<void>;
+    cancelExecution: () => Promise<void>;
+    canExecute: boolean;
 }
-
-// Helper function for telemetry
-const trackDataPassingEvent = (taskId: string, operation: string, success: boolean) => {
-    // Implementation would depend on your analytics system
-    console.log(`[Telemetry] Data passing ${operation} for task ${taskId}: ${success ? 'Success' : 'Failure'}`);
-
-    // In a real implementation, you would send this to your analytics system
-    // analyticsClient.track('workflow_data_passing', { taskId, operation, success });
-};
 
 export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) => void): AgentHookResponse => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [result, setResult] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    const { getAgentState, getAgentData, setAgentResult } = useAgentStore();
+    const { getAgentState, getAgentData } = useAgentStore();
     const agentData = getAgentData(agentId);
-    const agentRuntime = getAgentState(agentData?.id || '');
+    const agentRuntime = getAgentState(agentData!.id);
 
     const canExecute = !agentRuntime?.state || agentRuntime.state === AgentState.Working;
 
     const executeTask = useCallback(async () => {
-        if (!agentData?.id) {
+        if (!agentData!.id) {
             console.error('Cannot execute - agent ID not available');
             return '';
         }
@@ -47,300 +46,339 @@ export const useAgent = (agentId: string, onStatusChange?: (status: AgentState) 
             return '';
         }
 
-        let retryCount = 0;
-        const maxRetries = 3;
+        try {
+            setIsProcessing(true);
+            setError(null);
+            setResult(null);
+            // Update agent state to working immediately for better UX
+            useAgentStore.getState().updateAgentState(agentId, { state: AgentState.Working });
+            onStatusChange?.(AgentState.Working);
 
-        while (retryCount < maxRetries) {
-            try {
-                setIsProcessing(true);
-                setError(null);
-                setResult(null);
+            const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
+            if (!browserUseEndpoint) {
+                throw new Error('Browser use endpoint not configured');
+            }
 
-                const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
-                if (!browserUseEndpoint) {
-                    throw new Error('Browser use endpoint not configured');
-                }
+            // Determine the initial task ID for resume attempts or fallback
+            let taskId = agentData!.activeTaskId || agentData!.nodeId || agentData!.id;
+            let finalTaskId = taskId; // This will hold the ID used for polling
+            let initialResponseData;
 
-                // Use activeTaskId if available, otherwise use nodeId, then fall back to agent ID
-                let taskId = agentData.activeTaskId || agentData.nodeId || agentData.id;
+            if (!taskId) {
+                throw new Error('Task ID not available - cannot determine ID for execution or resume');
+            }
 
-                if (!taskId) {
-                    throw new Error('Task ID not available - neither node ID nor agent ID is set');
-                }
-
-                let initialResponseData;
-                let shouldCreateNewTask = true;
-
-                // First, check if there's an existing task and clean up if needed
+            // --- Simplified Logic ---            
+            if (agentData!.isResuming) {
+                // --- Attempt to Resume ---                
+                console.log(`Attempting to resume execution for task ID ${taskId}`);
                 try {
-                    // Check if the task exists using the task ID
-                    const checkResponse = await fetch(`${browserUseEndpoint}/execute/${taskId}`);
-
-                    if (checkResponse.ok) {
-                        const taskStatus = await checkResponse.json();
-                        console.log(`Found existing task for agent ${agentData.id} with task ID ${taskId}:`, taskStatus);
-
-                        // If the task is in a terminal state or not in a resumable state, close the session
-                        if (taskStatus.status === 'completed' ||
-                            taskStatus.status === 'failed' ||
-                            (taskStatus.status !== 'paused' && agentData.isResuming)) {
-
-                            console.log(`Task is in state ${taskStatus.status}, cleaning up before proceeding`);
-
-                            // Try to close the session
-                            try {
-                                await fetch(`${browserUseEndpoint}/sessions/${taskId}/close`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json'
-                                    },
-                                    body: JSON.stringify({
-                                        force: true
-                                    })
-                                });
-                                console.log(`Closed existing session for task ID ${taskId}`);
-                            } catch (closeError) {
-                                console.error('Error closing session:', closeError);
-                            }
-                        } else if (taskStatus.status === 'paused' && agentData.isResuming) {
-                            // If the task is paused and we're resuming, don't create a new task
-                            shouldCreateNewTask = false;
-                            console.log(`Resuming existing paused task with ID ${taskId}`);
-                        }
-                    }
-                } catch (checkError) {
-                    console.error('Error checking task status:', checkError);
-                    // Continue with creating a new task
-                }
-
-                // Create a new task or resume an existing one
-                if (shouldCreateNewTask) {
-                    console.log(`Creating new task for agent ${agentData.id} with task ID ${taskId}`);
-                    initialResponseData = await createTask(taskId);
-                } else {
-                    console.log(`Resuming task for agent ${agentData.id} with task ID ${taskId}`);
-                    // Resume the task
                     const resumeResponse = await fetch(`${browserUseEndpoint}/execute/${taskId}/resume`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            operation_timeout: 300,
-                            headless: true
-                        })
+                        }
                     });
 
-                    if (!resumeResponse.ok) {
-                        throw new Error(`HTTP error! status: ${resumeResponse.status}`);
+                    if (resumeResponse.ok) {
+                        initialResponseData = await resumeResponse.json();
+                        finalTaskId = initialResponseData.task_id || taskId; // Use returned ID if available
+                        console.log(`Resumed execution for task ID ${finalTaskId}:`, initialResponseData);
+                        // Clear pause metadata in the agent store
+                        const { updateAgentState, setAgentData } = useAgentStore.getState();
+                        updateAgentState(agentId, { state: AgentState.Working });
+                        setAgentData(agentId, { ...agentData!, isResuming: false });
+                    } else {
+                        // Handle non-OK resume response (e.g., 404 if task not found/not paused)
+                        const errorText = await resumeResponse.text();
+                        throw new Error(`Failed to resume task ${taskId}. Status: ${resumeResponse.status}. Details: ${errorText}`);
                     }
-
-                    initialResponseData = await resumeResponse.json();
-                    console.log(`Successfully resumed task ${taskId}:`, initialResponseData);
-                }
-
-                // Poll for task status until completion
-                const maxPolls = 100;
-                const pollInterval = 2000; // 2 seconds
-                let pollCount = 0;
-                let taskCompleted = false;
-                let consecutiveErrors = 0;
-                const maxConsecutiveErrors = 5;
-                let lastError = '';
-
-                while (pollCount < maxPolls && !taskCompleted) {
-                    // Wait for the poll interval
-                    await new Promise(resolve => setTimeout(resolve, pollInterval));
-
-                    try {
-                        // Check task status
-                        const statusResponse = await fetch(`${browserUseEndpoint}/execute/${taskId}`);
-
-                        if (statusResponse.ok) {
-                            // Reset consecutive errors counter on success
-                            consecutiveErrors = 0;
-
-                            const statusData = await statusResponse.json();
-                            console.log(`Task ${taskId} status:`, statusData.status);
-
-                            // If task is completed or failed, stop polling
-                            if (statusData.status === 'completed' || statusData.status === 'failed') {
-                                taskCompleted = true;
-                                console.log(`Task ${taskId} ${statusData.status}:`, statusData);
-
-                                // Update agent state based on task status
-                                if (statusData.status === 'completed') {
-                                    // Store the result in agent state
-                                    if (statusData.result) {
-                                        setAgentResult(agentData.id, statusData.result);
-                                        trackDataPassingEvent(taskId, 'store_result', true);
-                                        console.log(`[DEBUG] Stored result for agent ${agentData.id}:`, statusData.result);
-                                    }
-
-                                    onStatusChange?.(AgentState.Complete);
-                                    setResult(statusData.result);
-                                } else {
-                                    onStatusChange?.(AgentState.Error);
-                                    setError(statusData.error || 'Task failed');
-                                    trackDataPassingEvent(taskId, 'store_result', false);
-                                }
-                            }
-                        } else {
-                            // Handle HTTP error in status check
-                            consecutiveErrors++;
-                            lastError = `HTTP error! status: ${statusResponse.status}`;
-                            console.error(`Error checking task status (${consecutiveErrors}/${maxConsecutiveErrors}):`, lastError);
-
-                            // If we've had too many consecutive errors, stop polling
-                            if (consecutiveErrors >= maxConsecutiveErrors) {
-                                throw new Error(`Too many consecutive errors checking task status: ${lastError}`);
-                            }
-                        }
-                    } catch (error) {
-                        // Handle error in status check
-                        consecutiveErrors++;
-                        lastError = error instanceof Error ? error.message : 'Unknown error checking task status';
-                        console.error(`Error checking task status (${consecutiveErrors}/${maxConsecutiveErrors}):`, lastError);
-
-                        // If we've had too many consecutive errors, stop polling
-                        if (consecutiveErrors >= maxConsecutiveErrors) {
-                            throw new Error(`Too many consecutive errors checking task status: ${lastError}`);
-                        }
-                    }
-
-                    pollCount++;
-                }
-
-                // If we've reached the maximum number of polls without completing, throw an error
-                if (!taskCompleted) {
-                    throw new Error(`Task did not complete within the maximum number of polls (${maxPolls})`);
-                }
-
-                return 'Task completed successfully';
-            } catch (error) {
-                retryCount++;
-                console.error(`Error executing task (attempt ${retryCount}/${maxRetries}):`, error);
-
-                // Track failed data passing
-                trackDataPassingEvent(agentData.id, 'execute', false);
-
-                if (retryCount >= maxRetries) {
-                    console.error('Error executing action:', error);
-                    setError(error instanceof Error ? error.message : 'An unknown error occurred');
-
-                    // Let the agent store handle the error state transition
+                } catch (resumeError) {
+                    console.error('Error resuming task:', resumeError);
+                    setError(`Failed to resume task: ${resumeError instanceof Error ? resumeError.message : String(resumeError)}`);
+                    useAgentStore.getState().updateAgentState(agentId, { state: AgentState.Error });
                     onStatusChange?.(AgentState.Error);
+                    setIsProcessing(false);
+                    return ''; // Stop execution
+                }
+            } else {
+                // --- Create New Task ---
+                console.log(`Executing new task for agent ${agentId}`);
+                // Construct request body according to TaskRequest model using fields from AgentData
+                const requestBody = {
+                    task: agentData?.description, // REQUIRED: Use the description from AgentData
+                    llm_provider: agentData?.model ? { type: 'gemini', model: agentData.model } : undefined, // Use 'gemini' type
+                    previous_agent_output: agentData?.previousAgentOutput, // Map previous output
+                    // task_id is optional, backend generates if missing
+                    // Map other relevant optional fields from agentData if they exist
+                    // e.g., operation_timeout: agentData?.timeout, 
+                    //       options: agentData?.options
+                };
 
-                    // If there was an error, try to close the session to clean up resources
-                    try {
-                        const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
-                        // Use the same taskId that was used for execution
-                        const taskId = agentData.activeTaskId || agentData.nodeId || agentData.id;
-
-                        await fetch(`${browserUseEndpoint}/sessions/${taskId}/close`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                force: true
-                            })
-                        });
-                        console.log(`Closed browser session for task ID ${taskId} after error`);
-                    } catch (closeError) {
-                        console.error('Error closing browser session after error:', closeError);
-                    }
-
-                    return error instanceof Error ? error.message : 'An unknown error occurred';
+                // Ensure the required 'task' field is present
+                if (!requestBody.task) {
+                    throw new Error("Cannot execute task: 'description' (task description) not found in agentData.");
                 }
 
-                // Exponential backoff
-                await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, retryCount)));
-            } finally {
-                // Always ensure we reset the processing state
+                console.log("Sending TaskRequest:", JSON.stringify(requestBody, null, 2));
+
+                try {
+                    const response = await fetch(`${browserUseEndpoint}/execute`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestBody),
+                    });
+
+                    if (response.ok) {
+                        initialResponseData = await response.json();
+                        finalTaskId = initialResponseData.task_id; // CRITICAL: Use the ID returned by the backend
+                        console.log(`Task created with ID ${finalTaskId}:`, initialResponseData);
+                        // Update agent store with the definitive task ID
+                        useAgentStore.getState().setAgentData(agentId, { ...agentData!, activeTaskId: finalTaskId });
+                    } else {
+                        const errorText = await response.text();
+                        throw new Error(`Failed to execute task. Status: ${response.status}. Details: ${errorText}`);
+                    }
+                } catch (createError) {
+                    console.error('Error creating task:', createError);
+                    setError(`Failed to create task: ${createError instanceof Error ? createError.message : String(createError)}`);
+                    useAgentStore.getState().updateAgentState(agentId, { state: AgentState.Error });
+                    onStatusChange?.(AgentState.Error);
+                    setIsProcessing(false);
+                    return ''; // Stop execution
+                }
+            }
+
+            // --- Start Polling ---            
+            if (finalTaskId && initialResponseData) {
+                // Update state based on initial response
+                updateStateFromStatus(initialResponseData);
+                // Start polling only if the initial status is not terminal
+                if (initialResponseData.status !== 'completed' && initialResponseData.status !== 'failed') {
+                    pollTaskStatus(finalTaskId);
+                } else {
+                    setIsProcessing(false); // Already done
+                }
+            } else {
+                 throw new Error('Failed to obtain task ID or initial response data after execution/resume.');
+            }
+
+        } catch (err) {
+            console.error('Execution failed:', err);
+            setError(err instanceof Error ? err.message : String(err));
+            useAgentStore.getState().updateAgentState(agentId, { state: AgentState.Error });
+            onStatusChange?.(AgentState.Error);
+            setIsProcessing(false);
+        }
+    }, [agentId, agentData, agentRuntime, isProcessing, onStatusChange]);
+
+    // Helper function to update state based on task status
+    const updateStateFromStatus = (taskStatus: any) => {
+        switch (taskStatus.status) {
+            case 'running':
+            case 'pending':
+                useAgentStore.getState().updateAgentState(agentId, { state: AgentState.Working });
+                onStatusChange?.(AgentState.Working);
+                break;
+            case 'paused':
+                useAgentStore.getState().updateAgentState(agentId, { state: AgentState.Paused });
+                onStatusChange?.(AgentState.Paused);
+                setIsProcessing(false); // Stop processing indicator if paused
+                break;
+            case 'completed':
+                setResult(taskStatus.result || 'Completed successfully');
+                useAgentStore.getState().updateAgentState(agentId, { state: AgentState.Complete, result: taskStatus.result });
+                onStatusChange?.(AgentState.Complete);
+                setIsProcessing(false);
+                break;
+            case 'failed':
+                setError(taskStatus.error || 'Task failed');
+                useAgentStore.getState().updateAgentState(agentId, { state: AgentState.Error, error: taskStatus.error });
+                onStatusChange?.(AgentState.Error);
+                setIsProcessing(false);
+                break;
+             case 'needs_assistance': // Changed from 'waiting_for_assistance'
+                useAgentStore.getState().updateAgentState(agentId, { state: AgentState.Assistance });
+                onStatusChange?.(AgentState.Assistance);
+                setIsProcessing(false); // Stop processing indicator if waiting
+                break;
+            default:
+                const unknownStatusError = `Unknown task status received: ${taskStatus.status}`;
+                console.error(unknownStatusError); // Log as error
+                setError(unknownStatusError);
+                useAgentStore.getState().updateAgentState(agentId, { state: AgentState.Error, error: unknownStatusError }); 
+                onStatusChange?.(AgentState.Error);
+                setIsProcessing(false); // Also stop processing on unknown status
+                break;
+        }
+    };
+
+    // Polling function
+    const pollTaskStatus = useCallback((taskId: string) => {
+        console.log(`Starting polling for task ID: ${taskId}`);
+
+        const intervalId = setInterval(async () => {
+            try {
+                const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
+                const statusResponse = await fetch(`${browserUseEndpoint}/execute/${taskId}`);
+
+                if (statusResponse.ok) {
+                    const taskStatus = await statusResponse.json();
+                    console.log(`Poll status for ${taskId}:`, taskStatus.status);
+                    updateStateFromStatus(taskStatus);
+
+                    // Stop polling if task is completed, failed, paused, or needs assistance
+                    if (taskStatus.status === 'completed' || 
+                        taskStatus.status === 'failed' || 
+                        taskStatus.status === 'paused' || 
+                        taskStatus.status === 'needs_assistance') {
+                        console.log(`Stopping polling for task ID: ${taskId} due to status: ${taskStatus.status}`);
+                        clearInterval(intervalId);
+                    }
+                } else {
+                    // Handle non-OK polling response (e.g., 404 if task disappeared?)
+                    console.error(`Polling error for ${taskId}: Status ${statusResponse.status}`);
+                    setError(`Polling failed with status ${statusResponse.status}`);
+                     useAgentStore.getState().updateAgentState(agentId, { state: AgentState.Error });
+                     onStatusChange?.(AgentState.Error);
+                    clearInterval(intervalId);
+                    setIsProcessing(false);
+                }
+            } catch (pollError) {
+                console.error(`Polling failed for ${taskId}:`, pollError);
+                setError(`Polling failed: ${pollError instanceof Error ? pollError.message : String(pollError)}`);
+                 useAgentStore.getState().updateAgentState(agentId, { state: AgentState.Error });
+                 onStatusChange?.(AgentState.Error);
+                clearInterval(intervalId);
                 setIsProcessing(false);
             }
+        }, 2000); // Poll every 2 seconds
+
+    }, [agentId, onStatusChange]);
+    
+    // Provide functions to interact with the agent
+    const provideAssistance = useCallback(async (assistanceData: any) => {
+        const taskId = agentData?.activeTaskId || agentData?.nodeId || agentId;
+        if (!taskId) {
+             console.error('Cannot provide assistance - task ID not available');
+             return;
         }
-
-        return 'Task completed with retries';
-    }, [agentData, isProcessing, onStatusChange, setAgentResult]);
-
-    // Create a new task
-    const createTask = async (currentTaskId: string, retryCount = 0): Promise<any> => {
-        const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
-
+        console.log(`Providing assistance for task ${taskId}`);
         try {
-            // Serialize previous output for transmission if available
-            let previousOutput: AgentResult | undefined = undefined;
-            if (agentData?.previousAgentOutput) {
-                try {
-                    previousOutput = agentData.previousAgentOutput;
-                    console.log(`[DEBUG] Including previous agent output in task request:`, previousOutput);
-                    trackDataPassingEvent(currentTaskId, 'include_previous_output', true);
-                } catch (serializeError) {
-                    console.error('Error serializing previous output:', serializeError);
-                    trackDataPassingEvent(currentTaskId, 'include_previous_output', false);
-                }
-            }
-
-            // Create task request with previous agent output
-            const taskRequest: any = {
-                task: agentData?.description,
-                task_id: currentTaskId,
-                operation_timeout: 300,
-                headless: true,
-                persistent_session: true
-            };
-
-            // Only add previous_agent_output if it exists
-            if (previousOutput) {
-                taskRequest.previous_agent_output = previousOutput;
-            }
-
-            console.log(`Creating task with request:`, taskRequest);
-
-            const response = await fetch(`${browserUseEndpoint}/execute`, {
+            const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
+            const response = await fetch(`${browserUseEndpoint}/execute/${taskId}/resolve`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(taskRequest)
+                body: JSON.stringify(assistanceData)
             });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            if (response.ok) {
+                const taskStatus = await response.json();
+                updateStateFromStatus(taskStatus); // Should update state back to Working
+                // Resume polling if needed
+                if (taskStatus.status === 'running' || taskStatus.status === 'pending') {
+                    pollTaskStatus(taskId);
+                }
+            } else {
+                throw new Error(`Failed to provide assistance. Status: ${response.status}`);
             }
-
-            const responseData = await response.json();
-            console.log(`Successfully created task ${currentTaskId}:`, responseData);
-
-            // Track successful task creation
-            trackDataPassingEvent(currentTaskId, 'create_task', true);
-
-            return responseData;
         } catch (error) {
-            console.error(`Error creating task (attempt ${retryCount + 1}):`, error);
-
-            // Track failed task creation
-            trackDataPassingEvent(currentTaskId, 'create_task', false);
-
-            // Retry a few times with exponential backoff
-            if (retryCount < 2) {
-                const backoffTime = Math.pow(2, retryCount) * 1000;
-                console.log(`Retrying in ${backoffTime}ms...`);
-                await new Promise(resolve => setTimeout(resolve, backoffTime));
-                return createTask(currentTaskId, retryCount + 1);
-            }
-
-            throw error;
+            console.error('Error providing assistance:', error);
+            setError(`Failed to provide assistance: ${error instanceof Error ? error.message : String(error)}`);
+             useAgentStore.getState().updateAgentState(agentId, { state: AgentState.Error });
+             onStatusChange?.(AgentState.Error);
         }
-    };
+    }, [agentId, agentData, onStatusChange, pollTaskStatus, updateStateFromStatus]); // Added dependencies
 
-    return {
-        isProcessing,
+    // Renamed function to have complex signature for pauseAgentExecution property
+    const pauseAgentExecutionInternal = useCallback(async (_agentId?: string, _agentData?: AgentData, _onStatusChange?: (status: AgentState) => void): Promise<boolean> => {
+        // Note: Using agentId, agentData, onStatusChange from hook scope, not parameters
+        const taskId = agentData?.activeTaskId || agentData?.nodeId || agentId;
+        if (!taskId) {
+             console.error('Cannot pause - task ID not available');
+             return false; // Return boolean failure
+        }
+        console.log(`Pausing task ${taskId}`);
+        try {
+            const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
+            const response = await fetch(`${browserUseEndpoint}/execute/${taskId}/pause`, { method: 'POST' });
+            if (response.ok) {
+                const taskStatus = await response.json();
+                updateStateFromStatus(taskStatus); // Should update state to Paused
+                return true; // Return boolean success
+            } else {
+                throw new Error(`Failed to pause task. Status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Error pausing task:', error);
+            setError(`Failed to pause task: ${error instanceof Error ? error.message : String(error)}`);
+             useAgentStore.getState().updateAgentState(agentId, { state: AgentState.Error });
+             onStatusChange?.(AgentState.Error);
+             return false; // Return boolean failure
+        }
+    }, [agentId, agentData, onStatusChange, updateStateFromStatus]); // Dependencies remain the same
+
+    // Create a wrapper function with the simple signature for pauseExecution property
+    const pauseExecution = useCallback(async (): Promise<void> => {
+        // Call the internal function using scope variables and ignore boolean result
+        await pauseAgentExecutionInternal(agentId, agentData, onStatusChange);
+    }, [agentId, agentData, onStatusChange, pauseAgentExecutionInternal]);
+
+    const resumeExecution = useCallback(async () => { // Made function async
+        if (agentRuntime?.state === AgentState.Paused) {
+            console.log(`Requesting resume for agent ${agentId}`);
+            // Set the isResuming flag before calling executeTask
+            useAgentStore.getState().setAgentData(agentId, { ...agentData!, isResuming: true });
+            executeTask(); // executeTask will now handle the resume logic
+        } else {
+             console.warn(`Cannot resume agent ${agentId} from state ${agentRuntime?.state}`);
+        }
+    }, [agentId, agentData, agentRuntime?.state, executeTask]); // Added dependencies
+
+    const cancelExecution = useCallback(async () => {
+        const taskId = agentData?.activeTaskId || agentData?.nodeId || agentId;
+        if (!taskId) {
+             console.error('Cannot cancel - task ID not available');
+             return;
+        }
+        console.log(`Canceling task ${taskId}`);
+        setIsProcessing(false); // Stop processing indicator immediately
+
+        try {
+            const browserUseEndpoint = process.env.NEXT_PUBLIC_BROWSER_USE_ENDPOINT || 'http://localhost:8000';
+            const response = await fetch(`${browserUseEndpoint}/execute/${taskId}/cancel`, { method: 'POST' });
+            if (response.ok) {
+                // const taskStatus = await response.json(); // Backend might return final status
+                // updateStateFromStatus(taskStatus);
+                 useAgentStore.getState().updateAgentState(agentId, { state: AgentState.Idle, error: 'Cancelled by user' });
+                 onStatusChange?.(AgentState.Idle);
+                 setError('Cancelled by user');
+            } else {
+                throw new Error(`Failed to cancel task. Status: ${response.status}`);
+            }
+        } catch (error) {
+            console.error('Error canceling task:', error);
+            setError(`Failed to cancel task: ${error instanceof Error ? error.message : String(error)}`);
+             useAgentStore.getState().updateAgentState(agentId, { state: AgentState.Error, error: `Cancel failed: ${error instanceof Error ? error.message : String(error)}` });
+             onStatusChange?.(AgentState.Error);
+        }
+    }, [agentId, agentData, onStatusChange]); // Added dependencies
+
+    // Return the complete hook response object
+    return { 
         executeTask,
-        pauseAgentExecution,
+        isProcessing,
         result,
-        error
-    };
+        error,
+        state: agentRuntime?.state ?? AgentState.Idle, // Changed Unknown to Idle
+        provideAssistance, 
+        pauseAgentExecution: pauseAgentExecutionInternal, // Assign internal func (complex signature)
+        pauseExecution: pauseExecution,                 // Assign wrapper func (simple signature)
+        resumeExecution,   
+        cancelExecution,   
+        canExecute
+    }; 
 };

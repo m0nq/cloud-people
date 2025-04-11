@@ -25,6 +25,8 @@ import { isInitialStateNode } from './node-validation';
 import { hasWorkflowId } from './node-validation';
 import { isWorkflowNode } from './node-validation';
 
+import { useAgentStore } from '@stores/agent-store';
+
 export function createWorkflowLifecycle(set: Function, get: Function) {
     return {
         createNewWorkflow: async () => {
@@ -220,6 +222,13 @@ export function createWorkflowLifecycle(set: Function, get: Function) {
                 nodes: [...nodes, newNode],
                 edges: [...edges, newEdge]
             });
+
+            const agentId = newNode.data?.agentRef?.agentId;
+            if (agentId) {
+                useAgentStore.getState().initializeAgent(agentId);
+            } else {
+                console.error(`[WorkflowLifecycle] Could not find agentId for new node ${newNode.id} to initialize state.`);
+            }
 
             console.log('Agent node added to workflow:', newNode);
         },

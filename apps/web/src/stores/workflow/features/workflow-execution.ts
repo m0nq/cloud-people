@@ -181,74 +181,90 @@ export const transitionNode = (set: Function, nodes: Node<NodeData>[], nodeId: s
 
 export const createWorkflowExecution = (set: Function, get: Function) => {
     const startWorkflow = async () => {
-        const { nodes, edges } = get();
+        const { nodes, edges, workflowExecution: currentExecution } = get();
         const rootNode = findRootNode(nodes);
 
         if (!rootNode) {
-            throw new Error('No root node found');
+            console.error('Cannot start workflow: Root node not found.');
+            // Cannot update state if root isn't found, maybe handle differently?
+            return;
         }
 
-        // Check if there are any agent nodes in the graph
-        if (!hasAgentNodes(nodes)) {
-            throw new Error('Cannot start workflow: No agent nodes detected in the graph.');
-        }
-
-        // Get workflow ID from root node
         const workflowId = rootNode.data?.workflowId;
         if (!workflowId) {
-            throw new Error('Root node has no workflow ID');
+            console.error('Cannot start workflow: Workflow ID not found on root node.');
+            // Cannot update state if workflowId isn't found
+            return;
         }
 
-        const agentStore = useAgentStore.getState();
+        console.log('[WorkflowExecution] Starting workflow:', workflowId);
 
-        try {
-            // Find the first node connected to root
-            const firstNode = findNextNode(nodes, edges, rootNode.id);
-            if (!firstNode || !isValidWorkflowNode(firstNode)) {
-                throw new Error('No valid starting node found');
+        // --- Find First Node --- Corrected arguments
+        const firstNode = findNextNode(nodes, edges, rootNode.id);
+
+        if (!firstNode) {
+            console.warn('Workflow has no nodes connected to the root. Ending.');
+            // Update state to Completed if no nodes follow root
+            if (currentExecution) {
+                await updateWorkflowState(set, currentExecution, WorkflowState.Completed);
             }
+            return;
+        }
 
-            // Initialize non-root nodes: Set to Idle ONLY if not already INITIAL
-            nodes.filter(node => node.id !== rootNode.id && isWorkflowNode(node))
-                .forEach(node => {
-                    if (node.data.type === NodeType.Agent) {
-                        const { agentId } = node.data.agentRef;
-                        const currentAgent = agentStore.getAgentState(agentId);
-
-                        // Only transition to IDLE if agent exists and its current state is NOT INITIAL
-                        if (currentAgent && currentAgent.state !== AgentState.Initial) {
-                            console.log(`[DEBUG] Setting node ${node.id} (Agent ${agentId}) state to IDLE from ${currentAgent.state}`);
-                            transitionNode(set, nodes, node.id, AgentState.Idle);
-                        } else if (currentAgent && currentAgent.state === AgentState.Initial) {
-                            console.log(`[DEBUG] Skipping transition for node ${node.id} (Agent ${agentId}) as it is already in INITIAL state.`);
-                        } else if (!currentAgent) {
-                            console.warn(`[DEBUG] Agent ${agentId} not found for node ${node.id} during startWorkflow initialization.`);
-                        }
-                    }
-                    // Optionally handle other node types if needed for initialization
+        // --- Ensure workflowExecution exists --- Need to create if null
+        let executionToUse = currentExecution;
+        if (!executionToUse) {
+            console.log(`[WorkflowExecution] No existing execution found for ${workflowId}. Creating new one.`);
+            try {
+                executionToUse = await createExecution({
+                    workflowId,
+                    nodeId: rootNode.id, // Start tracking from root
+                    currentStatus: WorkflowState.Initial, // Initial state before starting
                 });
+                updateState(set, { workflowExecution: executionToUse }); // Store the new execution object
+            } catch (error) {
+                console.error('Failed to create workflow execution record:', error);
+                return; // Cannot proceed without an execution record
+            }
+        }
 
-            // Start with first node - Ensure 'nodes' reflects any updates from the loop above
-            const updatedNodes = nodes; // Get potentially updated nodes
-            transitionNode(set, updatedNodes, firstNode.id, AgentState.Activating); // Pass setState correctly and use updatedNodes
+        // --- Update state to Running --- (using the helper)
+        await updateWorkflowState(set, executionToUse, WorkflowState.Running, firstNode.id);
 
-            // Create execution record in database with workflow ID from root node
-            const workflowExecution = await createExecution({
-                nodeId: firstNode.id,
-                workflowId,
-                currentStatus: WorkflowState.Running
-            });
+        // --- Transition the first node --- Pass the updated execution from get()
+        console.log(`[WorkflowExecution] Activating first node: ${firstNode.id}`);
+        transitionNode(set, get().nodes, firstNode.id, AgentState.Activating);
 
-            // Update workflow state with execution record
-            updateState(set, { workflowExecution }); // Pass setState correctly
-        } catch (error) {
-            console.error('Failed to start workflow:', error);
-            throw error;
+        // --- Verify first node state and update workflow status accordingly ---
+        const updatedNodes = get().nodes;
+        const finalFirstNode = updatedNodes.find(n => n.id === firstNode.id);
+        const finalFirstNodeState = finalFirstNode?.data?.state;
+
+        // Fetch the potentially updated execution record again
+        const finalExecution = get().workflowExecution;
+        if (!finalExecution) {
+             console.error('[WorkflowExecution] Critical Error: Execution record disappeared after starting.');
+             return;
+        }
+
+        if (finalFirstNodeState === AgentState.Activating) {
+            console.log(`[WorkflowExecution] First node ${firstNode.id} successfully transitioned to ACTIVATING.`);
+            // State is already Running, node is marked in updateWorkflowState above
+        } else {
+            console.error(`[WorkflowExecution] First node ${firstNode.id} failed to reach ACTIVATING state. Current state: ${finalFirstNodeState}. Halting workflow.`);
+            // Update workflow state to Paused with an error message
+            await updateWorkflowState(
+                set,
+                finalExecution,
+                WorkflowState.Paused, // Use Paused for errors
+                firstNode.id,
+                `First node (${firstNode.id}) failed to activate.`
+            );
         }
     };
 
     const pauseWorkflow = async () => {
-        const { nodes, workflowExecution }: GraphState = get();
+        const { nodes, edges, workflowExecution }: GraphState = get();
         if (!workflowExecution) {
             console.error('[DEBUG] Cannot pause workflow - workflowExecution is undefined');
             return;
@@ -528,116 +544,119 @@ export const createWorkflowExecution = (set: Function, get: Function) => {
         try {
             if (!workflowExecution) return;
 
-            console.log(`[DEBUG] Progressing workflow for node ${nodeId} with status ${status}`, {
-                workflowState: workflowExecution.state,
-                currentNodeId: workflowExecution.currentNodeId
-            });
+            console.log(`[WorkflowProgress] Node ${nodeId} completed with status ${status}. Starting progression logic.`);
 
-            if (status === AgentState.Complete) {
-                // Get the completed agent's result with validation
-                const completedAgentId = node.data.agentRef.agentId;
-                const completedAgentResult = useAgentStore.getState().getAgentResult(completedAgentId);
-                
-                if (completedAgentResult) {
-                    // Track successful data retrieval
-                    console.log(`[Telemetry] Data passing retrieve_result from ${completedAgentId}: Success`);
-                    
-                    // Update workflow context with the result
-                    updateWorkflowContext(completedAgentId, completedAgentResult);
-                    console.log(`[DEBUG] Updated workflow context with result from agent ${completedAgentId}`);
-                } else {
-                    // Track failed data retrieval
-                    console.log(`[Telemetry] Data passing retrieve_result from ${completedAgentId}: Failure`);
-                    console.warn(`[DEBUG] No result found for completed agent ${completedAgentId}`);
-                }
-                
-                // Check if the workflow is paused before proceeding to the next node
-                if (workflowExecution.state === WorkflowState.Paused) {
-                    console.log(`[DEBUG] Workflow is paused, not activating next node after completion of ${nodeId}`);
+            const completedNode = nodes.find(n => n.id === nodeId);
+            if (!completedNode) {
+                console.error(`[WorkflowProgress] Completed node ${nodeId} not found.`);
+                return;
+            }
+            console.log(`[WorkflowProgress] Found completed node: ${completedNode.id}, Type: ${completedNode.type}. Received status: ${status}, Store status: ${completedNode.data.state?.state}`);
 
-                    // Update the current node ID but maintain the paused state
-                    await updateWorkflowState(
-                        set,
-                        workflowExecution,
-                        WorkflowState.Paused,
-                        nodeId
-                    );
+            // --- Fix: Ensure completed node state is updated in the store ---
+            // Check the actual current state in the store *before* potentially transitioning
+            const currentNodeInStore = get().nodes.find(n => n.id === nodeId);
+            const currentNodeState = currentNodeInStore?.data.state?.state;
+            console.log(`[WorkflowProgress] Current state of node ${nodeId} in store: ${currentNodeState}`);
+
+            // Only transition to COMPLETE if the node isn't already marked as Complete and the received status indicates completion
+            if (status === AgentState.Complete && currentNodeState !== AgentState.Complete) {
+                console.log(`[WorkflowProgress] Node ${nodeId} is not COMPLETE in store (${currentNodeState}). Transitioning to COMPLETE.`);
+                transitionNode(set, get().nodes, nodeId, AgentState.Complete);
+            } else if (currentNodeState === AgentState.Complete) {
+                console.log(`[WorkflowProgress] Node ${nodeId} is already COMPLETE in store. Skipping transition.`);
+            } else {
+                console.log(`[WorkflowProgress] Node ${nodeId} finished with status ${status}, not transitioning to COMPLETE.`);
+                if (status !== AgentState.Complete) {
+                    console.log(`[WorkflowProgress] Halting progression for branch from ${nodeId} due to non-COMPLETE status: ${status}.`);
                     return;
                 }
+            }
 
-                const nextNode = findNextNode(nodes, edges, nodeId);
-                if (nextNode && isWorkflowNode(nextNode)) {
-                    console.log(`[DEBUG] Activating next node ${nextNode.id} after completion of ${nodeId}`);
+            // Find outgoing edges
+            const outgoingEdges = get().edges.filter(edge => edge.source === nodeId);
+            console.log(`[WorkflowProgress] Found ${outgoingEdges.length} outgoing edges from node ${nodeId}`);
 
-                    // Get the next agent ID
+            if (outgoingEdges.length === 0) {
+                console.log(`[WorkflowProgress] No outgoing edges from ${nodeId}. Checking if workflow should complete.`);
+                await updateWorkflowState(
+                    set,
+                    workflowExecution,
+                    WorkflowState.Completed,
+                    nodeId
+                );
+                console.log('[WorkflowProgress] No next node, workflow marked as completed via updateWorkflowState.');
+                return;
+            }
+
+            for (const edge of outgoingEdges) {
+                const nextNodeId = edge.target;
+                console.log(`[WorkflowProgress] Processing edge ${edge.id} -> target node ${nextNodeId}`);
+
+                const nextNode = get().nodes.find(n => n.id === nextNodeId);
+                if (!nextNode || !isWorkflowNode(nextNode)) {
+                    console.error(`[WorkflowProgress] Next node ${nextNodeId} not found or is not a valid workflow node.`);
+                    continue;
+                }
+                console.log(`[WorkflowProgress] Found next node: ${nextNode.id}, Type: ${nextNode.type}`);
+
+                const incomingEdges = get().edges.filter(e => e.target === nextNodeId);
+                const allInputsCompleted = incomingEdges.every(inEdge => {
+                    const sourceNode = get().nodes.find(n => n.id === inEdge.source);
+                    const isCompleted = sourceNode?.data.state?.state === AgentState.Complete;
+                    console.log(`[WorkflowProgress] Checking input ${inEdge.source} for node ${nextNodeId}: State = ${sourceNode?.data.state?.state}, IsCompleted = ${isCompleted}`);
+                    return isCompleted;
+                });
+
+                if (allInputsCompleted) {
+                    console.log(`[WorkflowProgress] All inputs for node ${nextNodeId} are completed. Preparing to activate.`);
+
+                    const completedAgentId = completedNode.data.agentRef.agentId;
+                    const completedAgentResult = get().getAgentContextData(completedAgentId);
                     const nextAgentId = nextNode.data.agentRef.agentId;
-                    
-                    // Pass the previous agent's result to the next agent
+
                     if (completedAgentResult) {
-                        // Update the agent data to include the previous agent output
                         const nextAgentData = useAgentStore.getState().getAgentData(nextAgentId);
                         if (nextAgentData) {
+                            console.log(`[WorkflowProgress] Passing result from ${completedAgentId} to ${nextAgentId}.`);
                             useAgentStore.getState().setAgentData(nextAgentId, {
                                 ...nextAgentData,
                                 previousAgentOutput: completedAgentResult
                             });
-                            
-                            // Track successful data passing
                             console.log(`[Telemetry] Data passing pass_to_next from ${completedAgentId} to ${nextAgentId}: Success`);
-                            console.log(`[DEBUG] Passed result from agent ${completedAgentId} to agent ${nextAgentId}`);
+                        } else {
+                            console.warn(`[WorkflowProgress] Could not find agent data for next agent ${nextAgentId} to pass results.`);
+                            console.log(`[Telemetry] Data passing pass_to_next from ${completedAgentId} to ${nextAgentId}: Fail - Next agent data not found`);
                         }
+                    } else {
+                        console.log(`[WorkflowProgress] No result found for completed agent ${completedAgentId} to pass.`);
                     }
 
-                    // Start next node
-                    useAgentStore.getState().transition(nextNode.id, AgentState.Activating);
-                    transitionNode(set, nodes, nextNode.id, AgentState.Activating);
+                    console.log(`[WorkflowProgress] Activating next node ${nextNodeId}`);
+                    transitionNode(set, get().nodes, nextNodeId, AgentState.Activating);
 
-                    // Update workflow state with next node
                     await updateWorkflowState(
                         set,
                         workflowExecution,
                         WorkflowState.Running,
-                        nextNode.id
+                        nextNodeId
                     );
+                    console.log(`[WorkflowProgress] Workflow state updated to Running, current node ${nextNodeId}.`);
                 } else {
-                    console.log(`[DEBUG] No next node found after ${nodeId}, marking workflow as completed`);
-
-                    // No next node, workflow is complete
-                    await updateWorkflowState(
-                        set,
-                        workflowExecution,
-                        WorkflowState.Completed,
-                        nodeId
-                    );
+                    console.log(`[WorkflowProgress] Not all inputs for node ${nextNodeId} are completed yet. Holding state.`);
                 }
-            } else if (status === AgentState.Error || status === AgentState.Assistance) {
-                console.log(`[DEBUG] Node ${nodeId} entered ${status} state, pausing workflow`);
-
-                // Reset all non-terminal nodes
-                const nonTerminalNodes = findNonTerminalNodes(nodes);
-                console.log(`[DEBUG] Resetting ${nonTerminalNodes.length} non-terminal nodes to Initial state`);
-                resetNodesToInitial(set, nodes, nonTerminalNodes);
-
-                // Update workflow state
-                const errorMessage = status === AgentState.Error ? 'Agent encountered an error' : undefined;
-                await updateWorkflowState(set, workflowExecution, WorkflowState.Paused, nodeId, errorMessage);
             }
         } catch (error) {
-            console.error('[DEBUG] Error in progressWorkflow:', error);
-
-            // Reset all non-terminal nodes
-            const nonTerminalNodes = findNonTerminalNodes(nodes);
-            resetNodesToInitial(set, nodes, nonTerminalNodes);
-
-            // Update workflow state with error
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-            await updateWorkflowState(
-                set,
-                workflowExecution,
-                WorkflowState.Paused,
-                nodeId,
-                errorMessage
-            );
+            console.error('[WorkflowProgress] Error during workflow progression:', error);
+            if (workflowExecution) {
+                await updateWorkflowState(
+                    set,
+                    workflowExecution,
+                    WorkflowState.Paused, // Changed from Failed to Paused
+                    nodeId, // Associate failure with the node being processed
+                    error instanceof Error ? error.message : String(error)
+                );
+            }
         }
     };
 
