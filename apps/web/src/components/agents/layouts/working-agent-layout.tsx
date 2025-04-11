@@ -10,26 +10,39 @@ import { TaskStatusIcon } from '@components/icons/task-status-icon';
 import { useAgent } from '@hooks/use-agent';
 import { useAgentStore } from '@stores/agent-store';
 import { PauseIcon } from '@components/icons';
+import { useWorkflowStore } from '@stores/workflow';
+import { AgentState } from '@app-types/agent/state';
 
 export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
-    const { transition } = useAgentStore();
-    const agentStore = useAgentStore();
-    const agentData = agentStore.getAgentData(agentId);
     const hasExecutedRef = useRef(false);
+    const displayAgentData = useAgentStore((state) => state.agentData[agentId]);
 
     const {
         isProcessing,
         executeTask,
         pauseAgentExecution,
-        error
+        error,
+        result
     } = useAgent(agentId, (status) => {
-        transition(agentId, status);
+        const agentStoreState = useAgentStore.getState();
+        const currentAgentData = agentStoreState.agentData[agentId];
+        const transitionFunc = agentStoreState.transition;
+
+        transitionFunc(agentId, status);
+
+        if (status === AgentState.Complete && currentAgentData?.nodeId) {
+            console.log(`[WorkingAgentLayout] Agent ${agentId} (Node ${currentAgentData.nodeId}) completed. Calling progressWorkflow.`);
+            useWorkflowStore.getState().progressWorkflow(currentAgentData.nodeId, status);
+        } else {
+            console.log(`[WorkingAgentLayout] Agent ${agentId} status changed to ${status}. (Not COMPLETE or nodeId missing - Not progressing workflow)`);
+        }
     });
 
-    // Start execution when component mounts and agentData is available
     useEffect(() => {
-        // Early return if no agent data or already executed
-        if (!agentData || !agentData.id || hasExecutedRef.current) {
+        const agentStoreState = useAgentStore.getState();
+        const dataForEffect = agentStoreState.agentData[agentId];
+
+        if (!dataForEffect || !dataForEffect.id || hasExecutedRef.current) {
             return;
         }
 
@@ -38,68 +51,82 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
 
         (async () => {
             try {
-                // executeTask now handles both new tasks and resuming
                 await executeTask();
 
-                // If successful and we were resuming, reset the flag
-                if (isMounted && agentData?.isResuming) {
+                if (isMounted && dataForEffect?.isResuming) {
                     useAgentStore.getState().setAgentData(agentId, {
-                        ...agentData,
+                        ...dataForEffect,
                         isResuming: false
                     });
                 }
-            } catch (error) {
-                console.error(`Error during agent execution:`, error);
+            } catch (err) {
+                if (isMounted) {
+                    console.error("Error executing task in layout:", err);
+                }
             }
         })();
 
-        // Cleanup function
         return () => {
             isMounted = false;
         };
-
-    }, [agentData, agentId, executeTask]);
+    }, [agentId, executeTask]);
 
     const handlePause = async () => {
-        if (!agentData) {
-             console.error("Cannot pause: Agent data not available.");
-             return;
+        if (!displayAgentData) {
+            console.error("Cannot pause: Agent data not available.");
+            return;
         }
-        await pauseAgentExecution(agentId, agentData, (status) => {
-            transition(agentId, status);
+        await pauseAgentExecution(agentId, displayAgentData, (status) => {
+            useAgentStore.getState().transition(agentId, status);
         });
     };
 
-    // Render loading state if no agent data
-    if (!agentData || !agentData.id) {
+    if (!displayAgentData || !displayAgentData.id) {
         return <div>Loading...</div>;
     }
 
     return (
         <div className="working-agent-card">
             <div className="working-agent-wrapper">
-                {/* Content */}
                 <div className="agent-info-section">
-                    <Image src={agentData?.image || cloudHeadImage}
-                        alt={`Profile avatar of ${agentData?.name}`}
+                    <Image src={displayAgentData?.image || cloudHeadImage}
+                        alt={`Profile avatar of ${displayAgentData?.name}`}
                         className="rounded-full"
                         width={48}
                         height={48} />
                     <div className="agent-name">
-                        <span>{agentData?.name}</span>
+                        <span>{displayAgentData?.name}</span>
                     </div>
                 </div>
 
-                {/* Status section */}
                 <div className="agent-tasks-section">
                     <div className="agent-tasks-title">
                         <TaskStatusIcon />
-                        <span>Current Task:</span>
+                        <span>Task Status</span>
                     </div>
-                    <div className="agent-tasks-container">
-                        <p>{isProcessing && 'Processing...'}</p>
-                        {error && <p className="error-message">Error: {error}</p>}
+                    <div className="agent-task-status-content">
+                        {error ? (
+                            <div className="text-red-500">
+                                Error: {error}
+                            </div>
+                        ) : isProcessing ? (
+                            <div className="flex items-center">
+                                <span>Processing...</span>
+                            </div>
+                        ) : (
+                            <div className="break-words">
+                                {result || 'Awaiting execution...'}
+                            </div>
+                        )}
                     </div>
+                    {isProcessing && (
+                        <Button
+                            onClick={handlePause}
+                            className="absolute bottom-2 right-2"
+                        >
+                            <PauseIcon className="h-4 w-4" />
+                        </Button>
+                    )}
                 </div>
                 <div className="buttons-container">
                     <Button customStyles={{ textColor: '#7d829a', backgroundColor: '#232629' }}
