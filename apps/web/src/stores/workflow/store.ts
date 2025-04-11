@@ -3,7 +3,7 @@ import { devtools } from 'zustand/middleware';
 
 import { initialState } from './constants';
 import { createGraphManipulation } from './features/graph-manipulation';
-import { createWorkflowExecution } from './features/workflow-execution';
+import { createWorkflowExecutionSlice } from './features/workflow-execution';
 import { createWorkflowLifecycle } from './features/workflow-lifecycle';
 import { createWorkflowContext } from './features/workflow-context';
 import { findRootNode } from './utils/state-helpers';
@@ -19,7 +19,7 @@ export const useWorkflowStore = create<WorkflowStore>()(
 
         // Feature modules
         ...createGraphManipulation(set, get),
-        ...createWorkflowExecution(set, get),
+        ...createWorkflowExecutionSlice(set, get),
         ...createWorkflowLifecycle(set, get),
         ...createWorkflowContext(set, get),
 
