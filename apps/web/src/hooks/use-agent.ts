@@ -7,14 +7,14 @@ import { useAgentStore } from '@stores/agent-store';
 import { useWorkflowStore } from '@stores/workflow';
 import { updateState } from '@stores/workflow';
 import { pauseAgentExecution as pauseAgentOp } from '@lib/agent-operations';
-import { runAgentTaskLifecycle } from '@lib/agent-lifecycle'; 
-import { AgentExecutionError } from '@lib/agent-lifecycle'; 
+import { runAgentTaskLifecycle } from '@lib/agent-lifecycle';
+import { AgentExecutionError } from '@lib/agent-lifecycle';
 
 interface AgentHookResponse {
     isProcessing: boolean;
-    executeTask: () => Promise<AgentResult | null>; 
+    executeTask: () => Promise<AgentResult | null>;
     pauseAgentExecution: () => Promise<boolean>;
-    result: AgentResult | null; 
+    result: AgentResult | null;
     error: string | null;
     // Expose agentRuntime state if needed by consumer
     // agentRuntime: ReturnType<typeof useAgentStore['getState']>;
@@ -22,18 +22,18 @@ interface AgentHookResponse {
 
 export const useAgent = (agentData: AgentData, onStatusChange?: (status: AgentState) => void): AgentHookResponse => {
     const [isProcessing, setIsProcessing] = useState(false);
-    const [result, setResult] = useState<AgentResult | null>(null); 
+    const [result, setResult] = useState<AgentResult | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    const { getAgentState, updateAgentState, setAgentResult } = useAgentStore();
+    const { getAgentState, updateAgentState, setAgentResult, setAgentData, getAgentData } = useAgentStore();
     const agentRuntime = getAgentState(agentData.id);
 
     const executeTask = useCallback(async (): Promise<AgentResult | null> => {
         if (!agentData.id) {
             const errorMsg = 'Cannot execute - agent ID not available';
             console.error(`[useAgent] ${errorMsg}`);
-            setError(errorMsg); 
-            onStatusChange?.(AgentState.Error); 
+            setError(errorMsg);
+            onStatusChange?.(AgentState.Error);
             return null;
         }
 
@@ -44,13 +44,18 @@ export const useAgent = (agentData: AgentData, onStatusChange?: (status: AgentSt
         }
 
         let finalResult: AgentResult | null = null;
-        let finalTaskId: string | undefined = undefined; 
+        let finalTaskId: string | undefined = undefined;
 
         try {
             setIsProcessing(true);
             setError(null);
             setResult(null);
-            updateAgentState(agentData.id, { state: AgentState.Working, errorMessage: undefined }); 
+            updateAgentState(agentData.id, { state: AgentState.Working });
+            // Clear previous error message in AgentData
+            const currentAgentData = getAgentData(agentData.id);
+            if (currentAgentData && currentAgentData.errorMessage) {
+                setAgentData(agentData.id, { ...currentAgentData, errorMessage: undefined });
+            }
             onStatusChange?.(AgentState.Working);
 
             console.log(`[useAgent] Calling runAgentTaskLifecycle for agent ${agentData.id}`);
@@ -61,7 +66,7 @@ export const useAgent = (agentData: AgentData, onStatusChange?: (status: AgentSt
             // Delegate the complex logic
             finalResult = await runAgentTaskLifecycle(
                 agentData,
-                agentData.previousAgentOutput 
+                agentData.previousAgentOutput
                 // Can pass polling params here if needed: pollIntervalMs, maxPolls
             );
 
@@ -74,37 +79,36 @@ export const useAgent = (agentData: AgentData, onStatusChange?: (status: AgentSt
             // We might want to update the store with *that* task ID if different
             // from initial estimate, but currently lifecycle doesn't return it.
             // For now, assume the initial taskId was sufficient or updated internally.
-            updateAgentState(agentData.id, { state: AgentState.Complete, errorMessage: undefined });
-            setAgentResult(agentData.id, finalResult); 
+            updateAgentState(agentData.id, { state: AgentState.Complete });
+            setAgentResult(agentData.id, finalResult);
             onStatusChange?.(AgentState.Complete);
 
             return finalResult;
 
-        } catch (e) {
-            const message = e instanceof Error ? e.message : String(e);
-            console.error('[useAgent] Error executing task via lifecycle:', message);
-            setError(message);
+        } catch (error: any) {
+            console.error(`[useAgent] Error during agent execution: ${error.message}`, error);
+            const errorMsg = error instanceof AgentExecutionError ? error.message : 'An unexpected error occurred';
+            setError(errorMsg);
+            // Update AgentData with the error message
+            const currentData = getAgentData(agentData.id);
+            setAgentData(agentData.id, { ...(currentData || agentData), errorMessage: errorMsg });
 
-            // --- Error Handling ---
-            // Store error message in the agent store
-            // Use the task ID we *attempted* to use/create
+            // Update runtime state to Error, without errorMessage field
             updateAgentState(agentData.id, {
-                 state: AgentState.Error,
-                 errorMessage: message,
-                 // Optionally clear activeTaskId if failure was catastrophic?
-                 // activeTaskId: undefined
+                state: AgentState.Error,
+                // activeTaskId: undefined // Keep task ID for potential retry/debug?
             });
 
-            setIsProcessing(false); 
+            setIsProcessing(false);
             onStatusChange?.(AgentState.Error);
-            return null; 
+            return null;
         } finally {
-             // Ensure isProcessing is always reset
-             setIsProcessing(false);
-             console.log(`[useAgent] executeTask finished for agent ${agentData.id}. Processing: ${isProcessing}`);
+            // Ensure isProcessing is always reset
+            setIsProcessing(false);
+            console.log(`[useAgent] executeTask finished for agent ${agentData.id}. Processing: ${isProcessing}`);
         }
 
-    }, [agentData, isProcessing, getAgentState, updateAgentState, setAgentResult, onStatusChange]);
+    }, [agentData, isProcessing, getAgentState, updateAgentState, setAgentResult, setAgentData, getAgentData, onStatusChange]);
 
     const pauseAgentExecution = useCallback(async (): Promise<boolean> => {
         if (!agentData?.id) {
@@ -118,12 +122,12 @@ export const useAgent = (agentData: AgentData, onStatusChange?: (status: AgentSt
 
         if (!taskId) {
             console.warn('[useAgent] Cannot pause agent: Task ID not available.');
-            setError('Cannot pause: Task ID is missing.'); 
+            setError('Cannot pause: Task ID is missing.');
             return false;
         }
 
         console.log(`[useAgent] Requesting pause for task ${taskId}`);
-        setError(null); 
+        setError(null);
 
         try {
             // Call the standalone pause operation utility using the alias
@@ -131,30 +135,30 @@ export const useAgent = (agentData: AgentData, onStatusChange?: (status: AgentSt
             if (success) {
                 // Update state locally via store - pauseAgentOp handles the API call
                 updateAgentState(agentData.id, { state: AgentState.Paused, activeTaskId: taskId });
-                onStatusChange?.(AgentState.Paused); 
+                onStatusChange?.(AgentState.Paused);
                 console.log(`[useAgent] Task ${taskId} paused successfully.`);
                 return true;
             } else {
-                 // pauseAgentOp should ideally throw on failure, but handle boolean false too
-                 const pauseErrorMsg = `Failed to pause task ${taskId} via API.`;
-                 console.error(`[useAgent] ${pauseErrorMsg}`);
-                 setError(pauseErrorMsg);
-                 // Optionally update store state to Error?
-                 // updateAgentState(agentData.id, { state: AgentState.Error, errorMessage: pauseErrorMsg });
-                 // onStatusChange?.(AgentState.Error);
-                 return false;
+                // pauseAgentOp should ideally throw on failure, but handle boolean false too
+                const pauseErrorMsg = `Failed to pause task ${taskId}.`;
+                const currentData = getAgentData(agentData.id);
+                setAgentData(agentData.id, { ...(currentData || agentData), errorMessage: pauseErrorMsg });
+                setError(pauseErrorMsg);
+                // Optionally update store state to Error?
+                // updateAgentState(agentData.id, { state: AgentState.Error, errorMessage: pauseErrorMsg });
+                // onStatusChange?.(AgentState.Error);
+                return false;
             }
-        } catch (err) {
-            console.error('[useAgent] Error pausing task:', err);
-            const errorMessage = err instanceof Error ? err.message : String(err);
-            setError(errorMessage);
-            // Update store state to reflect error during pause attempt
-            updateAgentState(agentData.id, { state: AgentState.Error, errorMessage: errorMessage });
-            onStatusChange?.(AgentState.Error);
+        } catch (error: any) {
+            console.error(`[useAgent] Error pausing task ${taskId}:`, error);
+            const pauseCatchErrorMsg = `Error pausing task: ${error.message}`;
+            const currentData = getAgentData(agentData.id);
+            setAgentData(agentData.id, { ...(currentData || agentData), errorMessage: pauseCatchErrorMsg });
+            setError(pauseCatchErrorMsg);
             return false;
         }
         // Depend on agentData, store functions, and callbacks
-    }, [agentData, getAgentState, updateAgentState, onStatusChange, setError]); 
+    }, [agentData, getAgentState, updateAgentState, setAgentData, getAgentData, onStatusChange, setError]);
 
     return {
         isProcessing,
