@@ -364,9 +364,11 @@ async def execute_task(request: TaskRequest):
     )
     
     # Store task status and request
+    logger.info(f"EXECUTE: Attempting to add task_id: {task_id}") # ADD LOG
     active_tasks[task_id] = task_status
     task_requests[task_id] = request
-    
+    logger.info(f"EXECUTE: Task {task_id} added. Active tasks: {list(active_tasks.keys())}") # ADD LOG
+
     # Start the task in a background task
     asyncio.create_task(run_task(task_id, request, task_status))
     
@@ -556,8 +558,13 @@ async def get_task_status(task_id: str):
     
     This endpoint retrieves the current status of a task by its ID.
     """
+    logger.info(f"GET_STATUS: Received request for task_id: {task_id}") # ADD LOG
+    logger.debug(f"GET_STATUS: Current active tasks: {list(active_tasks.keys())}") # ADD LOG (debug level)
+    logger.debug(f"GET_STATUS: Current task history: {list(task_history.keys())}") # ADD LOG (debug level)
+
     # First check our local task tracking
     if task_id in active_tasks:
+        logger.info(f"GET_STATUS: Task {task_id} found in active_tasks.") # ADD LOG
         # For active tasks, check if we have an agent in the adapter
         agent_status = agent_adapter.get_task_status(task_id)
         
@@ -565,28 +572,31 @@ async def get_task_status(task_id: str):
             # Update our local task status with the agent status
             task_status = active_tasks[task_id]
             task_status.status = agent_status["status"]
-            return task_status
-        
+            return task_status # Return updated active status
+
+        # Return existing active status if agent doesn't know about it (shouldn't happen often)
+        logger.warning(f"GET_STATUS: Task {task_id} in active_tasks, but agent_adapter status is 'not_found'. Returning local status.")
         return active_tasks[task_id]
+
     elif task_id in task_history:
+        logger.info(f"GET_STATUS: Task {task_id} found in task_history.") # ADD LOG
         return task_history[task_id]
     else:
-        # Check if the agent adapter knows about this task
+        logger.warning(f"GET_STATUS: Task {task_id} not found in active_tasks or task_history. Checking agent_adapter...") # ADD LOG
+        # Check if the agent adapter knows about this task (e.g., service restart recovery)
         agent_status = agent_adapter.get_task_status(task_id)
-        
+
         if agent_status["status"] != "not_found":
-            # Create a new task status from the agent status
+            # Create a new TaskStatus object if task exists in agent but not in our tracking
             task_status = TaskStatus(
                 task_id=task_id,
                 status=agent_status["status"],
-                start_time=datetime.now(),  # We don't have the actual start time
                 metadata={"recovered_from_agent": True}
             )
-            
-            # Add to active tasks
             active_tasks[task_id] = task_status
             return task_status
-        
+
+        logger.error(f"GET_STATUS: Task {task_id} not found anywhere. Returning 404.") # ADD LOG
         raise HTTPException(status_code=404, detail=f"Task with ID {task_id} not found")
 
 # Get all tasks

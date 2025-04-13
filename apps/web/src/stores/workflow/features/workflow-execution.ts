@@ -3,7 +3,7 @@ import { type Node } from '@xyflow/react';
 
 import { type NodeData } from '@app-types/workflow/nodes';
 import { type EdgeData } from '@app-types/workflow/edges';
-import { AgentState } from '@app-types/agent/state';
+import { AgentState, AgentResult } from '@app-types/agent';
 import { updateExecution } from '@lib/actions/execution-actions';
 import { createExecution } from '@lib/actions/execution-actions';
 import { WorkflowState } from '@app-types/workflow';
@@ -551,48 +551,44 @@ export const createWorkflowExecutionSlice = <
     };
 
     const progressWorkflow = async (nodeId: string, status: AgentState) => {
-        const { nodes, edges, workflowExecution, updateWorkflowContext } = get();
+        const { nodes, edges, workflowExecution, updateWorkflowContext, activateNode } = get();
+        const { getAgentResult } = useAgentStore.getState();
         const node = nodes.find(n => n.id === nodeId);
         if (!node || !isWorkflowNode(node)) return;
 
         try {
             if (!workflowExecution) return;
 
-            console.log(`[WorkflowProgress] Node ${nodeId} completed with status ${status}. Starting progression logic.`);
+            console.log(`[WorkflowProgress] Node ${nodeId} reported status ${status}. Starting progression logic.`);
 
-            const completedNode = nodes.find(n => n.id === nodeId);
-            if (!completedNode) {
-                console.error(`[WorkflowProgress] Completed node ${nodeId} not found.`);
-                return;
-            }
-            console.log(`[WorkflowProgress] Found completed node: ${completedNode.id}, Type: ${completedNode.type}. Received status: ${status}, Store status: ${completedNode.data.state?.state}`);
-
-            // --- Fix: Ensure completed node state is updated in the store ---
-            // Check the actual current state in the store *before* potentially transitioning
-            const currentNodeInStore = get().nodes.find(n => n.id === nodeId); // Re-fetch from store
-            const currentNodeState = currentNodeInStore?.data.state;
-            console.log(`[WorkflowProgress] Current state of node ${nodeId} in store: ${currentNodeState}`);
-
+            // --- Ensure completed node state is updated in the store ---
+            // Refresh nodes to get the latest state before checking/transitioning
             let allNodes = get().nodes;
             const storedNode = allNodes.find(n => n.id === nodeId);
             const storedNodeState = storedNode?.data.state;
 
-            // If the agent just completed, ensure the workflow node state reflects this
+            // If the agent just completed, ensure the workflow node state reflects this.
+            // transitionNode handles cases where the state is already correct.
             if (status === AgentState.Complete) {
-                // Always call transitionNode when status is COMPLETE to ensure sync.
-                // transitionNode itself handles cases where the state is already correct.
                 console.log(
                     `[WorkflowProgress] Received COMPLETE status for node ${nodeId}. Ensuring workflow node state is synced. Current stored state: ${storedNodeState}`
                 );
                 transitionNode(set, get, allNodes, nodeId, AgentState.Complete); // Pass get
 
-                // Refresh nodes after potential transition before proceeding
+                // Refresh nodes again after potential transition before proceeding
                 allNodes = get().nodes;
+            }
+
+            // Only proceed if the node actually completed successfully
+            if (status !== AgentState.Complete) {
+                console.log(`[WorkflowProgress] Node ${nodeId} did not complete successfully (status: ${status}). Stopping progression for this path.`);
+                // Workflow state (Error/Assistance/Paused) should be handled elsewhere or by the agent completion trigger.
+                return;
             }
 
             // Find outgoing edges from the completed node
             const outgoingEdges = get().edges.filter(edge => edge.source === nodeId);
-            console.log(`[WorkflowProgress] Found ${outgoingEdges.length} outgoing edges from node ${nodeId}`);
+            console.log(`[WorkflowProgress] Found ${outgoingEdges.length} outgoing edges from completed node ${nodeId}`);
 
             if (outgoingEdges.length === 0) {
                 console.log(`[WorkflowProgress] No outgoing edges from ${nodeId}. Checking if workflow should complete.`);
@@ -605,6 +601,16 @@ export const createWorkflowExecutionSlice = <
                 console.log('[WorkflowProgress] No next node, workflow marked as completed via updateWorkflowState.');
                 return;
             }
+
+            // --- Get the result of the completed agent ---
+            console.log(`[WorkflowProgress] Fetching result for completed agent node ${nodeId}`);
+            const completedAgentResult: AgentResult | null = getAgentResult(nodeId) ?? null;
+            if (!completedAgentResult) {
+                console.warn(`[WorkflowProgress] No result found in AgentStore for completed node ${nodeId}. Proceeding without passing result.`);
+            } else {
+                console.log(`[WorkflowProgress] Found result for ${nodeId}:`, completedAgentResult);
+            }
+            // -----------------------------------------
 
             for (const edge of outgoingEdges) {
                 const nextNodeId = edge.target;
@@ -625,7 +631,7 @@ export const createWorkflowExecutionSlice = <
                 for (const incomingEdge of incomingEdges) {
                     const inputNodeId = incomingEdge.source;
 
-                    // --- Re-fetch the LATEST state of the input node --- PRONE TO RACE CONDITIONS
+                    // --- Re-fetch the LATEST state of the input node ---
                     const currentInputNode = get().nodes.find(n => n.id === inputNodeId); // Re-fetch from store
                     const currentInputNodeState = currentInputNode?.data.state;
                     // -------------------------------------------------
@@ -637,6 +643,7 @@ export const createWorkflowExecutionSlice = <
 
                     if (currentInputNodeState !== AgentState.Complete) {
                         allInputsCompleted = false;
+                        console.log(`[WorkflowProgress] Input ${inputNodeId} for ${nextNode.id} is NOT complete. Node ${nextNode.id} cannot be activated yet.`);
                         break; // No need to check other inputs if one is not complete
                     }
                 }
@@ -644,32 +651,30 @@ export const createWorkflowExecutionSlice = <
                 if (allInputsCompleted) {
                     console.log(`[WorkflowProgress] All inputs for ${nextNode.id} are COMPLETE. Preparing to activate.`);
 
-                    // Check if the next node is already completed or running to prevent re-activation (optional safeguard)
-                    const nextNodeCurrentState = get().nodes.find(n => n.id === nextNode.id)?.data.state;
-                    if (nextNodeCurrentState === AgentState.Complete || nextNodeCurrentState === AgentState.Working) {
-                        console.log(`[WorkflowProgress] Node ${nextNode.id} is already in state ${nextNodeCurrentState}. Skipping activation.`);
+                    // Check if the next node is already completed, running, or activating to prevent re-activation (optional safeguard)
+                    const nextNodeCurrentState = get().nodes.find(n => n.id === nextNodeId)?.data.state;
+                    if ([AgentState.Complete, AgentState.Working, AgentState.Activating].includes(nextNodeCurrentState as AgentState)) {
+                        console.warn(`[WorkflowProgress] Next node ${nextNodeId} is already in state ${nextNodeCurrentState}. Skipping activation.`);
                         continue;
                     }
 
-                    // Get AgentResult from the *current* completedNode (nodeId)
-                    const previousAgentResult = get().getAgentContextData(nodeId); // Use context getter
-                    console.log(`[WorkflowProgress] Passing result from ${nodeId} to ${nextNode.id}:`, previousAgentResult);
-                    await activateNode(nextNode.id, previousAgentResult || undefined); // Pass result or undefined
-                } else {
-                    console.log(
-                        `[WorkflowProgress] Not all inputs for node ${nextNode.id} are completed yet. Holding state.`
-                    );
+                    // --- Activate the next node, passing the result ---
+                    console.log(`[WorkflowProgress] Activating node ${nextNodeId} and passing result from ${nodeId}.`);
+                    // Assuming activateNode is part of the store slice and returned by get()
+                    await activateNode(nextNodeId, completedAgentResult);
+                    // -------------------------------------------------
                 }
             }
         } catch (error) {
-            console.error('[WorkflowProgress] Error during workflow progression:', error);
+            console.error('[WorkflowProgress] An error occurred during workflow progression:', error);
+            // Consider updating workflow state to Error here if appropriate
             if (workflowExecution) {
                 await updateWorkflowState(
                     set,
                     workflowExecution,
-                    WorkflowState.Paused, // Changed from Failed to Paused
-                    nodeId, // Associate failure with the node being processed
-                    error instanceof Error ? error.message : 'Unknown error'
+                    WorkflowState.Paused, // Fix: Use Paused state for errors
+                    nodeId, // Associate error with the node that triggered progression
+                    error instanceof Error ? error.message : String(error)
                 );
             }
         }

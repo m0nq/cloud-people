@@ -37,6 +37,9 @@ export type AgentData = {
     activeTaskId?: string;
     // Add field for previous agent output with proper typing
     previousAgentOutput?: AgentResult;
+    // Add fields for error and assistance context
+    errorMessage?: string;
+    assistanceMessage?: string;
 };
 
 export type AgentConfig = {

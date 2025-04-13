@@ -178,14 +178,14 @@
 }
 
 .agent-status {
-    @apply flex flex-col;
+    @apply flex flex-col h-fit;
 
     .status-label {
         @apply text-[#BEC1CE] text-sm flex items-center justify-start gap-1;
     }
 
     .status-value {
-        @apply text-[#BEC1CE] font-medium;
+        @apply text-[#BEC1CE] font-medium h-fit;
     }
 }
 
@@ -253,9 +253,9 @@
 }
 
 .assistance-card {
-    @apply w-full max-h-full rounded-lg border-2 border-[#DCE0F4] bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)]
+    @apply w-full h-fit rounded-lg border-2 border-[#DCE0F4] bg-[linear-gradient(89deg,#333C44_14.21%,#2D2F32_101.01%)]
     shadow-[0px_4.885px_51.294px_0px_rgba(255,255,255,0.25)_inset,0px_1.221px_4.885px_0px_rgba(0,0,0,0.15)] p-4 flex
-    flex-col gap-1.5 relative overflow-visible self-center;
+    flex-col gap-3 relative overflow-visible self-center;
 }
 
 .working-agent-card {
