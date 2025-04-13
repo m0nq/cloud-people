@@ -76,14 +76,19 @@ RUN apt-get update && \
 WORKDIR /home/pwuser/app
 
 # Copy requirements and install Python packages
+# --- OPTIMIZATION START ---
+# 1. Copy only the lock file first
 COPY --from=builder /requirements-lock.txt .
-COPY . .
-# Install browser-use first to ensure it's not overridden by the local package
-RUN pip install --no-cache-dir browser-use==0.1.40 && \
-    pip install --no-cache-dir -r requirements-lock.txt && \
-    pip install -e . && \
+
+# 2. Install dependencies from the lock file
+#    Also run playwright install here to ensure system deps are present
+RUN pip install --no-cache-dir -r requirements-lock.txt && \
     playwright install --with-deps
 
+# 3. Copy the rest of the application code AFTER installing deps
+COPY . .
+
+# Create directories needed by VNC and ensure correct permissions
 RUN mkdir -p /tmp/x11vnc && chown pwuser:pwuser /tmp/x11vnc && touch /tmp/x11vnc/x11vnc.log && chown pwuser:pwuser /tmp/x11vnc/x11vnc.log && chmod 666 /tmp/x11vnc/x11vnc.log
 
 # Copy Playwright browsers from builder stage

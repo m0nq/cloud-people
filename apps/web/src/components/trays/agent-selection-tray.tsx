@@ -88,6 +88,7 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
 
     // Handle agent selection
     const handleAgentSelect = useCallback((agent: AgentData) => {
+            console.log(`[AgentSelectionTray] handleAgentSelect called for agent: ${agent.id}, parentNodeId: ${parentNodeId}`);
             // Close the tray first to prevent UI jank
             closeTray();
 

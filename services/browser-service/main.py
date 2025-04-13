@@ -4,6 +4,7 @@ import asyncio
 import base64
 import logging
 import os
+import sys
 import uuid
 from datetime import datetime, timedelta
 from typing import Any
@@ -71,11 +72,12 @@ async def lifespan(app: FastAPI):
     # Startup logic
     startup_time = datetime.now()
     session_manager.start()
-    logger.info("Application started")
+    logger.info("Application started")  # Revert to logger
     
     # Start the task cleanup background task
+    logger.info("Attempting to start periodic task cleanup...")  # Revert to logger
     cleanup_task = asyncio.create_task(periodic_task_cleanup())
-    logger.info("Started periodic task cleanup")
+    logger.info(f"Periodic task cleanup created: {cleanup_task.get_name()}")  # Revert to logger
     
     yield  # This is where FastAPI serves requests
     
@@ -159,10 +161,27 @@ session_manager = SessionManager(session_timeout_minutes=AppConfig.SESSION_TIMEO
 
 # Task cleanup function
 async def periodic_task_cleanup():
-    """Periodically clean up stale tasks and sessions"""
+    # --- Explicit Logger Configuration --- 
+    task_logger = logging.getLogger(__name__ + ".periodic_task") # Use a unique name
+    task_logger.setLevel(logging.INFO) # Set desired level
+    # Create handler only if logger doesn't have handlers already
+    if not task_logger.hasHandlers(): 
+        handler = logging.StreamHandler(sys.stdout) # Output to stdout
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        task_logger.addHandler(handler)
+        task_logger.propagate = False # Prevent duplicate logs if root logger is also configured
+    else:
+        # Optional: Log if handlers already exist (for debugging setup)
+        task_logger.info("Logger already configured, reusing existing handlers.")
+    # --- End Explicit Logger Configuration ---
+    
+    task_logger.info("Starting periodic task cleanup loop...") # Log start
+
     while True:
         try:
-            logger.info("Running periodic task cleanup")
+            # Explicitly get logger inside the task loop
+            task_logger.info("Running periodic task cleanup") # Use task_logger
             now = datetime.now()
             stale_threshold = now - timedelta(minutes=AppConfig.SESSION_TIMEOUT_MINUTES)
             
@@ -182,15 +201,15 @@ async def periodic_task_cleanup():
                 
                 # If no last activity or it's stale
                 if not last_activity or last_activity < stale_threshold:
-                    logger.info(f"Cleaning up stale task {task_id}")
+                    task_logger.info(f"Cleaning up stale task {task_id}")
                     
                     # Clean up the agent if it exists
                     if task_id in agent_adapter.active_agents:
                         try:
-                            logger.info(f"Cleaning up stale agent for task {task_id}")
+                            task_logger.info(f"Cleaning up stale agent for task {task_id}")
                             await agent_adapter.cleanup_task(task_id)
                         except Exception as e:
-                            logger.error(f"Error cleaning up stale agent for task {task_id}: {e}")
+                            task_logger.error(f"Error cleaning up stale agent for task {task_id}: {e}")
                     
                     # Find associated session (legacy)
                     session_id = None
@@ -200,10 +219,10 @@ async def periodic_task_cleanup():
                     # Close the session if it exists (legacy)
                     if session_id and session_id in session_manager.sessions:
                         try:
-                            logger.info(f"Closing stale session {session_id}")
+                            task_logger.info(f"Closing stale session {session_id}")
                             await session_manager.close_session(session_id, force=True)
                         except Exception as e:
-                            logger.error(f"Error closing stale session {session_id}: {e}")
+                            task_logger.error(f"Error closing stale session {session_id}: {e}")
                     
                     # Update task status
                     task_status.status = "failed"
@@ -223,17 +242,17 @@ async def periodic_task_cleanup():
                 if task_status.status == "completed" and task_status.end_time:
                     # If the task completed more than 30 minutes ago, remove it from history
                     if task_status.end_time < completed_threshold:
-                        logger.info(f"Removing old completed task {task_id} from history")
+                        task_logger.info(f"Removing old completed task {task_id} from history")
                         del task_history[task_id]
             
             # Check for orphaned agents (agents without an active task)
             for task_id, agent in list(agent_adapter.active_agents.items()):
                 if task_id not in active_tasks:
-                    logger.info(f"Cleaning up orphaned agent for task {task_id}")
+                    task_logger.info(f"Cleaning up orphaned agent for task {task_id}")
                     try:
                         await agent_adapter.cleanup_task(task_id)
                     except Exception as e:
-                        logger.error(f"Error cleaning up orphaned agent for task {task_id}: {e}")
+                        task_logger.error(f"Error cleaning up orphaned agent for task {task_id}: {e}")
             
             # Also check for orphaned sessions (sessions without an active task) - legacy
             for session_id, context in list(session_manager.sessions.items()):
@@ -246,27 +265,32 @@ async def periodic_task_cleanup():
                 
                 # If no active task is using this session and it's not persistent, close it
                 if not task_found and not context.persistent:
-                    logger.info(f"Closing orphaned session {session_id}")
+                    task_logger.info(f"Closing orphaned session {session_id}")
                     try:
                         await session_manager.close_session(session_id, force=True)
                     except Exception as e:
-                        logger.error(f"Error closing orphaned session {session_id}: {e}")
+                        task_logger.error(f"Error closing orphaned session {session_id}: {e}")
                 
                 # For persistent sessions, check last activity
                 elif context.persistent:
                     last_activity = session_manager.last_activity.get(session_id)
                     if last_activity and last_activity < stale_threshold:
-                        logger.info(f"Closing stale persistent session {session_id}")
+                        task_logger.info(f"Closing stale persistent session {session_id}")
                         try:
                             await session_manager.close_session(session_id, force=True)
                         except Exception as e:
-                            logger.error(f"Error closing stale persistent session {session_id}: {e}")
+                            task_logger.error(f"Error closing stale persistent session {session_id}: {e}")
             
+            # Sleep for a while before the next cleanup cycle
+            await asyncio.sleep(60)  # Run every 60 seconds
+
         except Exception as e:
-            logger.error(f"Error in task cleanup: {e}")
+            # Use .exception() to include traceback
+            task_logger.exception("Error during periodic task cleanup") 
+            # Add print as fallback
+            print(f"--- PERIODIC TASK: EXCEPTION: {e} ---") 
         
-        # Sleep for cleanup interval
-        await asyncio.sleep(300)  # 5 minutes
+        await asyncio.sleep(60) # Run every 60 seconds
 
 # Task status model
 class TaskStatus(BaseModel):

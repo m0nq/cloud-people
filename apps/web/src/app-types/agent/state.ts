@@ -21,4 +21,6 @@ export type AgentRuntimeState = {
     assistanceMessage?: string;
     metadata?: Record<string, any>; // Store pause-related info here
     result?: AgentResult | null;
+    activeTaskId?: string | null; // Add field to store task ID during pause/resume
+    isResuming?: boolean; // Add field to indicate if the agent is resuming from pause
 };

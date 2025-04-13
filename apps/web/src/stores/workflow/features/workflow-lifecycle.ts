@@ -123,114 +123,55 @@ export function createWorkflowLifecycle(set: Function, get: Function) {
         },
 
         addAgentToWorkflow: async (agent: AgentData) => {
-            const { nodes, edges } = get();
-            let parentNodeId = agent.parentNodeId;
+            const { nodes, addNode, createNewWorkflow, findRootNode } = get();
             let workflowId: string | null = null;
+            let rootNodeId: string | null = null;
 
-            if (nodes.length > 0) {
-                const rootNode = findRootNode(nodes);
-                if (rootNode && rootNode.data && hasWorkflowId(rootNode)) {
-                    workflowId = rootNode.data.workflowId;
+            try {
+                if (nodes.length === 0) {
+                    console.log('[WorkflowLifecycle] No existing workflow found. Creating a new one...');
+                    await createNewWorkflow(); // Creates workflow and sets initial state
+                    const newState = get(); // Get state *after* creation
+                    const newRootNode = newState.findRootNode(newState.nodes);
+                    if (newRootNode && hasWorkflowId(newRootNode)) {
+                        workflowId = newRootNode.data.workflowId;
+                        rootNodeId = newRootNode.id;
+                        console.log(`[WorkflowLifecycle] New workflow created. ID: ${workflowId}, Root Node ID: ${rootNodeId}`);
+                    } else {
+                        console.error('[WorkflowLifecycle] Failed to create workflow or find root node after creation.');
+                        throw new Error('Workflow creation failed.');
+                    }
+                } else {
+                    const existingRootNode = findRootNode(nodes);
+                    if (existingRootNode && hasWorkflowId(existingRootNode)) {
+                        workflowId = existingRootNode.data.workflowId;
+                        rootNodeId = existingRootNode.id;
+                        console.log(`[WorkflowLifecycle] Existing workflow found. ID: ${workflowId}, Root Node ID: ${rootNodeId}`);
+                    } else {
+                        console.error('[WorkflowLifecycle] Could not find workflowId or rootNodeId in existing nodes.');
+                        throw new Error('Existing workflow state is invalid.');
+                    }
                 }
-            }
 
-            if (!workflowId) {
-                console.error('Workflow ID is missing and could not be derived from root node.');
-                throw new Error('Workflow ID is required to add an agent.');
-            }
-
-            if (!parentNodeId && nodes.length > 0) {
-                const nodesWithOutgoingEdges = new Set(edges.map(edge => edge.source));
-
-                const leafNodes = nodes.filter(node =>
-                    !isInitialStateNode(node) &&
-                    node.type !== NodeType.Root &&
-                    !nodesWithOutgoingEdges.has(node.id) &&
-                    hasWorkflowId(node)
-                );
-
-                if (leafNodes.length > 0) {
-                    parentNodeId = leafNodes[0].id;
-                    console.log(`No parentNodeId provided, using leaf node: ${parentNodeId}`);
+                // Determine the parent node for the new agent node
+                const finalParentNodeId = agent.parentNodeId ?? rootNodeId;
+                if (!finalParentNodeId) {
+                    // This should theoretically not happen if workflow creation/finding worked
+                    console.error('[WorkflowLifecycle] Could not determine a parent node ID (root or specific).');
+                    throw new Error('Parent node determination failed.');
                 }
+
+                console.log(`[WorkflowLifecycle] Delegating node addition to addNode. Agent: ${agent.id}, Parent Node ID: ${finalParentNodeId}`);
+
+                // Delegate the actual node/edge creation and state update to graph-manipulation slice
+                await addNode(agent, finalParentNodeId);
+
+                console.log(`[WorkflowLifecycle] Agent ${agent.id} successfully processed by addNode.`);
+
+            } catch (error) {
+                console.error('[WorkflowLifecycle] Error during addAgentToWorkflow:', error);
+                // Consider adding user-facing error notification here
             }
-
-            if (!parentNodeId) {
-                const rootNode = findRootNode(nodes);
-                if (rootNode) {
-                    parentNodeId = rootNode.id;
-                    console.log(`Falling back to root node as parent: ${parentNodeId}`);
-                }
-            }
-
-            if (!parentNodeId) {
-                console.error('Could not determine a parent node for the new agent.');
-                throw new Error('Failed to determine parent node.');
-            }
-
-            const newNodeData = {
-                workflowId,
-                parentId: parentNodeId,
-                nodeType: NodeType.Agent,
-                data: { agentId: agent.id }
-            };
-
-            const dbNode = await nodeService.createNodes({ data: newNodeData });
-
-            if (!dbNode || !dbNode?.id) {
-                throw new Error('Failed to create agent node in database');
-            }
-
-            const newNode = {
-                id: dbNode.id,
-                type: NodeType.Agent,
-                data: {
-                    id: dbNode.id,
-                    type: NodeType.Agent,
-                    label: agent.name,
-                    workflowId: workflowId,
-                    agentRef: { agentId: agent.id }
-                },
-                position: { x: 0, y: 0 },
-                sourcePosition: Position.Right,
-                targetPosition: Position.Left
-            } as Node<NodeData>;
-
-            const newEdge: Edge<EdgeData> = {
-                id: `e-${parentNodeId}-${newNode.id}`,
-                source: parentNodeId,
-                target: newNode.id,
-                type: EdgeType.Automation,
-                animated: true,
-                data: {
-                    id: `e-${parentNodeId}-${newNode.id}`,
-                    workflowId: workflowId,
-                    toNodeId: newNode.id,
-                    fromNodeId: parentNodeId
-                }
-            };
-
-            const parentNode = nodes.find(n => n.id === parentNodeId);
-            if (parentNode) {
-                newNode.position = {
-                    x: parentNode.position.x + 400,
-                    y: parentNode.position.y
-                };
-            }
-
-            updateState(set, {
-                nodes: [...nodes, newNode],
-                edges: [...edges, newEdge]
-            });
-
-            const agentId = newNode.data?.agentRef?.agentId;
-            if (agentId) {
-                useAgentStore.getState().initializeAgent(agentId);
-            } else {
-                console.error(`[WorkflowLifecycle] Could not find agentId for new node ${newNode.id} to initialize state.`);
-            }
-
-            console.log('Agent node added to workflow:', newNode);
         },
 
         fetchGraph: async (workflowId: string) => {

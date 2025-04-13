@@ -13,7 +13,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 
 // Define the interface for our node service
 export interface NodeService {
-  createNodes(config: QueryConfig): Promise<CreatedNodeInfo>;
+  createNodes(config: QueryConfig, supabaseClient?: SupabaseClient): Promise<CreatedNodeInfo>;
 
   updateNodes(config: QueryConfig): Promise<UpdatedNodeInfo>;
 
@@ -21,7 +21,7 @@ export interface NodeService {
 }
 
 // Interface specifically for the data returned by the createNodeMutation
-interface CreatedNodeInfo {
+export interface CreatedNodeInfo {
   id: string;
   workflow_id: string;
   node_type: string;
@@ -30,7 +30,7 @@ interface CreatedNodeInfo {
 }
 
 // Interface for the data returned by the updateNode mutation
-interface UpdatedNodeInfo {
+export interface UpdatedNodeInfo {
   id: string;
   workflow_id: string;
   node_type: string;
@@ -58,7 +58,7 @@ class RealNodeService implements NodeService {
     }
   }
 
-  async createNodes(config: QueryConfig = {}): Promise<CreatedNodeInfo> {
+  async createNodes(config: QueryConfig = {}, supabaseClient?: SupabaseClient): Promise<CreatedNodeInfo> {
     const user = await authCheck();
 
     const workflowId = config.data?.workflowId;
@@ -92,7 +92,8 @@ class RealNodeService implements NodeService {
 
     try {
       // Get the current user session for the access token
-      const { data: { session }, error: sessionError } = await this.supabase.auth.getSession();
+      const clientToUse = supabaseClient || this.supabase;
+      const { data: { session }, error: sessionError } = await clientToUse.auth.getSession();
 
       if (sessionError || !session) {
         console.error('Error getting session or session not found:', sessionError);
@@ -287,7 +288,7 @@ class MockNodeService implements NodeService {
     console.log('[MockNodeService] Initialized');
   }
 
-  async createNodes(config: QueryConfig = {}): Promise<CreatedNodeInfo> {
+  async createNodes(config: QueryConfig = {}, supabaseClient?: SupabaseClient): Promise<CreatedNodeInfo> {
     // Simulate API delay
     await this.delay(200);
 
