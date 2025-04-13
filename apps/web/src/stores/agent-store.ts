@@ -154,10 +154,6 @@ export const useAgentStore = create<AgentStore>()(
                             ...agentRuntime,
                             state: newState,
                             isEditable: [AgentState.Initial, AgentState.Error, AgentState.Assistance].includes(newState),
-                            ...(newState !== AgentState.Error && { error: undefined }),
-                            ...(newState !== AgentState.Assistance && {
-                                assistanceMessage: undefined
-                            }),
                             ...updates
                         }
                     },

@@ -238,8 +238,8 @@ class AgentAdapter:
             await self.cleanup_task(task_id)
             
             return {
-                "status": "error",
-                "message": str(e),
+                "status": "failed", 
+                "error": str(e),   
             }
     
     async def pause_task(self, task_id: str) -> Dict[str, Any]:

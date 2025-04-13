@@ -3,7 +3,8 @@ import { type Node } from '@xyflow/react';
 
 import { type NodeData } from '@app-types/workflow/nodes';
 import { type EdgeData } from '@app-types/workflow/edges';
-import { AgentState, AgentResult } from '@app-types/agent';
+import { AgentState } from '@app-types/agent';
+import { AgentResult } from '@app-types/agent';
 import { updateExecution } from '@lib/actions/execution-actions';
 import { createExecution } from '@lib/actions/execution-actions';
 import { WorkflowState } from '@app-types/workflow';
