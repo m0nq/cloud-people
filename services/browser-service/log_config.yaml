@@ -7,8 +7,9 @@ formatters:
 handlers:
   console:
     class: logging.StreamHandler
+    level: DEBUG
     formatter: default
-    stream: ext://sys.stdout
+    stream: ext://sys.stderr
 loggers:
   uvicorn.error:
     level: INFO
@@ -19,7 +20,7 @@ loggers:
     handlers: [console]
     propagate: no
   __main__: # Corresponds to logger = logging.getLogger(__name__) in main.py
-    level: INFO
+    level: DEBUG  # Changed from INFO to DEBUG
     handlers: [console]
     propagate: no # Explicitly disable propagation here too
 root:

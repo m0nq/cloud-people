@@ -1,10 +1,9 @@
-# main.py - FastAPI integration
-
 import asyncio
 import base64
 import logging
 import os
 import sys
+import time
 import uuid
 from datetime import datetime, timedelta
 from typing import Any
@@ -13,6 +12,11 @@ from typing import List
 from typing import Optional
 import copy
 import json
+
+# --- Restore original logger setup ---
+logger = logging.getLogger(__name__) # Restore original logger
+logger.propagate = False # Restore original setting
+# --- End Restore ---
 
 from dotenv import load_dotenv
 from fastapi import FastAPI
@@ -24,6 +28,7 @@ from pydantic import BaseModel
 from pydantic import Field
 from pydantic import validator
 import gradio as gr
+from fastapi.encoders import jsonable_encoder
 
 from core.agent_adapter import AgentAdapter
 from core.state_utils import restore_state
@@ -44,15 +49,6 @@ from core.agent_adapter import agent_adapter
 
 # Load environment variables
 load_dotenv()
-
-# Configure logging - REMOVED to let Uvicorn handle logging
-# logging.basicConfig(
-#     level=logging.INFO,
-#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-# )
-
-logger = logging.getLogger(__name__)
-logger.propagate = False  # Prevent logs from reaching the root logger configured by Uvicorn
 
 # Global variables for tracking application state
 startup_time = None
@@ -292,6 +288,10 @@ async def periodic_task_cleanup():
         
         await asyncio.sleep(60) # Run every 60 seconds
 
+# Task creation response model
+class TaskCreationResponseModel(BaseModel):
+    taskId: str
+
 # Task status model
 class TaskStatus(BaseModel):
     task_id: str
@@ -342,37 +342,44 @@ class TaskRequest(BaseModel):
         return v
 
 # Execute a browser task
-@app.post("/execute", response_model=TaskStatus)
+@app.post("/execute", response_model=TaskCreationResponseModel)
 async def execute_task(request: TaskRequest):
     """
     Execute a browser task.
-    
+
     This endpoint creates a new task and executes it asynchronously.
+    It returns the generated task ID.
     """
     # Generate task ID if not provided
     task_id = request.task_id or str(uuid.uuid4())
-    
+
     # Check if task ID already exists
     if task_id in active_tasks:
         raise HTTPException(status_code=400, detail=f"Task ID {task_id} already exists")
-    
-    # Create task status
+
+    # Create task status (still needed internally)
     task_status = TaskStatus(
         task_id=task_id,
         status="pending",
         start_time=datetime.now()
     )
-    
+
     # Store task status and request
-    logger.info(f"EXECUTE: Attempting to add task_id: {task_id}") # ADD LOG
+    logger.info(f"EXECUTE: Attempting to add task_id: {task_id}")
     active_tasks[task_id] = task_status
     task_requests[task_id] = request
-    logger.info(f"EXECUTE: Task {task_id} added. Active tasks: {list(active_tasks.keys())}") # ADD LOG
+    logger.info(f"EXECUTE: Task {task_id} added. Active tasks: {list(active_tasks.keys())}")
+
+    # --- Use logger directly before background task ---
+    logger.debug(f"--- DEBUG MARKER: Immediately before creating background task ---")
+    print(f"--- PRINT MARKER: Immediately before creating background task ---", file=sys.stderr, flush=True)
+    # --- END Add --- 
 
     # Start the task in a background task
     asyncio.create_task(run_task(task_id, request, task_status))
-    
-    return task_status
+
+    # Return only the task ID using the simplified model
+    return TaskCreationResponseModel(taskId=task_id)
 
 # Run a task in the background
 async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
@@ -396,6 +403,9 @@ async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
         if previous_agent_output:
             logger.info(f"Task {task_id} includes previous agent output")
         
+        # Telemetry: Log if previous_agent_output was received
+        logger.info(f"[run_task:{task_id}] Received previous_agent_output: {bool(request.previous_agent_output)}")
+
         # Execute task using the agent adapter
         response = await agent_adapter.execute_task(
             task=request.task,
