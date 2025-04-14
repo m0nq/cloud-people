@@ -264,7 +264,7 @@
     &::before {
         background: conic-gradient(transparent 240deg, #ffffff 280deg, #e1e1e1 360deg);
         @apply absolute h-[200%] w-[200%] -left-1/2 -top-1/2 rounded-lg content-[''];
-        animation: border-spin 2s linear infinite;
+        animation: border-spin 3s linear infinite;
     }
 
     .working-agent-wrapper {

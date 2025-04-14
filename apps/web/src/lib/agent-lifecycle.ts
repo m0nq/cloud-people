@@ -1,5 +1,7 @@
 import { AgentData } from '@app-types/agent';
 import { AgentResult } from '@app-types/agent';
+import { AgentState } from '@app-types/agent';
+import { useAgentStore } from '@stores/agent-store';
 import { createTask } from './agent-api';
 import { getTaskStatus } from './agent-api';
 import { closeSession } from './agent-api';
@@ -16,6 +18,16 @@ export class AgentExecutionError extends Error {
     constructor(message: string) {
         super(message);
         this.name = 'AgentExecutionError';
+    }
+}
+
+// Custom error class for assistance required
+export class AgentAssistanceRequiredError extends AgentExecutionError {
+    public assistanceMessage: string;
+    constructor(message: string, assistanceMessage: string) {
+        super(message);
+        this.name = 'AgentAssistanceRequiredError';
+        this.assistanceMessage = assistanceMessage;
     }
 }
 
@@ -181,6 +193,33 @@ export const runAgentTaskLifecycle = async (
                 console.error(`[lifecycle] Task ${taskId} failed: ${errorMsg}`);
                 throw new AgentExecutionError(errorMsg);
             }
+
+            // --- Handle Assistance Required ---
+            if (taskStatus.status === 'needs_assistance') {
+                const assistanceMsg = taskStatus.assistance_message || 'Assistance required, but no message provided.';
+                console.warn(`[lifecycle] Task ${taskId} requires assistance: ${assistanceMsg}`);
+
+                // Update agent store
+                const { updateAgentState, setAgentData } = useAgentStore.getState();
+                updateAgentState(agentData.id, { state: AgentState.Assistance });
+
+                // --- Fix: Get current data and merge before setting --- //
+                const currentAgentData = useAgentStore.getState().getAgentData(agentData.id);
+                const updatedAgentData: AgentData = {
+                    ...(currentAgentData || agentData), // Use store data if available, else initial data
+                    id: agentData.id, // Ensure ID is present
+                    assistanceMessage: assistanceMsg
+                };
+                setAgentData(agentData.id, updatedAgentData); // Pass the full object
+                // --- End Fix --- //
+
+                // Throw specific error to signal assistance needed
+                throw new AgentAssistanceRequiredError(
+                    `Task ${taskId} requires assistance.`,
+                    assistanceMsg
+                );
+            }
+            // --- End Added Block ---
 
             // If running or paused (and we're still polling), wait and continue
             if (taskStatus.status === 'running' || taskStatus.status === 'paused') {

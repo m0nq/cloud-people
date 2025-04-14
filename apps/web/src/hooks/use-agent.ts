@@ -9,6 +9,7 @@ import { updateState } from '@stores/workflow';
 import { pauseAgentExecution as pauseAgentOp } from '@lib/agent-operations';
 import { runAgentTaskLifecycle } from '@lib/agent-lifecycle';
 import { AgentExecutionError } from '@lib/agent-lifecycle';
+import { AgentAssistanceRequiredError } from '@lib/agent-lifecycle';
 
 interface AgentHookResponse {
     isProcessing: boolean;
@@ -86,26 +87,39 @@ export const useAgent = (agentData: AgentData, onStatusChange?: (status: AgentSt
             return finalResult;
 
         } catch (error: any) {
-            console.error(`[useAgent] Error during agent execution: ${error.message}`, error);
-            const errorMsg = error instanceof AgentExecutionError ? error.message : 'An unexpected error occurred';
-            setError(errorMsg);
-            // Update AgentData with the error message
-            const currentData = getAgentData(agentData.id);
-            setAgentData(agentData.id, { ...(currentData || agentData), errorMessage: errorMsg });
+            // --- Updated Error Handling --- //
+            if (error instanceof AgentAssistanceRequiredError) {
+                // Assistance required - state already set by lifecycle
+                console.warn(`[useAgent] Agent ${agentData.id} requires assistance: ${error.assistanceMessage}`, error);
+                // Ensure the callback reflects the Assistance state set by lifecycle
+                onStatusChange?.(AgentState.Assistance);
+                // Do NOT set generic error or change state to Error here
+                setIsProcessing(false); // Ensure processing state is reset
+                return null; // Task did not complete successfully
 
-            // Update runtime state to Error, without errorMessage field
-            updateAgentState(agentData.id, {
-                state: AgentState.Error,
-                // activeTaskId: undefined // Keep task ID for potential retry/debug?
-            });
+            } else {
+                // Handle other errors (AgentExecutionError or unexpected)
+                console.error(`[useAgent] Error during agent execution: ${error.message}`, error);
+                const errorMsg = error instanceof AgentExecutionError ? error.message : 'An unexpected error occurred';
+                setError(errorMsg);
+                // Update AgentData with the error message for non-assistance errors
+                const currentData = getAgentData(agentData.id);
+                setAgentData(agentData.id, { ...(currentData || agentData), errorMessage: errorMsg });
 
-            setIsProcessing(false);
-            onStatusChange?.(AgentState.Error);
-            return null;
+                // Update runtime state to Error for non-assistance errors
+                updateAgentState(agentData.id, {
+                    state: AgentState.Error,
+                });
+
+                onStatusChange?.(AgentState.Error);
+                setIsProcessing(false); // Ensure processing state is reset
+                return null;
+            }
+            // --- End Updated Error Handling ---
         } finally {
-            // Ensure isProcessing is always reset
-            setIsProcessing(false);
-            console.log(`[useAgent] executeTask finished for agent ${agentData.id}. Processing: ${isProcessing}`);
+            // Ensure isProcessing is always reset, moved setting to within catch blocks
+            // setIsProcessing(false); // Now handled within specific catch paths
+            console.log(`[useAgent] executeTask finished for agent ${agentData.id}.`);
         }
 
     }, [agentData, isProcessing, getAgentState, updateAgentState, setAgentResult, setAgentData, getAgentData, onStatusChange]);

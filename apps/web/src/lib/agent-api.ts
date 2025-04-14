@@ -2,10 +2,11 @@ import { AgentResult } from '@app-types/agent';
 
 // Define TaskStatus locally
 export type TaskStatus = {
-    status: 'running' | 'paused' | 'completed' | 'failed';
+    status: 'running' | 'paused' | 'completed' | 'failed' | 'needs_assistance';
     message?: string;
     result?: AgentResult; // Assuming result might be part of the status on completion
     error?: string; // Assuming error details might be part of the status on failure
+    assistance_message?: string;
 };
 
 // Define TaskCreationResponse locally
