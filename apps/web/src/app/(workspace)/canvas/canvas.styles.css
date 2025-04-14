@@ -2,9 +2,6 @@
 
 .flow-container {
     @apply w-full h-full bg-[var(--background)];
-    width: 100vw;
-    height: 100vh;
-    position: relative;
 
     .flow-panel {
         @apply flex items-center justify-between gap-5 w-[22rem] h-16 left-28 top-4 font-sans font-bold text-5xl leading-8
@@ -23,18 +20,11 @@
 }
 
 .flow-header {
-    position: fixed;
-    top: 1.5rem;
-    left: calc(1.5rem + 50px);
-    z-index: 5;
+    @apply fixed top-6 left-16 z-5 text-[var(--text-gray)];
 }
 
 .flow-header h1 {
-    margin: 0;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: white;
-    opacity: 0.5;
+    @apply m-0 font-sans font-bold text-5xl leading-8 text-[var(--foreground)] opacity-50;
 }
 
 .react-flow__panel {

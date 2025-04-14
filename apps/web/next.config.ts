@@ -45,7 +45,13 @@ const config: NextConfig = {
             }
         ];
     },
-    webpack: (config: any) => {
+    webpack: (config: any, { isServer }: { isServer: boolean }) => {
+        // Silence the specific "Serializing big strings" warning
+        if (!config.ignoreWarnings) {
+            config.ignoreWarnings = [];
+        }
+        config.ignoreWarnings.push(/Serializing big strings.*webpack\.cache\.PackFileCacheStrategy/);
+
         // Only apply these optimizations in development
         if (process.env.NODE_ENV === 'development') {
             // Silence infrastructure logging
@@ -64,6 +70,35 @@ const config: NextConfig = {
                 };
             }
         }
+
+        // --- Add SVGR logic here ---
+        // Grab the existing rule that handles SVG imports
+        const fileLoaderRule = config.module.rules.find((rule: any) =>
+            rule.test?.test?.('.svg'),
+        );
+
+        config.module.rules.push(
+            // Reapply the existing rule, but only for svg imports ending in ?url
+            {
+                ...(fileLoaderRule as object),
+                test: /\.svg$/i,
+                resourceQuery: /url/, // *.svg?url
+            },
+            // Convert all other SVG imports to React components
+            {
+                test: /\.svg$/i,
+                issuer: /\.[jt]sx?$/,
+                resourceQuery: { not: /url/ }, // exclude if *.svg?url
+                use: ['@svgr/webpack'],
+            },
+        );
+
+        // Modify the file loader rule to ignore *.svg, since we have it handled now.
+        if (fileLoaderRule) {
+            fileLoaderRule.exclude = /\.svg$/i;
+        }
+        // --- End of SVGR logic ---
+
         return config;
     }
 };

@@ -4,8 +4,7 @@
   @apply fixed top-5 right-5 z-10 flex flex-col items-end;
 
   .toggle-label {
-    @apply mb-[5px] text-xs;
-    color: var(--text-primary);
+    @apply mb-[5px] text-xs text-[var(--text-gray)];
     /* Add dark mode styles if needed */
   }
 }

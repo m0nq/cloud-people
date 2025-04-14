@@ -16,7 +16,6 @@ import { Toggle } from '@components/toggle/toggle';
 
 import './canvas.styles.css';
 import { WorkflowRenderer } from './workflow-renderer';
-import { BranchesIcon } from '@components/icons/branches-icon';
 import { DatePicker } from '@components/calendar/date-picker';
 import { useThemeStore } from '@stores/theme-store';
 import { useTrayStore } from '@stores/tray-store';
@@ -25,7 +24,6 @@ import { useWorkflowStore } from '@stores/workflow';
 import { useWorkspaceStore } from '@stores/workspace-store';
 import { NodeType } from '@app-types/workflow/node-types';
 import { NodeData } from '@app-types/workflow';
-import { CanvasView } from '@components/canvas-view/canvas-view';
 
 // Profiler callback function to measure render performance
 // Only active in development mode
@@ -143,24 +141,21 @@ const Canvas = (): ReactNode => {
                                 <button
                                     onClick={handleAddDatePicker}
                                     title="Add Schedule"
-                                    aria-label="Add Schedule"
-                                >
+                                    aria-label="Add Schedule">
                                     <TbCalendarTime className="icon-button" strokeWidth={1.5} />
                                 </button>
                                 <button
                                     onClick={handleAddStickyNote}
                                     title="Add Note"
                                     aria-label="Add Note"
-                                    data-component-name="WorkflowRenderer"
-                                >
+                                    data-component-name="WorkflowRenderer">
                                     <PiClipboardLight className="icon-button" strokeWidth={1.5} />
                                 </button>
                                 <button
                                     onClick={handleAddCondition}
                                     title="Add Condition"
                                     aria-label="Add Condition"
-                                    data-component-name="WorkflowRenderer"
-                                >
+                                    data-component-name="WorkflowRenderer">
                                     <LinkNodeIcon className="icon-button" />
                                 </button>
                                 <button onClick={() => alert('Something magical just happened. ✨')}>
