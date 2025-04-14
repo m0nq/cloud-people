@@ -1,33 +1,45 @@
 import { type Node } from '@xyflow/react';
-
-import { findRootNode } from '@stores/workflow';
-import { updateState } from '@stores/workflow';
-import { isInitialStateNode } from '@stores/workflow';
-import { hasWorkflowId } from '@stores/workflow';
-import { createWorkflow } from '@lib/actions/workflow-actions';
-import { initialState } from '../constants';
+import { Position } from '@xyflow/react';
+import { Edge } from '@xyflow/react';
+import { v4 as uuidv4 } from 'uuid';
+import type { AgentData } from '@app-types/agent';
+import { EdgeData } from '@app-types/workflow';
 import { WorkflowState } from '@app-types/workflow';
-import type { NodeData } from '@app-types/workflow';
+import { NodeData } from '@app-types/workflow';
+import { EdgeType } from '@app-types/workflow/node-types';
+import { NodeType } from '@app-types/workflow/node-types';
+import { ROOT_NODE_POSITION } from '@config/layout.const';
+
+import { workflowService } from '@lib/service-providers/workflow-service';
+import { nodeService } from '@lib/service-providers/node-service';
+
 import { fetchWorkflowNodes } from '@lib/actions/canvas-actions';
 import { fetchWorkflowEdges } from '@lib/actions/canvas-actions';
-import { createNodes } from '@lib/actions/node-actions';
-import { updateNodes } from '@lib/actions/node-actions';
-import { ROOT_NODE_POSITION } from '@config/layout.const';
-import { NodeType } from '@app-types/workflow/node-types';
-import type { AgentData } from '@app-types/agent';
+
+import { updateState } from '../utils/state-helpers';
+import { findRootNode } from '../utils/state-helpers';
+import { findNextNode } from '../utils/state-helpers';
+import { getConnectedNodes } from '../utils/state-helpers';
+
+import { isInitialStateNode } from './node-validation';
+import { hasWorkflowId } from './node-validation';
+import { isWorkflowNode } from './node-validation';
+
+import { useAgentStore } from '@stores/agent-store';
 
 export function createWorkflowLifecycle(set: Function, get: Function) {
     return {
         createNewWorkflow: async () => {
             try {
-                // Create workflow first
-                const workflowId = await createWorkflow();
+                console.log(`[WorkflowLifecycle] createNewWorkflow called. Using mode: ${workflowService._mode}`);
+
+                const workflowId = await workflowService.createWorkflow();
                 if (!workflowId) {
                     throw new Error('Failed to create workflow');
                 }
+                console.log(`[WorkflowLifecycle] Workflow created with ID: ${workflowId}`);
 
-                // Create root node in database
-                const dbNode = await createNodes({
+                const dbNode = await nodeService.createNodes({
                     data: {
                         workflowId,
                         nodeType: 'root'
@@ -36,28 +48,26 @@ export function createWorkflowLifecycle(set: Function, get: Function) {
                 if (!dbNode || !dbNode?.id) {
                     throw new Error('Failed to create node');
                 }
+                console.log(`[WorkflowLifecycle] DB Node created:`, dbNode);
 
-                // Map database node to UI node, ensuring workflowId is set
                 const node = {
                     id: dbNode.id,
                     type: NodeType.Root,
                     data: {
                         id: dbNode.id,
                         type: NodeType.Root,
-                        workflowId  // Explicitly set workflowId
+                        workflowId
                     },
                     position: ROOT_NODE_POSITION
                 } as Node<NodeData>;
 
-                // Update UI state
                 updateState(set, {
                     nodes: [node],
                     edges: []
                 });
 
-                // Update node in database
                 try {
-                    await updateNodes({
+                    await nodeService.updateNodes({
                         data: {
                             workflowId,
                             nodeId: node.id,
@@ -70,133 +80,116 @@ export function createWorkflowLifecycle(set: Function, get: Function) {
                     });
                 } catch (error) {
                     console.error('Failed to update node in database:', error);
-                    // Keep UI state even if database update fails
                 }
 
                 return workflowId;
             } catch (error) {
                 console.error('Failed to create workflow:', error);
-                throw error; // Re-throw to let UI handle the error
+                throw error;
+            }
+        },
+
+        createMockWorkflow: () => {
+            console.log('Workflow Store: Creating MOCK workflow');
+            try {
+                const mockWorkflowId = `mock-wf-${uuidv4()}`;
+                const mockNodeId = `mock-root-${uuidv4()}`;
+
+                const mockNode = {
+                    id: mockNodeId,
+                    type: NodeType.Root,
+                    data: {
+                        id: mockNodeId,
+                        type: NodeType.Root,
+                        workflowId: mockWorkflowId,
+                        label: 'Workflow Root',
+                        state: undefined,
+                        current_step: '0',
+                        agentRef: { agentId: '' }
+                    },
+                    position: ROOT_NODE_POSITION
+                } as Node<NodeData>;
+
+                updateState(set, {
+                    nodes: [mockNode],
+                    edges: []
+                });
+
+                console.log('Mock workflow created locally with root node:', mockNode);
+                return mockWorkflowId;
+            } catch (error) {
+                console.error('Failed to create mock workflow:', error);
             }
         },
 
         addAgentToWorkflow: async (agent: AgentData) => {
-            const { nodes, edges } = get();
-            let parentNodeId = agent.parentNodeId;
+            const { nodes, addNode, createNewWorkflow, findRootNode } = get();
             let workflowId: string | null = null;
+            let rootNodeId: string | null = null;
 
-            // If there's an existing workflow but no specific parent node is provided,
-            // find the leaf node of the workflow to use as parent
-            if (!parentNodeId && nodes.length > 0) {
-                // Find nodes that have no outgoing edges (leaf nodes)
-                const nodesWithOutgoingEdges = new Set(edges.map(edge => edge.source));
-
-                // Find valid leaf nodes (must be valid workflow nodes, not initial state or root nodes)
-                const leafNodes = nodes.filter(node =>
-                    !isInitialStateNode(node) && // Not an initial state node
-                    node.type !== NodeType.Root && // Not a root node
-                    !nodesWithOutgoingEdges.has(node.id) && // No outgoing edges
-                    hasWorkflowId(node) // Must have a workflowId
-                );
-
-                // If we found leaf nodes, use the first one as parent
-                if (leafNodes.length > 0) {
-                    parentNodeId = leafNodes[0].id;
-                    console.log('Using leaf node as parent:', parentNodeId);
-                } else if (nodes.length > 0) {
-                    // If no valid leaf nodes but we have nodes, find the root node
-                    const rootNode = findRootNode(nodes);
-                    if (rootNode && hasWorkflowId(rootNode)) {
-                        parentNodeId = rootNode.id;
-                        console.log('Using root node as parent:', parentNodeId);
-                    }
-                }
-            }
-
-            // Check if we need to create a new workflow
-            if (!parentNodeId || !nodes.find(node => node.id === parentNodeId && hasWorkflowId(node))) {
-                try {
-                    // Create a new workflow with root node
-                    workflowId = await get().createNewWorkflow();
-                    console.log('Created new workflow with ID:', workflowId);
-
-                    // IMPORTANT: We need to ensure the state is updated and accessible
-                    // Get the updated nodes after workflow creation
-                    const updatedNodes = get().nodes;
-                    console.log('Updated nodes after workflow creation:', updatedNodes);
-
-                    if (!updatedNodes || updatedNodes.length === 0) {
-                        throw new Error('No nodes found after workflow creation');
-                    }
-
-                    // Get the root node that was just created
-                    const rootNode = findRootNode(updatedNodes);
-                    console.log('Root node found:', rootNode);
-
-                    if (!rootNode) {
-                        throw new Error('Failed to find root node after workflow creation');
-                    }
-
-                    if (!hasWorkflowId(rootNode)) {
-                        throw new Error('Root node is missing workflowId after workflow creation');
-                    }
-
-                    // Use the root node as parent
-                    parentNodeId = rootNode.id;
-                } catch (error) {
-                    console.error('Failed to create workflow:', error);
-                    throw error;
-                }
-            }
-
-            // Now add the agent to the workflow (existing or new)
             try {
-                // Double-check that the parent node exists in the current state and is valid
-                const currentNodes = get().nodes;
-                const parentNode = currentNodes.find(node => node.id === parentNodeId);
-
-                if (!parentNode) {
-                    throw new Error(`Parent node ${parentNodeId} not found in current state`);
+                if (nodes.length === 0) {
+                    console.log('[WorkflowLifecycle] No existing workflow found. Creating a new one...');
+                    await createNewWorkflow(); // Creates workflow and sets initial state
+                    const newState = get(); // Get state *after* creation
+                    const newRootNode = newState.findRootNode(newState.nodes);
+                    if (newRootNode && hasWorkflowId(newRootNode)) {
+                        workflowId = newRootNode.data.workflowId;
+                        rootNodeId = newRootNode.id;
+                        console.log(`[WorkflowLifecycle] New workflow created. ID: ${workflowId}, Root Node ID: ${rootNodeId}`);
+                    } else {
+                        console.error('[WorkflowLifecycle] Failed to create workflow or find root node after creation.');
+                        throw new Error('Workflow creation failed.');
+                    }
+                } else {
+                    const existingRootNode = findRootNode(nodes);
+                    if (existingRootNode && hasWorkflowId(existingRootNode)) {
+                        workflowId = existingRootNode.data.workflowId;
+                        rootNodeId = existingRootNode.id;
+                        console.log(`[WorkflowLifecycle] Existing workflow found. ID: ${workflowId}, Root Node ID: ${rootNodeId}`);
+                    } else {
+                        console.error('[WorkflowLifecycle] Could not find workflowId or rootNodeId in existing nodes.');
+                        throw new Error('Existing workflow state is invalid.');
+                    }
                 }
 
-                if (!hasWorkflowId(parentNode)) {
-                    throw new Error(`Parent node ${parentNodeId} is missing workflowId`);
+                // Determine the parent node for the new agent node
+                const finalParentNodeId = agent.parentNodeId ?? rootNodeId;
+                if (!finalParentNodeId) {
+                    // This should theoretically not happen if workflow creation/finding worked
+                    console.error('[WorkflowLifecycle] Could not determine a parent node ID (root or specific).');
+                    throw new Error('Parent node determination failed.');
                 }
 
-                // Update agent with correct parent node
-                const updatedAgent = {
-                    ...agent,
-                    parentNodeId
-                };
+                console.log(`[WorkflowLifecycle] Delegating node addition to addNode. Agent: ${agent.id}, Parent Node ID: ${finalParentNodeId}`);
 
-                console.log('Adding agent with parent node:', parentNodeId);
+                // Delegate the actual node/edge creation and state update to graph-manipulation slice
+                await addNode(agent, finalParentNodeId);
 
-                // Add the node to the workflow using the existing addNode method
-                return await get().addNode(updatedAgent);
+                console.log(`[WorkflowLifecycle] Agent ${agent.id} successfully processed by addNode.`);
+
             } catch (error) {
-                console.error('Failed to add agent to workflow:', error);
-                throw error;
+                console.error('[WorkflowLifecycle] Error during addAgentToWorkflow:', error);
+                // Consider adding user-facing error notification here
             }
         },
 
         fetchGraph: async (workflowId: string) => {
             try {
-                // used when needing to get a workflow graph already stored in the db
-                // make a fetch to back end api to get a workflow by the id
-                // will need to parse graph into singular lists of nodes and edges
-                // then update zustand state
                 updateState(set, {
-                    nodes: fetchWorkflowNodes(),
-                    edges: fetchWorkflowEdges()
+                    nodes: await fetchWorkflowNodes(),
+                    edges: await fetchWorkflowEdges()
                 });
             } catch (error) {
                 console.error('Failed to fetch graph from database:', error);
-                // TODO: Add error handling/recovery
             }
         },
 
         reset: () => {
-            updateState(set, initialState);
+            updateState(set, {
+                nodes: [],
+                edges: []
+            });
         }
     };
 }

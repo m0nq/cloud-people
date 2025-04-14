@@ -11,6 +11,7 @@ import { type InitialStateNodeData } from './nodes';
 import { type EdgeData } from './edges';
 import type { AgentData } from '@app-types/agent';
 import type { AgentState } from '@app-types/agent';
+import type { AgentResult } from '@app-types/agent';
 
 export enum WorkflowState {
     Initial = 'INITIAL',
@@ -30,10 +31,20 @@ export type WorkflowExecution = {
     metrics?: any;
 };
 
+// Define workflow context interface for storing agent outputs
+export interface WorkflowContext {
+    version: string;
+    data: {
+        [agentId: string]: AgentResult;
+    };
+}
+
 export type GraphState = {
     nodes: (Node<NodeData> | Node<InitialStateNodeData>)[];
     edges: Edge<EdgeData>[];
     workflowExecution: WorkflowExecution | null;
+    // Add workflow context to store agent outputs
+    workflowContext: WorkflowContext;
 };
 
 export interface WorkflowActions {
@@ -63,7 +74,12 @@ export interface WorkflowActions {
     findNextNode: (nodes: Node[], edges: Edge[], currentNodeId: string) => Node | undefined;
     getConnectedNodes: (node: Node) => Node[];
     isCurrentNode: (nodeId: string) => boolean;
-}
+
+    // Workflow context methods
+    updateWorkflowContext: (agentId: string, result: AgentResult) => void;
+    getAgentContextData: (agentId: string) => AgentResult | null;
+    clearWorkflowContext: () => void;
+};
 
 export type WorkflowStore = GraphState & WorkflowActions;
 

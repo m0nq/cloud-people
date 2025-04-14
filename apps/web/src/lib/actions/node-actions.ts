@@ -1,53 +1,62 @@
 'use server';
 import { type Node } from '@xyflow/react';
+import { cookies } from 'next/headers';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 import { authCheck } from '@lib/actions/authentication-actions';
 import type { QueryConfig } from '@app-types/api';
-import { WorkflowState } from '@app-types/workflow';
-import { connectToDB } from '@lib/utils';
+import type { NodeData } from '@app-types/workflow';
+import { nodeService, type UpdatedNodeInfo, type CreatedNodeInfo } from '@lib/service-providers/node-service';
 
-export const createNodes = async (config: QueryConfig = {}): Promise<Node<Record<string, unknown>>> => {
-    await authCheck();
+export const createNodes = async (config: QueryConfig = {}): Promise<Node<NodeData>> => {
+    const cookieStore = await cookies();
 
-    if (!config.data?.workflowId) {
-        throw new Error('Workflow ID is required to create a node');
-    }
-
-    const insertNodeMutation = `
-        mutation CreateNewNode($workflowId: UUID!, $nodeType: String!, $agentId: UUID, $content: String) {
-            collection: insertIntoNodesCollection(objects: [{
-                workflow_id: $workflowId,
-                current_step: "0",
-                node_type: $nodeType,
-                agent_id: $agentId,
-                content: $content
-            }]) {
-                records {
-                    id
-                    agent_id
-                    content
-                }
+    const cookieMethods = {
+        get(name: string) {
+            return cookieStore.get(name)?.value;
+        },
+        set(name: string, value: string, options: CookieOptions) {
+            try {
+                cookieStore.set(name, value, options);
+            } catch (error) {
+                console.error(`Failed to set cookie "${name}":`, error);
             }
-        } 
-   `;
+        },
+        remove(name: string, options: CookieOptions) {
+            try {
+                cookieStore.delete(name);
+            } catch (error) {
+                console.error(`Failed to remove cookie "${name}":`, error);
+            }
+        },
+    };
 
-    try {
-        const [node] = await connectToDB(insertNodeMutation, {
-            ...config.data,
-            workflowId: config.data?.workflowId,
-            nodeType: config.data?.nodeType || 'agent',
-            agentId: config.data?.agentId,
-            content: config.data?.content
-        });
-        if (!node?.id) {
-            throw new Error('No ID returned');
-        }
-        return node;
-    } catch (error) {
-        console.error('Failed to create node:', error);
-        throw error;
-    }
+    const supabase = createServerClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        { cookies: cookieMethods }
+    );
+
+    const createdNodeInfo: CreatedNodeInfo = await nodeService.createNodes(config, supabase);
+
+    const newNode: Node<NodeData> = {
+        id: createdNodeInfo.id,
+        type: createdNodeInfo.node_type,
+        position: { x: 100, y: 100 },
+        data: {
+            id: createdNodeInfo.id,
+            workflowId: createdNodeInfo.workflow_id,
+            nodeType: createdNodeInfo.node_type,
+            title: config.data?.title || 'New Node',
+            state: config.data?.state || 'initial',
+            ...(config.data || {})
+        },
+    };
+
+    return newNode;
 };
+
+import { connectToDB } from '@lib/utils';
 
 export const fetchNodes = async (config: QueryConfig = {}): Promise<Node[]> => {
     await authCheck();
@@ -94,88 +103,10 @@ export const fetchNodes = async (config: QueryConfig = {}): Promise<Node[]> => {
     })) as Node[];
 };
 
-export const updateNodes = async (config: QueryConfig = {}) => {
-    await authCheck();
-
-    const updateNodeMutation = `
-        mutation UpdateNodeMutation(
-            $set: NodesUpdateInput!,
-            $workflowId: UUID!,
-            $nodeId: UUID!,
-            $atMost: Int! = 1
-        ) {
-            collection: updateNodesCollection(
-                set: $set
-                filter: {
-                    workflow_id: { eq: $workflowId }
-                    id: { eq: $nodeId }
-                }
-                atMost: $atMost
-            ) {
-                records {
-                    id
-                    workflow_id
-                    state
-                    current_step
-                    updated_at
-                }
-            }
-        }
-    `;
-
-    if (!config.data?.workflowId || !config.data?.nodeId) {
-        throw new Error('Both workflowId and nodeId are required for updating a node');
-    }
-
-    const variables = {
-        set: {
-            state: config.data?.set?.state || WorkflowState.Initial,
-            current_step: config.data?.set?.current_step || '0',
-            updated_at: new Date().toISOString()  // Convert to ISO string format
-        },
-        workflowId: config.data?.workflowId,
-        nodeId: config.data?.nodeId,
-        atMost: 1
-    };
-
-    try {
-        const [node] = await connectToDB(updateNodeMutation, variables);
-
-        if (!node) {
-            throw new Error(`No node found with id ${config.data?.nodeId}`);
-        }
-
-        return {
-            ...node,
-            workflowId: node.workflow_id,
-            currentStep: node.current_step,
-            updatedAt: node.updated_at
-        } as Node<Record<string, unknown>>;
-    } catch (error) {
-        console.error('Failed to update node:', error);
-        throw error;
-    }
+export const updateNodes = async (config: QueryConfig = {}): Promise<UpdatedNodeInfo> => {
+    return nodeService.updateNodes(config);
 };
 
 export const deleteNodes = async (config: QueryConfig = {}): Promise<string> => {
-    await authCheck();
-
-    const deleteNodeMutation = `
-        mutation DeleteNode($filter: NodesFilter) {
-            collection: deleteFromNodesCollection(filter: $filter) {
-                records {
-                    id
-                }
-            }
-        }
-    `;
-
-    const variables = {
-        filter: {
-            id: { eq: config.nodeId }
-        }
-    } as QueryConfig;
-
-    const [node] = await connectToDB(deleteNodeMutation, variables);
-    return node.id as string;
+    return nodeService.deleteNodes(config);
 };

@@ -52,7 +52,7 @@ class LLMProviderFactory:
         
         # Determine which environment variable to use based on provider type
         if provider_type.lower() == "gemini":
-            api_key = os.getenv("GEMINI_API_KEY")
+            api_key = os.getenv("GOOGLE_API_KEY") # Use GOOGLE_API_KEY consistent with config.py
             model = os.getenv("GEMINI_MODEL", "gemini-2.0-flash-exp")
         elif provider_type.lower() == "openai":
             api_key = os.getenv("OPENAI_API_KEY")

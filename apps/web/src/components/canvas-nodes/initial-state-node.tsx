@@ -4,6 +4,7 @@ import './node.styles.css';
 import { useWorkflowStore } from '@stores/workflow';
 import { useThemeStore } from '@stores/theme-store';
 import type { WorkflowActions } from '@app-types/workflow';
+import { useUser } from '@contexts/user-context';
 import { FileCodeIcon } from '@components/icons/file-code-icon';
 import { CopyIcon } from '@components/icons/copy-icon';
 import { MessageSquareIcon } from '@components/icons/message-square-icon';
@@ -32,12 +33,21 @@ const InitialStateNode = ({ data }: InitialStateNodeProps): ReactNode => {
     // - AI opens a modal
     const fetchGraph = useWorkflowStore((state: WorkflowActions) => state.fetchGraph)!;
     const createNewWorkflow = useWorkflowStore((state: WorkflowActions) => state.createNewWorkflow)!;
+    // TODO: Add createMockWorkflow to the store and type
+    const createMockWorkflow = useWorkflowStore((state: any) => state.createMockWorkflow)!; // Temporary 'any'
+    const { usingMockService } = useUser(); // Get mock service state
 
     const handleClick = () => {
         // if data.label is SFS, then transition to empty node building state
         switch (data.id) {
             case 'SFS':
-                createNewWorkflow();
+                if (usingMockService) {
+                    console.log('InitialStateNode: Using MOCK service - calling createMockWorkflow');
+                    createMockWorkflow(); // Call mock action
+                } else {
+                    console.log('InitialStateNode: Using REAL service - calling createNewWorkflow');
+                    createNewWorkflow(); // Call real action
+                }
                 break;
             case 'SFT':
                 fetchGraph(data.id);

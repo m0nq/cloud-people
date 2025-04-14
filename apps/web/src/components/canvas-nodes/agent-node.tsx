@@ -22,7 +22,6 @@ const DEFAULT_AGENT_STATE = {
     state: AgentState.Initial,
     isEditable: false,
     isLoading: false,
-    error: null,
     progress: 0,
     assistanceMessage: null
 };
@@ -101,10 +100,16 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
                 })
                 .catch(error => {
                     console.error('Failed to fetch agent data:', error);
+                    // Update runtime state
                     updateAgentState(agentId, {
                         isLoading: false,
-                        state: AgentState.Error,
-                        error: 'Failed to load agent data'
+                        state: AgentState.Error
+                    });
+                    // Update persistent data with the error message
+                    const currentData = getAgentData(agentId);
+                    setAgentData(agentId, {
+                        ...(currentData || { id: agentId, name: 'Unknown', description: '' }), // Provide minimal defaults if data missing
+                        errorMessage: `Failed to load agent data: ${error.message || error}`
                     });
                 })
                 .finally(() => {
@@ -151,10 +156,15 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
     }, [id, openTray, edges]);
 
     const handleAssistanceRequest = useCallback(() => {
-        transition(id, AgentState.Assistance, {
+        // 1. Update runtime state
+        transition(id, AgentState.Assistance);
+        // 2. Update persistent data with the assistance message
+        const currentData = getAgentData(id);
+        setAgentData(id, {
+            ...(currentData || { id: id, name: 'Unknown', description: '' }), // Provide minimal defaults
             assistanceMessage: 'Agent needs assistance to proceed with the task'
         });
-    }, [id, transition]);
+    }, [id, transition, getAgentData, setAgentData]);
 
     const handleRestart = useCallback(() => {
         transition(id, AgentState.Working, { progress: 0 });

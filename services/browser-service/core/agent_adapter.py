@@ -8,6 +8,7 @@ It handles the conversion between our request/response formats and the browser-u
 import logging
 import os
 import uuid
+import traceback
 from typing import Any, Dict, Optional
 import asyncio
 
@@ -105,7 +106,8 @@ class AgentAdapter:
         headless: bool = True,
         llm_provider = None,
         operation_timeout: int = 300,
-        options: Optional[Dict[str, Any]] = None
+        options: Optional[Dict[str, Any]] = None,
+        previous_output: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Execute a task using the browser-use library.
@@ -117,6 +119,7 @@ class AgentAdapter:
             llm_provider: The LLM provider configuration
             operation_timeout: Timeout for the operation in seconds
             options: Additional options for the task
+            previous_output: Output from a previous agent task
             
         Returns:
             Dict: The result of the task execution
@@ -147,6 +150,12 @@ class AgentAdapter:
                 browser_window_size={'width': 1920, 'height': 1080},  # Set window size
             )
             
+            # Configure browser context with previous output
+            if previous_output:
+                context_config.storage_state = {
+                    "previous_output": previous_output if previous_output else {}
+                }
+            
             # Create agent
             agent = Agent(
                 task=task,
@@ -158,6 +167,17 @@ class AgentAdapter:
                 generate_gif=True,  # Generate GIF recordings
                 save_conversation_path=os.path.join(os.getcwd(), "recordings", f"{task_id}.json"),
             )
+            
+            # Add custom function to access previous output if available
+            if previous_output:
+                agent.add_function(
+                    "get_previous_agent_output",
+                    lambda: previous_output['data'] if 'data' in previous_output else {}
+                )
+                logger.info(f"Added get_previous_agent_output function for task {task_id}")
+            
+            # Add is_paused attribute to the agent
+            agent.is_paused = False
             
             # Store agent
             self.active_agents[task_id] = agent
@@ -213,13 +233,13 @@ class AgentAdapter:
             return response
         except Exception as e:
             logger.exception(f"Error executing task {task_id}: {str(e)}")
-            
+
             # Clean up resources
             await self.cleanup_task(task_id)
             
             return {
-                "status": "error",
-                "message": str(e),
+                "status": "failed", 
+                "error": str(e),   
             }
     
     async def pause_task(self, task_id: str) -> Dict[str, Any]:

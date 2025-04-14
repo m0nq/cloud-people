@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 import { ReactNode } from 'react';
 import { FiUsers } from 'react-icons/fi';
 
+import { useUser } from '@contexts/user-context';
 import { AgentState } from '@app-types/agent';
 import { AgentData } from '@app-types/agent';
 import { AGENT_SKILLS } from '@app-types/agent/skills';
@@ -13,7 +14,6 @@ import { AgentCard } from '@components/agents/agent-card';
 import { CloseIcon } from '@components/icons/close-icon';
 import { SearchIcon } from '@components/icons/search-icon';
 import { LoadingSpinner } from '@components/spinners/loading-spinner';
-import { fetchAgents } from '@lib/actions/agent-actions';
 import { useAgentCacheStore } from '@stores/agent-cache-store';
 import { useWorkflowStore } from '@stores/workflow';
 import { useTrayStore } from '@stores/tray-store';
@@ -31,6 +31,7 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedSkill, setSelectedSkill] = useState<string>(AGENT_SKILLS[0]);
 
+    const { usingMockService, getAgents: getAgentsFromContext } = useUser();
     const { agents, lastFetchTime, setAgents } = useAgentCacheStore();
     const { closeTray } = useTrayStore();
     const isInitialMount = useRef(true);
@@ -47,8 +48,8 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
                     return;
                 }
 
-                // Cache is invalid or it's initial mount, fetch new data
-                const newAgents = await fetchAgents();
+                // Cache is invalid or it's initial mount, fetch new data using context function
+                const newAgents = await getAgentsFromContext();
                 if (isMounted) {
                     setAgents(newAgents);
                 }
@@ -68,7 +69,7 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
         return () => {
             isMounted = false;
         };
-    }, [lastFetchTime, setAgents]);
+    }, [lastFetchTime, setAgents, getAgentsFromContext]);
 
     // Filter agents based on search query and selected skill
     const filteredAgents = useMemo(() => {
@@ -87,6 +88,7 @@ export const AgentSelectionTray = ({ onClose, parentNodeId }: AgentSelectionTray
 
     // Handle agent selection
     const handleAgentSelect = useCallback((agent: AgentData) => {
+            console.log(`[AgentSelectionTray] handleAgentSelect called for agent: ${agent.id}, parentNodeId: ${parentNodeId}`);
             // Close the tray first to prevent UI jank
             closeTray();
 

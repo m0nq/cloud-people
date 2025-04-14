@@ -1,9 +1,9 @@
-# main.py - FastAPI integration
-
 import asyncio
 import base64
 import logging
 import os
+import sys
+import time
 import uuid
 from datetime import datetime, timedelta
 from typing import Any
@@ -13,15 +13,19 @@ from typing import Optional
 import copy
 import json
 
+# --- Restore original logger setup ---
+logger = logging.getLogger(__name__) # Restore original logger
+logger.propagate = False # Restore original setting
+# --- End Restore ---
+
 from dotenv import load_dotenv
-from fastapi import FastAPI
-from fastapi import HTTPException
-from fastapi import WebSocket
-from fastapi import WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pydantic import Field
+from pydantic import validator
 import gradio as gr
+from fastapi.encoders import jsonable_encoder
 
 from core.agent_adapter import AgentAdapter
 from core.state_utils import restore_state
@@ -43,13 +47,6 @@ from core.agent_adapter import agent_adapter
 # Load environment variables
 load_dotenv()
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
 # Global variables for tracking application state
 startup_time = None
 cleanup_task = None
@@ -68,11 +65,12 @@ async def lifespan(app: FastAPI):
     # Startup logic
     startup_time = datetime.now()
     session_manager.start()
-    logger.info("Application started")
+    logger.info("Application started")  # Revert to logger
     
     # Start the task cleanup background task
+    logger.info("Attempting to start periodic task cleanup...")  # Revert to logger
     cleanup_task = asyncio.create_task(periodic_task_cleanup())
-    logger.info("Started periodic task cleanup")
+    logger.info(f"Periodic task cleanup created: {cleanup_task.get_name()}")  # Revert to logger
     
     yield  # This is where FastAPI serves requests
     
@@ -156,10 +154,27 @@ session_manager = SessionManager(session_timeout_minutes=AppConfig.SESSION_TIMEO
 
 # Task cleanup function
 async def periodic_task_cleanup():
-    """Periodically clean up stale tasks and sessions"""
+    # --- Explicit Logger Configuration --- 
+    task_logger = logging.getLogger(__name__ + ".periodic_task") # Use a unique name
+    task_logger.setLevel(logging.INFO) # Set desired level
+    # Create handler only if logger doesn't have handlers already
+    if not task_logger.hasHandlers(): 
+        handler = logging.StreamHandler(sys.stdout) # Output to stdout
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        task_logger.addHandler(handler)
+        task_logger.propagate = False # Prevent duplicate logs if root logger is also configured
+    else:
+        # Optional: Log if handlers already exist (for debugging setup)
+        task_logger.info("Logger already configured, reusing existing handlers.")
+    # --- End Explicit Logger Configuration ---
+    
+    task_logger.info("Starting periodic task cleanup loop...") # Log start
+
     while True:
         try:
-            logger.info("Running periodic task cleanup")
+            # Explicitly get logger inside the task loop
+            task_logger.info("Running periodic task cleanup") # Use task_logger
             now = datetime.now()
             stale_threshold = now - timedelta(minutes=AppConfig.SESSION_TIMEOUT_MINUTES)
             
@@ -179,15 +194,15 @@ async def periodic_task_cleanup():
                 
                 # If no last activity or it's stale
                 if not last_activity or last_activity < stale_threshold:
-                    logger.info(f"Cleaning up stale task {task_id}")
+                    task_logger.info(f"Cleaning up stale task {task_id}")
                     
                     # Clean up the agent if it exists
                     if task_id in agent_adapter.active_agents:
                         try:
-                            logger.info(f"Cleaning up stale agent for task {task_id}")
+                            task_logger.info(f"Cleaning up stale agent for task {task_id}")
                             await agent_adapter.cleanup_task(task_id)
                         except Exception as e:
-                            logger.error(f"Error cleaning up stale agent for task {task_id}: {e}")
+                            task_logger.error(f"Error cleaning up stale agent for task {task_id}: {e}")
                     
                     # Find associated session (legacy)
                     session_id = None
@@ -197,10 +212,10 @@ async def periodic_task_cleanup():
                     # Close the session if it exists (legacy)
                     if session_id and session_id in session_manager.sessions:
                         try:
-                            logger.info(f"Closing stale session {session_id}")
+                            task_logger.info(f"Closing stale session {session_id}")
                             await session_manager.close_session(session_id, force=True)
                         except Exception as e:
-                            logger.error(f"Error closing stale session {session_id}: {e}")
+                            task_logger.error(f"Error closing stale session {session_id}: {e}")
                     
                     # Update task status
                     task_status.status = "failed"
@@ -220,20 +235,20 @@ async def periodic_task_cleanup():
                 if task_status.status == "completed" and task_status.end_time:
                     # If the task completed more than 30 minutes ago, remove it from history
                     if task_status.end_time < completed_threshold:
-                        logger.info(f"Removing old completed task {task_id} from history")
+                        task_logger.info(f"Removing old completed task {task_id} from history")
                         del task_history[task_id]
             
             # Check for orphaned agents (agents without an active task)
             for task_id, agent in list(agent_adapter.active_agents.items()):
                 if task_id not in active_tasks:
-                    logger.info(f"Cleaning up orphaned agent for task {task_id}")
+                    task_logger.info(f"Cleaning up orphaned agent for task {task_id}")
                     try:
                         await agent_adapter.cleanup_task(task_id)
                     except Exception as e:
-                        logger.error(f"Error cleaning up orphaned agent for task {task_id}: {e}")
+                        task_logger.error(f"Error cleaning up orphaned agent for task {task_id}: {e}")
             
             # Also check for orphaned sessions (sessions without an active task) - legacy
-            for session_id, context in list(session_manager.sessions.items()):
+            for session_id, session in list(session_manager.sessions.items()):
                 # Check if this session is associated with an active task
                 task_found = False
                 for task_id, task_status in active_tasks.items():
@@ -242,28 +257,37 @@ async def periodic_task_cleanup():
                         break
                 
                 # If no active task is using this session and it's not persistent, close it
-                if not task_found and not context.persistent:
-                    logger.info(f"Closing orphaned session {session_id}")
+                if not task_found and not session.persistent:
+                    task_logger.info(f"Closing orphaned session {session_id}")
                     try:
                         await session_manager.close_session(session_id, force=True)
                     except Exception as e:
-                        logger.error(f"Error closing orphaned session {session_id}: {e}")
+                        task_logger.error(f"Error closing orphaned session {session_id}: {e}")
                 
                 # For persistent sessions, check last activity
-                elif context.persistent:
+                elif session.persistent:
                     last_activity = session_manager.last_activity.get(session_id)
                     if last_activity and last_activity < stale_threshold:
-                        logger.info(f"Closing stale persistent session {session_id}")
+                        task_logger.info(f"Closing stale persistent session {session_id}")
                         try:
                             await session_manager.close_session(session_id, force=True)
                         except Exception as e:
-                            logger.error(f"Error closing stale persistent session {session_id}: {e}")
+                            task_logger.error(f"Error closing stale persistent session {session_id}: {e}")
             
+            # Sleep for a while before the next cleanup cycle
+            await asyncio.sleep(60)  # Run every 60 seconds
+
         except Exception as e:
-            logger.error(f"Error in task cleanup: {e}")
+            # Use .exception() to include traceback
+            task_logger.exception("Error during periodic task cleanup") 
+            # Add print as fallback
+            print(f"--- PERIODIC TASK: EXCEPTION: {e} ---") 
         
-        # Sleep for cleanup interval
-        await asyncio.sleep(300)  # 5 minutes
+        await asyncio.sleep(60) # Run every 60 seconds
+
+# Task creation response model
+class TaskCreationResponseModel(BaseModel):
+    taskId: str
 
 # Task status model
 class TaskStatus(BaseModel):
@@ -302,132 +326,213 @@ class TaskRequest(BaseModel):
     headless: Optional[bool] = False
     persistent_session: Optional[bool] = False
     options: Optional[Dict[str, Any]] = None
+    previous_agent_output: Optional[Dict[str, Any]] = None
+    
+    @validator('previous_agent_output')
+    def validate_previous_output(cls, v):
+        if v is not None:
+            if not isinstance(v, dict):
+                raise ValueError('Previous agent output must be a dictionary')
+            # Iterate through the predecessor results (values in the dictionary)
+            for key, result_value in v.items():
+                if result_value is not None: # Only validate non-null results
+                    # Check if the result itself is a dictionary
+                    if not isinstance(result_value, dict):
+                         raise ValueError(f'Result for predecessor "{key}" must be a dictionary or null')
+                    # Check for mandatory fields within each result
+                    if 'version' not in result_value:
+                        raise ValueError(f'Result for predecessor "{key}" must contain a "version" field')
+                    if 'timestamp' not in result_value:
+                        raise ValueError(f'Result for predecessor "{key}" must contain a "timestamp" field')
+                    # Note: 'data' field is optional in AgentResult, so no check here.
+        return v
 
 # Execute a browser task
-@app.post("/execute", response_model=TaskStatus)
+@app.post("/execute", response_model=TaskCreationResponseModel)
 async def execute_task(request: TaskRequest):
     """
     Execute a browser task.
-    
+
     This endpoint creates a new task and executes it asynchronously.
+    It returns the generated task ID.
     """
     # Generate task ID if not provided
     task_id = request.task_id or str(uuid.uuid4())
-    
+
     # Check if task ID already exists
     if task_id in active_tasks:
         raise HTTPException(status_code=400, detail=f"Task ID {task_id} already exists")
-    
-    # Create task status
+
+    # Create task status (still needed internally)
     task_status = TaskStatus(
         task_id=task_id,
         status="pending",
-        metadata={
-            "task": request.task,
-            "llm_provider": request.llm_provider.type if request.llm_provider else get_default_provider(),
-            "headless": request.headless,
-            "persistent_session": request.persistent_session or False,
-        }
+        start_time=datetime.now()
     )
-    
-    # Store task status
+
+    # Store task status and request
+    logger.info(f"EXECUTE: Attempting to add task_id: {task_id}")
+    print(f"[execute_task] PRE-UPDATE: Attempting to add task {task_id}. Current active tasks ({len(active_tasks)}): {list(active_tasks.keys())}")
     active_tasks[task_id] = task_status
-    
-    # Store the original request for potential resume operations
+    print(f"[execute_task] POST-UPDATE: Task {task_id} added. Current active tasks ({len(active_tasks)}): {list(active_tasks.keys())}")
     task_requests[task_id] = request
-    
-    # Start task in background
+    logger.info(f"EXECUTE: Task {task_id} added. Active tasks: {list(active_tasks.keys())}")
+
+    # --- Use logger directly before background task ---
+    logger.debug(f"--- DEBUG MARKER: Immediately before creating background task ---")
+    print(f"--- PRINT MARKER: Immediately before creating background task ---", file=sys.stderr, flush=True)
+    # --- END Add --- 
+
+    # Start the task in a background task
     asyncio.create_task(run_task(task_id, request, task_status))
-    
-    return task_status
+
+    # Return only the task ID using the simplified model
+    print(f"[execute_task] Scheduling background task and returning response for {task_id}.")
+    return TaskCreationResponseModel(taskId=task_id)
 
 # Run a task in the background
 async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
     """Run a task in the background"""
+    logger.info(f"[run_task:{task_id}] Starting execution for task: '{request.task}'")
+    heartbeat_task = None # Initialize heartbeat_task
+
+    async def _update_heartbeat():
+        """Periodically update the last_activity timestamp."""
+        while True:
+            try:
+                if task_status.metadata is None:
+                    task_status.metadata = {}
+                task_status.metadata["last_activity"] = datetime.now().isoformat()
+                logger.debug(f"[run_task:{task_id}] Heartbeat: Updated last_activity.")
+                await asyncio.sleep(30)  # Update every 30 seconds
+            except asyncio.CancelledError:
+                logger.info(f"[run_task:{task_id}] Heartbeat task stopping.")
+                break # Exit loop on cancellation
+            except Exception as hb_exc:
+                logger.error(f"[run_task:{task_id}] Error in heartbeat task: {hb_exc}")
+                await asyncio.sleep(60) # Wait longer after an error
+
     try:
+        # Start the heartbeat task
+        heartbeat_task = asyncio.create_task(_update_heartbeat())
+        logger.info(f"[run_task:{task_id}] Heartbeat task started.")
+
         # Update task status to running
         task_status.status = "running"
-        task_status.start_time = datetime.now()
+        # Ensure metadata exists for initial timestamp update by heartbeat
+        if task_status.metadata is None:
+            task_status.metadata = {}
+        # Initial last_activity update (will be overwritten by heartbeat shortly)
+        task_status.metadata["last_activity"] = datetime.now().isoformat()
         await broadcast_task_update(task_id, task_status)
         
-        # Configure the LLM provider
-        llm_provider = None
-        if request.llm_provider:
-            llm_provider = request.llm_provider
-        else:
-            # Use default provider
-            default_provider = get_default_provider()
-            if default_provider:
-                llm_provider = ProviderConfig(
-                    type=default_provider,
-                    model=get_default_model_for_provider(default_provider),
-                    api_key=get_api_key_for_provider(default_provider)
-                )
-        
-        # Check if we're resuming from a saved state
-        resume_options = None
-        if request.options and "resume_from" in request.options:
-            resume_options = request.options["resume_from"]
-            logger.info(f"Resuming task {task_id} from saved state: {resume_options}")
-        
-        # Execute the task
-        result = await agent_adapter.execute_task(
-            task=request.task,
-            task_id=task_id,
-            headless=request.headless if request.headless is not None else True,
-            llm_provider=llm_provider,
-            operation_timeout=request.operation_timeout or DEFAULT_OPERATION_TIMEOUT,
-            options=request.options
+        # Get LLM provider configuration
+        llm_provider = request.llm_provider or ProviderConfig(
+            type=get_default_provider(),
+            model=get_default_model_for_provider(get_default_provider()),
+            api_key=get_api_key_for_provider(get_default_provider())
         )
         
-        # Check if the task was paused during execution
-        # If it was paused, we don't want to update its status or move it to history
-        if task_id in active_tasks and active_tasks[task_id].status == "paused":
-            logger.info(f"Task {task_id} was paused during execution, not updating status")
-            return
+        # Determine headless setting (default to True if None)
+        is_headless = request.headless if request.headless is not None else True
+        logger.info(f"[run_task:{task_id}] Headless mode: {is_headless}")
+
+        # Extract previous agent output if available
+        previous_agent_output = request.previous_agent_output
+        if previous_agent_output:
+            logger.info(f"[run_task:{task_id}] Task includes previous agent output.")
+
+        # Execute task using the agent adapter
+        response = await agent_adapter.execute_task(
+            task=request.task,
+            task_id=task_id,
+            headless=is_headless, # Use determined headless value
+            llm_provider=llm_provider,
+            operation_timeout=request.operation_timeout or DEFAULT_OPERATION_TIMEOUT,
+            options=request.options,
+            previous_output=previous_agent_output  # Pass previous agent output
+        )
         
-        # Update task status based on result
-        task_status.end_time = datetime.now()
-        task_status.progress = 1.0
-        
-        if result.get("status") == "success":
+        # Update task status based on adapter response
+        adapter_status = response.get("status")
+        logger.info(f"[run_task:{task_id}] Adapter finished with status: {adapter_status}")
+
+        if adapter_status == "success":
             task_status.status = "completed"
-            task_status.result = result
-        elif result.get("status") == "needs_assistance":
-            task_status.status = "needs_assistance"
-            task_status.assistance_message = result.get("message", "Assistance needed")
-            task_status.result = result
+        elif adapter_status in ["pending", "running", "completed", "failed", "needs_assistance", "paused"]:
+             task_status.status = adapter_status
         else:
             task_status.status = "failed"
-            task_status.error = result.get("message", "Unknown error")
-        
-        # Broadcast the update
-        await broadcast_task_update(task_id, task_status)
-        
-        # Move task to history
-        if task_status.status in ["completed", "failed"]:
-            task_history[task_id] = task_status
-            if task_id in active_tasks:
-                del active_tasks[task_id]
-        
-        logger.info(f"Task {task_id} completed with status: {task_status.status}")
-        
-    except Exception as e:
-        # Check if the task was paused during execution
-        if task_id in active_tasks and active_tasks[task_id].status == "paused":
-            logger.info(f"Task {task_id} was paused during execution, not updating status")
-            return
+            task_status.error = f"Unknown status from adapter: {adapter_status}"
+            logger.warning(f"[run_task:{task_id}] Received unknown status from adapter: {adapter_status}")
             
-        logger.exception(f"Error executing task {task_id}: {str(e)}")
-        task_status.status = "failed"
+        task_status.result = response.get("result")
+        # Capture error from adapter response if status is failed or if adapter provided one
+        adapter_error = response.get("error")
+        if task_status.status == "failed" and not task_status.error:
+            task_status.error = adapter_error or "Error details not provided by adapter."
+        elif adapter_error: # Prioritize adapter error if available
+             task_status.error = adapter_error
+             
         task_status.end_time = datetime.now()
-        task_status.error = str(e)
-        await broadcast_task_update(task_id, task_status)
+
+    except Exception as e:
+        # Log the exception immediately, including its type
+        error_type = type(e).__name__
+        error_msg = str(e)
+        logger.exception(f"[run_task:{task_id}] Unhandled exception during execution: {error_type}: {error_msg}")
+        logger.error(f"[run_task:{task_id}] EXCEPTION CAUGHT. Status before finally: 'failed'. Error: {task_status.error}")
         
-        # Move task to history
-        task_history[task_id] = task_status
-        if task_id in active_tasks:
-            del active_tasks[task_id]
+        # Update task status to reflect the failure
+        task_status.status = "failed"
+        task_status.error = f"{error_type}: {error_msg}" # Store error type and message
+        task_status.end_time = datetime.now()
+
+    finally:
+        # Ensure heartbeat task is cancelled
+        if heartbeat_task and not heartbeat_task.done():
+            heartbeat_task.cancel()
+            try:
+                await heartbeat_task # Wait for cancellation to complete
+            except asyncio.CancelledError:
+                logger.info(f"[run_task:{task_id}] Heartbeat task successfully cancelled.")
+            except Exception as e_cancel:
+                logger.error(f"[run_task:{task_id}] Error awaiting cancelled heartbeat task: {e_cancel}")
+
+        # This block ensures cleanup happens even if the main try block completes or an exception occurs
+        logger.info(f"[run_task:{task_id}] Entering finally block. Current status: {task_status.status}")
+        
+        # Ensure task is moved to history if in a terminal state (completed or failed)
+        if task_status.status in ["completed", "failed"]:
+            logger.info(f"[run_task:{task_id}] FINALLY: Task in terminal state ('{task_status.status}'). Preparing to move/update history.")
+            logger.info(f"[run_task:{task_id}] FINALLY: State before move -> Active: {list(active_tasks.keys())}, History: {list(task_history.keys())}")
+            try:
+                logger.info(f"[run_task:{task_id}] Task in terminal state ('{task_status.status}'). Attempting cleanup.")
+                # Check if already moved (could happen if exception occurred *after* successful completion logic)
+                if task_id in active_tasks:
+                    logger.info(f"[run_task:{task_id}] Task found in active_tasks. Moving to history.")
+                    # Move the actual TaskStatus object
+                    task_history[task_id] = active_tasks.pop(task_id)
+                    logger.info(f"[run_task:{task_id}] Task successfully moved to history. Active: {list(active_tasks.keys())}, History: {list(task_history.keys())}")
+                elif task_id not in task_history:
+                     # This case handles if the task failed very early or the except block was hit
+                     logger.warning(f"[run_task:{task_id}] Task not found in active_tasks. Placing current status directly into history.")
+                     task_history[task_id] = task_status # Add current status object directly if missing
+                     logger.info(f"[run_task:{task_id}] Task status placed in history. Active: {list(active_tasks.keys())}, History: {list(task_history.keys())}")
+                     logger.info(f"[run_task:{task_id}] FINALLY: State after adding missing to history -> Active: {list(active_tasks.keys())}, History: {list(task_history.keys())}")
+                else:
+                    # Task is already in history, maybe update it?
+                    logger.info(f"[run_task:{task_id}] Task already present in task_history. Status: {task_history[task_id].status}. Updating if necessary.")
+                    # Optionally update the history entry if needed, e.g., with a more specific error
+                    task_history[task_id] = task_status # Ensure latest status object is stored
+                    logger.info(f"[run_task:{task_id}] FINALLY: State after updating history -> Active: {list(active_tasks.keys())}, History: {list(task_history.keys())}")
+            except Exception as final_e:
+                 logger.exception(f"[run_task:{task_id}] CRITICAL: Exception during final cleanup! Error: {final_e}")
+                 logger.error(f"[run_task:{task_id}] FINALLY: State during cleanup exception -> Active: {list(active_tasks.keys())}, History: {list(task_history.keys())}")
+
+        # Broadcast final status update AFTER moving/updating history
+        await broadcast_task_update(task_id, task_status)
+        logger.info(f"[run_task:{task_id}] Finished execution and cleanup.")
 
 # WebSocket for real-time updates
 @app.websocket("/ws/{client_id}")
@@ -526,15 +631,15 @@ async def get_providers():
     }
 
 # Get task status
-@app.get("/execute/{task_id}", response_model=TaskStatus)
-async def get_task_status(task_id: str):
-    """
-    Get the status of a task.
-    
-    This endpoint retrieves the current status of a task by its ID.
-    """
+@app.get("/execute/{task_id}/status", response_model=TaskStatus)
+async def get_task_status(task_id: str, request: Request):
+    logger.info(f"GET_STATUS: Received request for task_id: {task_id}") 
+    logger.debug(f"GET_STATUS: Current active tasks: {list(active_tasks.keys())}") 
+    logger.debug(f"GET_STATUS: Current task history: {list(task_history.keys())}") 
+
     # First check our local task tracking
     if task_id in active_tasks:
+        logger.info(f"GET_STATUS: Task {task_id} found in active_tasks.") 
         # For active tasks, check if we have an agent in the adapter
         agent_status = agent_adapter.get_task_status(task_id)
         
@@ -542,28 +647,19 @@ async def get_task_status(task_id: str):
             # Update our local task status with the agent status
             task_status = active_tasks[task_id]
             task_status.status = agent_status["status"]
-            return task_status
-        
+            return task_status # Return updated active status
+
+        # Return existing active status if agent doesn't know about it (shouldn't happen often)
+        logger.warning(f"GET_STATUS: Task {task_id} in active_tasks, but agent_adapter status is 'not_found'. Returning local status.")
         return active_tasks[task_id]
+
     elif task_id in task_history:
+        logger.info(f"GET_STATUS: Task {task_id} found in task_history.") 
         return task_history[task_id]
     else:
-        # Check if the agent adapter knows about this task
-        agent_status = agent_adapter.get_task_status(task_id)
-        
-        if agent_status["status"] != "not_found":
-            # Create a new task status from the agent status
-            task_status = TaskStatus(
-                task_id=task_id,
-                status=agent_status["status"],
-                start_time=datetime.now(),  # We don't have the actual start time
-                metadata={"recovered_from_agent": True}
-            )
-            
-            # Add to active tasks
-            active_tasks[task_id] = task_status
-            return task_status
-        
+        logger.warning(f"GET_STATUS_404: Task {task_id} not found. Final check. Active tasks: {list(active_tasks.keys())}, History: {list(task_history.keys())}")
+        logger.error(f"GET_STATUS: Task {task_id} not found anywhere. Returning 404.") 
+        logger.error(f"GET_STATUS_RAISING_404: Task {task_id}. Raising HTTPException. Active: {list(active_tasks.keys())}, History: {list(task_history.keys())}")
         raise HTTPException(status_code=404, detail=f"Task with ID {task_id} not found")
 
 # Get all tasks

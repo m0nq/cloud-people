@@ -4,16 +4,28 @@ import { type NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { Config } from '@config/constants';
+import { getEnvConfig } from '@lib/env';
 
 const { API: { EndPoints } } = Config;
+
+// Get service mode from environment
+const getServiceMode = () => {
+    const env = getEnvConfig();
+    // Check for explicit service mode override
+    if (env.NEXT_PUBLIC_SERVICE_MODE === 'mock' || env.NEXT_PUBLIC_SERVICE_MODE === 'real') {
+        return env.NEXT_PUBLIC_SERVICE_MODE;
+    }
+    // Default to mock in development, real in production
+    return process.env.NODE_ENV === 'development' ? 'mock' : 'real';
+};
 
 const hasUserOrLoginPath = (user: User | null, request: NextRequest) => {
     return user || request.nextUrl.pathname.startsWith(EndPoints.Login) || request.nextUrl.pathname.startsWith(EndPoints.Auth);
 };
 
 export const updateSession = async (request: NextRequest) => {
-    // Skip authentication in development mode
-    if (process.env.NODE_ENV === 'development') {
+    // Skip authentication in mock mode
+    if (getServiceMode() === 'mock') {
         // Return a NextResponse that allows access to all routes
         return NextResponse.next();
     }

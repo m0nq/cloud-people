@@ -15,6 +15,8 @@ export const AssistanceAgentLayout = ({ agentId, agentData, onAssistanceRequest 
     const data = agentData || getAgentData(agentId);
     const agentState = getAgentState(agentId);
 
+    console.log(`[AssistanceLayout ${agentId}] Rendering. State: ${agentState?.state}, ErrorMsg: ${data?.errorMessage}, AssistMsg: ${data?.assistanceMessage}`);
+
     return (
         <div className="assistance-card" onClick={onAssistanceRequest}>
             {agentState?.state === AgentState.Assistance && (
@@ -40,7 +42,9 @@ export const AssistanceAgentLayout = ({ agentId, agentData, onAssistanceRequest 
                     <NotificationBellIcon width={15} height={15} color="#BEC1CE" />
                     Status:
                 </span>
-                <span className="status-value">Stuck, please help</span>
+                <span className="status-value">
+                    Stuck, please help: {data?.errorMessage || data?.assistanceMessage}
+                </span>
             </div>
 
             <div className="action-buttons">

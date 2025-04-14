@@ -50,30 +50,52 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
         const originalNodes = [...nodes];
 
         try {
-            const updatedNodes = applyNodeChanges(changes, nodes) as (Node<NodeData> | Node<InitialStateNodeData>)[];
+            // Create a deep copy of nodes to avoid read-only property issues
+            const nodesCopy = nodes.map(node => ({
+                ...node,
+                // Ensure position is a new object to avoid read-only issues
+                position: { ...node.position },
+                // Create new data object to avoid read-only issues
+                data: { ...node.data }
+            }));
+            
+            // Apply changes to the copied nodes
+            const updatedNodes = applyNodeChanges(changes, nodesCopy) as (Node<NodeData> | Node<InitialStateNodeData>)[];
             updateState(set, { nodes: updatedNodes });
 
-            // Update database for each changed node
-            await Promise.all(
-                updatedNodes.filter(isValidWorkflowNode)
-                    .map(async node => {
-                        await updateNodes({
-                            data: {
-                                workflowId: node.data.workflowId,
-                                nodeId: node.id,
-                                set: {
-                                    state: node.data.state,
-                                    updated_at: new Date()
-                                }
-                            }
-                        });
-                    })
+            // Only update database for position changes to reduce unnecessary calls
+            const positionChanges = changes.filter(
+                (change): change is PositionNodeChange => change.type === 'position'
             );
+
+            if (positionChanges.length > 0) {
+                await Promise.all(
+                    positionChanges.map(async change => {
+                        const node = updatedNodes.find(n => n.id === change.id);
+                        if (node && isValidWorkflowNode(node)) {
+                            await updateNodes({
+                                data: {
+                                    workflowId: node.data.workflowId,
+                                    nodeId: node.id,
+                                    set: {
+                                        state: node.data.state,
+                                        updated_at: new Date()
+                                    }
+                                }
+                            }).catch(err => {
+                                console.warn('Node update warning (non-critical):', err);
+                                // Don't throw here to prevent UI disruption
+                            });
+                        }
+                    })
+                );
+            }
         } catch (error) {
             console.error('Failed to update nodes:', error);
             // Rollback on error
             updateState(set, { nodes: originalNodes });
-            throw new Error('Failed to update nodes. Changes have been reverted.');
+            // Don't throw error to prevent UI disruption
+            console.warn('Failed to update nodes. Changes have been reverted.');
         }
     },
 
@@ -86,6 +108,12 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
         const originalEdges = get().edges;
 
         try {
+            // Create deep copies of edges to avoid read-only property issues
+            const edgesCopy = originalEdges.map(edge => ({
+                ...edge,
+                data: edge.data ? { ...edge.data } : undefined
+            }));
+
             // Group changes by type for atomic operations
             const deleteChanges = changes.filter(
                 (
@@ -98,51 +126,59 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
             const updateChanges = changes.filter(change => change.type !== 'remove');
 
             // Handle deletions first
-            if (deleteChanges.length) {
+            if (deleteChanges.length > 0) {
                 // Delete edges from database
                 await Promise.all(
-                    deleteChanges.map(async change => {
-                        const edge = originalEdges.find(e => e.id === change.id);
-                        if (edge) {
-                            // Get workflowId from source node since edge data might not have it
-                            const sourceNode = get().nodes.find(n => n.id === edge.source);
-                            const workflowId = sourceNode?.data?.workflowId;
-
-                            if (workflowId) {
-                                await deleteEdges({
-                                    edgeId: edge.id,
-                                    workflowId
-                                });
-                            }
+                    deleteChanges.map(async (change: DeleteEdgeChange) => {
+                        try {
+                            await deleteEdges({ edgeId: change.id });
+                        } catch (error) {
+                            console.warn(`Failed to delete edge ${change.id}:`, error);
+                            // Continue with UI updates even if DB delete fails
                         }
                     })
                 );
             }
 
-            // Apply changes to UI state
-            const updatedEdges = applyEdgeChanges<Edge<EdgeData>>(changes, originalEdges);
+            // Apply updates to the UI state
+            const updatedEdges = applyEdgeChanges(changes, edgesCopy) as Edge<EdgeData>[];
             updateState(set, { edges: updatedEdges });
 
-            // Handle updates (source/target changes)
-            if (updateChanges.length) {
+            // Handle updates
+            if (updateChanges.length > 0) {
+                // Update edges in database
                 await Promise.all(
-                    updatedEdges.map(async edge => {
-                        const sourceNode = get().nodes.find(n => n.id === edge.source);
-                        if (!sourceNode?.data?.workflowId) return;
-
-                        await updateEdges({
-                            edgeId: edge.id,
-                            workflowId: sourceNode.data.workflowId,
-                            source: edge.source,
-                            target: edge.target
-                        });
+                    updateChanges.map(async change => {
+                        // Safely check for ID property
+                        const changeId = 'id' in change ? change.id : undefined;
+                        if (!changeId) return;
+                        
+                        const edge = updatedEdges.find(e => e.id === changeId);
+                        if (edge?.data) {
+                            try {
+                                await updateEdges({
+                                    data: {
+                                        edgeId: edge.id,
+                                        workflowId: edge.data.workflowId,
+                                        set: {
+                                            updated_at: new Date()
+                                        }
+                                    }
+                                });
+                            } catch (error) {
+                                console.warn(`Failed to update edge ${edge.id}:`, error);
+                                // Continue with UI updates even if DB update fails
+                            }
+                        }
                     })
                 );
             }
         } catch (error) {
             console.error('Failed to update edges:', error);
-            // Rollback UI state on error
+            // Rollback on error
             updateState(set, { edges: originalEdges });
+            // Don't throw to prevent UI disruption
+            console.warn('Failed to update edges. Changes have been reverted.');
         }
     },
 
@@ -192,58 +228,180 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
         }
     },
 
-    addNode: async (node: Node<NodeData>) => {
-        const state = get();
-        const { nodes } = state;
+    addNode: async (agent: AgentData, parentNodeId?: string | null): Promise<Node<NodeData> | null> => { 
+        const { nodes, edges } = get();
+        const agentStore = useAgentStore.getState();
+
+        // --- GUARD: Check if agent already exists or is being processed ---
+        const existingAgentData = agentStore.getAgentData(agent.id);
+        if (existingAgentData?.nodeId) {
+            console.warn(`[addNode] Agent ${agent.id} already has nodeId ${existingAgentData.nodeId}. Skipping add.`);
+            const existingNode = nodes.find(n => n.id === existingAgentData.nodeId);
+            return existingNode ? existingNode as Node<NodeData> : null;
+        }
 
         try {
-            // Create node in database
-            const dbNode = await createNodes({
+            let parentNode: Node<NodeData> | null = null;
+            let workflowId: string | undefined = undefined;
+
+            // --- 1. Determine Parent Node and Initial Workflow ID ---
+            if (parentNodeId) {
+                parentNode = nodes.find(node => node.id === parentNodeId) as Node<NodeData> ?? null;
+                if (!parentNode) {
+                    console.error(`Parent node with ID ${parentNodeId} not found. Cannot add node.`);
+                    throw new Error(`Parent node with ID ${parentNodeId} not found.`);
+                }
+                workflowId = parentNode.data.workflowId;
+                if (!workflowId) {
+                     console.error(`Parent node ${parentNodeId} is missing required workflowId.`);
+                     throw new Error(`Parent node ${parentNodeId} is missing required workflowId.`);
+                }
+            } else if (nodes.length > 0) {
+                parentNode = nodes[nodes.length - 1] as Node<NodeData>;
+                workflowId = parentNode.data.workflowId;
+                 if (!workflowId) {
+                    console.error(`Default parent node ${parentNode.id} is missing required workflowId.`);
+                    throw new Error(`Default parent node ${parentNode.id} is missing required workflowId.`);
+                }
+                console.log(`No parentNodeId specified, defaulting parent to last node: ${parentNode.id} with workflowId: ${workflowId}`);
+            }
+
+            // --- 2. Add/Update Agent in Agent Store (Initial) ---
+            agentStore.setAgentData(agent.id, agent);
+
+            // --- 3. Calculate Node Positions ---
+            let newNodePosition: { x: number; y: number } = { x: 100, y: 100 };
+            let nodeChangesForLayout: NodeChange[] = [];
+            if (parentNode) {
+                const siblings = getSiblings(parentNode, edges);
+                const nodePositions = calculateNodePositions(parentNode, siblings, edges);
+                newNodePosition = nodePositions.find(p => p.id === 'new-node')?.position ?? newNodePosition;
+                nodeChangesForLayout = nodePositions
+                    .filter(pos => pos.id !== 'new-node')
+                    .map(pos => ({ type: 'position' as const, id: pos.id, position: pos.position }));
+            }
+
+            // --- 4. Create Node in Database ---
+            const currentWorkflowId = workflowId;
+
+            // Ensure workflowId is defined before creating an agent node
+            if (typeof currentWorkflowId !== 'string') {
+                console.error('Cannot create agent node: workflowId is undefined. This indicates an issue with workflow initialization.');
+                throw new Error('Cannot add agent node without a valid workflow ID.');
+            }
+
+            const newNodeServerData: Omit<NodeData, 'id' | 'agentRef'> & { agentId: string; workflowId?: string } = {
+                type: NodeType.Agent,
+                agentId: agent.id,
+                state: AgentState.Initial,
+                workflowId: currentWorkflowId // Send workflowId if known (from parent), otherwise backend creates/assigns
+            };
+            const createNodeResult = await createNodes({
                 data: {
-                    workflowId: state.workflowExecution?.workflowId,
-                    nodeType: node.type
+                    workflowId: currentWorkflowId,
+                    nodeType: NodeType.Agent,
+                    agentId: agent.id
                 }
             });
 
-            if (!dbNode || !dbNode?.id) {
-                throw new Error('Failed to create node');
+            if (!createNodeResult?.id) {
+                throw new Error('Failed to create node in database or node missing ID.');
+            }
+            const newNodeId = createNodeResult.id;
+
+            // --- 5. Determine Final Workflow ID (Guaranteed String) ---
+            let finalWorkflowId: string;
+            if (workflowId) {
+                finalWorkflowId = workflowId;
+            } else {
+                if (!createNodeResult.data?.workflowId) {
+                    console.error("Backend did not return workflowId for the newly created first node.", createNodeResult);
+                    throw new Error("Failed to get workflowId for the first node from backend.");
+                }
+                finalWorkflowId = createNodeResult.data.workflowId;
+                console.log(`First node created, obtained workflowId from backend: ${finalWorkflowId}`);
             }
 
-            // Map database node to UI node
-            const newNode = {
-                ...node,
-                id: dbNode.id,
+            // --- 6. Update Agent Store (Final) ---
+            const finalAgentData = { ...agent, nodeId: newNodeId };
+            agentStore.setAgentData(agent.id, finalAgentData);
+
+            // --- 7. Create Edge in Database (if applicable) ---
+            let newEdgeId: string | null = null;
+            if (parentNode) { // Use guaranteed finalWorkflowId here
+                newEdgeId = await createEdge({
+                    data: {
+                        workflowId: finalWorkflowId, // FIX: Use guaranteed string workflowId
+                        toNodeId: newNodeId,
+                        fromNodeId: parentNode.id
+                    }
+                });
+                if (!newEdgeId) {
+                    throw new Error('Failed to create edge in database or edge ID missing.');
+                }
+            }
+
+            // --- 8. Prepare Local State Update ---
+            const newNode: Node<NodeData> = {
+                id: newNodeId,
+                type: NodeType.Agent,
+                position: newNodePosition,
+                sourcePosition: Position.Right,
+                targetPosition: Position.Left,
                 data: {
-                    ...node.data,
-                    id: dbNode.id,
-                    workflowId: state.workflowExecution?.workflowId
+                    id: newNodeId,
+                    type: NodeType.Agent,
+                    workflowId: finalWorkflowId,
+                    agentRef: { agentId: agent.id },
+                    state: AgentState.Initial
                 }
             };
 
-            // Update state with new node
-            set({
-                ...state,
-                nodes: [...nodes, newNode]
+            const finalEdges = [...edges];
+            if (parentNode && newEdgeId) {
+                const newEdge: Edge<EdgeData> = {
+                    id: newEdgeId,
+                    source: parentNode.id,
+                    target: newNodeId,
+                    type: EdgeType.Automation,
+                    animated: true,
+                    data: {
+                        id: newEdgeId,
+                        workflowId: finalWorkflowId,
+                        toNodeId: newNodeId,
+                        fromNodeId: parentNode.id
+                    }
+                };
+                finalEdges.push(newEdge);
+            }
+
+            // --- 9. Update Local State ---
+            if (process.env.NODE_ENV === 'development') {
+                console.log('Updating state with new node:', newNode, 'Edges:', finalEdges);
+            }
+            updateState(set, {
+                nodes: [...nodes, newNode],
+                edges: finalEdges
             });
 
+            // Apply layout updates to siblings if necessary
+            if (nodeChangesForLayout.length > 0) {
+                get().onNodesChange?.(nodeChangesForLayout);
+            }
+
             return newNode;
+
         } catch (error) {
             console.error('Failed to add node:', error);
-            return null;
+            throw error; // Re-throw for caller to handle
         }
     },
 
     onBeforeDelete: ({ nodes, edges }) => {
-        // NOTE: This is a workaround until we implement concurrent node runs
-        // where users can change node relations by their edge attachments
         const edgesToDelete = edges.filter(edge => edge.selected);
-        
         if (edgesToDelete.length) {
-            // If there are edges selected for deletion, prevent the deletion
             return false;
         }
-        
-        // Allow deletion of nodes (but not edges)
         return true;
     },
 
@@ -253,8 +411,6 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
         }
         const { nodes, edges } = get();
         const connectedEdges = getConnectedEdges(deletedNodes, edges);
-        // TODO: New plan is enable the target handle of a node to allow the user to link an orphan node to
-        // another
         await Promise.all([...deletedNodes.map(async (node: Node) => deleteNodes({ nodeId: node.id }))]);
 
         updateState(set, {
