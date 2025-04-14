@@ -118,61 +118,59 @@ const Canvas = (): ReactNode => {
             <WorkflowRenderer>
                 {({ ...props }): ReactNode => (
                     <div className={`flow-container ${isDarkMode ? 'dark' : 'light'}`}>
-                        <CanvasView>
-                            <div className="flow-header">
-                                <h1>{currentWorkspace?.name || 'Untitled Project'}</h1>
-                            </div>
-                            <Toggle
-                                initialState={featureEnabled}
-                                onChange={(isOn) => setFeatureEnabled(isOn)}
-                                label="Environment"
-                            />
-                            <ReactFlow
-                                nodeOrigin={[0.5, 0.5]}
-                                nodesDraggable
-                                nodesFocusable
-                                autoPanOnConnect
-                                panOnScroll
-                                selectionOnDrag
-                                panOnDrag
-                                proOptions={{ hideAttribution: true }}
-                                {...props}>
-                                <Panel position="bottom-center" className="flow-controls">
-                                    <button onClick={handleOpenAgentTray}>
-                                        <FiUserPlus className="icon-button" strokeWidth={1.5} />
-                                    </button>
-                                    <button
-                                        onClick={handleAddDatePicker}
-                                        title="Add Schedule"
-                                        aria-label="Add Schedule"
-                                    >
-                                        <TbCalendarTime className="icon-button" strokeWidth={1.5} />
-                                    </button>
-                                    <button
-                                        onClick={handleAddStickyNote}
-                                        title="Add Note"
-                                        aria-label="Add Note"
-                                        data-component-name="WorkflowRenderer"
-                                    >
-                                        <PiClipboardLight className="icon-button" strokeWidth={1.5} />
-                                    </button>
-                                    <button
-                                        onClick={handleAddCondition}
-                                        title="Add Condition"
-                                        aria-label="Add Condition"
-                                        data-component-name="WorkflowRenderer"
-                                    >
-                                        <LinkNodeIcon className="icon-button" />
-                                    </button>
-                                    <button onClick={() => alert('Something magical just happened. ✨')}>
-                                        <HiOutlinePencilAlt className="icon-button" strokeWidth={1.5} />
-                                    </button>
-                                    <button onClick={() => alert('Something magical just happened. ✨')}>
-                                        <CiSearch className="icon-button" strokeWidth={0.5} />
-                                    </button>
-                                </Panel>
-                            </ReactFlow>
-                        </CanvasView>
+                        <div className="flow-header">
+                            <h1>{currentWorkspace?.name || 'Untitled Project'}</h1>
+                        </div>
+                        <Toggle
+                            initialState={featureEnabled}
+                            onChange={(isOn) => setFeatureEnabled(isOn)}
+                            label="Environment"
+                        />
+                        <ReactFlow
+                            nodeOrigin={[0.5, 0.5]}
+                            nodesDraggable
+                            nodesFocusable
+                            autoPanOnConnect
+                            panOnScroll
+                            selectionOnDrag
+                            panOnDrag
+                            proOptions={{ hideAttribution: true }}
+                            {...props}>
+                            <Panel position="bottom-center" className="flow-controls">
+                                <button onClick={handleOpenAgentTray}>
+                                    <FiUserPlus className="icon-button" strokeWidth={1.5} />
+                                </button>
+                                <button
+                                    onClick={handleAddDatePicker}
+                                    title="Add Schedule"
+                                    aria-label="Add Schedule"
+                                >
+                                    <TbCalendarTime className="icon-button" strokeWidth={1.5} />
+                                </button>
+                                <button
+                                    onClick={handleAddStickyNote}
+                                    title="Add Note"
+                                    aria-label="Add Note"
+                                    data-component-name="WorkflowRenderer"
+                                >
+                                    <PiClipboardLight className="icon-button" strokeWidth={1.5} />
+                                </button>
+                                <button
+                                    onClick={handleAddCondition}
+                                    title="Add Condition"
+                                    aria-label="Add Condition"
+                                    data-component-name="WorkflowRenderer"
+                                >
+                                    <LinkNodeIcon className="icon-button" />
+                                </button>
+                                <button onClick={() => alert('Something magical just happened. ✨')}>
+                                    <HiOutlinePencilAlt className="icon-button" strokeWidth={1.5} />
+                                </button>
+                                <button onClick={() => alert('Something magical just happened. ✨')}>
+                                    <CiSearch className="icon-button" strokeWidth={0.5} />
+                                </button>
+                            </Panel>
+                        </ReactFlow>
                         <Tray />
                     </div >
                 )}

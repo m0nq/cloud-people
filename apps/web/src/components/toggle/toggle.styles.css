@@ -1,91 +1,59 @@
+@reference "../../app/globals.css";
 /* Toggle button styles */
 .toggle-button-cover {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 10;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
+  @apply fixed top-5 right-5 z-10 flex flex-col items-end;
 
-.toggle-label {
-  margin-bottom: 5px;
-  font-size: 12px;
-  color: var(--text-primary);
-  opacity: 0.8;
+  .toggle-label {
+    @apply mb-[5px] text-xs;
+    color: var(--text-primary);
+    /* Add dark mode styles if needed */
+  }
 }
 
 .button {
-  position: relative;
-  width: 120px;
-  height: 32px;
-  overflow: hidden;
-  border-radius: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* Styles for the button container (#button-3) */
+  @apply relative w-[120px] h-8 overflow-hidden rounded-full shadow-sm border border-[color:var(--border)];
   background-color: var(--background);
-  border: 1px solid var(--border);
-}
 
-.checkbox {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  margin: 0;
-  opacity: 0;
-  cursor: pointer;
-  z-index: 3;
-}
+  .checkbox {
+    /* Invisible input overlay */
+    @apply absolute inset-0 w-full h-full p-0 m-0 opacity-0 cursor-pointer z-30;
+  }
 
-.knobs,
-.layer {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-}
+  .knobs {
+    /* Base positioning for knobs and layer */
+    @apply absolute inset-0 z-20;
 
-.knobs {
-  z-index: 2;
-}
+    /* The knob itself */
+    &:before {
+      content: "SANDBOX";
+      @apply absolute w-[70px] h-7 text-neutral-700 text-[10px] font-semibold text-center leading-7 bg-green-200 rounded-full top-[2px] left-[4px];
+      transition: 0.3s ease all, left 0.3s cubic-bezier(0.18, 0.89, 0.35, 1.15);
+    }
+  }
 
-.layer {
-  background-color: var(--background);
-  border-radius: 16px;
-  transition: 0.3s ease all;
-  z-index: 1;
-}
+  /* --- State Styles --- */
+  /* These selectors target .knobs:before based on the state of .checkbox */
 
-#button-3 .knobs:before {
-  content: "SANDBOX";
-  position: absolute;
-  top: 2px;
-  left: 4px;
-  width: 70px;
-  height: 28px;
-  color: #333333;
-  font-size: 10px;
-  font-weight: 600;
-  text-align: center;
-  line-height: 28px;
-  background-color: #a5d6a7;
-  border-radius: 14px;
-  transition: 0.3s ease all, left 0.3s cubic-bezier(0.18, 0.89, 0.35, 1.15);
-}
+  /* Active state (while pressing) */
+  .checkbox:active + .knobs:before {
+    @apply w-[70px];
+  }
 
-#button-3 .checkbox:active + .knobs:before {
-  width: 70px;
-}
+  /* Checked state */
+  .checkbox:checked + .knobs:before {
+    content: "LIVE";
+    @apply bg-red-600 text-white left-[46px];
+  }
 
-#button-3 .checkbox:checked:active + .knobs:before {
-  margin-left: -70px;
-}
+  /* Active and Checked state (while pressing when checked) */
+  .checkbox:checked:active + .knobs:before {
+    @apply -ml-[70px];
+  }
 
-#button-3 .checkbox:checked + .knobs:before {
-  content: "LIVE";
-  left: 46px;
-  background-color: #f44336;
-  color: white;
+  /* --- Layer --- */
+  .layer {
+    /* Base positioning and style for the background layer */
+    @apply absolute inset-0 z-10 rounded-full transition-all duration-300 ease-linear bg-[var(--background)];
+  }
 }
