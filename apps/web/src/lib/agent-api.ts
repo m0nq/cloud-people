@@ -20,7 +20,7 @@ export type TaskRequest = {
         type: string;
         model?: string;
     };
-    previous_agent_output?: AgentResult;
+    previous_agent_output?: Record<string, AgentResult | null>;
     task_id?: string;
 };
 

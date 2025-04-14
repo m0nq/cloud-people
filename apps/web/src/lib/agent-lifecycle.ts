@@ -30,6 +30,9 @@ const getProviderTypeFromModel = (modelName: string | undefined): string => {
     return 'gemini';
 };
 
+// Utility function for sleep
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 /**
  * Orchestrates the execution lifecycle of an agent task:
  * - Checks existing task status.
@@ -47,106 +50,129 @@ const getProviderTypeFromModel = (modelName: string | undefined): string => {
  */
 export const runAgentTaskLifecycle = async (
     agentData: AgentData,
-    previousAgentOutput?: AgentResult,
+    previousAgentOutput?: Record<string, AgentResult | null>,
     pollIntervalMs: number = DEFAULT_POLL_INTERVAL_MS,
     maxPolls: number = DEFAULT_MAX_POLLS
 ): Promise<AgentResult> => {
 
-    let taskId = agentData.activeTaskId || agentData.nodeId || agentData.id;
-    console.log(`[lifecycle] Starting lifecycle for agent ${agentData.id}. Initial Task ID candidate: ${taskId}`);
-
-    if (!taskId) {
-        throw new AgentExecutionError('Task ID not available - cannot run agent lifecycle.');
-    }
-
+    let taskId: string | null = agentData.activeTaskId || null;
     let taskStatus: TaskStatus | null = null;
-    let needsCreation = true;
+    let taskNeedsPolling = false;
+    let taskCreated = false;
 
-    // 1. Check initial status and cleanup if necessary
-    try {
-        taskStatus = await getTaskStatus(taskId);
+    console.log(`[lifecycle] Starting lifecycle for agent ${agentData.id}. Initial activeTaskId: ${taskId}`);
 
-        if (taskStatus) {
-            console.log(`[lifecycle] Found existing task ${taskId} with status: ${taskStatus.status}`);
-            if (taskStatus.status === 'completed' || taskStatus.status === 'failed') {
-                console.log(`[lifecycle] Existing task ${taskId} is in terminal state (${taskStatus.status}). Cleaning up.`);
-                await closeSession(taskId); // Attempt cleanup, ignore errors
-            } else if (taskStatus.status === 'paused' && agentData.isResuming) {
-                console.log(`[lifecycle] Resuming paused task ${taskId}.`);
-                needsCreation = false; // Resume existing task
-            } else if (taskStatus.status === 'running') {
-                // This might happen if the UI refreshed mid-execution.
-                // Treat it like resuming for polling purposes.
-                console.warn(`[lifecycle] Found task ${taskId} already running. Attempting to poll status.`);
-                needsCreation = false;
+    // 1. Check if we are resuming an existing task
+    if (taskId) {
+        try {
+            console.log(`[lifecycle] Checking status for potentially existing task: ${taskId}`);
+            taskStatus = await getTaskStatus(taskId);
+
+            if (taskStatus) {
+                console.log(`[lifecycle] Found existing task ${taskId} with status: ${taskStatus.status}`);
+                if (taskStatus.status === 'running' || (taskStatus.status === 'paused' && agentData.isResuming)) {
+                    console.log(`[lifecycle] Resuming polling for task ${taskId}.`);
+                    taskNeedsPolling = true;
+                } else if (taskStatus.status === 'completed' || taskStatus.status === 'failed') {
+                    console.log(`[lifecycle] Existing task ${taskId} is already in terminal state (${taskStatus.status}). Will create a new one.`);
+                    // Attempt cleanup, but don't worry if it fails
+                    await closeSession(taskId).catch(err => console.warn(`[lifecycle] Non-critical error cleaning up terminal task ${taskId}:`, err));
+                    taskId = null; // Force creation of a new task
+                } else {
+                    // Unexpected state, treat as needing a new task
+                    console.warn(`[lifecycle] Existing task ${taskId} in unexpected state (${taskStatus.status}). Cleaning up and creating new.`);
+                    await closeSession(taskId).catch(err => console.warn(`[lifecycle] Non-critical error cleaning up task ${taskId} in unexpected state:`, err));
+                    taskId = null; // Force creation of a new task
+                }
             } else {
-                 // Unexpected state (e.g., maybe 'pending'?), clean up and create new.
-                 console.warn(`[lifecycle] Existing task ${taskId} in unexpected state (${taskStatus.status}). Cleaning up.`);
-                 await closeSession(taskId);
+                // Task ID existed in agentData, but 404 on status check - likely stale
+                console.log(`[lifecycle] activeTaskId ${taskId} not found via getTaskStatus (404). Assuming stale, creating new task.`);
+                taskId = null; // Force creation of a new task
             }
-        } else {
-             console.log(`[lifecycle] No existing task found for ID ${taskId} (404). Proceeding to create.`);
+        } catch (error: any) {
+            console.error(`[lifecycle] Error checking status for existing task ${taskId}:`, error);
+            // If status check fails for existing ID, safer to try creating a new one
+            // unless it was a specific AgentExecutionError we should bubble up.
+            if (error instanceof AgentExecutionError) throw error;
+            console.warn(`[lifecycle] Proceeding to create a new task due to error checking status for ${taskId}.`);
+            taskId = null;
         }
-    } catch (error: any) {
-        // Errors from getTaskStatus (non-404)
-        console.error(`[lifecycle] Error checking initial status for task ${taskId}:`, error);
-        throw new AgentExecutionError(`Failed during initial task status check: ${error.message}`);
     }
 
-    // 2. Create task if needed
-    if (needsCreation) {
-        console.log(`[lifecycle] Creating new task for agent ${agentData.id}.`);
-        const llmProvider = {
-            type: getProviderTypeFromModel(agentData.model),
-            model: agentData.model,
-        };
-        const payload: TaskRequest = {
+    // 2. Create a new task if necessary
+    if (!taskNeedsPolling) {
+        console.log('[lifecycle] Task does not exist or needs creation.');
+        // Construct payload for task creation
+        const providerType = getProviderTypeFromModel(agentData.model);
+        const taskPayload: TaskRequest = {
             task: agentData.description,
-            llm_provider: llmProvider,
-            previous_agent_output: previousAgentOutput ?? agentData.previousAgentOutput ?? undefined, // Use passed-in first, then agentData
-            task_id: taskId, // Provide the intended Task ID
-            // Add other relevant fields from agentData if needed by backend
-            // e.g., operation_timeout: agentData.operationTimeout
+            llm_provider: {
+                type: providerType,
+                model: agentData.model,
+            },
+            previous_agent_output: previousAgentOutput || undefined,
+            // task_id: agentData.nodeId || agentData.id // DO NOT send nodeId as task_id on creation
         };
 
         try {
-            const creationResponse = await createTask(payload);
-            // Backend might assign a new ID, even if we suggested one. Use the returned ID.
+            console.log('[lifecycle] Creating new task with payload:', taskPayload);
+            const creationResponse: TaskCreationResponse = await createTask(taskPayload);
             taskId = creationResponse.taskId;
-             console.log(`[lifecycle] Task created successfully. New Task ID: ${taskId}`);
-             // Update agentData's activeTaskId? This logic belongs in the hook/store later.
+            console.log(`[lifecycle] Task created successfully. New Task ID: ${taskId}`);
+            taskNeedsPolling = true; // Now we need to poll this new task
+            taskCreated = true;
+            // IMPORTANT: The calling code (e.g., useAgent hook) is responsible for
+            // updating the agent's activeTaskId in the store with this new taskId.
+
+            // If we *just* created the task, wait a moment before the first poll
+            if (taskCreated) {
+                await sleep(2000); // Give backend more time (increased from 500ms)
+            }
+
         } catch (error: any) {
-             console.error(`[lifecycle] Error creating task:`, error);
-             throw new AgentExecutionError(`Failed to create task: ${error.message}`);
+            console.error(`[lifecycle] Error creating task:`, error);
+            throw new AgentExecutionError(`Failed to create task: ${error.message}`);
         }
     }
+
+    // Ensure we have a task ID before polling
+    if (!taskId || !taskNeedsPolling) {
+        console.error('[lifecycle] Logic error: No valid taskId obtained or polling not required. Cannot proceed.');
+        throw new AgentExecutionError('Failed to obtain a valid task ID for polling.');
+    }
+
+    console.log(`[lifecycle] Task ID confirmed before polling loop: ${taskId}`);
 
     // 3. Poll for completion
     console.log(`[lifecycle] Starting polling for task ${taskId}...`);
     let pollCount = 0;
     while (pollCount < maxPolls) {
+        let pollError: Error | null = null;
+        taskStatus = null; // Reset status for this attempt
         try {
+            console.log(`[lifecycle] >>> Polling attempt ${pollCount + 1} for taskId: ${taskId}`); // Log before call
             taskStatus = await getTaskStatus(taskId);
+            console.log(`[lifecycle] <<< Poll attempt ${pollCount + 1} completed. Status object received:`, taskStatus); // Log after call
 
             if (!taskStatus) {
                 // Task disappeared mid-polling? Treat as failure.
-                 console.error(`[lifecycle] Task ${taskId} disappeared during polling (status 404).`);
-                 throw new AgentExecutionError(`Task ${taskId} disappeared unexpectedly during execution.`);
+                console.error(`[lifecycle] Task ${taskId} disappeared during polling (getTaskStatus returned null/undefined, likely 404).`); // Updated log
+                throw new AgentExecutionError(`Task ${taskId} not found during polling.`);
             }
 
-            console.log(`[lifecycle] Poll ${pollCount + 1}/${maxPolls}: Task ${taskId} status: ${taskStatus.status}`);
+            console.log(`[lifecycle] Poll ${pollCount + 1}: Task ${taskId} status: ${taskStatus.status}`);
 
             if (taskStatus.status === 'completed') {
                 console.log(`[lifecycle] Task ${taskId} completed successfully.`);
                 // --- Result Extraction ---
                 // Assuming the result is included in the final status response
                 // If not, we'd need a separate getTaskResult(taskId) call here.
-                 if (!taskStatus.result) {
-                     console.warn(`[lifecycle] Task ${taskId} completed but no result found in status. Attempting fallback fetch (if implemented).`);
-                     // Potentially call getTaskResult(taskId) here if it's needed
-                     throw new AgentExecutionError(`Task ${taskId} completed but result was missing.`);
-                 }
-                 // TODO: Validate taskStatus.result against AgentResult schema if needed
+                if (!taskStatus.result) {
+                    console.warn(`[lifecycle] Task ${taskId} completed but no result found in status. Attempting fallback fetch (if implemented).`);
+                    // Potentially call getTaskResult(taskId) here if it's needed
+                    throw new AgentExecutionError(`Task ${taskId} completed but result was missing.`);
+                }
+                // TODO: Validate taskStatus.result against AgentResult schema if needed
                 return taskStatus.result as AgentResult; // Cast needed if type isn't precise
             }
 
@@ -167,13 +193,14 @@ export const runAgentTaskLifecycle = async (
             }
 
         } catch (error: any) {
-             // Handle errors from getTaskStatus or errors thrown within the loop
-             if (error instanceof AgentExecutionError) {
-                 throw error; // Re-throw specific lifecycle errors
-             }
-             console.error(`[lifecycle] Error during polling for task ${taskId}:`, error);
-             // Throw generic error for polling issues (e.g., network errors during poll)
-             throw new AgentExecutionError(`Polling failed for task ${taskId}: ${error.message}`);
+            pollError = error;
+            // Handle errors from getTaskStatus or errors thrown within the loop
+            if (error instanceof AgentExecutionError) {
+                throw error; // Re-throw specific lifecycle errors
+            }
+            console.error(`[lifecycle] Error during polling for task ${taskId}:`, error);
+            // Throw generic error for polling issues (e.g., network errors during poll)
+            throw new AgentExecutionError(`Polling failed for task ${taskId}: ${error.message}`);
         }
     }
 

@@ -136,13 +136,13 @@ export const createWorkflowExecutionSlice = <
 ) => {
     /**
      * Activates a specific node in the workflow.
-     * Handles finding the associated agent, passing results from the previous node (if any),
+     * Handles finding the associated agent, passing aggregated results from preceding completed nodes,
      * transitioning the node state to Activating, and updating the overall workflow state.
      *
      * @param nodeId The ID of the node to activate.
-     * @param previousAgentResult Optional result from the agent associated with the preceding completed node.
+     * @param aggregatedPredecessorResults Optional dictionary mapping predecessor node IDs to their AgentResult.
      */
-    const activateNode = async (nodeId: string, previousAgentResult?: any) => {
+    const activateNode = async (nodeId: string, aggregatedPredecessorResults?: { [key: string]: AgentResult | null }) => {
         console.log(`[ActivateNode] Attempting to activate node ${nodeId}`);
         const { workflowExecution } = get();
         if (!workflowExecution) {
@@ -163,14 +163,15 @@ export const createWorkflowExecutionSlice = <
             return;
         }
 
-        // Pass previous result if it exists
-        if (previousAgentResult) {
+        // Pass aggregated results if they exist
+        if (aggregatedPredecessorResults && Object.keys(aggregatedPredecessorResults).length > 0) {
             const agentData = useAgentStore.getState().getAgentData(agentId);
             if (agentData) {
-                console.log(`[ActivateNode] Passing result from previous node to agent ${agentId}.`);
+                console.log(`[ActivateNode] Passing aggregated results from predecessors to agent ${agentId}. Results:`, aggregatedPredecessorResults);
                 useAgentStore.getState().setAgentData(agentId, {
                     ...agentData,
-                    previousAgentOutput: previousAgentResult
+                    // Store the aggregated results directly
+                    previousAgentOutput: aggregatedPredecessorResults
                 });
                 // TODO: Add telemetry for data passing success
                 console.log(`[Telemetry] Data passing pass_to_next to ${agentId}: Success (Placeholder)`);
@@ -179,6 +180,8 @@ export const createWorkflowExecutionSlice = <
                 // TODO: Add telemetry for data passing failure
                 console.log(`[Telemetry] Data passing pass_to_next to ${agentId}: Fail - Agent data not found (Placeholder)`);
             }
+        } else {
+            console.log(`[ActivateNode] No predecessor results to pass to agent ${agentId}.`);
         }
 
         // Transition the node to Activating
@@ -645,25 +648,33 @@ export const createWorkflowExecutionSlice = <
                     if (currentInputNodeState !== AgentState.Complete) {
                         allInputsCompleted = false;
                         console.log(`[WorkflowProgress] Input ${inputNodeId} for ${nextNode.id} is NOT complete. Node ${nextNode.id} cannot be activated yet.`);
-                        break; // No need to check other inputs if one is not complete
+                        break; // No need to check further inputs for this potential next node
                     }
                 }
 
                 if (allInputsCompleted) {
-                    console.log(`[WorkflowProgress] All inputs for ${nextNode.id} are COMPLETE. Preparing to activate.`);
+                    console.log(`[WorkflowProgress] All inputs for ${nextNode.id} are complete. Preparing to activate.`);
 
-                    // Check if the next node is already completed, running, or activating to prevent re-activation (optional safeguard)
-                    const nextNodeCurrentState = get().nodes.find(n => n.id === nextNodeId)?.data.state;
-                    if ([AgentState.Complete, AgentState.Working, AgentState.Activating].includes(nextNodeCurrentState as AgentState)) {
-                        console.warn(`[WorkflowProgress] Next node ${nextNodeId} is already in state ${nextNodeCurrentState}. Skipping activation.`);
-                        continue;
+                    // --- Aggregate results from ALL predecessors --- START
+                    const predecessorIds = incomingEdges.map(e => e.source);
+                    const predecessorResults: { [key: string]: AgentResult | null } = {};
+                    console.log(`[WorkflowProgress] Fetching results for predecessors of ${nextNode.id}:`, predecessorIds);
+
+                    for (const predId of predecessorIds) {
+                        // Fetch result from the central context cache
+                        const result = get().getAgentContextData(predId);
+                        predecessorResults[predId] = result; // Store null if result not found
+                        if (!result) {
+                            console.warn(`[WorkflowProgress] Failed to find result in context for completed predecessor ${predId} when activating ${nextNode.id}`);
+                        }
                     }
+                    console.log(`[WorkflowProgress] Aggregated predecessor results for ${nextNode.id}:`, predecessorResults);
+                    // --- Aggregate results from ALL predecessors --- END
 
-                    // --- Activate the next node, passing the result ---
-                    console.log(`[WorkflowProgress] Activating node ${nextNodeId} and passing result from ${nodeId}.`);
-                    // Assuming activateNode is part of the store slice and returned by get()
-                    await activateNode(nextNodeId, completedAgentResult);
-                    // -------------------------------------------------
+                    // Activate the next node, passing the AGGREGATED results
+                    activateNode(nextNode.id, predecessorResults);
+                } else {
+                    console.log(`[WorkflowProgress] Node ${nextNode.id} is not ready to activate yet (waiting for other inputs).`);
                 }
             }
         } catch (error) {
@@ -675,7 +686,7 @@ export const createWorkflowExecutionSlice = <
                     workflowExecution,
                     WorkflowState.Paused, // Fix: Use Paused state for errors
                     nodeId, // Associate error with the node that triggered progression
-                    error instanceof Error ? error.message : String(error)
+                    error instanceof Error ? error.message : 'Unknown error'
                 );
             }
         }

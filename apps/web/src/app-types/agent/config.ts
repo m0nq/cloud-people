@@ -36,7 +36,7 @@ export type AgentData = {
     nodeId?: string;
     activeTaskId?: string;
     // Add field for previous agent output with proper typing
-    previousAgentOutput?: AgentResult;
+    previousAgentOutput?: Record<string, AgentResult | null>;
     // Add fields for error and assistance context
     errorMessage?: string;
     assistanceMessage?: string;

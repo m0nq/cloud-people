@@ -49,9 +49,10 @@ export const WorkingAgentLayout = ({ agentData, onStatusChange }: WorkingAgentLa
     });
 
     // Start execution when component mounts
+    const hasExecuted = useRef(false); // Ref to track execution
     useEffect(() => {
-        // Early return if no agent data
-        if (!agentData || !agentData.id) {
+        // Early return if no agent data or already executed
+        if (!agentData || !agentData.id || hasExecuted.current) {
             return;
         }
 
@@ -73,6 +74,9 @@ export const WorkingAgentLayout = ({ agentData, onStatusChange }: WorkingAgentLa
                 console.error(`Error during agent execution:`, error);
             }
         })();
+
+        // Mark as executed *before* the async call to prevent race conditions
+        hasExecuted.current = true;
 
         // Cleanup function
         return () => {
