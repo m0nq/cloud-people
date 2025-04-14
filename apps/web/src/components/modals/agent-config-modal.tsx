@@ -18,6 +18,8 @@ import { MemoryLimit } from '@app-types/agent';
 import { useAgentCacheStore } from '@stores/agent-cache-store';
 import { useAgentStore } from '@stores/agent-store';
 import { createAgent } from '@lib/actions/agent-actions';
+import { useUser } from '@contexts/user-context';
+import { v4 as uuidv4 } from 'uuid';
 
 // Zod schema for agent configuration
 const agentConfigSchema = z.object({
@@ -55,6 +57,7 @@ export const AgentConfigModal = () => {
     const { invalidateCache } = useAgentCacheStore();
     const { setAgentData } = useAgentStore();
     const [error, setError] = useState<string | null>(null);
+    const { usingMockService } = useUser();
 
     const formatBudgetDisplay = (value: string): string => {
         // Remove any non-numeric characters except decimal
@@ -92,76 +95,105 @@ export const AgentConfigModal = () => {
             contextWindow: '',
             memoryLimit: MemoryLimit.Small,
             budget: '0.00',
-            model: 'gemini-2.0-flash',
+            model: 'gemini-2.5-pro',
             tools: ''
         },
         validate: async values => {
             try {
                 await agentConfigSchema.parseAsync(values);
-                return {}; // Return empty object when validation succeeds
-            } catch (error) {
-                if (error instanceof z.ZodError) {
-                    const errors = error.errors.reduce(
-                        (acc, curr) => {
-                            const path = curr.path.join('.');
-                            acc[path] = curr.message;
-                            return acc;
-                        },
-                        {} as Record<string, string>
-                    );
-                    return errors;
+                return {}; // No errors
+            } catch (err) { // Type assertion for ZodError
+                if (err instanceof z.ZodError) {
+                    return err.errors.reduce((acc, curr) => {
+                        acc[curr.path[0]] = curr.message; // Simplified error mapping
+                        return acc;
+                    }, {});
                 }
-                return { submit: 'Validation failed' };
+                return { _error: 'An unexpected validation error occurred.' };
             }
         },
         onSubmit: async (values, { setSubmitting }) => {
+            setError(null);
+            setSubmitting(true); // Set submitting true at the start
             try {
-                setError(null);
-
-                // Sanitize the input values
-                const sanitizedValues = {
-                    name: DOMPurify.sanitize(values.name),
-                    description: DOMPurify.sanitize(values.description),
-                    speed: values.speed,
-                    contextWindow: values.contextWindow ? DOMPurify.sanitize(values.contextWindow) : '',
-                    memoryLimit: values.memoryLimit,
-                    budget: values.budget.replace(/[^0-9.]/g, ''), // Remove currency formatting
-                    model: values.model,
-                    tools: values.tools || ''
-                };
-
-                // Create the agent
-                const agentRecord = await createAgent({
-                    data: {
-                        ...sanitizedValues
-                    }
+                // 1. Parse and validate the final data
+                const validatedData = agentConfigSchema.parse({
+                    ...values,
+                    budget: values.budget.replace(/[^0-9.]/g, '') // Ensure budget is just number before final validation
                 });
 
-                if (!agentRecord?.id) {
-                    throw new Error('Failed to create agent record');
+                // 2. Prepare data structure (match AgentData where possible, use snake_case if createAgent needs it)
+                // Assuming createAgent might expect snake_case for DB columns (Correction: It expects vars matching GraphQL defs)
+                const agentDataForAction = {
+                    name: validatedData.name,
+                    description: validatedData.description,
+                    speed: validatedData.speed,
+                    contextWindow: validatedData.contextWindow || null, // Use camelCase to match GraphQL var $contextWindow
+                    memoryLimit: validatedData.memoryLimit,       // Use camelCase to match GraphQL var $memoryLimit
+                    budget: validatedData.budget.toString(), // Convert number to string for BigFloat
+                    model: validatedData.model,
+                    tools: validatedData.tools ? validatedData.tools.split(',').map(t => t.trim()).filter(t => t) : [],
+                    // Other fields might be set by the server action (like owner_id, status, timestamps)
+                };
+
+                if (!usingMockService) {
+                    // === REAL MODE: Call Server Action ===
+                    console.log('Agent Config: Using REAL service - calling createAgent');
+                    try {
+                        // Wrap the data in the expected { data: ... } structure
+                        const createdAgent = await createAgent({ data: agentDataForAction }); // Correctly wrapped
+
+                        if (createdAgent?.id) {
+                            console.log('Agent created successfully via Supabase:', createdAgent);
+                            // Update local agent store immediately for UI responsiveness
+                            setAgentData(createdAgent.id, createdAgent);
+                            invalidateCache(); // Invalidate cache if using one
+                            closeModal(); // Close the modal on success
+                        } else {
+                            // This case might not be reachable if createAgent throws on failure
+                            setError('Failed to create agent via Supabase (unexpected result).');
+                        }
+                    } catch (actionError) {
+                        console.error('Error calling createAgent action:', actionError);
+                        setError(actionError instanceof Error ? actionError.message : 'Failed to create agent via Supabase.');
+                    }
+                } else {
+                    // === MOCK MODE: Update Local Store ===
+                    console.log('Agent Config: Using MOCK service - updating local store');
+                    // Construct object strictly matching AgentData type (camelCase)
+                    const mockAgent = {
+                        id: `mock-${uuidv4()}`, // Generate mock ID
+                        name: validatedData.name,
+                        description: validatedData.description,
+                        speed: validatedData.speed,
+                        contextWindow: validatedData.contextWindow || null, // camelCase for store
+                        memoryLimit: validatedData.memoryLimit, // camelCase for store
+                        budget: validatedData.budget,
+                        model: validatedData.model,
+                        tools: validatedData.tools ? validatedData.tools.split(',').map(t => t.trim()).filter(t => t) : [],
+                        status: 'idle', // Example default
+                        created_at: new Date().toISOString(),
+                        updated_at: new Date().toISOString(),
+                        owner_id: 'mock-user-id', // Example mock user ID
+                        createdBy: 'mock-user', // Added required field
+                        workflow_id: null // Placeholder
+                    };
+                    setAgentData(mockAgent.id, mockAgent as any); // Use type assertion if AgentData type is complex/imported
+                    // invalidateCache(); // Decide if cache invalidation is needed for mock
+                    console.log('Mock agent created locally:', mockAgent);
+                    closeModal(); // Close modal on mock success
                 }
 
-                // Synchronize with AgentStore
-                setAgentData(agentRecord.id, agentRecord);
-
-                // TODO: will need to update AgentTools table to associate the agent with capabilities from the Tools
-                // table
-
-                // Close config modal and reopen selection modal
-                closeModal();
-                if (isFromModal) {
-                    invalidateCache(); // Invalidate the cache when agent is created
-                    openModal({
-                        type: 'agent-selection',
-                        parentNodeId,
-                        isFromModal: true
-                    });
-                }
             } catch (err) {
-                console.error('Error creating agent:', err);
-                setError(err instanceof Error ? err.message : 'Failed to create agent');
+                if (err instanceof z.ZodError) {
+                    console.error('Validation error:', err.errors);
+                    setError('Validation failed. Please check the form fields.');
+                } else {
+                    console.error('Agent creation/processing error:', err);
+                    setError('An unexpected error occurred during save.');
+                }
             } finally {
-                setSubmitting(false);
+                setSubmitting(false); // Ensure submitting is set to false
             }
         }
     });
@@ -198,7 +230,7 @@ export const AgentConfigModal = () => {
                                 placeholder="Give your agent a name..."
                                 className="name-input" {...formik.getFieldProps('name')} />
                             {formik.touched.name && formik.errors.name &&
-                              <div className="w-full h-fit text-white">{formik.errors.name}</div>}
+                                <div className="w-full h-fit text-white">{formik.errors.name}</div>}
                         </div>
                         <button type="button" className="minimize-button" onClick={handleClick}>
                             <MinimizeIcon color="white" width={24} height={24} />
@@ -219,7 +251,7 @@ export const AgentConfigModal = () => {
                                 placeholder="Does research on historical data and current trends to identify trends and holes in the market for the company to fill."
                             />
                             {formik.touched.description && formik.errors.description &&
-                              <div className="w-full h-fit text-white">{formik.errors.description}</div>}
+                                <div className="w-full h-fit text-white">{formik.errors.description}</div>}
                         </div>
                     </div>
 
@@ -295,7 +327,7 @@ export const AgentConfigModal = () => {
                                     />
                                 </div>
                                 {formik.touched.budget && formik.errors.budget &&
-                                  <div className="text-white w-full h-fit">{formik.errors.budget}</div>}
+                                    <div className="text-white w-full h-fit">{formik.errors.budget}</div>}
                             </div>
                         </div>
 

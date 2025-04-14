@@ -14,7 +14,7 @@ import { FiDollarSign } from 'react-icons/fi';
 import { FiHome } from 'react-icons/fi';
 import { LuKey } from 'react-icons/lu';
 
-import { signOut } from '@lib/actions/authentication-actions';
+import { signOut } from '@lib/actions/authentication-client-actions';
 import profileImage from '@public/example-avatar.png';
 import { Config } from '@config/constants';
 import { NetworkIcon } from '@components/icons/network-icon';

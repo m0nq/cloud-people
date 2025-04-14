@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { ThemeToggle } from '@components/theme/theme-toggle';
 import { AuthenticationButton } from '@components/utils/auth-button/auth-button';
 import { SocialLoginButton } from '@components/utils/social-login/social-login-button';
-import { loginOrSignUp } from '@lib/actions/authentication-actions';
+import { loginOrSignUp } from '@lib/actions/authentication-client-actions';
 
 import './login.styles.css';
 

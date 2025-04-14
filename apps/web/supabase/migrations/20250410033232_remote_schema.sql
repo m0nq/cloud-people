@@ -248,7 +248,7 @@ CREATE TABLE IF NOT EXISTS "public"."Agents" (
     "context_window" "text",
     "memory_limit" "text" NOT NULL,
     "budget" numeric DEFAULT 0.00 NOT NULL,
-    "models" "text"[] DEFAULT '{}'::"text"[]
+    "models" "text" DEFAULT 'gemini-2.0-flash'::"text" NOT NULL
 );
 
 
@@ -724,7 +724,7 @@ CREATE POLICY "Agents Owner Access" ON "public"."Agents" TO "authenticated" USIN
 
 
 
-CREATE POLICY "Allows users to operate on their own workflows" ON "public"."Workflows" TO "authenticated", "anon" USING (("auth"."uid"() = "user_id"));
+CREATE POLICY "Allows users to operate on their own workflows" ON "public"."Workflows" TO "authenticated", "anon" USING (("auth"."uid"() = "user_id")) WITH CHECK (("auth"."uid"() = "user_id"));
 
 
 

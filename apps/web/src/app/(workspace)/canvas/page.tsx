@@ -14,16 +14,16 @@ import { CiCircleCheck } from 'react-icons/ci';
 import { CiSearch } from 'react-icons/ci';
 import { TbCalendarTime } from 'react-icons/tb';
 import { HiOutlinePencilAlt } from 'react-icons/hi';
-
-import './canvas.styles.css';
-import { WorkflowRenderer } from './workflow-renderer';
-// import { CanvasController } from '@components/canvas-controller/canvas-controller';
-// import { CanvasRunButton } from '@components/canvas-run-button/canvas-run-button';
 import { BranchesIcon } from '@components/icons/branches-icon';
 import { DatePicker } from '@components/calendar/date-picker';
 import { useThemeStore } from '@stores/theme-store';
 import { useTrayStore } from '@stores/tray-store';
+import { useModalStore } from '@stores/modal-store';
 import { Tray } from '@components/trays/tray';
+
+import './canvas.styles.css';
+import { WorkflowRenderer } from './workflow-renderer';
+import { CanvasView } from '@components/canvas-view/canvas-view';
 
 // Profiler callback function to measure render performance
 // Only active in development mode
@@ -57,6 +57,7 @@ const Canvas = (): ReactNode => {
     const { isDarkMode } = useThemeStore();
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const { openTray } = useTrayStore();
+    const { openModal } = useModalStore();
 
     // Function to handle opening the agent selection tray
     const handleOpenAgentTray = () => {
@@ -73,55 +74,53 @@ const Canvas = (): ReactNode => {
             <WorkflowRenderer>
                 {({ ...props }): ReactNode => (
                     <div className={`flow-container ${isDarkMode ? 'dark' : 'light'}`}>
-                        <ReactFlow
-                            nodeOrigin={[0.5, 0.5]}
-                            nodesDraggable
-                            nodesFocusable
-                            autoPanOnConnect
-                            panOnScroll
-                            selectionOnDrag
-                            panOnDrag
-                            proOptions={{ hideAttribution: true }}
-                            {...props}>
-                            {/*<Panel position="top-left" className="flow-panel">*/}
-                            {/*    <CanvasController />*/}
-                            {/*    <CanvasRunButton />*/}
-                            {/*</Panel>*/}
-                            <Panel position="bottom-center" className="flow-controls">
-                                <button onClick={() => alert('Something magical just happened. ✨')}>
-                                    <LuMousePointer className="icon-button" strokeWidth={1.5} />
-                                </button>
-                                <button onClick={() => alert('Something magical just happened. ✨')}>
-                                    <IoHandRightOutline className="icon-button" strokeWidth={1.5} />
-                                </button>
-                                <button onClick={handleOpenAgentTray}>
-                                    <FiUserPlus className="icon-button" strokeWidth={1.5} />
-                                </button>
-                                <button onClick={() => setIsCalendarOpen(true)}>
-                                    <TbCalendarTime className="icon-button" strokeWidth={1.5} />
-                                </button>
-                                <button onClick={() => alert('Something magical just happened. ✨')}>
-                                    <BranchesIcon className="icon-button" />
-                                </button>
-                                <button onClick={() => alert('Something magical just happened. ✨')}>
-                                    <PiClipboardLight className="icon-button" strokeWidth={1.5} />
-                                </button>
-                                <button onClick={() => alert('Something magical just happened. ✨')}>
-                                    <CiCircleCheck className="icon-button" strokeWidth={0.5} />
-                                </button>
-                                <button onClick={() => alert('Something magical just happened. ✨')}>
-                                    <HiOutlinePencilAlt className="icon-button" strokeWidth={1.5} />
-                                </button>
-                                <button onClick={() => alert('Something magical just happened. ✨')}>
-                                    <CiSearch className="icon-button" strokeWidth={0.5} />
-                                </button>
-                            </Panel>
-                            {/*<Panel position="top-right" className="timing-controls">*/}
-                            {/*    <button onClick={() => alert('Search functionality coming soon!')}>*/}
-                            {/*        <CiSearch className="icon-button" strokeWidth={0.5} />*/}
-                            {/*    </button>*/}
-                            {/*</Panel>*/}
-                        </ReactFlow>
+                        <CanvasView>
+                            <ReactFlow
+                                nodeOrigin={[0.5, 0.5]}
+                                nodesDraggable
+                                nodesFocusable
+                                autoPanOnConnect
+                                panOnScroll
+                                selectionOnDrag
+                                panOnDrag
+                                proOptions={{ hideAttribution: true }}
+                                defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+                                elevateNodesOnSelect={false}
+                                elevateEdgesOnSelect={false}
+                                deleteKeyCode={null} // Disable delete key to prevent accidental deletions
+                                multiSelectionKeyCode={null} // Disable multi-selection to simplify UX
+                                {...props}>
+                                <Panel position="bottom-center" className="flow-controls">
+                                    <button onClick={() => alert('Something magical just happened. ✨')}>
+                                        <LuMousePointer className="icon-button" strokeWidth={1.5} />
+                                    </button>
+                                    <button onClick={() => alert('Something magical just happened. ✨')}>
+                                        <IoHandRightOutline className="icon-button" strokeWidth={1.5} />
+                                    </button>
+                                    <button onClick={() => openModal({ type: 'agent-config', parentNodeId: '' })}>
+                                        <FiUserPlus className="icon-button" strokeWidth={1.5} />
+                                    </button>
+                                    <button onClick={() => setIsCalendarOpen(true)}>
+                                        <TbCalendarTime className="icon-button" strokeWidth={1.5} />
+                                    </button>
+                                    <button onClick={() => alert('Something magical just happened. ✨')}>
+                                        <BranchesIcon className="icon-button" />
+                                    </button>
+                                    <button onClick={() => alert('Something magical just happened. ✨')}>
+                                        <PiClipboardLight className="icon-button" strokeWidth={1.5} />
+                                    </button>
+                                    <button onClick={() => alert('Something magical just happened. ✨')}>
+                                        <CiCircleCheck className="icon-button" strokeWidth={0.5} />
+                                    </button>
+                                    <button onClick={() => alert('Something magical just happened. ✨')}>
+                                        <HiOutlinePencilAlt className="icon-button" strokeWidth={1.5} />
+                                    </button>
+                                    <button onClick={() => alert('Something magical just happened. ✨')}>
+                                        <CiSearch className="icon-button" strokeWidth={0.5} />
+                                    </button>
+                                </Panel>
+                            </ReactFlow>
+                        </CanvasView>
                         {isCalendarOpen && (
                             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
                                 <div className="bg-white p-4 rounded-lg shadow-lg">

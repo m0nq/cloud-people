@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import Image from 'next/image';
 
 import './agent-card.styles.css';
@@ -10,25 +10,49 @@ import { TaskStatusIcon } from '@components/icons/task-status-icon';
 import { useAgent } from '@hooks/use-agent';
 import { useAgentStore } from '@stores/agent-store';
 import { PauseIcon } from '@components/icons';
+import { AgentState } from '@app-types/agent';
+import { AgentData } from '@app-types/agent';
 
-export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
+interface WorkingAgentLayoutProps extends BaseAgentLayoutProps {
+    agentData?: AgentData;
+    onStatusChange?: (agentId: string, newState: AgentState) => void;
+}
+
+export const WorkingAgentLayout = ({ agentData, onStatusChange }: WorkingAgentLayoutProps) => {
     const { transition } = useAgentStore();
-    const agentStore = useAgentStore();
-    const agentData = agentStore.getAgentData(agentId);
+
+    // Ensure agentData exists before calling the hook
+    // If agentData is undefined, perhaps render a loading state or handle appropriately
+    if (!agentData) {
+        console.log(`[WorkingAgentLayout] Rendering Loading... because agentData prop is missing.`);
+        // Return a loading indicator or null, preventing hook call with undefined
+        return <div>Loading Agent Data...</div>;
+    }
 
     const {
         isProcessing,
         executeTask,
         pauseAgentExecution,
-        error
-    } = useAgent(agentId, (status) => {
-        transition(agentId, status);
+        error,
+        result
+        // Pass agentData directly to the hook
+    } = useAgent(agentData, (status: AgentState) => {
+        // agentId is needed for transition and the prop callback
+        // Get it from the agentData prop passed to WorkingAgentLayout
+        const currentAgentId = agentData?.id;
+        if (currentAgentId) {
+            transition(currentAgentId, status);
+            if (onStatusChange) {
+                onStatusChange(currentAgentId, status);
+            }
+        }
     });
 
     // Start execution when component mounts
+    const hasExecuted = useRef(false); // Ref to track execution
     useEffect(() => {
-        // Early return if no agent data
-        if (!agentData || !agentData.id) {
+        // Early return if no agent data or already executed
+        if (!agentData || !agentData.id || hasExecuted.current) {
             return;
         }
 
@@ -41,7 +65,7 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
 
                 // If successful and we were resuming, reset the flag
                 if (isMounted && agentData?.isResuming) {
-                    useAgentStore.getState().setAgentData(agentId, {
+                    useAgentStore.getState().setAgentData(agentData.id, {
                         ...agentData,
                         isResuming: false
                     });
@@ -50,6 +74,9 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
                 console.error(`Error during agent execution:`, error);
             }
         })();
+
+        // Mark as executed *before* the async call to prevent race conditions
+        hasExecuted.current = true;
 
         // Cleanup function
         return () => {
@@ -61,14 +88,12 @@ export const WorkingAgentLayout = ({ agentId }: BaseAgentLayoutProps) => {
     }, []);
 
     const handlePause = async () => {
-        await pauseAgentExecution(agentId, agentData, (status) => {
-            transition(agentId, status);
-        });
+        await pauseAgentExecution();
     };
 
-    // Render loading state if no agent data
     if (!agentData || !agentData.id) {
-        return <div>Loading...</div>;
+        console.log(`[WorkingAgentLayout ${agentData?.id}] Rendering Loading... because agentData prop is missing.`);
+        return <div>Loading Agent...</div>;
     }
 
     return (

@@ -40,7 +40,9 @@ export const AssistanceAgentLayout = ({ agentId, agentData, onAssistanceRequest 
                     <NotificationBellIcon width={15} height={15} color="#BEC1CE" />
                     Status:
                 </span>
-                <span className="status-value">Stuck, please help</span>
+                <span className="status-value">
+                    Stuck, please help: {data?.errorMessage || data?.assistanceMessage}
+                </span>
             </div>
 
             <div className="action-buttons">

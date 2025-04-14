@@ -29,6 +29,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
+      eslint-plugin-react-refresh:
+        specifier: ^0.4.19
+        version: 0.4.19(eslint@9.23.0(jiti@2.4.2))
       langchain:
         specifier: ^0.3.19
         version: 0.3.19(@langchain/anthropic@0.3.15(@langchain/core@0.3.43(openai@4.90.0(ws@8.18.1)(zod@3.24.2))))(@langchain/core@0.3.43(openai@4.90.0(ws@8.18.1)(zod@3.24.2)))(axios@1.8.4)(openai@4.90.0(ws@8.18.1)(zod@3.24.2))(ws@8.18.1)
@@ -204,7 +207,7 @@ importers:
         version: 3.12.7(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@xyflow/react':
         specifier: ^12.5.1
-        version: 12.5.2(@types/react@19.0.12)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        version: 12.5.2(@types/react@19.0.12)(immer@10.1.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       babel-plugin-react-compiler:
         specifier: 19.0.0-beta-e552027-20250112
         version: 19.0.0-beta-e552027-20250112
@@ -255,7 +258,7 @@ importers:
         version: 11.1.0
       zustand:
         specifier: ^5.0.3
-        version: 5.0.3(@types/react@19.0.12)(react@19.1.0)(use-sync-external-store@1.5.0(react@19.1.0))
+        version: 5.0.3(@types/react@19.0.12)(immer@10.1.1)(react@19.1.0)(use-sync-external-store@1.5.0(react@19.1.0))
     devDependencies:
       '@cloud-people/eslint-config':
         specifier: workspace:*
@@ -3020,6 +3023,11 @@ packages:
     peerDependencies:
       eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0 || ^9.0.0
 
+  eslint-plugin-react-refresh@0.4.19:
+    resolution: {integrity: sha512-eyy8pcr/YxSYjBoqIFSrlbn9i/xvxUFa8CjzAYo9cFjgGXqq1hyjihcpZvxRLalpaWmueWR81xn7vuKmAFijDQ==}
+    peerDependencies:
+      eslint: '>=8.40'
+
   eslint-plugin-react@7.37.4:
     resolution: {integrity: sha512-BGP0jRmfYyvOyvMoRX/uoUeW+GqNj9y16bPQzqAHf3AYII/tDs+jMN0dBVkl88/OZwNGwrVFxE7riHsXVfy/LQ==}
     engines: {node: '>=4'}
@@ -3469,6 +3477,9 @@ packages:
   ignore@5.3.2:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
     engines: {node: '>= 4'}
+
+  immer@10.1.1:
+    resolution: {integrity: sha512-s2MPrmjovJcoMaHtx6K11Ra7oD05NT97w1IC5zpMkT6Atjr7H8LjaDd81iIxUYpMKSRRNMJE703M1Fhr/TctHw==}
 
   import-fresh@3.3.1:
     resolution: {integrity: sha512-TR3KfrTZTYLPB6jUjfx6MF9WcWrHL9su5TObK4ZkYgBdWKPOFoSoQIdEuTuR82pmtxH2spWG9h6etwfr1pLBqQ==}
@@ -7315,13 +7326,13 @@ snapshots:
 
   '@xtuc/long@4.2.2': {}
 
-  '@xyflow/react@12.5.2(@types/react@19.0.12)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@xyflow/react@12.5.2(@types/react@19.0.12)(immer@10.1.1)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
       '@xyflow/system': 0.0.53
       classcat: 5.0.5
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
-      zustand: 4.5.6(@types/react@19.0.12)(react@19.1.0)
+      zustand: 4.5.6(@types/react@19.0.12)(immer@10.1.1)(react@19.1.0)
     transitivePeerDependencies:
       - '@types/react'
       - immer
@@ -8306,6 +8317,10 @@ snapshots:
     dependencies:
       eslint: 9.23.0(jiti@2.4.2)
 
+  eslint-plugin-react-refresh@0.4.19(eslint@9.23.0(jiti@2.4.2)):
+    dependencies:
+      eslint: 9.23.0(jiti@2.4.2)
+
   eslint-plugin-react@7.37.4(eslint@9.23.0(jiti@2.4.2)):
     dependencies:
       array-includes: 3.1.8
@@ -8870,6 +8885,9 @@ snapshots:
   ieee754@1.2.1: {}
 
   ignore@5.3.2: {}
+
+  immer@10.1.1:
+    optional: true
 
   import-fresh@3.3.1:
     dependencies:
@@ -11176,15 +11194,17 @@ snapshots:
 
   zod@3.24.2: {}
 
-  zustand@4.5.6(@types/react@19.0.12)(react@19.1.0):
+  zustand@4.5.6(@types/react@19.0.12)(immer@10.1.1)(react@19.1.0):
     dependencies:
       use-sync-external-store: 1.5.0(react@19.1.0)
     optionalDependencies:
       '@types/react': 19.0.12
+      immer: 10.1.1
       react: 19.1.0
 
-  zustand@5.0.3(@types/react@19.0.12)(react@19.1.0)(use-sync-external-store@1.5.0(react@19.1.0)):
+  zustand@5.0.3(@types/react@19.0.12)(immer@10.1.1)(react@19.1.0)(use-sync-external-store@1.5.0(react@19.1.0)):
     optionalDependencies:
       '@types/react': 19.0.12
+      immer: 10.1.1
       react: 19.1.0
       use-sync-external-store: 1.5.0(react@19.1.0)

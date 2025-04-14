@@ -1,19 +1,39 @@
 'use server';
+
+/**
+ * Supabase Authentication Action
+ *
+{{ ... }}
+ */
+
 import { redirect } from 'next/navigation';
-import DOMPurify from 'isomorphic-dompurify';
 import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
-import { User } from '@supabase/supabase-js';
-import { type Provider } from '@supabase/supabase-js';
 
-import { createClient } from '@lib/supabase/server';
+import DOMPurify from 'isomorphic-dompurify';
+import { User } from '@supabase/supabase-js';
+import { Provider } from '@supabase/supabase-js';
+
 import { Config } from '@config/constants';
+import { getEnvConfig } from '@lib/env';
+import { createClient } from '@lib/supabase/server';
 
 const { API: { EndPoints } } = Config;
 
-// Mock user for development mode
+// Get service mode from environment
+const getServiceMode = () => {
+    const env = getEnvConfig();
+    // Check for explicit service mode override
+    if (env.NEXT_PUBLIC_SERVICE_MODE === 'mock' || env.NEXT_PUBLIC_SERVICE_MODE === 'real') {
+        return env.NEXT_PUBLIC_SERVICE_MODE;
+    }
+    // Default to mock in development, real in production
+    return process.env.NODE_ENV === 'development' ? 'mock' : 'real';
+};
+
+// Mock user for development mode - using a valid UUID format
 const DEV_USER: User = {
-    id: 'dev-user-id',
+    id: '00000000-0000-0000-0000-000000000000', // Valid UUID format
     email: 'dev@example.com',
     user_metadata: {
         full_name: 'Development User',
@@ -32,8 +52,8 @@ const DEV_USER: User = {
 };
 
 export const isLoggedIn = async () => {
-    // Skip authentication check in development mode
-    if (process.env.NODE_ENV === 'development') {
+    // Skip authentication check in mock mode
+    if (getServiceMode() === 'mock') {
         return;
     }
 
@@ -46,8 +66,8 @@ export const isLoggedIn = async () => {
 };
 
 export const loginWithOAuth = async (provider: Provider) => {
-    // In development mode, redirect to home page
-    if (process.env.NODE_ENV === 'development') {
+    // In mock mode, redirect to home page
+    if (getServiceMode() === 'mock') {
         redirect(EndPoints.Home);
     }
 
@@ -73,8 +93,8 @@ export const loginWithOAuth = async (provider: Provider) => {
 };
 
 export const loginOrSignUp = async (formData: FormData) => {
-    // In development mode, redirect to home page
-    if (process.env.NODE_ENV === 'development') {
+    // In mock mode, redirect to home page
+    if (getServiceMode() === 'mock') {
         redirect(EndPoints.Home);
     }
 
@@ -100,8 +120,8 @@ export const loginOrSignUp = async (formData: FormData) => {
 };
 
 export const signOut = async () => {
-    // In development mode, redirect to login page
-    if (process.env.NODE_ENV === 'development') {
+    // In mock mode, redirect to login page
+    if (getServiceMode() === 'mock') {
         redirect(EndPoints.Login);
     }
 
@@ -112,11 +132,6 @@ export const signOut = async () => {
 };
 
 export const authCheck = async (): Promise<User> => {
-    // Return mock user in development mode
-    if (process.env.NODE_ENV === 'development') {
-        return DEV_USER;
-    }
-
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -128,8 +143,8 @@ export const authCheck = async (): Promise<User> => {
 };
 
 export const refreshSession = async () => {
-    // Skip in development mode
-    if (process.env.NODE_ENV === 'development') {
+    // Skip in mock mode
+    if (getServiceMode() === 'mock') {
         return {
             access_token: 'dev-access-token',
             refresh_token: 'dev-refresh-token',

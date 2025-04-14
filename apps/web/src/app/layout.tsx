@@ -16,6 +16,10 @@ import './globals.css';
 // Import the client component wrapper
 import { ClientThemeProvider } from '@components/theme/client-theme-provider';
 import { ThemeScript } from '@components/theme/theme-script';
+// Import the user provider for authentication
+import { UserProvider } from '@contexts/user-context';
+// Import the development toolbar
+import { DevToolbar } from '@components/dev/dev-toolbar';
 
 export type LayoutProps = {
     params?: any;
@@ -34,6 +38,9 @@ export const viewport: Viewport = {
 const RootLayout = ({ children }: LayoutProps) => {
     validateEnv();
 
+    // Determine if we're in development mode
+    const isDevelopment = process.env.NODE_ENV === 'development';
+
     return (
         <html lang="en" suppressHydrationWarning>
             <head>
@@ -43,7 +50,11 @@ const RootLayout = ({ children }: LayoutProps) => {
                 <MantineProvider>
                     <ClientThemeProvider>
                         <LoadingProvider>
-                            {children}
+                            <UserProvider>
+                                {children}
+                                {/* Development toolbar for toggling between real and mock services */}
+                                {isDevelopment && <DevToolbar position="bottom-right" />}
+                            </UserProvider>
                         </LoadingProvider>
                     </ClientThemeProvider>
                 </MantineProvider>
