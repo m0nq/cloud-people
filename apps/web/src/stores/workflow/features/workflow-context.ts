@@ -56,14 +56,6 @@ export const createWorkflowContext = (
       }),
 
     /**
-     * Gets the entire workflow context with memoization
-     * @returns The workflow context
-     */
-    getWorkflowContext: () => {
-      return useShallow((state: GraphState) => state.workflowContext);
-    },
-
-    /**
      * Gets a specific agent's data from the workflow context
      * @param agentId - The ID of the agent whose data to retrieve
      * @returns The agent's result or null if not found

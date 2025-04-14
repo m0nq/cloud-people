@@ -18,28 +18,23 @@ interface WorkingAgentLayoutProps extends BaseAgentLayoutProps {
     onStatusChange?: (agentId: string, newState: AgentState) => void;
 }
 
-export const WorkingAgentLayout = ({ agentData, onStatusChange }: WorkingAgentLayoutProps) => {
-    const { transition } = useAgentStore();
+export const WorkingAgentLayout = ({ agentId, agentData, onStatusChange }: WorkingAgentLayoutProps) => {
+    // HOOKS MOVED TO TOP
+    const { transition, getAgentData } = useAgentStore();
+    const hasExecuted = useRef(false); // Ref to track execution
+    const data = agentData || getAgentData(agentId);
 
-    // Ensure agentData exists before calling the hook
-    // If agentData is undefined, perhaps render a loading state or handle appropriately
-    if (!agentData) {
-        console.log(`[WorkingAgentLayout] Rendering Loading... because agentData prop is missing.`);
-        // Return a loading indicator or null, preventing hook call with undefined
-        return <div>Loading Agent Data...</div>;
-    }
-
+    // Pass agentData directly to the hook
     const {
         isProcessing,
         executeTask,
         pauseAgentExecution,
         error,
         result
-        // Pass agentData directly to the hook
-    } = useAgent(agentData, (status: AgentState) => {
+    } = useAgent(data, (status: AgentState) => {
         // agentId is needed for transition and the prop callback
         // Get it from the agentData prop passed to WorkingAgentLayout
-        const currentAgentId = agentData?.id;
+        const currentAgentId = agentId;
         if (currentAgentId) {
             transition(currentAgentId, status);
             if (onStatusChange) {
@@ -48,53 +43,52 @@ export const WorkingAgentLayout = ({ agentData, onStatusChange }: WorkingAgentLa
         }
     });
 
-    // Start execution when component mounts
-    const hasExecuted = useRef(false); // Ref to track execution
+    // Moved useEffect hook up
     useEffect(() => {
         // Early return if no agent data or already executed
-        if (!agentData || !agentData.id || hasExecuted.current) {
+        if (!data || !data.id || hasExecuted.current) {
             return;
         }
 
         let isMounted = true;
 
         (async () => {
+            console.log(`[WorkingAgentLayout] Executing task for agent: ${data.id}`);
+            hasExecuted.current = true; // Mark as executed
             try {
-                // executeAction now handles both new tasks and resuming
-                await executeTask();
-
-                // If successful and we were resuming, reset the flag
-                if (isMounted && agentData?.isResuming) {
-                    useAgentStore.getState().setAgentData(agentData.id, {
-                        ...agentData,
-                        isResuming: false
-                    });
+                await executeTask(); // Execute the task
+                if (isMounted) {
+                    console.log(`[WorkingAgentLayout] Task completed for agent: ${data.id}`);
                 }
-            } catch (error) {
-                console.error(`Error during agent execution:`, error);
+            } catch (err) {
+                if (isMounted) {
+                    console.error(`[WorkingAgentLayout] Error executing task for agent ${data.id}:`, err);
+                }
             }
         })();
 
-        // Mark as executed *before* the async call to prevent race conditions
-        hasExecuted.current = true;
-
-        // Cleanup function
         return () => {
             isMounted = false;
+            // Optional: Add cleanup logic here if needed when the component unmounts
+            // or when agentData changes causing the effect to re-run.
+            // console.log(`[WorkingAgentLayout] Cleanup effect for agent: ${agentData?.id}`);
         };
+    }, [data, executeTask]); // Add agentData and executeTask to dependency array
 
-        // This needs to run only once
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const handlePause = async () => {
-        await pauseAgentExecution();
-    };
-
-    if (!agentData || !agentData.id) {
-        console.log(`[WorkingAgentLayout ${agentData?.id}] Rendering Loading... because agentData prop is missing.`);
-        return <div>Loading Agent...</div>;
+    // CONDITIONAL RETURN REMAINS, BUT AFTER HOOKS
+    // Ensure agentData exists before rendering the main component body
+    if (!data) {
+        console.log(`[WorkingAgentLayout] Rendering Loading... because agentData prop is missing.`);
+        // Return a loading indicator or null, preventing hook call with undefined
+        return <div>Loading Agent Data...</div>;
     }
+
+    // REST OF THE COMPONENT RENDER LOGIC
+    const handlePause = () => {
+        if (agentData?.id) {
+            pauseAgentExecution();
+        }
+    };
 
     return (
         <div className="working-agent-card">
