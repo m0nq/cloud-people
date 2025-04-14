@@ -128,12 +128,7 @@ const updateWorkflowState = async (
     }
 };
 
-export const createWorkflowExecutionSlice = <
-    T extends { workflowExecution: GraphState['workflowExecution'] }
->(
-    set,
-    get
-) => {
+export const createWorkflowExecutionSlice = <T extends { workflowExecution: GraphState['workflowExecution'] }>(set, get) => {
     /**
      * Activates a specific node in the workflow.
      * Handles finding the associated agent, passing aggregated results from preceding completed nodes,
@@ -555,7 +550,7 @@ export const createWorkflowExecutionSlice = <
     };
 
     const progressWorkflow = async (nodeId: string, status: AgentState) => {
-        const { nodes, edges, workflowExecution, updateWorkflowContext, activateNode } = get();
+        const { nodes, edges, workflowExecution, updateWorkflowContext } = get();
         const { getAgentResult } = useAgentStore.getState();
         const node = nodes.find(n => n.id === nodeId);
         if (!node || !isWorkflowNode(node)) return;
@@ -671,8 +666,7 @@ export const createWorkflowExecutionSlice = <
                     console.log(`[WorkflowProgress] Aggregated predecessor results for ${nextNode.id}:`, predecessorResults);
                     // --- Aggregate results from ALL predecessors --- END
 
-                    // Activate the next node, passing the AGGREGATED results
-                    activateNode(nextNode.id, predecessorResults);
+                    get().activateNode(nextNode.id, predecessorResults);
                 } else {
                     console.log(`[WorkflowProgress] Node ${nextNode.id} is not ready to activate yet (waiting for other inputs).`);
                 }
@@ -696,7 +690,8 @@ export const createWorkflowExecutionSlice = <
         startWorkflow,
         pauseWorkflow,
         resumeWorkflow,
-        progressWorkflow
+        progressWorkflow,
+        activateNode
     };
 };
 
