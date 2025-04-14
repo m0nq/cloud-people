@@ -14,7 +14,7 @@ import { authCheck } from '@lib/actions/authentication-actions';
 import { connectToDB } from '@lib/utils';
 import type { QueryConfig } from '@app-types/api';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { createClient } from '@lib/supabase/client';
+import { createClient } from '@supabase/supabase-js'; // CORRECT: For server-side usage with service key
 
 // Define the interface for our agent service
 export interface AgentService {

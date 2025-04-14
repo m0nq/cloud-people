@@ -122,7 +122,7 @@ export const useAgent = (agentData: AgentData, onStatusChange?: (status: AgentSt
             console.log(`[useAgent] executeTask finished for agent ${agentData.id}.`);
         }
 
-    }, [agentData, isProcessing, onStatusChange]);
+    }, [agentData, isProcessing, onStatusChange, getAgentData, setAgentData, setAgentResult, updateAgentState]);
 
     const pauseAgentExecution = useCallback(async (): Promise<boolean> => {
         if (!agentData?.id) {
@@ -172,7 +172,7 @@ export const useAgent = (agentData: AgentData, onStatusChange?: (status: AgentSt
             return false;
         }
         // Depend on agentData, store functions, and callbacks
-    }, [agentData, onStatusChange, setError]);
+    }, [agentData, onStatusChange, setError, getAgentData, getAgentState, setAgentData, updateAgentState]);
 
     return {
         isProcessing,

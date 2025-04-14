@@ -15,6 +15,8 @@ export const AssistanceAgentLayout = ({ agentId, agentData, onAssistanceRequest 
     const data = agentData || getAgentData(agentId);
     const agentState = getAgentState(agentId);
 
+    console.log(`[AssistanceLayout ${agentId}] Rendering. State: ${agentState?.state}, ErrorMsg: ${data?.errorMessage}, AssistMsg: ${data?.assistanceMessage}`);
+
     return (
         <div className="assistance-card" onClick={onAssistanceRequest}>
             {agentState?.state === AgentState.Assistance && (

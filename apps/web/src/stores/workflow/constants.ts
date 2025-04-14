@@ -5,6 +5,7 @@ import type { GraphState } from '@app-types/workflow';
 import { InitialStateNodeData } from '@app-types/workflow';
 import { NodeType } from '@app-types/workflow/node-types';
 import { useThemeStore } from '@stores/theme-store';
+import { initialWorkflowContext } from './features/workflow-context';
 
 export const getInitialStateNodes = (): Node<InitialStateNodeData>[] => {
     const isDarkMode = useThemeStore.getState().isDarkMode;
@@ -76,7 +77,8 @@ export const initialStateNodes = getInitialStateNodes();
 export const getInitialState = (): GraphState => ({
     nodes: getInitialStateNodes(),
     edges: [],
-    workflowExecution: null
+    workflowExecution: null,
+    workflowContext: initialWorkflowContext
 });
 
 export const initialState: GraphState = getInitialState();
