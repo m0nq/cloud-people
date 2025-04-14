@@ -394,9 +394,36 @@ async def execute_task(request: TaskRequest):
 async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
     """Run a task in the background"""
     logger.info(f"[run_task:{task_id}] Starting execution for task: '{request.task}'")
+    heartbeat_task = None # Initialize heartbeat_task
+
+    async def _update_heartbeat():
+        """Periodically update the last_activity timestamp."""
+        while True:
+            try:
+                if task_status.metadata is None:
+                    task_status.metadata = {}
+                task_status.metadata["last_activity"] = datetime.now().isoformat()
+                logger.debug(f"[run_task:{task_id}] Heartbeat: Updated last_activity.")
+                await asyncio.sleep(30)  # Update every 30 seconds
+            except asyncio.CancelledError:
+                logger.info(f"[run_task:{task_id}] Heartbeat task stopping.")
+                break # Exit loop on cancellation
+            except Exception as hb_exc:
+                logger.error(f"[run_task:{task_id}] Error in heartbeat task: {hb_exc}")
+                await asyncio.sleep(60) # Wait longer after an error
+
     try:
+        # Start the heartbeat task
+        heartbeat_task = asyncio.create_task(_update_heartbeat())
+        logger.info(f"[run_task:{task_id}] Heartbeat task started.")
+
         # Update task status to running
         task_status.status = "running"
+        # Ensure metadata exists for initial timestamp update by heartbeat
+        if task_status.metadata is None:
+            task_status.metadata = {}
+        # Initial last_activity update (will be overwritten by heartbeat shortly)
+        task_status.metadata["last_activity"] = datetime.now().isoformat()
         await broadcast_task_update(task_id, task_status)
         
         # Get LLM provider configuration
@@ -462,6 +489,16 @@ async def run_task(task_id: str, request: TaskRequest, task_status: TaskStatus):
         task_status.end_time = datetime.now()
 
     finally:
+        # Ensure heartbeat task is cancelled
+        if heartbeat_task and not heartbeat_task.done():
+            heartbeat_task.cancel()
+            try:
+                await heartbeat_task # Wait for cancellation to complete
+            except asyncio.CancelledError:
+                logger.info(f"[run_task:{task_id}] Heartbeat task successfully cancelled.")
+            except Exception as e_cancel:
+                logger.error(f"[run_task:{task_id}] Error awaiting cancelled heartbeat task: {e_cancel}")
+
         # This block ensures cleanup happens even if the main try block completes or an exception occurs
         logger.info(f"[run_task:{task_id}] Entering finally block. Current status: {task_status.status}")
         
