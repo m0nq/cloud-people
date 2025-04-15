@@ -27,6 +27,10 @@ import { useWorkflowStore } from '@stores/workflow';
 import { AgentNode } from '@components/canvas-nodes';
 import { InitialStateNode } from '@components/canvas-nodes';
 import { RootNode } from '@components/canvas-nodes';
+import { CloudJesusNode } from '@components/canvas-nodes';
+import { DatePickerNode } from '@components/canvas-nodes';
+import { StickyNoteNode } from '@components/canvas-nodes';
+import { ConditionNode } from '@components/canvas-nodes';
 import { layoutElements } from '@lib/dagre/dagre';
 import { EdgeType } from '@app-types/workflow/node-types';
 import { NodeType } from '@app-types/workflow/node-types';
@@ -38,7 +42,7 @@ const AutomationEdge = dynamic(() => import('@components/canvas-nodes').then(mod
 
 type WorkflowRendererProps = {
     children: (props: {
-        nodes?: Node<NodeData | InitialStateNodeData>[];
+        nodes?: Node[];
         edges?: Edge[];
         edgeTypes?: EdgeTypes;
         nodeTypes?: NodeTypes;
@@ -56,7 +60,11 @@ const nodeTypes = {
     [NodeType.Root]: RootNode,
     [NodeType.Agent]: AgentNode,
     [NodeType.Approval]: ApprovalNode,
-    [NodeType.Delivery]: DeliveryNode
+    [NodeType.Delivery]: DeliveryNode,
+    [NodeType.CloudJesus]: CloudJesusNode,
+    [NodeType.DatePicker]: DatePickerNode,
+    [NodeType.StickyNote]: StickyNoteNode,
+    [NodeType.Condition]: ConditionNode
 } as NodeTypes;
 
 const edgeTypes = {
@@ -157,7 +165,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
     // Only create a new reference if the nodes array actually changes
     const nodesWithModals = useMemo(() => nodes, [nodes]);
 
-    const [layout, setLayout] = useState<{ nodes: Node<NodeData | InitialStateNodeData>[]; edges: Edge[] }>({
+    const [layout, setLayout] = useState<{ nodes: Node[]; edges: Edge[] }>({
         nodes: nodesWithModals,
         edges
     });
@@ -179,7 +187,7 @@ export const WorkflowRenderer = ({ children }: WorkflowRendererProps) => {
     useEffect(() => {
         let isSubscribed = true;
 
-        const updateLayout = (newNodes: Node<NodeData | InitialStateNodeData>[], newEdges: Edge[]) => {
+        const updateLayout = (newNodes: Node[], newEdges: Edge[]) => {
             if (!isSubscribed) return;
 
             // Use startTransition to batch updates and reduce render priority

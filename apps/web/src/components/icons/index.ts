@@ -1,5 +1,4 @@
 export * from './brain-icon';
-export * from './branches-icon';
 export * from './chat-icon';
 export * from './check-mark-icon';
 export * from './chevron-icon';

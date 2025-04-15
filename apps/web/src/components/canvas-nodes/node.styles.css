@@ -37,7 +37,7 @@
     hover:shadow-2xl bg-[var(--card)] text-[var(--card-foreground)] flex flex-col;
 
     .init-node-icon-container {
-        @apply h-48 flex items-center justify-center p-8;
+        @apply w-full h-48 flex items-center justify-center p-8;
     }
 
     .init-node-content {
@@ -132,4 +132,210 @@
     .delivery-icon {
         @apply text-[var(--foreground)];
     }
+}
+
+.cloud-jesus-node {
+    @apply w-80 rounded-xl shadow-xl overflow-hidden cursor-pointer transition-all duration-300
+    hover:shadow-2xl bg-[var(--card)] text-[var(--card-foreground)] flex flex-col;
+
+    .message-header {
+        @apply p-4 flex items-center justify-between border-b border-[var(--border)];
+
+        .agent-info {
+            @apply flex items-center gap-3;
+
+            .agent-avatar {
+                @apply w-8 h-8 rounded-full bg-[#9333ea1a] flex items-center justify-center;
+            }
+
+            .agent-name {
+                @apply font-semibold text-[var(--foreground)];
+            }
+        }
+
+        .online-status {
+            @apply flex items-center gap-2;
+
+            .status-dot {
+                @apply w-2 h-2 rounded-full bg-green-500;
+            }
+
+            .status-text {
+                @apply text-sm text-[var(--muted-foreground)];
+            }
+        }
+    }
+
+    .message-content {
+        @apply p-4 min-h-[200px] flex flex-col gap-4 bg-[var(--card)] overflow-y-auto;
+
+        .message {
+            @apply p-3 rounded-lg bg-[#9333ea1a] text-[var(--foreground)] max-w-[80%];
+
+            p {
+                @apply text-sm leading-relaxed;
+            }
+        }
+    }
+
+    .message-input {
+        @apply p-4 border-t border-[var(--border)];
+
+        input {
+            @apply w-full px-4 py-2 rounded-full bg-[var(--muted)] text-[var(--foreground)]
+            placeholder:text-[var(--muted-foreground)] border border-[var(--border)]
+            focus:outline-none focus:ring-2 focus:ring-[var(--ring)];
+        }
+    }
+}
+
+.date-picker-node {
+    @apply w-72 rounded-xl shadow-xl overflow-visible cursor-pointer transition-all duration-300
+    hover:shadow-2xl bg-[var(--card)] text-[var(--card-foreground)] flex flex-col;
+
+    .date-picker-header {
+        @apply p-4 flex flex-col gap-2 border-b border-[var(--border)];
+
+        h3 {
+            @apply text-lg font-semibold text-[var(--foreground)];
+        }
+
+        .selected-date {
+            @apply text-sm text-[var(--muted-foreground)];
+        }
+    }
+
+    .date-picker-button {
+        @apply p-4 text-sm text-[var(--primary)] hover:text-[var(--primary-foreground)]
+        hover:bg-[var(--primary)] transition-colors duration-200;
+    }
+
+    .date-picker-modal {
+        @apply absolute top-full left-0 mt-2 z-50;
+    }
+}
+
+.sticky-note-node {
+    @apply w-64 rounded-xl shadow-xl overflow-hidden bg-[var(--card)] text-[var(--card-foreground)] flex flex-col;
+    min-height: 200px;
+
+    .sticky-note-header {
+        @apply p-3 flex items-center justify-between border-b border-[var(--border)];
+
+        .sticky-note-label {
+            @apply text-sm font-medium text-[var(--foreground)];
+        }
+
+        .edit-button {
+            @apply p-1.5 rounded-lg hover:bg-[var(--accent)] transition-colors duration-200;
+
+            .icon {
+                @apply w-4 h-4 text-[var(--muted-foreground)];
+            }
+
+            &:hover .icon {
+                @apply text-[var(--accent-foreground)];
+            }
+        }
+    }
+
+    .sticky-note-content {
+        @apply p-4 text-sm text-[var(--muted-foreground)] flex-grow;
+        min-height: 150px;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
+    .sticky-note-textarea {
+        @apply p-4 text-sm text-[var(--foreground)] bg-transparent border-none outline-none resize-none flex-grow;
+        min-height: 150px;
+
+        &::placeholder {
+            @apply text-[var(--muted-foreground)];
+        }
+    }
+}
+
+.condition-node {
+    width: 300px;
+    background-color: var(--background);
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.condition-node-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    background-color: var(--accent);
+    border-bottom: 1px solid var(--border);
+}
+
+.condition-node-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.condition-node-edit-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-primary);
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.condition-node-edit-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.edit-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.condition-node-content {
+    padding: 15px;
+}
+
+.condition-node-field {
+    margin-bottom: 15px;
+}
+
+.condition-node-field label,
+.condition-node-field h4 {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 14px;
+}
+
+.condition-node-field textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background-color: var(--background-light);
+    color: var(--text-primary);
+    resize: vertical;
+}
+
+.condition-node-field p {
+    margin: 0;
+    padding: 8px;
+    background-color: var(--background-light);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    min-height: 36px;
 }

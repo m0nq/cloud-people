@@ -54,6 +54,10 @@ const InitialStateNode = ({ data }: InitialStateNodeProps): ReactNode => {
                 break;
             case 'SFA':
                 break;
+            case 'CJ':
+                // Open chat with Cloud Jesus
+                alert('Cloud Jesus is here to help! Chat functionality coming soon.');
+                break;
         }
         // otherwise pop up for specific label with details and actions
     };
@@ -63,6 +67,8 @@ const InitialStateNode = ({ data }: InitialStateNodeProps): ReactNode => {
             case 'SFT':
                 return <CopyIcon width={80} height={80} stroke={data.iconColor} />;
             case 'SFA':
+                return <MessageSquareIcon width={80} height={80} stroke={data.iconColor} />;
+            case 'CJ':
                 return <MessageSquareIcon width={80} height={80} stroke={data.iconColor} />;
             case 'SFS':
             default:
@@ -85,6 +91,9 @@ const InitialStateNode = ({ data }: InitialStateNodeProps): ReactNode => {
             break;
         case 'SFA':
             iconBackground = isDarkMode ? '#1e3a8a4d' : '#dbeafe4d'; // blue with opacity
+            break;
+        case 'CJ':
+            iconBackground = isDarkMode ? '#9333ea4d' : '#fae8ff4d'; // fuchsia with opacity
             break;
         default:
             iconBackground = data.iconBackground;

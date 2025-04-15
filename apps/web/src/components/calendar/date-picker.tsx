@@ -22,53 +22,31 @@ interface DatePickerProps {
     isOpen: boolean;
     onClose: () => void;
     onDateSelect: (date: Date) => void;
+    initialDate?: Date;
 }
 
-export const DatePicker = ({ isOpen, onClose, onDateSelect }: DatePickerProps): ReactNode => {
-    const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+export const DatePicker = ({ isOpen, onClose, onDateSelect, initialDate }: DatePickerProps): ReactNode => {
+    const [selectedDate, setSelectedDate] = useState<Date>(initialDate || new Date());
     const [selectedTime, setSelectedTime] = useState<string>('');
     const [showTimeInput, setShowTimeInput] = useState(false);
 
-    const handleDateSelect = useCallback(
-        (date: Date) => {
-            // If clicking the same date, unselect it
-            if (selectedDate && dayjs(date).isSame(selectedDate, 'date')) {
-                setSelectedDate(null);
-            } else {
-                setSelectedDate(date);
-            }
-        },
-        [selectedDate]
-    );
+    const handleDayClick = (day: Date) => {
+        setSelectedDate(day);
+        setShowTimeInput(true);
+    };
 
-    const handleTimeChange = (event: ChangeEvent<HTMLInputElement>) => {
-        const value = event.target.value;
-        if (!value) return;
-        setSelectedTime(value);
+    const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSelectedTime(e.target.value);
     };
 
     const handleSubmit = () => {
-        if (!selectedDate) return;
-
-        let finalDateTime: Date;
-        if (selectedTime) {
-            // If time is selected, combine date with selected time
-            const [hours, minutes] = selectedTime.split(':').map(Number);
-            finalDateTime = dayjs(selectedDate)
-                .hour(hours)
-                .minute(minutes)
-                .toDate();
-        } else {
-            // If no time selected, use current time
-            const now = new Date();
-            finalDateTime = dayjs(selectedDate)
-                .hour(now.getHours())
-                .minute(now.getMinutes())
-                .toDate();
+        if (selectedDate && selectedTime) {
+            const [hours, minutes] = selectedTime.split(':');
+            const date = new Date(selectedDate);
+            date.setHours(parseInt(hours), parseInt(minutes));
+            onDateSelect(date);
+            onClose();
         }
-
-        onDateSelect(finalDateTime);
-        onClose();
     };
 
     const config = useMemo(() => ({
@@ -104,7 +82,7 @@ export const DatePicker = ({ isOpen, onClose, onDateSelect }: DatePickerProps): 
                     <Calendar
                         getDayProps={(date: Date) => ({
                             selected: selectedDate ? dayjs(date).isSame(selectedDate, 'date') : false,
-                            onClick: () => handleDateSelect(date)
+                            onClick: () => handleDayClick(date)
                         })}
                         firstDayOfWeek={0}
                         aria-label="Date Time Picker"
@@ -126,7 +104,7 @@ export const DatePicker = ({ isOpen, onClose, onDateSelect }: DatePickerProps): 
                 <Button className="cancel-button" onClick={onClose}>
                     Cancel
                 </Button>
-                <Button className="submit-button" disabled={!selectedDate} onClick={handleSubmit}>
+                <Button className="submit-button" disabled={!selectedDate || !selectedTime} onClick={handleSubmit}>
                     Select
                 </Button>
             </div>

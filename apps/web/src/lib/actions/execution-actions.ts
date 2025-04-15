@@ -91,6 +91,10 @@ export const createExecution = async (query: ExecutionQuery): Promise<WorkflowEx
 };
 
 export const updateExecution = async (query: ExecutionQuery): Promise<WorkflowExecution> => {
+    // --- ADD SERVER-SIDE LOG ---
+    console.log('[DEBUG] updateExecution action received query:', JSON.stringify(query, null, 2)); 
+    // --- END SERVER-SIDE LOG ---
+
     const user = await authCheck();
 
     if (!query.id) {
@@ -152,10 +156,14 @@ export const updateExecution = async (query: ExecutionQuery): Promise<WorkflowEx
                 throw new Error('No execution found with the provided ID');
             }
 
+            // --- ADD SERVER-SIDE LOG ---
+            console.log('[DEBUG] updateExecution calling updateWorkflow with workflowId:', query.workflowId);
+            // --- END SERVER-SIDE LOG ---
+
             // Update workflow using the existing function
             await updateWorkflow({
-                workflowId: query.workflowId,
-                set: {
+                id: query.workflowId,
+                data: {
                     state: query.currentStatus,
                     current_step: query.nodeId,
                     updated_at: now

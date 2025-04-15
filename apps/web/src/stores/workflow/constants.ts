@@ -28,7 +28,7 @@ export const getInitialStateNodes = (): Node<InitialStateNodeData>[] => {
                     agentId: ''
                 }
             },
-            position: INITIAL_NODE_POSITION
+            position: { ...INITIAL_NODE_POSITION, x: INITIAL_NODE_POSITION.x - 600 }
         },
         {
             id: 'SFT',
@@ -47,7 +47,7 @@ export const getInitialStateNodes = (): Node<InitialStateNodeData>[] => {
                     agentId: ''
                 }
             },
-            position: INITIAL_NODE_POSITION
+            position: { ...INITIAL_NODE_POSITION, x: INITIAL_NODE_POSITION.x - 200 }
         },
         {
             id: 'SFA',
@@ -66,9 +66,41 @@ export const getInitialStateNodes = (): Node<InitialStateNodeData>[] => {
                     agentId: ''
                 }
             },
-            position: INITIAL_NODE_POSITION
+            position: { ...INITIAL_NODE_POSITION, x: INITIAL_NODE_POSITION.x + 200 }
+        },
+        {
+            id: 'CJ',
+            type: NodeType.CloudJesus,
+            data: {
+                id: 'CJ',
+                label: 'Cloud Jesus',
+                background: isDarkMode ? '#1E2A3B' : '#FFFFFF',
+                color: isDarkMode ? 'white' : '#0f172a',
+                iconColor: '#e879f9', // fuchsia-400
+                description: 'Hello my child, let\'s talk about what you\'d like to build',
+                type: NodeType.CloudJesus,
+                workflowId: '',
+                agentRef: {
+                    agentId: ''
+                }
+            },
+            position: { ...INITIAL_NODE_POSITION, x: INITIAL_NODE_POSITION.x + 600 }
         }
     ] as Node<InitialStateNodeData>[];
+};
+
+export const INITIAL_STATE_NODE: Node<InitialStateNodeData> = {
+    id: 'initial-state',
+    type: NodeType.Initial,
+    data: {
+        id: 'initial-state',
+        type: NodeType.Initial,
+        label: 'Initial State',
+        background: '#000',
+        color: '#fff',
+        iconColor: '#fff'
+    } as InitialStateNodeData,
+    position: { x: 0, y: 0 }
 };
 
 // For backward compatibility

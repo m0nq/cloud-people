@@ -1,0 +1,58 @@
+@reference "../../app/globals.css";
+/* Toggle button styles */
+.toggle-button-cover {
+  @apply fixed top-5 right-5 z-10 flex flex-col items-end;
+
+  .toggle-label {
+    @apply mb-[5px] text-xs text-[var(--text-gray)];
+    /* Add dark mode styles if needed */
+  }
+}
+
+.button {
+  /* Styles for the button container (#button-3) */
+  @apply relative w-[120px] h-8 overflow-hidden rounded-full shadow-sm border border-[color:var(--border)];
+  background-color: var(--background);
+
+  .checkbox {
+    /* Invisible input overlay */
+    @apply absolute inset-0 w-full h-full p-0 m-0 opacity-0 cursor-pointer z-30;
+  }
+
+  .knobs {
+    /* Base positioning for knobs and layer */
+    @apply absolute inset-0 z-20;
+
+    /* The knob itself */
+    &:before {
+      content: "SANDBOX";
+      @apply absolute w-[70px] h-7 text-neutral-700 text-[10px] font-semibold text-center leading-7 bg-green-200 rounded-full top-[2px] left-[4px];
+      transition: 0.3s ease all, left 0.3s cubic-bezier(0.18, 0.89, 0.35, 1.15);
+    }
+  }
+
+  /* --- State Styles --- */
+  /* These selectors target .knobs:before based on the state of .checkbox */
+
+  /* Active state (while pressing) */
+  .checkbox:active + .knobs:before {
+    @apply w-[70px];
+  }
+
+  /* Checked state */
+  .checkbox:checked + .knobs:before {
+    content: "LIVE";
+    @apply bg-red-600 text-white left-[46px];
+  }
+
+  /* Active and Checked state (while pressing when checked) */
+  .checkbox:checked:active + .knobs:before {
+    @apply -ml-[70px];
+  }
+
+  /* --- Layer --- */
+  .layer {
+    /* Base positioning and style for the background layer */
+    @apply absolute inset-0 z-10 rounded-full transition-all duration-300 ease-linear bg-[var(--background)];
+  }
+}

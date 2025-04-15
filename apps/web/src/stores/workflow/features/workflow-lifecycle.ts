@@ -10,16 +10,13 @@ import { EdgeType } from '@app-types/workflow/node-types';
 import { NodeType } from '@app-types/workflow/node-types';
 import { ROOT_NODE_POSITION } from '@config/layout.const';
 
-import { workflowService } from '@lib/service-providers/workflow-service';
-import { nodeService } from '@lib/service-providers/node-service';
-
 import { fetchWorkflowNodes } from '@lib/actions/canvas-actions';
 import { fetchWorkflowEdges } from '@lib/actions/canvas-actions';
 
-import { updateState } from '../utils/state-helpers';
-import { findRootNode } from '../utils/state-helpers';
-import { findNextNode } from '../utils/state-helpers';
-import { getConnectedNodes } from '../utils/state-helpers';
+import { updateState } from '@stores/workflow/utils/state-helpers';
+import { findRootNode } from '@stores/workflow/utils/state-helpers';
+import { findNextNode } from '@stores/workflow/utils/state-helpers';
+import { getConnectedNodes } from '@stores/workflow/utils/state-helpers';
 
 import { isInitialStateNode } from './node-validation';
 import { hasWorkflowId } from './node-validation';
@@ -27,19 +24,21 @@ import { isWorkflowNode } from './node-validation';
 
 import { useAgentStore } from '@stores/agent-store';
 
+import { createWorkflow } from '@lib/service-providers/workflow-service';
+import { createNodes, updateNodes } from '@lib/service-providers/node-service';
+
 export function createWorkflowLifecycle(set: Function, get: Function) {
     return {
         createNewWorkflow: async () => {
             try {
-                console.log(`[WorkflowLifecycle] createNewWorkflow called. Using mode: ${workflowService._mode}`);
-
-                const workflowId = await workflowService.createWorkflow();
+                console.log('[WorkflowLifecycle] createNewWorkflow called.');
+                const workflowId = await createWorkflow();
                 if (!workflowId) {
                     throw new Error('Failed to create workflow');
                 }
                 console.log(`[WorkflowLifecycle] Workflow created with ID: ${workflowId}`);
 
-                const dbNode = await nodeService.createNodes({
+                const dbNode = await createNodes({
                     data: {
                         workflowId,
                         nodeType: 'root'
@@ -67,19 +66,22 @@ export function createWorkflowLifecycle(set: Function, get: Function) {
                 });
 
                 try {
-                    await nodeService.updateNodes({
+                    // Uncomment updateNodes call to set initial state
+                    await updateNodes({
                         data: {
                             workflowId,
                             nodeId: node.id,
                             set: {
                                 state: WorkflowState.Initial,
                                 current_step: '0',
-                                updated_at: new Date()
+                                updated_at: new Date().toISOString() // Use ISOString consistently
                             }
                         }
                     });
                 } catch (error) {
                     console.error('Failed to update node in database:', error);
+                    // Decide if this error should prevent workflow creation or just be logged.
+                    // Currently, it's just logged, and workflowId is still returned.
                 }
 
                 return workflowId;
@@ -134,7 +136,7 @@ export function createWorkflowLifecycle(set: Function, get: Function) {
                     const newState = get(); // Get state *after* creation
                     const newRootNode = newState.findRootNode(newState.nodes);
                     if (newRootNode && hasWorkflowId(newRootNode)) {
-                        workflowId = newRootNode.data.workflowId;
+                        workflowId = newRootNode.data.workflowId ?? null;
                         rootNodeId = newRootNode.id;
                         console.log(`[WorkflowLifecycle] New workflow created. ID: ${workflowId}, Root Node ID: ${rootNodeId}`);
                     } else {
@@ -144,7 +146,7 @@ export function createWorkflowLifecycle(set: Function, get: Function) {
                 } else {
                     const existingRootNode = findRootNode(nodes);
                     if (existingRootNode && hasWorkflowId(existingRootNode)) {
-                        workflowId = existingRootNode.data.workflowId;
+                        workflowId = existingRootNode.data.workflowId ?? null;
                         rootNodeId = existingRootNode.id;
                         console.log(`[WorkflowLifecycle] Existing workflow found. ID: ${workflowId}, Root Node ID: ${rootNodeId}`);
                     } else {
