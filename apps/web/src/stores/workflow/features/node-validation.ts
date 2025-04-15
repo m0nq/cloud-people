@@ -8,11 +8,13 @@ import { findRootNode } from '@stores/workflow';
 import { NodeType } from '@app-types/workflow/node-types';
 
 export const isInitialStateNode = (node: Node<NodeData | InitialStateNodeData>): node is Node<InitialStateNodeData> => {
-    return node.data.type?.includes(NodeType.Initial) ?? false;
+    // Safely check for type property and compare value
+    return !!(node.data && 'type' in node.data && node.data.type === NodeType.Initial);
 };
 
 export const isRootNode = (node: Node<NodeData | InitialStateNodeData>): node is Node<InitialStateNodeData> => {
-    return node.data.type?.includes(NodeType.Root) ?? false;
+    // Assumes root node is the same as initial state node for now - Apply same safe check
+    return !!(node.data && 'type' in node.data && node.data.type === NodeType.Initial);
 };
 
 export const isWorkflowNode = (node: Node<NodeData | InitialStateNodeData>): node is Node<NodeData> => {

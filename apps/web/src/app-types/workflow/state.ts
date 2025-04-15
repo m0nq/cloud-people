@@ -12,6 +12,7 @@ import { type EdgeData } from './edges';
 import type { AgentData } from '@app-types/agent';
 import type { AgentState } from '@app-types/agent';
 import type { AgentResult } from '@app-types/agent';
+import { ConditionNodeData } from '@components/canvas-nodes/condition-node';
 
 export enum WorkflowState {
     Initial = 'INITIAL',
@@ -40,7 +41,7 @@ export interface WorkflowContext {
 }
 
 export type GraphState = {
-    nodes: (Node<NodeData> | Node<InitialStateNodeData>)[];
+    nodes: (Node<NodeData> | Node<InitialStateNodeData> | Node<ConditionNodeData>)[];
     edges: Edge<EdgeData>[];
     workflowExecution: WorkflowExecution | null;
     // Add workflow context to store agent outputs
@@ -70,7 +71,7 @@ export interface WorkflowActions {
     progressWorkflow: (nodeId: string, status: AgentState) => Promise<void>;
 
     // Node helpers
-    findRootNode: (nodes: Node<NodeData | InitialStateNodeData>[]) => Node<NodeData> | undefined;
+    findRootNode: (nodes: (Node<NodeData | InitialStateNodeData | ConditionNodeData>)[]) => Node<NodeData> | undefined;
     findNextNode: (nodes: Node[], edges: Edge[], currentNodeId: string) => Node | undefined;
     getConnectedNodes: (node: Node) => Node[];
     isCurrentNode: (nodeId: string) => boolean;

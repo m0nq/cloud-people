@@ -68,7 +68,7 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
 
     // Use atomic selectors with useShallow for better performance
     const agentState = useAgentStore(
-        useShallow(state => state.agentState[agentId] || DEFAULT_AGENT_STATE)
+        useShallow(state => (agentId ? state.agentState[agentId] : undefined) || DEFAULT_AGENT_STATE)
     );
     const { state, isEditable } = agentState;
 
@@ -200,12 +200,18 @@ const AgentNode = ({ id, data, isConnectable, sourcePosition, targetPosition }: 
         <NodeComponent.Root className="agent-node">
             <NodeComponent.Content className={containerClassName}>
                 <div className={`${contentClassName} flex items-center justify-center`} onClick={handleAgentDetails}>
-                    <AgentCard agentId={agentId}
-                        agentData={agentData}
-                        state={state}
-                        onEdit={isEditable ? handleAgentDetails : undefined}
-                        onAssistanceRequest={handleAssistanceRequest}
-                        onRestart={handleRestart} />
+                    {agentId ? (
+                        <AgentCard agentId={agentId}
+                            agentData={agentData}
+                            state={state}
+                            onEdit={isEditable ? handleAgentDetails : undefined}
+                            onAssistanceRequest={handleAssistanceRequest}
+                            onRestart={handleRestart}
+                        />
+                    ) : (
+                        // TODO: Consider adding a LoadingSpinner or Placeholder component here
+                        <div>Loading Agent...</div>
+                    )}
                 </div>
             </NodeComponent.Content>
             <NodeComponent.Handle

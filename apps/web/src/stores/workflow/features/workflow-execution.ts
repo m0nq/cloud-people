@@ -35,12 +35,13 @@ const findNextNode = (nodes: Node<NodeData>[], edges: Edge<EdgeData>[], currentN
 const findNonTerminalNodes = (nodes: Node<NodeData>[]): Node<NodeData>[] => {
     const agentStore = useAgentStore.getState();
     return nodes.filter(node => {
-        // Only consider Agent nodes
-        if (node.data.type !== NodeType.Agent || !isWorkflowNode(node)) {
+        // Only consider Agent nodes that have an agentRef
+        if (node.data.type !== NodeType.Agent || !isWorkflowNode(node) || !node.data.agentRef) {
             return false;
         }
 
         // Get the current state of the agent
+        // Accessing agentRef is now safe due to the check above
         const agentId = node.data.agentRef.agentId;
         const agentState = agentStore.getAgentState(agentId)?.state || AgentState.Initial;
 
@@ -321,7 +322,7 @@ export const createWorkflowExecutionSlice = <T extends { workflowExecution: Grap
 
             // Pause all non-terminal nodes with a timeout to prevent hanging
             const pausePromises = nonTerminalNodes.map(node => {
-                if (isWorkflowNode(node) && node.data.type === NodeType.Agent) {
+                if (isWorkflowNode(node) && node.data.type === NodeType.Agent && node.data.agentRef) {
                     const agentId = node.data.agentRef.agentId;
                     console.log(`[DEBUG] Attempting to pause node ${node.id} with agent ID ${agentId}`);
 
@@ -492,11 +493,11 @@ export const createWorkflowExecutionSlice = <T extends { workflowExecution: Grap
                 }
             });
 
-            // Resume the agent's execution if it's an agent node
-            if (lastNode && isValidWorkflowNode(lastNode) && lastNode.data.type === NodeType.Agent) {
+            // Resume the agent's execution if it's an agent node with an agentRef
+            if (lastNode && isValidWorkflowNode(lastNode) && lastNode.data.type === NodeType.Agent && lastNode.data.agentRef) {
                 // Use node ID as task ID for browser-use service
                 const nodeId = lastNode.id;
-                // Use agent ID for agent store operations
+                // Use agent ID for agent store operations (agentRef is now guaranteed)
                 const agentId = lastNode.data.agentRef.agentId;
 
                 const agentStore = useAgentStore.getState();
@@ -723,8 +724,8 @@ export const transitionNode = (
         return;
     }
 
-    // If this is an agent node, update agent state
-    if (node.data.type === NodeType.Agent) {
+    // If this is an agent node AND it has an agentRef
+    if (node.data.type === NodeType.Agent && node.data.agentRef) {
         const { agentId } = node.data.agentRef;
         const agentStore = useAgentStore.getState();
         const currentAgent = agentStore.getAgentState(agentId);

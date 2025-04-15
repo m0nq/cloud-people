@@ -1,18 +1,35 @@
-import { useState } from 'react';
-import { type NodeProps } from '@xyflow/react';
+import { Handle, Position } from '@xyflow/react';
+import { type NodeProps } from '@xyflow/react'; 
 import { type ReactNode } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { HiOutlinePencilAlt } from 'react-icons/hi';
 import { HiOutlineCheck } from 'react-icons/hi';
 
-import { type NodeData } from '@app-types/workflow';
-
-export interface ConditionNodeData extends NodeData {
+// Extend Record<string, unknown> to satisfy Node<T> constraint.
+export interface ConditionNodeData extends Record<string, unknown> {
   ifCondition: string;
   thenAction: string;
 }
 
-export const ConditionNode = ({ data }: NodeProps<ConditionNodeData>): ReactNode => {
+// Define props explicitly to bypass potential generic issues
+interface ExplicitConditionNodeProps {
+  id: string;
+  data: ConditionNodeData;
+  selected?: boolean;
+  type?: string;
+  isConnectable?: boolean;
+  xPos?: number; // Optional based on React Flow version/usage
+  yPos?: number; // Optional based on React Flow version/usage
+  dragging?: boolean;
+  zIndex?: number;
+  targetPosition?: Position;
+  sourcePosition?: Position;
+  // Add other props from NodeProps if needed
+}
+
+// Use the explicit props interface
+export const ConditionNode = ({ data }: ExplicitConditionNodeProps): ReactNode => {
   const [isEditing, setIsEditing] = useState(false);
   const [ifCondition, setIfCondition] = useState(data.ifCondition || '');
   const [thenAction, setThenAction] = useState(data.thenAction || '');

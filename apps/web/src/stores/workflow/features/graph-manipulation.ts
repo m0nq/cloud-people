@@ -190,7 +190,7 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
         try {
             // Get workflow ID from source node
             const sourceNode = get().nodes.find(n => n.id === connection.source);
-            const workflowId = sourceNode?.data?.workflowId || '';
+            const workflowId = sourceNode?.data && 'workflowId' in sourceNode.data ? String(sourceNode.data.workflowId) : undefined;
             if (!workflowId) {
                 throw new Error('No workflow ID found for source node');
             }
@@ -198,7 +198,7 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
             // Create edge in database
             const edgeId = await createEdge({
                 data: {
-                    workflowId: sourceNode?.data?.workflowId,
+                    workflowId: workflowId,
                     toNodeId: connection.target,
                     fromNodeId: connection.source
                 }
@@ -213,7 +213,7 @@ export const createGraphManipulation = (set: (state: WorkflowStore) => void, get
                 animated: true,
                 data: {
                     id: edgeId,
-                    workflowId: sourceNode?.data?.workflowId,
+                    workflowId: workflowId,
                     toNodeId: connection.target,
                     fromNodeId: connection.source
                 }
