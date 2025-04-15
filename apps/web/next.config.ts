@@ -11,18 +11,18 @@ const config: NextConfig = {
     compiler: {
         removeConsole: process.env.NODE_ENV === 'production'
     },
+    turbopack: {
+        rules: {
+            // Your Turbopack-specific rules here
+        }
+    },
+    // Allow cross-origin requests from Windsurf browser preview
+    allowedDevOrigins: ['127.0.0.1'],
     experimental: {
         // implement for partial pre-rendering
         // ppr: 'incremental'
         // currently not playing well with react-icons library
         // reactCompiler: true
-        turbo: {
-            rules: {
-                // Your Turbopack-specific rules here
-            }
-        },
-        // Allow cross-origin requests from Windsurf browser preview
-        allowedDevOrigins: ['127.0.0.1'],
         serverActions: {
             allowedOrigins: ['localhost:3000', '127.0.0.1:52543']
         }
