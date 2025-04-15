@@ -1,357 +1,208 @@
-/**
- * Workflow Service Provider
- *
- * This module provides real and mock implementations for workflow operations.
- */
+'use server';
 
-
-import { createClient } from '@lib/supabase/client';
-import { SupabaseClient } from '@supabase/supabase-js';
-import type { User } from '@supabase/supabase-js'; // Moved Supabase types together
-
-import { createServiceProvider } from '.';
-import type { ProviderMode } from '.';
 import { authCheck } from '@lib/actions/authentication-actions';
 import { connectToDB } from '@lib/utils';
-import { getEnvConfig } from '@lib/env'; // Re-added missing import
 import type { QueryConfig } from '@app-types/api';
-import type { WorkflowType } from '@app-types/workflow'; // Changed back to WorkflowType
-import { WorkflowState } from '@app-types/workflow';
+import type { WorkflowType } from '@app-types/workflow';
+// Removed unused client imports: createClient, SupabaseClient
+// Removed unused service provider import: createServiceProvider
 
-// Get service mode from environment
-const getServiceMode = () => {
-    const env = getEnvConfig();
-    // Check for explicit service mode override
-    if (env.NEXT_PUBLIC_SERVICE_MODE === 'mock' || env.NEXT_PUBLIC_SERVICE_MODE === 'real') {
-        return env.NEXT_PUBLIC_SERVICE_MODE;
+// --- Standalone createWorkflow Function ---
+export const createWorkflow = async (): Promise<string> => {
+    console.log("[Server Action] createWorkflow called"); // Verify execution
+    const user = await authCheck();
+    console.log("[Server Action] Authenticated user ID:", user.id); // Log the user ID
+
+    const createWorkflowMutation = `
+      mutation CreateWorkflowMutation($userId: UUID!, $data: JSON!) {
+          collection: insertIntoWorkflowsCollection(objects: [
+              {
+                  data: $data,
+                  user_id: $userId
+              }
+          ]) {
+              records {
+                  id
+                  user_id
+                  data
+                  current_step
+              }
+          }
+      }
+    `;
+
+    const variables = {
+        data: JSON.stringify({ label: 'New Workflow' }), // Default label
+        userId: user.id
+    };
+
+    try {
+      const result = await connectToDB(createWorkflowMutation, variables);
+
+      // Adjust parsing based on observed log output (result seems to be the records array directly)
+      const workflow = Array.isArray(result) ? result[0] : undefined;
+      // Check if workflow exists and has an id
+      if (!workflow?.id) {
+          console.error('No workflow ID returned from mutation or result structure unexpected. Result:', JSON.stringify(result));
+          throw new Error('Failed to create workflow or retrieve ID.');
+      }
+
+      console.log('Successfully created workflow:', workflow.id);
+      return workflow.id;
+
+    } catch (error) {
+        console.error('Failed to create workflow:', error);
+        console.error('Variables causing create failure:', JSON.stringify(variables, null, 2));
+        throw error; // Re-throw
     }
-    // Default to mock in development, real in production
-    return process.env.NODE_ENV === 'development' ? 'mock' : 'real';
 };
 
-// Define the interface for our workflow service
-export interface WorkflowService {
-    createWorkflow(): Promise<string>;
+// --- Standalone fetchWorkflows Function ---
+export const fetchWorkflows = async (config: QueryConfig = {}): Promise<WorkflowType[]> => {
+    await authCheck();
 
-    fetchWorkflows(config?: QueryConfig): Promise<WorkflowType[]>;
-
-    updateWorkflow(config: QueryConfig): Promise<WorkflowType>;
-
-    deleteWorkflow(config: QueryConfig): Promise<string>;
-}
-
-/**
- * Real workflow service implementation that connects to the database
- */
-class RealWorkflowService implements WorkflowService {
-    private supabase: SupabaseClient;
-    private _mode: ProviderMode = 'real'; // Added mode tracking
-
-    constructor() {
-        // createClient internally handles Supabase URL and Key from env vars
-        this.supabase = createClient();
-    }
-
-    async createWorkflow(): Promise<string> {
-        console.log("[RealWorkflowService] createWorkflow called"); // Verify execution
-        const user = await authCheck();
-        console.log("[RealWorkflowService] Authenticated user ID:", user.id); // Log the user ID
-
-        const createWorkflowMutation = `
-        mutation CreateWorkflowMutation($userId: UUID!, $data: JSON!) {
-            collection: insertIntoWorkflowsCollection(objects: [
-                {
-                    data: $data,
-                    user_id: $userId
-                }
-            ]) {
-                records {
-                    id
-                    user_id
-                    data
-                    current_step
-                }
-            }
-        }
+    const fetchWorkflowsQuery = `
+      query FetchWorkflowsQuery($userId: UUID!) {
+          workflowsCollection(filter: { user_id: { eq: $userId } }) {
+              edges {
+                  node {
+                      id
+                      user_id
+                      data
+                      current_step
+                      created_at
+                      updated_at
+                  }
+              }
+          }
+      }
     `;
+    // Note: Assuming authCheck provides user context for connectToDB
+    // If not, you might need to pass user.id explicitly if connectToDB requires it
+    const variables = { userId: config.userId }; // Ensure userId is passed in config if needed
 
-        const variables = {
-            data: JSON.stringify({ label: 'New Workflow' }),
-            userId: user.id
-        } as QueryConfig;
-
-        const [workflow] = await connectToDB(createWorkflowMutation, variables);
-
-        if (!workflow?.id) {
-            console.error('No workflow ID returned from mutation');
-            throw new Error('Failed to create workflow');
-        }
-
-        return workflow.id;
+    try {
+        const result = await connectToDB(fetchWorkflowsQuery, variables);
+        const workflows = result?.workflowsCollection?.edges.map((edge: any) => edge.node) || [];
+        console.log(`Fetched ${workflows.length} workflows.`);
+        return workflows as WorkflowType[];
+    } catch (error) {
+        console.error('Failed to fetch workflows:', error);
+        throw error;
     }
+};
 
-    async fetchWorkflows(config: QueryConfig = {}): Promise<WorkflowType[]> {
-        await authCheck();
+// --- Standalone fetchWorkflowById Function ---
+export const fetchWorkflowById = async (workflowId: string): Promise<WorkflowType | null> => {
+    await authCheck();
 
-        const findWorkflowsQuery = `
-        query WorkflowQuery(
-            $first: Int,
-            $last: Int,
-            $offset: Int,
-            $before: Cursor,
-            $after: Cursor,
-            $filter: WorkflowsFilter,
-            $orderBy: [WorkflowsOrderBy!]
-        ) {
-            collection: workflowsCollection(
-                first: $first
-                last: $last
-                offset: $offset
-                before: $before
-                after: $after
-                filter: $filter
-                orderBy: $orderBy
-            ) {
-                records: edges {
-                    node {
-                        id
-                        state
-                        current_step
-                        data
-                    }
-                }
-            }
-        }
+    const fetchWorkflowByIdQuery = `
+      query FetchWorkflowByIdQuery($workflowId: UUID!) {
+          workflowsCollection(filter: { id: { eq: $workflowId } }, first: 1) {
+              edges {
+                  node {
+                      id
+                      user_id
+                      data
+                      current_step
+                      created_at
+                      updated_at
+                  }
+              }
+          }
+      }
     `;
+    const variables = { workflowId };
 
-        const variables = {
-            ...config,
-            filter: {
-                ...config.filter,
-                workflow_id: { eq: config.workflowId },
-                user_id: { eq: config.userId }
-            }
-        } as QueryConfig;
-
-        const workflows = await connectToDB(findWorkflowsQuery, variables);
-        return workflows.map((workflow: any) => ({
-            id: workflow.id,
-            userId: workflow.user_id, // Assuming user_id exists if needed, adjust based on schema
-            data: workflow.data,
-            state: workflow.state as WorkflowState,
-            currentStep: workflow.current_step
-        })) as WorkflowType[]; // Ensure mapping matches WorkflowType
+    try {
+        const result = await connectToDB(fetchWorkflowByIdQuery, variables);
+        const workflow = result?.workflowsCollection?.edges?.[0]?.node;
+        if (workflow) {
+            console.log('Fetched workflow by ID:', workflow.id);
+            return workflow as WorkflowType;
+        } else {
+            console.log('Workflow not found for ID:', workflowId);
+            return null;
+        }
+    } catch (error) {
+        console.error(`Failed to fetch workflow by ID ${workflowId}:`, error);
+        throw error;
     }
+};
 
-    async updateWorkflow(config: QueryConfig = {}): Promise<WorkflowType> {
-        const user = await authCheck();
+// --- Standalone updateWorkflow Function ---
+export const updateWorkflow = async (workflowId: string, updates: Partial<WorkflowType>): Promise<WorkflowType> => {
+    await authCheck();
 
-        // Ensure we have a workflowId
-        if (!config.workflowId) {
-            throw new Error('No workflow ID provided for update');
-        }
-
-        const updateWorkflowsMutation = `
-        mutation UpdateWorkflowMutation(
-            $workflowId: UUID!,
-            $userId: UUID!,
-            $set: WorkflowsUpdateInput!
-        ) {
-            collection: updateWorkflowsCollection(
-                set: $set,
-                filter: { 
-                    id: { eq: $workflowId },
-                    user_id: { eq: $userId }
-                }
-            ) {
-                records {
-                    id
-                    state
-                    current_step
-                    data
-                    user_id
-                    updated_at
-                }
-            }
-        }
+    const updateWorkflowMutation = `
+      mutation UpdateWorkflowMutation($workflowId: UUID!, $set: WorkflowsUpdateInput!) {
+          updateWorkflowsCollection(filter: { id: { eq: $workflowId } }, set: $set) {
+              records {
+                  id
+                  user_id
+                  data
+                  current_step
+                  created_at
+                  updated_at
+              }
+          }
+      }
     `;
-
-        const variables = {
-            workflowId: config.workflowId,
-            userId: user.id,
-            set: {
-                state: config.set?.state,
-                current_step: config.set?.current_step,
-                data: config.set?.data,
-                updated_at: config.set?.updated_at ?? new Date().toISOString()
-            }
-        };
-
-        const [workflow] = await connectToDB(updateWorkflowsMutation, variables);
-
-        if (!workflow) {
-            console.error('Update workflow mutation did not return expected data');
-            throw new Error('Failed to update workflow');
-        }
-
-        // Map the raw result to WorkflowType
-        return {
-            id: workflow.id,
-            userId: workflow.user_id, // Adjust as needed
-            data: workflow.data,
-            state: workflow.state as WorkflowState,
-            currentStep: workflow.current_step
-        } as WorkflowType;
-
+    // Prepare the 'set' object, ensuring data is stringified if updated
+    const setPayload = { ...updates };
+    if (setPayload.data && typeof setPayload.data !== 'string') {
+        setPayload.data = JSON.stringify(setPayload.data);
     }
+    // Remove fields that shouldn't be directly set (like id, user_id, created_at)
+    delete setPayload.id;
+    delete setPayload.userId;
+    // Ensure updated_at is handled correctly if needed (DB might handle it automatically)
+    // delete setPayload.updatedAt; 
 
-    async deleteWorkflow(config: QueryConfig): Promise<string> {
-        const user = await authCheck();
+    const variables = { workflowId, set: setPayload };
 
-        const deleteWorkflowMutation = `
-        mutation DeleteWorkflowMutation(
-            $filter: WorkflowsFilter,
-            $atMost: Int!
-         ) {
-            collection: deleteFromWorkflowsCollection(filter: $filter, atMost: $atMost) {
-                records {
-                    id
-                }
-            }
+    try {
+        const result = await connectToDB(updateWorkflowMutation, variables);
+        const updatedWorkflow = result?.updateWorkflowsCollection?.records?.[0];
+        if (!updatedWorkflow?.id) {
+            console.error('Update did not return expected data structure:', result);
+            throw new Error('Failed to update workflow or retrieve updated data.');
         }
+        console.log('Successfully updated workflow:', updatedWorkflow.id);
+        return updatedWorkflow as WorkflowType;
+    } catch (error) {
+        console.error(`Failed to update workflow ${workflowId}:`, error);
+        console.error('Variables causing update failure:', JSON.stringify(variables, null, 2));
+        throw error;
+    }
+};
+
+// --- Standalone deleteWorkflow Function ---
+export const deleteWorkflow = async (workflowId: string): Promise<{ id: string }> => {
+    await authCheck();
+
+    const deleteWorkflowMutation = `
+      mutation DeleteWorkflowMutation($workflowId: UUID!) {
+          deleteFromWorkflowsCollection(filter: { id: { eq: $workflowId } }) {
+              records {
+                  id
+              }
+          }
+      }
     `;
+    const variables = { workflowId };
 
-        const variables = {
-            ...config,
-            filter: {
-                ...config.filter,
-                workflow_id: { eq: config.workflowId },
-                user_id: { eq: user.id }
-            }
-        } as QueryConfig;
-
-        const [workflow] = await connectToDB(deleteWorkflowMutation, variables);
-
-        return workflow.id as string;
-    }
-}
-
-/**
- * Mock workflow service implementation that simulates database operations
- */
-class MockWorkflowService implements WorkflowService {
-    // Mock workflows data
-    private mockWorkflows: WorkflowType[] = [];
-    private nextId = 1;
-    private _mode: ProviderMode = 'mock'; // Added mode tracking
-
-    constructor() {
-        console.log('[MockWorkflowService] Initialized');
-    }
-
-    async createWorkflow(): Promise<string> {
-        // Simulate API delay
-        await this.delay(300);
-
-        const workflowId = `mock-workflow-${this.nextId++}`;
-
-        this.mockWorkflows.push({
-            id: workflowId,
-            userId: '00000000-0000-0000-0000-000000000000',
-            data: JSON.stringify({ label: 'New Workflow' }),
-            state: WorkflowState.Initial,
-            currentStep: '0'
-        });
-
-        console.log(`[MockWorkflowService] Created workflow with ID: ${workflowId}`);
-        return workflowId;
-    }
-
-    async fetchWorkflows(config: QueryConfig = {}): Promise<WorkflowType[]> {
-        // Simulate API delay
-        await this.delay(200);
-
-        let filteredWorkflows = [...this.mockWorkflows];
-
-        // Apply filters if provided
-        if (config.workflowId) {
-            filteredWorkflows = filteredWorkflows.filter(w => w.id === config.workflowId);
+    try {
+        const result = await connectToDB(deleteWorkflowMutation, variables);
+        const deletedRecord = result?.deleteFromWorkflowsCollection?.records?.[0];
+        if (!deletedRecord?.id) {
+            console.error('Delete did not return expected data structure:', result);
+            throw new Error('Failed to delete workflow or confirm deletion.');
         }
-
-        if (config.userId) {
-            filteredWorkflows = filteredWorkflows.filter(w => w.userId === config.userId);
-        }
-
-        console.log(`[MockWorkflowService] Fetched ${filteredWorkflows.length} workflows`);
-        return filteredWorkflows;
+        console.log('Successfully deleted workflow:', deletedRecord.id);
+        return deletedRecord as { id: string };
+    } catch (error) {
+        console.error(`Failed to delete workflow ${workflowId}:`, error);
+        throw error;
     }
-
-    async updateWorkflow(config: QueryConfig = {}): Promise<WorkflowType> {
-        // Simulate API delay
-        await this.delay(200);
-
-        if (!config.workflowId) {
-            throw new Error('No workflow ID provided for update');
-        }
-
-        const workflowIndex = this.mockWorkflows.findIndex(w => w.id === config.workflowId);
-
-        if (workflowIndex === -1) {
-            throw new Error('No workflow found with the provided ID');
-        }
-
-        // Update the workflow
-        const updatedWorkflow = {
-            ...this.mockWorkflows[workflowIndex],
-            state: config.set?.state as WorkflowState || this.mockWorkflows[workflowIndex].state,
-            currentStep: config.set?.current_step || this.mockWorkflows[workflowIndex].currentStep,
-            data: config.set?.data as string || this.mockWorkflows[workflowIndex].data
-        };
-
-        this.mockWorkflows[workflowIndex] = updatedWorkflow;
-
-        console.log(`[MockWorkflowService] Updated workflow: ${config.workflowId}`);
-        return updatedWorkflow;
-    }
-
-    async deleteWorkflow(config: QueryConfig): Promise<string> {
-        // Simulate API delay
-        await this.delay(200);
-
-        if (!config.workflowId) {
-            throw new Error('No workflow ID provided for deletion');
-        }
-
-        const workflowIndex = this.mockWorkflows.findIndex(w => w.id === config.workflowId);
-
-        if (workflowIndex === -1) {
-            throw new Error('No workflow found with the provided ID');
-        }
-
-        const workflowId = this.mockWorkflows[workflowIndex].id;
-        this.mockWorkflows.splice(workflowIndex, 1);
-
-        console.log(`[MockWorkflowService] Deleted workflow: ${workflowId}`);
-        return workflowId;
-    }
-
-    // Helper to simulate API delays
-    private async delay(ms: number): Promise<void> {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-}
-
-// Create and export the workflow service with automatic mode switching
-export const workflowService = createServiceProvider<WorkflowService>(
-    new RealWorkflowService(),
-    new MockWorkflowService(),
-    {
-        // Default to real in production, mock in development
-        defaultMode: process.env.NODE_ENV === 'production' ? 'real' : 'mock'
-    }
-);
-
-// Export a hook for accessing the workflow service
-export function useWorkflowService() {
-    return workflowService;
-}
+};

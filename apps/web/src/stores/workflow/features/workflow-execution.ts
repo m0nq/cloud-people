@@ -87,12 +87,26 @@ const updateWorkflowState = async (
     }
 
     console.log(`[DEBUG] Updating workflow state to ${status}`, {
-        workflowId: workflowExecution.id,
+        executionId: workflowExecution.id,
         currentNodeId: nodeId || workflowExecution.currentNodeId,
         previousState: workflowExecution.state
     });
 
     try {
+        // --- ADD DEBUG LOG --- 
+        console.log('[DEBUG] Object being sent to updateExecution action:', {
+            id: workflowExecution.id,
+            nodeId: nodeId || workflowExecution.currentNodeId,
+            workflowId: workflowExecution.workflowId, // Check this value!
+            currentStatus: status,
+            metrics: {},
+            errors: errorMessage ? {
+                message: errorMessage,
+                timestamp: new Date().toISOString()
+            } : undefined
+        });
+        // --- END DEBUG LOG ---
+
         // Update execution record
         await updateExecution({
             id: workflowExecution.id,

@@ -53,16 +53,31 @@ const validateQueryResponse = (data: any) => {
         throw new Error('No data returned from database');
     }
 
-    // For mutations that don't return a collection
-    if (data.insertInto || data.deleteFrom || data.update) {
+    // Prioritize checking for the specific 'collection' alias used in queries/mutations
+    if (data.collection) {
+        // Return the records array if 'collection' key exists
+        return data.collection.records || [];
+    }
+
+    // If 'collection' alias is not present, check for standard mutation keys
+    // (e.g., insertInto<Table>, update<Table>, deleteFrom<Table>)
+    // Check if any key starts with these prefixes
+    const dataKeys = Object.keys(data);
+    const hasStandardMutationKey = dataKeys.some(key => 
+        key.startsWith('insertInto') || 
+        key.startsWith('deleteFrom') || 
+        key.startsWith('update')
+    );
+
+    // Return the whole data object if a standard mutation key is found
+    if (hasStandardMutationKey) {
         return data;
     }
 
-    if (!data.collection) {
-        throw new Error('Invalid response format - missing collection');
-    }
-
-    return data.collection.records || [];
+    // If neither 'collection' nor standard mutation keys are found, it's an error
+    throw new Error(
+        'Invalid response format - expected "collection" key or a standard mutation key (insertInto/deleteFrom/update)'
+    );
 };
 
 export const connectToDB = async (queryString: string, config: QueryConfig): Promise<any> => {
@@ -72,6 +87,8 @@ export const connectToDB = async (queryString: string, config: QueryConfig): Pro
         }
 
         const { data, errors } = await queryDB(queryString, config);
+
+        console.log('Raw GraphQL Response before validation:', JSON.stringify({ data, errors }, null, 2));
 
         if (errors?.length) {
             throw new Error(errors[0].message || 'Database operation failed');

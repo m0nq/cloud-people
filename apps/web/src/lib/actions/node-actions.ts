@@ -1,43 +1,17 @@
 'use server';
 import { type Node } from '@xyflow/react';
-import { cookies } from 'next/headers';
-import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 import { authCheck } from '@lib/actions/authentication-actions';
 import type { QueryConfig } from '@app-types/api';
 import type { NodeData } from '@app-types/workflow';
-import { nodeService, type UpdatedNodeInfo, type CreatedNodeInfo } from '@lib/service-providers/node-service';
+import { createNodes as createNodeService } from '@lib/service-providers/node-service';
+import { updateNodes as updateNodeService } from '@lib/service-providers/node-service';
+import { deleteNodes as deleteNodeService } from '@lib/service-providers/node-service';
+import type { UpdatedNodeInfo } from '@lib/service-providers/node-service';
+import type { CreatedNodeInfo } from '@lib/service-providers/node-service';
 
 export const createNodes = async (config: QueryConfig = {}): Promise<Node<NodeData>> => {
-    const cookieStore = await cookies();
-
-    const cookieMethods = {
-        get(name: string) {
-            return cookieStore.get(name)?.value;
-        },
-        set(name: string, value: string, options: CookieOptions) {
-            try {
-                cookieStore.set(name, value, options);
-            } catch (error) {
-                console.error(`Failed to set cookie "${name}":`, error);
-            }
-        },
-        remove(name: string, options: CookieOptions) {
-            try {
-                cookieStore.delete(name);
-            } catch (error) {
-                console.error(`Failed to remove cookie "${name}":`, error);
-            }
-        },
-    };
-
-    const supabase = createServerClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-        { cookies: cookieMethods }
-    );
-
-    const createdNodeInfo: CreatedNodeInfo = await nodeService.createNodes(config, supabase);
+    const createdNodeInfo: CreatedNodeInfo = await createNodeService(config);
 
     const newNode: Node<NodeData> = {
         id: createdNodeInfo.id,
@@ -104,9 +78,9 @@ export const fetchNodes = async (config: QueryConfig = {}): Promise<Node[]> => {
 };
 
 export const updateNodes = async (config: QueryConfig = {}): Promise<UpdatedNodeInfo> => {
-    return nodeService.updateNodes(config);
+    return updateNodeService(config);
 };
 
-export const deleteNodes = async (config: QueryConfig = {}): Promise<string> => {
-    return nodeService.deleteNodes(config);
+export const deleteNodes = async (config: QueryConfig = {}): Promise<{ affectedCount: number }> => {
+    return deleteNodeService(config);
 };
