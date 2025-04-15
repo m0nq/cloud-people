@@ -1,7 +1,7 @@
 @reference "../../globals.css";
 
 .flow-container {
-    @apply w-full h-full bg-[var(--background)];
+    @apply w-full h-screen bg-[var(--background)];
 
     .flow-panel {
         @apply flex items-center justify-between gap-5 w-[22rem] h-16 left-28 top-4 font-sans font-bold text-5xl leading-8
@@ -20,12 +20,13 @@
 }
 
 .flow-header {
-    @apply fixed top-6 left-16 z-5 text-[var(--text-gray)];
-}
+    @apply fixed top-6 left-28 z-5 text-[var(--text-gray)];
 
-.flow-header h1 {
+h1 {
     @apply m-0 font-sans font-bold text-5xl leading-8 text-[var(--foreground)] opacity-50;
 }
+}
+
 
 .react-flow__panel {
     @apply m-0;

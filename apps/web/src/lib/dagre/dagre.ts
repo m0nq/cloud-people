@@ -11,14 +11,15 @@ import { ROOT_NODE_Y } from '@config/layout.const';
 import { NODE_SPACING_X } from '@config/layout.const';
 import { NODE_SPACING_Y } from '@config/layout.const';
 import type { NodeData } from '@app-types/workflow';
+import { NodeType } from '@app-types/workflow/node-types';
 
 const { WorkflowNode: { WIDTH, HEIGHT } } = Config;
 
 export const layoutElements = (nodes: Node<NodeData>[], edges: Edge[]) => {
-    const isInitialNodes = nodes.every(node => node?.type?.includes('initial'));
+    const isInitialSetup = nodes.some(node => node?.type === NodeType.Initial);
 
     // For initial nodes setup, use the original dagre layout
-    if (isInitialNodes) {
+    if (isInitialSetup) {
         const direction = 'TB';
         const dagreGraph = new dagre.graphlib.Graph();
         dagreGraph.setGraph({ rankdir: direction });
